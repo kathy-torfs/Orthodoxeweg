@@ -12,31 +12,26 @@
       padding: 50px;
       margin: 0;
     }
-
     img.kruis {
       max-width: 200px;
       margin: 30px auto;
       display: block;
     }
-
     h1 {
       font-size: 2.2em;
       color: #5e3907;
       margin-bottom: 10px;
     }
-
     p {
       font-size: 1.3em;
       color: #6e4b15;
       margin-bottom: 40px;
     }
-
     .knoppen {
       display: flex;
       justify-content: center;
       gap: 20px;
     }
-
     .knoppen button {
       font-size: 1em;
       padding: 12px 24px;
@@ -48,12 +43,9 @@
       cursor: pointer;
       transition: 0.3s;
     }
-
     .knoppen button:hover {
       background-color: #ffedaa;
     }
-
-    /* Pop-up stijl */
     .popup {
       display: none;
       position: fixed;
@@ -62,7 +54,6 @@
       background: rgba(0, 0, 0, 0.6);
       z-index: 1000;
     }
-
     .popup-content {
       background: white;
       padding: 30px;
@@ -72,13 +63,11 @@
       box-shadow: 0 0 10px #000;
       text-align: left;
     }
-
     .popup-content input, .popup-content select {
       width: 100%;
       padding: 10px;
       margin-bottom: 10px;
     }
-
     .popup-content button {
       padding: 10px 20px;
     }
@@ -108,10 +97,10 @@
   <div id="registerPopup" class="popup">
     <div class="popup-content">
       <h2>Registreren</h2>
-      <input type="text" placeholder="Naam" />
-      <input type="text" placeholder="Adres" />
-      <input type="text" placeholder="Telefoonnummer" />
-      <input type="email" placeholder="E-mailadres" />
+      <input type="text" id="reg-naam" placeholder="Naam" />
+      <input type="text" id="reg-adres" placeholder="Adres" />
+      <input type="text" id="reg-telefoon" placeholder="Telefoonnummer" />
+      <input type="email" id="reg-email" placeholder="E-mailadres" />
       <select id="parochie">
   <option>-- Kies je parochie --</option>
   <optgroup label="BRUSSELS HOOFDSTEDELIJK GEWEST">
@@ -166,11 +155,13 @@
     <option value="gent">Parochie van de Heilige Apostel Andreas, Gent</option>
   </optgroup>
 </select>
-
-      <button onclick="alert('Je aanvraag werd doorgestuurd naar je parochie. Je ontvangt je login en wachtwoord via e-mail.')">Versturen</button>
+      <button onclick="verzendRegistratie()">Versturen</button>
       <p><a href="#" onclick="closePopup('registerPopup')">Annuleren</a></p>
     </div>
   </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
   <script>
     function showPopup(id) {
@@ -191,55 +182,49 @@
         alert('Ongeldige inloggegevens');
       }
     }
-  </script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-<script>
-  // Firebase configuratie
-  const firebaseConfig = {
-    apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
-    authDomain: "orthodoxeweg.firebaseapp.com",
-    projectId: "orthodoxeweg",
-    storageBucket: "orthodoxeweg.firebasestorage.app",
-    messagingSenderId: "408582263618",
-    appId: "1:408582263618:web:2e02833fa0d4d8903ceedb",
-    measurementId: "G-Y2CXF4QSDW"
-  };
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.firebasestorage.app",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:2e02833fa0d4d8903ceedb",
+      measurementId: "G-Y2CXF4QSDW"
+    };
 
-  // Firebase initialiseren
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-  // Registratie versturen
-  function verzendRegistratie() {
-    const naam = document.getElementById('reg-naam').value;
-    const adres = document.getElementById('reg-adres').value;
-    const telefoon = document.getElementById('reg-telefoon').value;
-    const email = document.getElementById('reg-email').value;
-    const parochie = document.getElementById('parochie').value;
+    function verzendRegistratie() {
+      const naam = document.getElementById('reg-naam').value;
+      const adres = document.getElementById('reg-adres').value;
+      const telefoon = document.getElementById('reg-telefoon').value;
+      const email = document.getElementById('reg-email').value;
+      const parochie = document.getElementById('parochie').value;
 
-    if (!parochie || parochie === "-- Kies je parochie --") {
-      alert("Gelieve een parochie te kiezen.");
-      return;
+      if (!parochie || parochie === "-- Kies je parochie --") {
+        alert("Gelieve een parochie te kiezen.");
+        return;
+      }
+
+      db.collection("registraties").doc(parochie).collection("aanvragen").add({
+        naam: naam,
+        adres: adres,
+        telefoon: telefoon,
+        email: email,
+        parochie: parochie,
+        tijdstip: new Date()
+      })
+      .then(() => {
+        alert("Je registratie is verstuurd naar je parochie. Je ontvangt een login zodra het goedgekeurd is.");
+        closePopup('registerPopup');
+      })
+      .catch((error) => {
+        console.error("Fout bij opslaan:", error);
+        alert("Er is iets fout gegaan. Probeer opnieuw.");
+      });
     }
-
-    db.collection("registraties").doc(parochie).collection("aanvragen").add({
-      naam: naam,
-      adres: adres,
-      telefoon: telefoon,
-      email: email,
-      parochie: parochie,
-      tijdstip: new Date()
-    })
-    .then(() => {
-      alert("Je registratie is verstuurd naar je parochie. Je ontvangt een login zodra het goedgekeurd is.");
-      closePopup('registerPopup');
-    })
-    .catch((error) => {
-      console.error("Fout bij opslaan:", error);
-      alert("Er is iets fout gegaan. Probeer opnieuw.");
-    });
-  }
-</script></body>
+  </script>
+</body>
 </html>
