@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Welkom bij Orthodoxeweg</title>
   <style>
     body {
@@ -52,31 +52,95 @@
     .knoppen button:hover {
       background-color: #ffedaa;
     }
+
+    /* Pop-up stijl */
+    .popup {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 1000;
+    }
+
+    .popup-content {
+      background: white;
+      padding: 30px;
+      width: 300px;
+      margin: 100px auto;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #000;
+      text-align: left;
+    }
+
+    .popup-content input, .popup-content select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    .popup-content button {
+      padding: 10px 20px;
+    }
   </style>
 </head>
-<!-- Inloggen Pop-up -->
-<div id="loginPopup" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000;">
-  <div style="background:white; padding:30px; width:300px; margin:100px auto; border-radius:10px; box-shadow:0 0 10px #000;">
-    <h2>Inloggen</h2>
-    <input type="text" id="username" placeholder="Gebruikersnaam" style="width:100%; padding:10px; margin-bottom:10px;" />
-    <input type="password" id="password" placeholder="Wachtwoord" style="width:100%; padding:10px; margin-bottom:20px;" />
-    <button onclick="doLogin()" style="padding:10px 20px;">Inloggen</button>
-    <br><br>
-    <a href="#" onclick="closeLogin()">Annuleren</a>
-  </div>
-</div>
-<script>
-  function showLogin() { ... }
-  function closeLogin() { ... }
-  function doLogin() { ... }
-</script>
 <body>
   <h1>Welkom bij Orthodoxeweg</h1>
-  <img src="kruis.png" alt="Orthodox kruis" class="kruis" />
-  <p>De weg naar het Orthodoxe geloof.</p>
+  <img src="kruis.png" alt="Orthodox kruis" class="kruis">
+  <p>De weg naar het Orthodoxe geloof</p>
   <div class="knoppen">
-    <button onclick="alert('Registratie pop-up komt hier')">Registreren</button>
-    <button onclick="showLogin()">Inloggen</button>
+    <button onclick="showPopup('loginPopup')">Inloggen</button>
+    <button onclick="showPopup('registerPopup')">Registreren</button>
   </div>
+
+  <!-- Inloggen Pop-up -->
+  <div id="loginPopup" class="popup">
+    <div class="popup-content">
+      <h2>Inloggen</h2>
+      <input type="text" id="username" placeholder="Gebruikersnaam" />
+      <input type="password" id="password" placeholder="Wachtwoord" />
+      <button onclick="doLogin()">Inloggen</button>
+      <p><a href="#" onclick="closePopup('loginPopup')">Annuleren</a></p>
+    </div>
+  </div>
+
+  <!-- Registreren Pop-up -->
+  <div id="registerPopup" class="popup">
+    <div class="popup-content">
+      <h2>Registreren</h2>
+      <input type="text" placeholder="Naam" />
+      <input type="text" placeholder="Adres" />
+      <input type="text" placeholder="Telefoonnummer" />
+      <input type="email" placeholder="E-mailadres" />
+      <select>
+        <option>-- Kies je parochie --</option>
+        <option>Parochie 1</option>
+        <option>Parochie 2</option>
+      </select>
+      <button onclick="alert('Je aanvraag werd doorgestuurd naar je parochie. Je ontvangt je login en wachtwoord via e-mail.')">Versturen</button>
+      <p><a href="#" onclick="closePopup('registerPopup')">Annuleren</a></p>
+    </div>
+  </div>
+
+  <script>
+    function showPopup(id) {
+      document.getElementById(id).style.display = 'block';
+    }
+
+    function closePopup(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+
+    function doLogin() {
+      var user = document.getElementById('username').value;
+      var pass = document.getElementById('password').value;
+      if (user === 'test' && pass === '1234') {
+        alert('Welkom! Je wordt doorgestuurd.');
+        window.location.href = 'volwassen.html';
+      } else {
+        alert('Ongeldige inloggegevens');
+      }
+    }
+  </script>
 </body>
 </html>
