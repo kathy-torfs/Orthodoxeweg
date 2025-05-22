@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Welkom in de Kindermodus</title>
   <style>
     body {
@@ -11,45 +11,33 @@
       background: linear-gradient(to bottom, #fff9e6, #ffe4b3);
       font-family: Comic Sans MS, cursive, sans-serif;
       text-align: center;
-      overflow: hidden;
     }
     #photeinos {
-      width: 120px;
+      font-size: 4em;
+      margin-top: 60px;
       opacity: 0;
-      filter: grayscale(100%);
       transition: opacity 2s ease-in;
-      margin: 50px auto 20px;
     }
     .uitleg {
-      max-width: 80%;
-      margin: 0 auto;
-      font-size: 1.4em;
-      background: rgba(255, 255, 255, 0.8);
+      max-width: 90%;
+      margin: 30px auto;
+      font-size: 1.3em;
+      background: rgba(255, 255, 255, 0.9);
       border-radius: 12px;
       padding: 20px;
       display: none;
     }
-    .menu-icoon {
-      width: 100px;
-      margin: 20px;
-      opacity: 0;
-      transition: opacity 1s ease-in-out;
-    }
-    .menu-container {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
+    .menu-info {
       display: none;
-    }
-    #vraagteken {
-      display: none;
-      font-size: 1.2em;
       margin-top: 30px;
-      cursor: pointer;
+      font-size: 1.2em;
     }
-    #startknop {
+    .menu-info p {
+      margin: 10px 0;
+    }
+    #doorgaanKnop {
       display: none;
-      margin-top: 20px;
+      margin-top: 30px;
       padding: 15px 30px;
       font-size: 1.2em;
       background-color: #ffde59;
@@ -57,38 +45,37 @@
       border-radius: 10px;
       cursor: pointer;
     }
+    #vraagteken {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      font-size: 2em;
+      cursor: pointer;
+      background: none;
+      border: none;
+    }
   </style>
 </head>
 <body>
-  <img id="photeinos" src="assets/photeinos-kleurloos.png" alt="Photeinos het sterretje">
+  <div id="photeinos">⭐</div>
   <div id="introText" class="uitleg">Hallo, ik ben Photeinos... ik ben mijn kleur kwijt. Wil jij me helpen om het Licht te volgen?</div>
 
-  <div class="menu-container" id="menuContainer">
-    <div>
-      <img src="assets/icon-bijbel.png" alt="Kinderbijbel" class="menu-icoon" style="transition-delay: 0.5s;">
-      <p>Kinderbijbel: Verhalen over God</p>
-    </div>
-    <div>
-      <img src="assets/icon-gebeden.png" alt="Gebedenboek" class="menu-icoon" style="transition-delay: 1s;">
-      <p>Gebedenboek: Leer praten met God</p>
-    </div>
-    <div>
-      <img src="assets/icon-spel.png" alt="Spelletjes" class="menu-icoon" style="transition-delay: 1.5s;">
-      <p>Spelletjes: Leren door te spelen</p>
-    </div>
+  <div class="menu-info" id="menuInfo">
+    <p>📖 Kinderbijbel: Verhalen over God</p>
+    <p>🙏 Gebedenboek: Leer praten met God</p>
+    <p>🎮 Spelletjes: Leren door te spelen</p>
+    <p>⛪ Mijn Parochie: Alles over jouw kerk</p>
   </div>
 
-  <div id="vraagteken">❓ Klik hier om opnieuw te beginnen</div>
-  <button id="startknop" onclick="window.location.href='kindermodus-start.html'">Startpagina openen</button>
+  <button id="doorgaanKnop" onclick="window.location.href='kindermodus.html'">Startpagina openen</button>
+  <button id="vraagteken" onclick="window.location.reload()" title="Intro opnieuw bekijken">❓</button>
 
   <script>
     window.onload = function () {
       const photeinos = document.getElementById("photeinos");
       const introText = document.getElementById("introText");
-      const menu = document.getElementById("menuContainer");
-      const vraagteken = document.getElementById("vraagteken");
-      const startknop = document.getElementById("startknop");
-      const iconen = document.querySelectorAll(".menu-icoon");
+      const menuInfo = document.getElementById("menuInfo");
+      const knop = document.getElementById("doorgaanKnop");
 
       photeinos.style.opacity = 1;
 
@@ -96,20 +83,11 @@
         introText.style.display = 'block';
       }, 2000);
 
-      setTimeout(() => {
+      introText.addEventListener('click', () => {
         introText.style.display = 'none';
-        menu.style.display = 'flex';
-        iconen.forEach(icon => icon.style.opacity = 1);
-      }, 5000);
-
-      setTimeout(() => {
-        vraagteken.style.display = 'block';
-        startknop.style.display = 'inline-block';
-      }, 7000);
-
-      vraagteken.onclick = () => {
-        location.reload();
-      }
+        menuInfo.style.display = 'block';
+        knop.style.display = 'inline-block';
+      });
     }
   </script>
 </body>
