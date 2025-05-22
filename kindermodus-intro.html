@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Welkom in de Kindermodus</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to bottom, #fff9e6, #ffe4b3);
+      font-family: Comic Sans MS, cursive, sans-serif;
+      text-align: center;
+      overflow: hidden;
+    }
+    #photeinos {
+      width: 120px;
+      opacity: 0;
+      filter: grayscale(100%);
+      transition: opacity 2s ease-in;
+      margin: 50px auto 20px;
+    }
+    .uitleg {
+      max-width: 80%;
+      margin: 0 auto;
+      font-size: 1.4em;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 12px;
+      padding: 20px;
+      display: none;
+    }
+    .menu-icoon {
+      width: 100px;
+      margin: 20px;
+      opacity: 0;
+      transition: opacity 1s ease-in-out;
+    }
+    .menu-container {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      display: none;
+    }
+    #vraagteken {
+      display: none;
+      font-size: 1.2em;
+      margin-top: 30px;
+      cursor: pointer;
+    }
+    #startknop {
+      display: none;
+      margin-top: 20px;
+      padding: 15px 30px;
+      font-size: 1.2em;
+      background-color: #ffde59;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <img id="photeinos" src="assets/photeinos-kleurloos.png" alt="Photeinos het sterretje">
+  <div id="introText" class="uitleg">Hallo, ik ben Photeinos... ik ben mijn kleur kwijt. Wil jij me helpen om het Licht te volgen?</div>
+
+  <div class="menu-container" id="menuContainer">
+    <div>
+      <img src="assets/icon-bijbel.png" alt="Kinderbijbel" class="menu-icoon" style="transition-delay: 0.5s;">
+      <p>Kinderbijbel: Verhalen over God</p>
+    </div>
+    <div>
+      <img src="assets/icon-gebeden.png" alt="Gebedenboek" class="menu-icoon" style="transition-delay: 1s;">
+      <p>Gebedenboek: Leer praten met God</p>
+    </div>
+    <div>
+      <img src="assets/icon-spel.png" alt="Spelletjes" class="menu-icoon" style="transition-delay: 1.5s;">
+      <p>Spelletjes: Leren door te spelen</p>
+    </div>
+  </div>
+
+  <div id="vraagteken">❓ Klik hier om opnieuw te beginnen</div>
+  <button id="startknop" onclick="window.location.href='kindermodus-start.html'">Startpagina openen</button>
+
+  <script>
+    window.onload = function () {
+      const photeinos = document.getElementById("photeinos");
+      const introText = document.getElementById("introText");
+      const menu = document.getElementById("menuContainer");
+      const vraagteken = document.getElementById("vraagteken");
+      const startknop = document.getElementById("startknop");
+      const iconen = document.querySelectorAll(".menu-icoon");
+
+      photeinos.style.opacity = 1;
+
+      setTimeout(() => {
+        introText.style.display = 'block';
+      }, 2000);
+
+      setTimeout(() => {
+        introText.style.display = 'none';
+        menu.style.display = 'flex';
+        iconen.forEach(icon => icon.style.opacity = 1);
+      }, 5000);
+
+      setTimeout(() => {
+        vraagteken.style.display = 'block';
+        startknop.style.display = 'inline-block';
+      }, 7000);
+
+      vraagteken.onclick = () => {
+        location.reload();
+      }
+    }
+  </script>
+</body>
+</html>
