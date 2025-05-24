@@ -7,133 +7,81 @@
   <style>
     body {
       margin: 0;
-      background: linear-gradient(to bottom, #000000, #1a237e);
-      overflow: hidden;
-      height: 100vh;
+      background: #b3d9ff;
       font-family: 'Comic Sans MS', cursive;
-      color: white;
-      text-align: center;
+      color: #333;
       display: flex;
       justify-content: center;
       align-items: center;
       flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
     }
-    .photeinos-container {
-      position: relative;
+    .photeinos-wrapper {
       display: flex;
       align-items: center;
       gap: 30px;
-      margin-bottom: 40px;
+      max-width: 90vw;
     }
-    .photeinos {
-      width: 200px;
+    .photeinos-img {
+      width: 220px;
       height: auto;
-      animation: zweefbinnen 3s forwards ease-out; animation-fill-mode: forwards;
-    }
-    @keyframes zweefbinnen {
-      0% { transform: translateX(-300px); opacity: 0; }
-      100% { transform: translateX(0); opacity: 1; }
-    }
-    .photeinos.wiebel {
-      animation: wiebel 2s infinite ease-in-out;
-    }
-    @keyframes wiebel {
-      0% { transform: rotate(0deg); }
-      25% { transform: rotate(2deg); }
-      50% { transform: rotate(-2deg); }
-      75% { transform: rotate(2deg); }
-      100% { transform: rotate(0deg); }
-    }
-    .photeinos.knipogen {
-      animation: knipoog 0.5s steps(2, start) 1;
-    }
-    @keyframes knipoog {
-      0% { filter: brightness(1); }
-      50% { filter: brightness(0.6); }
-      100% { filter: brightness(1); }
-    }
-    .photeinos.praat {
-      animation: mondbeweging 0.6s steps(2, start) 6;
-    }
-    @keyframes mondbeweging {
-      0% { filter: hue-rotate(0deg); }
-      50% { filter: hue-rotate(20deg); }
-      100% { filter: hue-rotate(0deg); }
     }
     .tekstballon {
-      background: #ffffffee;
-      color: #333;
+      background: #ffffff;
       padding: 20px;
-      border-radius: 15px;
-      box-shadow: 0 0 10px #000;
-      font-size: 1.1em;
-      width: 60vw;
+      border-radius: 20px;
+      box-shadow: 0 0 10px #999;
+      font-size: 1.2em;
       max-width: 600px;
-      display: none;
-      text-align: left;
+      width: 60vw;
+      min-height: 120px;
     }
-    .start-knop {
-      margin-top: 20px;
-      padding: 15px 30px;
-      font-size: 1em;
-      background-color: #fff176;
-      color: #333;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
-      display: none;
+    .cursor {
+      display: inline-block;
+      width: 10px;
+      background-color: #333;
+      animation: blink 1s steps(2, start) infinite;
+      margin-left: 2px;
+    }
+    @keyframes blink {
+      to { visibility: hidden; }
     }
   </style>
 </head>
 <body>
-  <div class="photeinos-container">
-    <img src="photeinos.png" alt="Photeinos" class="photeinos" id="photeinos">
-    <div class="tekstballon" id="ballon"></div>
-  </div>
+  <div class="photeinos-wrapper">
+    <img src="photeinos-start.png" alt="Photeinos de ster" class="photeinos-img">
+    <div class="tekstballon" id="tekst">$1
 
-  <button class="start-knop" id="startKnop" style="z-index: 10;" onclick="window.location.href='kerkje.html'">Kom, we gaan op weg naar jouw licht!</button>
+  <button onclick="window.location.href='kerkje.html'" style="margin-top: 30px; padding: 15px 30px; font-size: 1em; background-color: #fff176; border: none; border-radius: 10px; cursor: pointer; box-shadow: 0 0 10px rgba(0,0,0,0.3);">Laten we starten!</button>
 
   <script>
-    const tekstZinnen = [
-      "Hallo! Ik ben Photeinos. Mijn naam betekent 'lichtgevend' in het Grieks.",
-      "Ik ben jouw sterretje op deze bijzondere reis. Samen gaan we op zoek naar jouw licht!",
-      "Dat licht komt naar je toe als je veel leert uit de Bijbel, de catechese volgt, psalmen leest en liederen zingt.",
-      "Door al die dingen te doen, verdien jij punten waarmee je jouw eigen kerkje kunt inrichten met een kruis, iconen en kaarsjes!",
-      "En weet je? Ik ga graag met je mee naar jouw persoonlijk kerkje, om daar samen te bidden en een kaarsje te branden voor wie het nodig heeft."
-    ];
+    const tekst = `Hallo, ik ben Photeinos, dat betekent drager van het licht. Helaas ben ik mijn licht kwijt. Kunnen wij samen op zoek gaan naar het licht?\nAls we veel lezen in de bijbel en de psalmen en samen de catechese leren en de gebruiken van de orthodoxe kerk, samen zingen en spelletjes spelen dan zullen we ons licht wel vinden.\nWat denk je? Ga je mee?`;
 
-    let huidigIndex = 0;
+    let i = 0;
+    const snelheid = 40;
+    const tekstvak = document.getElementById('tekst');
 
-    function toonVolgendeZin() {
-      const ballon = document.getElementById('ballon');
-      const ster = document.getElementById('photeinos');
-      if (huidigIndex < tekstZinnen.length) {
-        const p = document.createElement('p');
-        p.textContent = tekstZinnen[huidigIndex];
-        ballon.appendChild(p);
-        huidigIndex++;
-        ster.classList.add('knipogen');
-        ster.classList.add('praat');
-        setTimeout(() => {
-          ster.classList.remove('knipogen');
-          ster.classList.remove('praat');
-          setTimeout(toonVolgendeZin, 3000);
-        }, 500);
+    function typ() {
+      if (i < tekst.length) {
+        if (tekst[i] === '\n') {
+          tekstvak.innerHTML += '<br>';
+        } else {
+          tekstvak.innerHTML += tekst[i];
+        }
+        i++;
+        setTimeout(typ, snelheid);
       } else {
-        document.getElementById('startKnop').style.display = 'inline-block';
+        document.querySelector('.cursor')?.remove();
       }
     }
 
-    window.onload = function () {
-      const ster = document.getElementById('photeinos');
-      setTimeout(() => {
-        ster.classList.add('wiebel');
-        document.getElementById('ballon').style.display = 'block';
-        toonVolgendeZin();
-      }, 3500);
-    };
+    tekstvak.innerHTML = '<span class="cursor">&nbsp;</span>';
+    setTimeout(() => {
+      tekstvak.innerHTML = '';
+      typ();
+    }, 1000);
   </script>
 </body>
 </html>
-
