@@ -8,36 +8,41 @@
     body {
       margin: 0;
       background: linear-gradient(to bottom, #000000, #1a237e);
-      overflow-x: hidden;
+      overflow: hidden;
       height: 100vh;
       font-family: 'Comic Sans MS', cursive;
       color: white;
       text-align: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    .photeinos-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 30px;
+      margin-bottom: 40px;
     }
     .photeinos {
-      position: absolute;
-      top: 35%;
-      left: -200px;
-      transform: translateY(-50%);
       width: 200px;
       height: auto;
-      animation: zweefbinnen 3s forwards ease-out;
+      animation: zweefbinnen 3s forwards ease-out; animation-fill-mode: forwards;
     }
     @keyframes zweefbinnen {
-      to {
-        left: 20%;
-        transform: translateY(-50%);
-      }
+      0% { transform: translateX(-300px); opacity: 0; }
+      100% { transform: translateX(0); opacity: 1; }
     }
     .photeinos.wiebel {
       animation: wiebel 2s infinite ease-in-out;
     }
     @keyframes wiebel {
-      0% { transform: translateY(-50%) rotate(0deg); }
-      25% { transform: translateY(-50%) rotate(2deg); }
-      50% { transform: translateY(-50%) rotate(-2deg); }
-      75% { transform: translateY(-50%) rotate(2deg); }
-      100% { transform: translateY(-50%) rotate(0deg); }
+      0% { transform: rotate(0deg); }
+      25% { transform: rotate(2deg); }
+      50% { transform: rotate(-2deg); }
+      75% { transform: rotate(2deg); }
+      100% { transform: rotate(0deg); }
     }
     .photeinos.knipogen {
       animation: knipoog 0.5s steps(2, start) 1;
@@ -56,23 +61,19 @@
       100% { filter: hue-rotate(0deg); }
     }
     .tekstballon {
-      position: absolute;
-      top: 30%;
-      left: 45%;
-      transform: translateY(-50%);
       background: #ffffffee;
       color: #333;
       padding: 20px;
       border-radius: 15px;
       box-shadow: 0 0 10px #000;
-      font-size: 1.2em;
-      width: 50%;
+      font-size: 1.1em;
+      width: 60vw;
       max-width: 600px;
       display: none;
       text-align: left;
     }
     .start-knop {
-      margin-top: 30px;
+      margin-top: 20px;
       padding: 15px 30px;
       font-size: 1em;
       background-color: #fff176;
@@ -86,11 +87,12 @@
   </style>
 </head>
 <body>
-  <img src="photeinos.png" alt="Photeinos" class="photeinos" id="photeinos">
+  <div class="photeinos-container">
+    <img src="photeinos.png" alt="Photeinos" class="photeinos" id="photeinos">
+    <div class="tekstballon" id="ballon"></div>
+  </div>
 
-  <div class="tekstballon" id="ballon"></div>
-
-  <button class="start-knop" id="startKnop" onclick="window.location.href='kerkje.html'">Kom, we gaan op weg naar jouw licht!</button>
+  <button class="start-knop" id="startKnop" style="z-index: 10;" onclick="window.location.href='kerkje.html'">Kom, we gaan op weg naar jouw licht!</button>
 
   <script>
     const tekstZinnen = [
