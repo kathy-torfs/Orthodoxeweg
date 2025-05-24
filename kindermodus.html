@@ -14,7 +14,6 @@
       color: white;
       text-align: center;
     }
-
     .photeinos {
       position: absolute;
       top: 50%;
@@ -24,14 +23,12 @@
       height: auto;
       animation: zweefbinnen 3s forwards ease-out, wiebel 2s infinite ease-in-out 3s;
     }
-
     @keyframes zweefbinnen {
       to {
         left: 50%;
         transform: translate(-50%, -50%);
       }
     }
-
     @keyframes wiebel {
       0% { transform: translate(-50%, -50%) rotate(0deg); }
       25% { transform: translate(-50%, -50%) rotate(2deg); }
@@ -39,23 +36,30 @@
       75% { transform: translate(-50%, -50%) rotate(2deg); }
       100% { transform: translate(-50%, -50%) rotate(0deg); }
     }
-
-    .tekst-intro {
-      max-width: 700px;
-      margin: 0 auto;
+    .photeinos.knipogen {
+      animation: knipoog 0.5s steps(2, start) 1 0.3s;
+    }
+    @keyframes knipoog {
+      0% { filter: brightness(1); }
+      50% { filter: brightness(0.6); }
+      100% { filter: brightness(1); }
+    }
+    .tekstballon {
+      position: absolute;
+      top: 65%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #ffffffee;
+      color: #333;
       padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 10px #000;
       font-size: 1.2em;
-      animation: verschijnen 4s ease-out forwards;
-      opacity: 0;
-      animation-delay: 3s;
-      animation-fill-mode: forwards;
+      width: 70%;
+      max-width: 700px;
+      display: none;
+      text-align: left;
     }
-
-    @keyframes verschijnen {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
     .start-knop {
       margin-top: 30px;
       padding: 15px 30px;
@@ -66,21 +70,62 @@
       border-radius: 10px;
       cursor: pointer;
       box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      display: none;
+    }
+      .photeinos.praat {
+      animation: mondbeweging 0.6s steps(2, start) 6;
+    }
+    @keyframes mondbeweging {
+      0% { filter: hue-rotate(0deg); }
+      50% { filter: hue-rotate(20deg); }
+      100% { filter: hue-rotate(0deg); }
     }
   </style>
 </head>
 <body>
+  <img src="photeinos.png" alt="Photeinos" class="photeinos" id="photeinos">
 
-  <img src="photeinos.png" alt="Photeinos" class="photeinos">
+  <div class="tekstballon" id="ballon"></div>
 
-  <div class="tekst-intro">
-    <p>Hallo! Ik ben <strong>Photeinos</strong>. Mijn naam betekent "lichtgevend" in het Grieks.</p>
-    <p>Ik ben jouw sterretje op deze bijzondere reis. Samen gaan we op zoek naar jouw licht!</p>
-    <p>Dat licht komt naar je toe als je veel leert uit de <strong>Bijbel</strong>, de <strong>catechese</strong> volgt, <strong>psalmen</strong> leest en <strong>liederen</strong> zingt.</p>
-    <p>Door al die dingen te doen, verdien jij <strong>punten</strong> waarmee je jouw eigen kerkje kunt inrichten met een kruis, iconen en kaarsjes!</p>
-    <p>En weet je? Ik ga graag met je mee naar jouw persoonlijk kerkje, om daar samen te bidden en een kaarsje te branden voor wie het nodig heeft.</p>
-    <button class="start-knop" onclick="window.location.href='kerkje.html'">Kom, we gaan op weg naar jouw licht!</button>
-  </div>
+  <button class="start-knop" id="startKnop" onclick="window.location.href='kerkje.html'">Kom, we gaan op weg naar jouw licht!</button>
 
+  <script>
+    const tekstZinnen = [
+      "Hallo! Ik ben Photeinos. Mijn naam betekent 'hij die het licht brengt' in het Grieks.",
+      "Ik ben jouw sterretje op deze bijzondere reis. Samen gaan we op zoek naar jouw licht!",
+      "Dat licht komt naar je toe als je veel leert uit de Bijbel, de catechese volgt, psalmen leest en liederen zingt.",
+      "Door al die dingen te doen, verdien jij punten waarmee je jouw eigen kerkje kunt inrichten met een kruis, iconen en kaarsjes!",
+      "En weet je? Ik ga graag met je mee naar jouw persoonlijk kerkje, om daar samen te bidden en een kaarsje te branden voor wie het nodig heeft."
+    ];
+
+    let huidigIndex = 0;
+
+    function toonVolgendeZin() {
+      const ballon = document.getElementById('ballon');
+      const ster = document.getElementById('photeinos');
+      if (huidigIndex < tekstZinnen.length) {
+        const p = document.createElement('p');
+        p.textContent = tekstZinnen[huidigIndex];
+        ballon.appendChild(p);
+        huidigIndex++;
+        ster.classList.add('knipogen');
+        ster.classList.add('praat');
+        setTimeout(() => {
+          ster.classList.remove('knipogen');
+          ster.classList.remove('praat');
+          setTimeout(toonVolgendeZin, 3000);
+        }, 500);
+      } else {
+        document.getElementById('startKnop').style.display = 'inline-block';
+      }
+    }
+
+    window.onload = function () {
+      setTimeout(() => {
+        document.getElementById('ballon').style.display = 'block';
+        toonVolgendeZin();
+      }, 3500);
+    };
+  </script>
 </body>
 </html>
