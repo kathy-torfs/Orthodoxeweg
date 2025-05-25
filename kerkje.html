@@ -5,175 +5,148 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Jouw Kerkje</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
     body {
-      background: black;
-      overflow: hidden;
+      margin: 0;
       font-family: Arial, sans-serif;
-    }
-
-    .deur-links, .deur-rechts {
-      position: fixed;
-      top: 0;
-      width: 50%;
-      height: 100%;
-      background: #3e2723;
-      z-index: 10;
-    }
-
-    .deur-links {
-      left: 0;
-      animation: open-links 3s forwards ease-in-out;
-    }
-
-    .deur-rechts {
-      right: 0;
-      animation: open-rechts 3s forwards ease-in-out;
-    }
-
-    @keyframes open-links {
-      to { transform: translateX(-100%); }
-    }
-
-    @keyframes open-rechts {
-      to { transform: translateX(100%); }
+      background-color: #5c3a21; /* houtkleurige achtergrond */
+      overflow: auto;
     }
 
     .kerk-container {
       position: relative;
-      width: 100vw;
-      height: 100vh;
-      background: url('kerkinterieur.png') no-repeat center center;
+      width: 1400px;
+      height: 900px;
+      margin: 0 auto;
+      background: url('kerkinterieur.png') no-repeat center top;
       background-size: contain;
-      background-color: #e6dfd1;
-      opacity: 0;
-      animation: fadeIn 4s ease-in-out 3s forwards;
-    }
-
-    @keyframes fadeIn {
-      to { opacity: 1; }
     }
 
     .klikzone {
       position: absolute;
+      z-index: 3;
       cursor: pointer;
-      z-index: 5;
     }
 
-    /* Deur in het midden */
     .deur-centrum {
-      top: 45%;
-      left: 46.5%;
-      width: 7%;
+      top: 44%;
+      left: 47.2%;
+      width: 6%;
       height: 18%;
     }
 
-    /* Iconenpanelen */
-    .iconen-links { top: 28%; left: 11%; width: 13%; height: 40%; }
-    .iconen-rechts { top: 28%; right: 11%; width: 13%; height: 40%; }
+    .iconen-links {
+      top: 32%;
+      left: 13%;
+      width: 10%;
+      height: 35%;
+    }
 
-    .boven-links-1 { top: 11%; left: 12%; width: 4%; height: 8%; }
-    .boven-links-2 { top: 11%; left: 17%; width: 4%; height: 8%; }
-    .boven-links-3 { top: 11%; left: 22%; width: 4%; height: 8%; }
-    .boven-links-4 { top: 11%; left: 27%; width: 4%; height: 8%; }
+    .iconen-rechts {
+      top: 32%;
+      left: 77%;
+      width: 10%;
+      height: 35%;
+    }
 
-    .boven-rechts-1 { top: 11%; right: 27%; width: 4%; height: 8%; }
-    .boven-rechts-2 { top: 11%; right: 22%; width: 4%; height: 8%; }
-    .boven-rechts-3 { top: 11%; right: 17%; width: 4%; height: 8%; }
-    .boven-rechts-4 { top: 11%; right: 12%; width: 4%; height: 8%; }
+    /* 8 bovenpanelen */
+    .iconen-boven-links-1 { top: 17%; left: 15%; width: 4%; height: 6%; }
+    .iconen-boven-links-2 { top: 17%; left: 20%; width: 4%; height: 6%; }
+    .iconen-boven-links-3 { top: 17%; left: 25%; width: 4%; height: 6%; }
+    .iconen-boven-links-4 { top: 17%; left: 30%; width: 4%; height: 6%; }
 
-    .boven-deur-1 { top: 8%; left: 47%; width: 3%; height: 6%; }
-    .boven-deur-2 { top: 8%; left: 50%; width: 3%; height: 6%; }
-    .boven-deur-3 { top: 8%; left: 53%; width: 3%; height: 6%; }
+    .iconen-boven-rechts-1 { top: 17%; left: 65%; width: 4%; height: 6%; }
+    .iconen-boven-rechts-2 { top: 17%; left: 70%; width: 4%; height: 6%; }
+    .iconen-boven-rechts-3 { top: 17%; left: 75%; width: 4%; height: 6%; }
+    .iconen-boven-rechts-4 { top: 17%; left: 80%; width: 4%; height: 6%; }
+
+    /* 3 boven de deur */
+    .iconen-boven-deur-1 { top: 12%; left: 48.5%; width: 3%; height: 5%; }
+    .iconen-boven-deur-2 { top: 12%; left: 51.5%; width: 3%; height: 5%; }
+    .iconen-boven-deur-3 { top: 12%; left: 54.5%; width: 3%; height: 5%; }
 
     .zandtafel {
-      bottom: 6%;
-      left: 41%;
-      width: 18%;
+      bottom: 7%;
+      left: 63%;
+      width: 20%;
       height: 13%;
     }
 
-    /* Photeinos hulpicoon */
-    .photeinos-hulp {
-      position: fixed;
-      bottom: 5%;
-      left: 5%;
-      width: 60px;
-      cursor: pointer;
-      z-index: 50;
-    }
-
     .photeinos-popup {
-      position: fixed;
-      bottom: 20%;
-      left: 5%;
-      width: 300px;
+      position: absolute;
+      bottom: 25%;
+      left: 3%;
+      width: 320px;
+      padding: 20px;
       background: #fffbe8;
       border-radius: 15px;
       box-shadow: 0 0 10px rgba(0,0,0,0.3);
-      padding: 20px;
+      z-index: 20;
       font-size: 1em;
-      z-index: 100;
       display: none;
     }
 
-    .photeinos-popup button {
-      margin-top: 10px;
-      padding: 8px 15px;
-      background-color: #ffeb3b;
-      border: none;
-      border-radius: 10px;
+    .photeinos-hulp {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
       cursor: pointer;
+      z-index: 21;
+      width: 60px;
+    }
+
+    .photeinos-hulp:hover {
+      transform: scale(1.1);
+      transition: 0.3s;
     }
   </style>
 </head>
 <body>
-
-  <div class="deur-links"></div>
-  <div class="deur-rechts"></div>
-
   <div class="kerk-container">
+    <!-- Deur naar startpagina -->
     <div class="klikzone deur-centrum" onclick="window.location.href='startpagina.html'" title="Op weg naar het licht"></div>
+
+    <!-- Iconenpanelen links en rechts -->
     <div class="klikzone iconen-links" onclick="window.location.href='iconen.html'"></div>
     <div class="klikzone iconen-rechts" onclick="window.location.href='iconen.html'"></div>
+
+    <!-- Zandtafel -->
     <div class="klikzone zandtafel" onclick="window.location.href='kaarsjes.html'"></div>
 
     <!-- Bovenpanelen -->
-    <div class="klikzone boven-links-1" onclick="window.location.href='iconen.html'"></div>
-    <div class="klikzone boven-links-2" onclick="window.location.href='iconen.html'"></div>
-    <div class="klikzone boven-links-3" onclick="window.location.href='iconen.html'"></div>
-    <div class="klikzone boven-links-4" onclick="window.location.href='iconen.html'"></div>
+    <div class="klikzone iconen-boven-links-1" onclick="window.location.href='iconen.html'"></div>
+    <div class="klikzone iconen-boven-links-2" onclick="window.location.href='iconen.html'"></div>
+    <div class="klikzone iconen-boven-links-3" onclick="window.location.href='iconen.html'"></div>
+    <div class="klikzone iconen-boven-links-4" onclick="window.location.href='iconen.html'"></div>
 
-    <div class="klikzone boven-rechts-1" onclick="window.location.href='iconen.html'"></div>
-    <div class="klikzone boven-rechts-2" onclick="window.location.href='iconen.html'"></div>
-    <div class="klikzone boven-rechts-3" onclick="window.location.href='iconen.html'"></div>
-    <div class="klikzone boven-rechts-4" onclick="window.location.href='iconen.html'"></div>
+    <div class="klikzone iconen-boven-rechts-1" onclick="window.location.href='iconen.html'"></div>
+    <div class="klikzone iconen-boven-rechts-2" onclick="window.location.href='iconen.html'"></div>
+    <div class="klikzone iconen-boven-rechts-3" onclick="window.location.href='iconen.html'"></div>
+    <div class="klikzone iconen-boven-rechts-4" onclick="window.location.href='iconen.html'"></div>
 
-    <div class="klikzone boven-deur-1" onclick="window.location.href='iconen.html'"></div>
-    <div class="klikzone boven-deur-2" onclick="window.location.href='iconen.html'"></div>
-    <div class="klikzone boven-deur-3" onclick="window.location.href='iconen.html'"></div>
-  </div>
+    <div class="klikzone iconen-boven-deur-1" onclick="window.location.href='iconen.html'"></div>
+    <div class="klikzone iconen-boven-deur-2" onclick="window.location.href='iconen.html'"></div>
+    <div class="klikzone iconen-boven-deur-3" onclick="window.location.href='iconen.html'"></div>
 
-  <!-- Hulpballon -->
-  <img src="photeinos-vraagteken.png" alt="Photeinos hulp" class="photeinos-hulp" onclick="document.getElementById('photeinosPopup').style.display='block'" />
+    <!-- Photeinos Uitleg -->
+    <div class="photeinos-popup" id="photeinosUitleg">
+      <p><strong>Welkom in jouw kerkje!</strong><br>
+        Hier kan je jouw eigen <strong>kruis</strong>, <strong>iconen</strong> en <strong>kaarsjes</strong> plaatsen.<br><br>
+        Klik op de panelen om heiligen toe te voegen of op de zandtafel om een kaarsje te branden.<br><br>
+        Je kerkje wordt mooier naarmate je meer lichtjes verdient!</p>
+      <button onclick="document.getElementById('photeinosUitleg').style.display='none'">Sluiten</button>
+    </div>
 
-  <div class="photeinos-popup" id="photeinosPopup">
-    <p><strong>Welkom in jouw kerkje!</strong><br>
-      Klik op de iconenpanelen om jouw verzamelde heiligen te plaatsen.<br>
-      Klik op de zandtafel om een kaarsje aan te steken.<br>
-      Via de deur ga je “op weg naar het licht”.<br>
-      Verdien lichtjes door te bidden, te leren en te spelen!</p>
-    <button onclick="document.getElementById('photeinosPopup').style.display='none'">Sluiten</button>
+    <!-- Hulpsterretje -->
+    <img src="photeinos-vraagteken.png" class="photeinos-hulp" onclick="document.getElementById('photeinosUitleg').style.display='block'" alt="Photeinos hulpicoon" />
   </div>
 
   <script>
     window.onload = function() {
       if (!sessionStorage.getItem('uitlegGetoond')) {
-        document.getElementById('photeinosPopup').style.display = 'block';
+        document.getElementById('photeinosUitleg').style.display = 'block';
         sessionStorage.setItem('uitlegGetoond', 'true');
       }
-    }
+    };
   </script>
 </body>
 </html>
