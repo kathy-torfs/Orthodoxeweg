@@ -40,7 +40,7 @@
     }
 
     .kerk-interieur {
-      background: url('kerkinterieur-nieuw.png') center center / cover no-repeat;
+      background: url('kerkinterieur.png') center center / cover no-repeat;
       position: absolute;
       top: 0; left: 0;
       width: 100%; height: 100%;
@@ -87,6 +87,34 @@
       cursor: pointer;
       z-index: 3;
     }
+
+    .photeinos-popup {
+      position: absolute;
+      bottom: 20%;
+      left: 5%;
+      width: 300px;
+      padding: 20px;
+      background: #fffbe8;
+      border-radius: 15px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      z-index: 20;
+      font-size: 1em;
+      display: none;
+    }
+
+    .photeinos-hulp {
+      position: absolute;
+      bottom: 5%;
+      left: 5%;
+      cursor: pointer;
+      z-index: 21;
+      width: 60px;
+    }
+
+    .photeinos-hulp:hover {
+      transform: scale(1.1);
+      transition: 0.3s;
+    }
   </style>
 </head>
 <body>
@@ -94,14 +122,39 @@
   <div class="deur-rechts"></div>
 
   <div class="kerk-interieur">
+    <!-- Centrale deur -->
     <div class="deur-centrum" onclick="window.location.href='startpagina.html'">
       Op weg naar het licht
     </div>
 
+    <!-- Iconenpanelen -->
     <div class="iconen-zone iconen-links" onclick="window.location.href='iconen.html'"></div>
     <div class="iconen-zone iconen-rechts" onclick="window.location.href='iconen.html'"></div>
 
+    <!-- Zandtafel -->
     <div class="zandtafel-zone" onclick="window.location.href='kaarsjes.html'"></div>
+
+    <!-- Uitleg-popup Photeinos -->
+    <div class="photeinos-popup" id="photeinosUitleg">
+      <p><strong>Welkom in jouw kerkje!</strong><br>
+      Hier kan je jouw eigen <strong>kruis</strong>, <strong>iconen</strong> en <strong>kaarsjes</strong> plaatsen.<br><br>
+      Klik op de panelen om heiligen toe te voegen of op de zandtafel om een kaarsje te branden.<br><br>
+      Je kerkje wordt mooier naarmate je meer lichtjes verdient!</p>
+      <button onclick="document.getElementById('photeinosUitleg').style.display='none'">Sluiten</button>
+    </div>
+
+    <!-- Mini Photeinos hulpicoon -->
+    <img src="afbeeldingen/photeinos-vraagteken.png" class="photeinos-hulp" onclick="document.getElementById('photeinosUitleg').style.display='block'" alt="Photeinos hulpicoon" />
   </div>
+
+  <script>
+    // Toon de uitleg slechts éénmalig per sessie
+    window.onload = function() {
+      if (!sessionStorage.getItem('uitlegGetoond')) {
+        document.getElementById('photeinosUitleg').style.display = 'block';
+        sessionStorage.setItem('uitlegGetoond', 'true');
+      }
+    }
+  </script>
 </body>
 </html>
