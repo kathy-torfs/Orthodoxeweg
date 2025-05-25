@@ -7,85 +7,51 @@
   <style>
     body {
       margin: 0;
-      background: #d6cfc3;
-      overflow: hidden;
       font-family: Arial, sans-serif;
+      background-color: #d6cfc3;
+      overflow: hidden;
     }
 
-    .deur-links, .deur-rechts {
-      position: fixed;
-      top: 0;
-      width: 50%;
-      height: 100%;
-      background: #3e2723;
-      z-index: 10;
+    .kerk-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background: url('kerkinterieur.png') no-repeat center center;
+      background-size: contain;
     }
 
-    .deur-links {
-      left: 0;
-      animation: open-links 3s forwards ease-in-out;
-    }
-
-    .deur-rechts {
-      right: 0;
-      animation: open-rechts 3s forwards ease-in-out;
-    }
-
-    @keyframes open-links {
-      to { transform: translateX(-100%); }
-    }
-
-    @keyframes open-rechts {
-      to { transform: translateX(100%); }
-    }
-
-    .kerk-interieur {
-      background: url('kerkinterieur.png') center center / cover no-repeat;
+    .klikzone {
       position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      z-index: 1;
+      z-index: 3;
+      cursor: pointer;
     }
 
     .deur-centrum {
-      position: absolute;
-      top: 42%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 100px;
-      height: 150px;
-      background: #5d4037;
-      border: 3px solid #3e2723;
-      border-radius: 6px;
-      text-align: center;
-      color: white;
-      font-size: 0.9em;
-      line-height: 150px;
-      cursor: pointer;
-      z-index: 3;
-      box-shadow: 0 0 8px rgba(0,0,0,0.4);
+      top: 44%;
+      left: 46.5%;
+      width: 7%;
+      height: 18%;
     }
 
-    .iconen-zone {
-      position: absolute;
+    .iconen-links {
       top: 28%;
+      left: 11%;
       width: 13%;
       height: 40%;
-      cursor: pointer;
-      z-index: 3;
     }
 
-    .iconen-links { left: 11%; }
-    .iconen-rechts { right: 11%; }
+    .iconen-rechts {
+      top: 28%;
+      right: 11%;
+      width: 13%;
+      height: 40%;
+    }
 
-    .zandtafel-zone {
-      position: absolute;
+    .zandtafel {
       bottom: 6%;
       left: 41%;
       width: 18%;
       height: 13%;
-      cursor: pointer;
-      z-index: 3;
     }
 
     .photeinos-popup {
@@ -115,26 +81,46 @@
       transform: scale(1.1);
       transition: 0.3s;
     }
+
+    .deur-links, .deur-rechts {
+      position: fixed;
+      top: 0;
+      width: 50%;
+      height: 100%;
+      background: #3e2723;
+      z-index: 10;
+    }
+
+    .deur-links {
+      left: 0;
+      animation: open-links 3s forwards ease-in-out;
+    }
+
+    .deur-rechts {
+      right: 0;
+      animation: open-rechts 3s forwards ease-in-out;
+    }
+
+    @keyframes open-links {
+      to { transform: translateX(-100%); }
+    }
+
+    @keyframes open-rechts {
+      to { transform: translateX(100%); }
+    }
   </style>
 </head>
 <body>
+
   <div class="deur-links"></div>
   <div class="deur-rechts"></div>
 
-  <div class="kerk-interieur">
-    <!-- Centrale deur -->
-    <div class="deur-centrum" onclick="window.location.href='startpagina.html'">
-      Op weg naar het licht
-    </div>
+  <div class="kerk-container">
+    <div class="klikzone deur-centrum" onclick="window.location.href='startpagina.html'" title="Op weg naar het licht"></div>
+    <div class="klikzone iconen-links" onclick="window.location.href='iconen.html'" title="Iconenwand links"></div>
+    <div class="klikzone iconen-rechts" onclick="window.location.href='iconen.html'" title="Iconenwand rechts"></div>
+    <div class="klikzone zandtafel" onclick="window.location.href='kaarsjes.html'" title="Kaarsjeshoek"></div>
 
-    <!-- Iconenpanelen -->
-    <div class="iconen-zone iconen-links" onclick="window.location.href='iconen.html'"></div>
-    <div class="iconen-zone iconen-rechts" onclick="window.location.href='iconen.html'"></div>
-
-    <!-- Zandtafel -->
-    <div class="zandtafel-zone" onclick="window.location.href='kaarsjes.html'"></div>
-
-    <!-- Uitleg-popup Photeinos -->
     <div class="photeinos-popup" id="photeinosUitleg">
       <p><strong>Welkom in jouw kerkje!</strong><br>
       Hier kan je jouw eigen <strong>kruis</strong>, <strong>iconen</strong> en <strong>kaarsjes</strong> plaatsen.<br><br>
@@ -143,12 +129,10 @@
       <button onclick="document.getElementById('photeinosUitleg').style.display='none'">Sluiten</button>
     </div>
 
-    <!-- Mini Photeinos hulpicoon -->
     <img src="afbeeldingen/photeinos-vraagteken.png" class="photeinos-hulp" onclick="document.getElementById('photeinosUitleg').style.display='block'" alt="Photeinos hulpicoon" />
   </div>
 
   <script>
-    // Toon de uitleg slechts éénmalig per sessie
     window.onload = function() {
       if (!sessionStorage.getItem('uitlegGetoond')) {
         document.getElementById('photeinosUitleg').style.display = 'block';
