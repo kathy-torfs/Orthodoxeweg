@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Parochienieuws – Orthodoxe Weg</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 30px;
+      background-color: #f5f2e9;
+    }
+    h1 {
+      text-align: center;
+      color: #5c3d1e;
+    }
+    .bord {
+      background-color: #deb887;
+      border: 8px solid #8b5a2b;
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 800px;
+      margin: 30px auto;
+      box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+    }
+    .briefje {
+      background-color: #fffbe6;
+      border: 1px solid #e0c080;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 1px 1px 4px rgba(0,0,0,0.1);
+    }
+    .briefje h3 {
+      margin-top: 0;
+      color: #3f2900;
+    }
+    .briefje small {
+      color: #666;
+    }
+  </style>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.firebasestorage.app",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:2e02833fa0d4d8903ceedb",
+      measurementId: "G-Y2CXF4QSDW"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const container = document.getElementById("nieuws");
+
+    async function laadNieuws() {
+      const nieuwsRef = collection(db, "parochies", "hasselt", "parochienieuws");
+      const nieuwsDocs = await getDocs(nieuwsRef);
+
+      if (nieuwsDocs.empty) {
+        container.innerHTML = "<p>Er is nog geen nieuws voor deze parochie.</p>";
+        return;
+      }
+
+      let html = "";
+      nieuwsDocs.forEach(doc => {
+        const data = doc.data();
+        html += `
+          <div class="briefje">
+            <h3>${data.titel}</h3>
+            <p>${data.bericht}</p>
+            <small><i>Toegevoegd door: ${data.toegevoegdDoor || 'onbekend'}</i></small>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    laadNieuws();
+  </script>
+</head>
+<body>
+  <h1>📌 Parochienieuws van Hasselt</h1>
+  <div class="bord" id="nieuws">
+    <p>Nieuws wordt geladen...</p>
+  </div>
+</body>
+</html>
