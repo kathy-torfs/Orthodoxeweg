@@ -2,19 +2,14 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Startpagina - Orthodoxeweg</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dagkalender - Orthodoxeweg</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       background: linear-gradient(to bottom, #f6e7b4, #f0d98c);
       margin: 0;
-    }
-    header {
-      background-color: #5e3907;
-      color: white;
-      padding: 20px;
-      text-align: center;
+      padding: 0;
     }
     nav {
       background-color: #fff1cd;
@@ -38,33 +33,77 @@
     nav a:hover {
       background-color: #ffeda2;
     }
-    .dagblok {
-      background-color: #fff8e1;
-      margin: 20px auto;
+    .kalender-blok {
+      background-color: white;
+      border: 2px solid #b22222;
+      border-radius: 10px;
+      max-width: 400px;
+      margin: 40px auto;
       padding: 20px;
-      border-radius: 10px;
-      width: 90%;
-      max-width: 600px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    .dagblok img {
-      float: right;
-      max-width: 100px;
-      margin-left: 15px;
-      border-radius: 10px;
-    }
-    .dagblok h2 {
-      color: #5e3907;
-      margin-top: 0;
-    }
-    footer {
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
       text-align: center;
-      padding: 15px;
-      font-size: 0.9em;
+    }
+    .maand {
+      background-color: #b22222;
+      color: white;
+      padding: 5px 10px;
+      font-weight: bold;
+      font-size: 20px;
+      display: inline-block;
+      border-radius: 5px;
+    }
+    .dag {
+      font-size: 28px;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+    .datum {
+      font-size: 80px;
+      font-weight: bold;
+      color: #2a2a2a;
+      margin: 10px 0;
+    }
+    .vak {
+      margin: 10px 0;
+      padding: 8px;
+      background-color: #fff8e1;
+      border-left: 6px solid #5e3907;
+      border-radius: 6px;
+      text-align: left;
+    }
+    .vak strong {
+      display: block;
       color: #5e3907;
+      margin-bottom: 4px;
+    }
+    .photeinos {
+      display: block;
+      margin: 20px auto 0 auto;
+      width: 70px;
+      animation: pulse 2s infinite;
+    }
+    .maandlink {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .maandlink a {
+      color: #5e3907;
+      font-weight: bold;
+      text-decoration: none;
+    }
+    .maandlink a:hover {
+      text-decoration: underline;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.05); opacity: 0.85; }
+      100% { transform: scale(1); opacity: 1; }
     }
   </style>
-<nav>
+</head>
+<body>
+
+  <nav>
     <a href="volwassen.html">🏠 Home</a>
     <a href="catechese.html">📖 Catechese</a>
     <a href="psalmen.html">📜 Psalmen</a>
@@ -75,38 +114,90 @@
     <a href="recepten.html">🍽️ Recepten</a>
     <a href="kindermodus.html">🧒 Kindermodus</a>
     <a href="orthodoxevlinders.html">🦋 Orthodoxevlinders</a>
-    </div>
   </nav>
-  
-</head>
-<body>
 
-  <header>
-    <h1>Welkom bij Orthodoxeweg</h1>
-    <p>Volwassen gebruikersportaal</p>
-  </header>
-
-  
-
-  <div class="dagblok">
-    <h2>22 mei, woensdag</h2>
-    <img src="parchomios.png" alt="Heilige Parchomios">
-    <h3>🕯️ Heilige Parchomios de Grote</h3>
-    <p><em>Uw leven op aarde was een wonder van heiligheid: daarom zijt Gij een heilig voorbeeld van deugd voor al Uw monniken, o Vader Parchomios.</em></p>
-
-    <h3>🍽️ Vastenregel</h3>
-    <p>Volledige vasten</p>
-
-    <h3>🥣 Recept van de dag</h3>
-    <p><a href="recepten/fasolada.html" style="color:#5e3907; text-decoration: underline;">Fasolada: een voedzame soep met witte bonen en groenten</a></p>
-
-    <h3>🌙 Avondpsalm</h3>
-    <p><strong>Psalm 1</strong><br><em>Zalig de man die niet wandelt in de raad der goddelozen.</em></p>
+  <div class="kalender-blok" id="kalender">
+    <!-- Dagkalender wordt hier ingevuld -->
   </div>
 
-  <footer>
-    Geregistreerd en verbonden met jouw parochie · Orthodoxeweg.be
-  </footer>
+  <div class="maandlink">
+    <p>📅 <a href="https://www.goarch.org/chapel/calendar" target="_blank">Bekijk de volledige maandkalender</a></p>
+  </div>
+
+  <script>
+    const dagen = {
+      '22-05': {
+        maand: 'MEI',
+        weekdag: 'WOENSDAG',
+        dag: 22,
+        heilige: 'Heilige Parchomios de Grote – een voorbeeld van monastiek leven en heiligheid.',
+        vasten: 'Volledige vasten',
+        psalm: 'Zalig de man die niet wandelt in de raad der goddelozen. (Psalm 1)',
+        recept: '<a href="recepten/fasolada.html">Fasolada – Griekse witte bonensoep met groenten</a>'
+      },
+      '23-05': {
+        maand: 'MEI',
+        weekdag: 'DONDERDAG',
+        dag: 23,
+        heilige: 'Heilige Michaël Synadoniet – een trouwe belijder van het geloof.',
+        vasten: 'Wijn en olie toegestaan',
+        psalm: 'Uw Woord is een lamp voor mijn voet en een licht op mijn pad. (Psalm 119)',
+        recept: '<a href="recepten/gemista.html">Gemista – Gevulde groenten uit de oven</a>'
+      },
+      '24-05': {
+        maand: 'MEI',
+        weekdag: 'VRIJDAG',
+        dag: 24,
+        heilige: 'Heilige Simeon van de Woestijn – hij bad dag en nacht voor de wereld.',
+        vasten: 'Volledige vasten',
+        psalm: 'Heer, leid mij op Uw weg, opdat ik in Uw waarheid wandel. (Psalm 86)',
+        recept: '<a href="recepten/fakes.html">Fakes – Linzensoep met ui en laurier</a>'
+      }
+    };
+
+    const vandaag = new Date();
+    const dag = String(vandaag.getDate()).padStart(2, '0');
+    const maand = String(vandaag.getMonth() + 1).padStart(2, '0');
+    const sleutel = `${dag}-${maand}`;
+    const info = dagen[sleutel];
+
+    if (info) {
+      document.getElementById("kalender").innerHTML = `
+        <div class="maand">${info.maand}</div>
+        <div class="dag">${info.weekdag}</div>
+        <div class="datum">${info.dag}</div>
+
+        <div class="vak">
+          <strong>Heilige van de dag</strong>
+          ${info.heilige}
+        </div>
+
+        <div class="vak">
+          <strong>Vastenregel</strong>
+          ${info.vasten}
+        </div>
+
+        <div class="vak">
+          <strong>Psalm van de dag</strong>
+          <em>${info.psalm}</em>
+        </div>
+
+        <div class="vak">
+          <strong>Recept van de dag</strong>
+          ${info.recept}
+        </div>
+
+        <img class="photeinos" src="images/photeinos-ster.png" alt="Photeinos">
+      `;
+    } else {
+      document.getElementById("kalender").innerHTML = `
+        <div class="maand">ONBEKEND</div>
+        <div class="dag">GEEN GEGEVENS</div>
+        <div class="datum">--</div>
+        <div class="vak">Voor deze dag is er nog geen informatie beschikbaar.</div>
+      `;
+    }
+  </script>
 
 </body>
 </html>
