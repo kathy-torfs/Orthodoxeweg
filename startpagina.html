@@ -10,7 +10,6 @@
       margin: 0;
       padding: 0;
     }
-
     header {
       background-color: #5e3907;
       padding: 15px;
@@ -30,7 +29,6 @@
     nav a:hover {
       background-color: #ffd974;
     }
-
     .container {
       display: flex;
       justify-content: center;
@@ -39,7 +37,6 @@
       padding: 30px;
       flex-wrap: wrap;
     }
-
     .prikbord {
       width: 200px;
       height: 300px;
@@ -62,7 +59,6 @@
     .prikbord.locked {
       opacity: 0.6;
     }
-
     .kalender {
       background-color: white;
       border: 2px solid #ccc;
@@ -120,52 +116,51 @@
       <a href="weekmenu.html">🗓️ Weekmenu</a>
     </nav>
   </header>
-
   <div class="container">
     <div class="prikbord" id="bord-links">
       <div>📌<br>Parochienieuws</div>
       <div class="toegang"></div>
     </div>
-
     <div class="kalender">
       <div class="vastenicoon" id="vastenicoon"></div>
-      <div class="datum" id="datum">27 OKTOBER</div>
+      <div class="datum" id="datum">...</div>
       <div class="heilige" id="heiligenaam">Heilige van de dag</div>
       <img id="dagicoon" src="" alt="Icoon van de heilige" class="dagicoon">
-      <div class="weekdag" id="weekdag">WOENSDAG</div>
-      <div class="troparion" id="troparion"></div>
-      <div class="psalm" id="psalmvers">Psalmvers verschijnt hier.</div>
+      <div class="weekdag" id="weekdag">...</div>
+      <div class="troparion" id="troparion">Troparion wordt geladen...</div>
+      <div class="psalm" id="psalmvers">Psalmvers wordt geladen...</div>
     </div>
-
     <div class="prikbord" id="bord-rechts">
       <div>💬<br>Zoekertjes</div>
       <div class="toegang"></div>
     </div>
   </div>
-
   <script>
     const today = new Date();
     const maandNamen = ["JANUARI", "FEBRUARI", "MAART", "APRIL", "MEI", "JUNI", "JULI", "AUGUSTUS", "SEPTEMBER", "OKTOBER", "NOVEMBER", "DECEMBER"];
     const weekdagen = ["ZONDAG", "MAANDAG", "DINSDAG", "WOENSDAG", "DONDERDAG", "VRIJDAG", "ZATERDAG"];
-
     const maand = maandNamen[today.getMonth()];
     const dag = today.getDate();
     const weekdag = weekdagen[today.getDay()];
-
     document.getElementById("datum").textContent = `${dag} ${maand}`;
     document.getElementById("weekdag").textContent = weekdag;
 
-    // GOARCH koppeling
     const maandGetal = today.getMonth() + 1;
-    const url = `https://www.goarch.org/chapel/calendar?type=json&date=${maandGetal}/${dag}/${today.getFullYear()}`;
+    const proxyUrl = "https://api.allorigins.win/raw?url=";
+    const apiUrl = `https://www.goarch.org/chapel/calendar?type=json&date=${maandGetal}/${dag}/${today.getFullYear()}`;
 
-    fetch(url)
+    fetch(proxyUrl + encodeURIComponent(apiUrl))
       .then(res => res.json())
       .then(data => {
-        if (data.saints && data.saints.length > 0) {
-          document.getElementById("heiligenaam").textContent = data.saints[0].name;
-          document.getElementById("dagicoon").src = data.saints[0].icon;
-          document.getElementById("dagicoon").alt = data.saints[0].name;
+        const naamElement = document.getElementById("heiligenaam");
+        if (data.saints && data.saints.length > 0 && data.saints[0].name) {
+          naamElement.textContent = data.saints[0].name;
+          if (data.saints[0].icon) {
+            document.getElementById("dagicoon").src = data.saints[0].icon;
+            document.getElementById("dagicoon").alt = data.saints[0].name;
+          }
+        } else {
+          naamElement.textContent = "Geen heilige vermeld";
         }
 
         if (data.fasting) {
@@ -178,12 +173,16 @@
           document.getElementById("vastenicoon").textContent = icoon;
         }
 
-        // Psalmvers voorlopig handmatig
+        const troparion = data.readings?.[0]?.text || "Geen troparion beschikbaar.";
+        document.getElementById("troparion").textContent = troparion;
         document.getElementById("psalmvers").textContent = "Zalig de man die niet wandelt in de raad der goddelozen.";
+      })
+      .catch(error => {
+        document.getElementById("heiligenaam").textContent = "Fout bij laden van kalender.";
+        console.error("Fout bij ophalen van GOARCH-data:", error);
       });
 
-    // Inlogcontrole simulatie
-    const isIngelogd = false; // Verander dit naar true om te testen
+    const isIngelogd = false;
     if (isIngelogd) {
       document.getElementById("bord-links").innerHTML = '<a href="parochienieuws.html">📌<br>Parochienieuws</a>';
       document.getElementById("bord-rechts").innerHTML = '<a href="zoekertjes.html">💬<br>Zoekertjes</a>';
