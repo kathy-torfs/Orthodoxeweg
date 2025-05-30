@@ -106,6 +106,7 @@
       <input type="email" id="reg-email" placeholder="E-mailadres" />
       <select id="parochie">
         <option>-- Kies je parochie --</option>
+        <!-- PAROCHIELIJST VOLLEDIG -->
         <optgroup label="BRUSSELS HOOFDSTEDELIJK GEWEST">
           <option value="brussel-kathedraal">Kathedraal van de Heilige Aartsengelen, Brussel</option>
           <option value="schaarbeek-marina">Parochie van de Heilige Marina, Schaarbeek</option>
@@ -163,10 +164,23 @@
     </div>
   </div>
 
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
   <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:2e02833fa0d4d8903ceedb",
+      measurementId: "G-Y2CXF4QSDW"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
     function showPopup(id) {
       document.getElementById(id).style.display = 'block';
     }
@@ -180,24 +194,11 @@
       var pass = document.getElementById('password').value;
       if (user === 'test' && pass === '1234') {
         alert('Welkom! Je wordt doorgestuurd.');
-        window.location.href = 'volwassen.html';
+        window.location.href = 'volwassenen/startpagina.html';
       } else {
         alert('Ongeldige inloggegevens');
       }
     }
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
-      authDomain: "orthodoxeweg.firebaseapp.com",
-      projectId: "orthodoxeweg",
-      storageBucket: "orthodoxeweg.appspot.com",
-      messagingSenderId: "408582263618",
-      appId: "1:408582263618:web:2e02833fa0d4d8903ceedb",
-      measurementId: "G-Y2CXF4QSDW"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
 
     function verzendRegistratie() {
       const naam = document.getElementById('reg-naam').value;
