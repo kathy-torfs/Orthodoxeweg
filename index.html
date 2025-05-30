@@ -58,8 +58,8 @@
     }
 
     .kruis {
-      width: 220px;
-      margin: 0 0 24px 0;
+      width: 360px;
+      margin: 0 0 40px 0;
       display: block;
     }
 
@@ -105,7 +105,6 @@
       box-shadow: 0 6px 24px #0003;
     }
 
-    /* Pop-ups */
     #overlay {
       display: none;
       position: fixed;
@@ -171,7 +170,7 @@
       .knop { max-width: none; width: 100%; }
       .priesterknop { margin-right: 12px; }
       .maincontent { padding-top: 20px; }
-      .kruis { width: 85px;}
+      .kruis { width: 120px;}
     }
   </style>
 </head>
@@ -230,11 +229,11 @@
     <button onclick="priesterLogin()">Inloggen</button>
   </div>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js"></script>
+  <!-- JUISTE Firebase compat scripts voor GitHub Pages -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script>
-    // JOUW ECHTE FIREBASE CONFIG
+    // JOUW FIREBASE CONFIG
     const firebaseConfig = {
       apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YTqBbNVHL4",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -295,8 +294,7 @@
         .get()
         .then(snapshot => {
           if (!snapshot.empty) {
-            alert("Inloggen gelukt!");
-            closeAllPopups();
+            window.location.href = "volwassenen/startpagina.html";
           } else {
             alert("Onjuiste gegevens.");
           }
@@ -317,8 +315,7 @@
         .get()
         .then(snapshot => {
           if (!snapshot.empty) {
-            alert("Welkom, priester!");
-            closeAllPopups();
+            window.location.href = "priestermodus/startpagina.html";
           } else {
             alert("Onjuiste gegevens.");
           }
@@ -337,10 +334,11 @@
       document.getElementById("overlay").style.display = "none";
       document.querySelectorAll(".popup").forEach(p => p.style.display = "none");
     }
+
+    // Gastmodus: direct doorlinken
     function gastmodus() {
-      alert('Gastmodus actief. Beperkte toegang.');
+      window.location.href = "gastmodus/startpagina.html";
     }
   </script>
-
 </body>
 </html>
