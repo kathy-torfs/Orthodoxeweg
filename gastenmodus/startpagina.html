@@ -9,33 +9,68 @@
       --oker: #f9e7b1;
       --bruin: #6d3a17;
       --bruin-donker: #4e2710;
-      --priesterpaars: #8722aa;
+      --knopgeel: #ffeaaa;
+      --knopgeel-hover: #ffe28a;
+      --kindblauw: #3ca4e7;
       --wit: #fff;
     }
-
     body {
       background: var(--oker);
       margin: 0;
       min-height: 100vh;
       font-family: Arial, sans-serif;
     }
-    .topbar {
+    .navbar {
       background: var(--bruin);
       color: var(--wit);
       width: 100vw;
       height: 64px;
       display: flex;
       align-items: center;
-      justify-content: flex-start;
       box-shadow: 0 2px 8px #0002;
-      padding-left: 40px;
+      padding: 0 18px 0 18px;
       position: relative;
+      z-index: 100;
     }
-    .topbar h1 {
-      margin: 0;
-      font-size: 1.7rem;
-      letter-spacing: 1px;
+    .navknoppen {
+      display: flex;
+      gap: 18px;
+      flex: 1;
+    }
+    .navknop {
+      background: var(--knopgeel);
+      color: #432e0d;
+      border: none;
+      border-radius: 12px;
+      padding: 10px 23px;
+      font-size: 1.06rem;
       font-weight: bold;
+      margin-top: 4px;
+      margin-bottom: 4px;
+      cursor: pointer;
+      transition: background 0.18s, color 0.15s;
+      box-shadow: 0 2px 8px #0001;
+    }
+    .navknop:hover {
+      background: var(--knopgeel-hover);
+      color: #6d3a17;
+    }
+    .navknop.kinder {
+      background: var(--kindblauw);
+      color: var(--wit);
+      margin-left: 25px;
+      margin-right: 2px;
+      font-size: 1.08rem;
+      font-weight: bold;
+      padding: 10px 26px;
+      border-radius: 13px;
+      box-shadow: 0 2px 10px #2086cb22;
+      border: none;
+      transition: background 0.18s, color 0.12s;
+    }
+    .navknop.kinder:hover {
+      background: #52b3ff;
+      color: #fff;
     }
     .maincontent {
       display: flex;
@@ -46,8 +81,8 @@
       padding-top: 40px;
     }
     .kruis {
-      width: 150px;
-      margin: 0 0 18px 0;
+      width: 140px;
+      margin: 0 0 22px 0;
       display: block;
     }
     .welkom {
@@ -61,7 +96,7 @@
     .subtekst {
       font-size: 1.2rem;
       color: #654321;
-      margin-bottom: 35px;
+      margin-bottom: 30px;
       text-align: center;
     }
     .dagkalender-card {
@@ -69,7 +104,7 @@
       border: 2px solid #b8893d;
       border-radius: 18px;
       box-shadow: 0 6px 18px #b8893d33;
-      padding: 32px 36px 28px 36px;
+      padding: 34px 36px 28px 36px;
       margin-bottom: 36px;
       width: 100%;
       max-width: 540px;
@@ -84,57 +119,39 @@
       margin-bottom: 12px;
       letter-spacing: 1px;
     }
-    .icoon {
-      float: right;
-      width: 70px;
-      height: 70px;
-      margin-left: 24px;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px #0001;
-      object-fit: cover;
-      background: #eee;
+    @media (max-width: 1050px) {
+      .navknoppen { flex-wrap: wrap; gap: 12px;}
+      .navknop { padding: 8px 14px; font-size: 0.99rem; }
+      .navknop.kinder { font-size: 1rem; padding: 8px 16px;}
     }
-    .knoppenrij {
-      display: flex;
-      gap: 26px;
-      margin-top: 10px;
-      margin-bottom: 36px;
-      justify-content: center;
-      width: 100%;
-      max-width: 600px;
-    }
-    .knop {
-      background: var(--bruin-donker);
-      color: var(--wit);
-      border: none;
-      border-radius: 12px;
-      padding: 17px 36px;
-      font-size: 1.1rem;
-      font-weight: bold;
-      box-shadow: 0 4px 16px #0002;
-      cursor: pointer;
-      transition: background 0.13s, box-shadow 0.13s;
-      flex: 1;
-      max-width: 200px;
-    }
-    .knop:hover {
-      background: #825029;
-      box-shadow: 0 6px 24px #0003;
-    }
-
     @media (max-width: 800px) {
-      .maincontent { padding-top: 16px; }
-      .kruis { width: 100px;}
+      .maincontent { padding-top: 14px; }
+      .kruis { width: 90px;}
       .dagkalender-card { padding: 18px 8px; font-size: 1rem;}
-      .knoppenrij { flex-direction: column; gap: 16px; }
-      .knop { max-width: none; width: 100%; }
+    }
+    @media (max-width: 700px) {
+      .navbar { flex-direction: column; align-items: stretch; height: auto; }
+      .navknoppen { flex-wrap: wrap; gap: 8px; justify-content: center;}
+      .navknop { margin: 4px 0;}
+      .navknop.kinder { margin-left: 0; }
     }
   </style>
 </head>
 <body>
-  <!-- Bovenste bruine balk -->
-  <div class="topbar">
-    <h1>Orthodoxeweg</h1>
+  <!-- Menubalk bovenaan -->
+  <div class="navbar">
+    <div class="navknoppen">
+      <button class="navknop" onclick="window.location.href='../gastenmodus/startpagina.html'">Home</button>
+      <button class="navknop" onclick="window.location.href='../gastenmodus/catechese.html'">Catechese</button>
+      <button class="navknop" onclick="window.location.href='../gastenmodus/psalmen.html'">Psalmen</button>
+      <button class="navknop" onclick="window.location.href='../gastenmodus/bijbel.html'">Bijbel</button>
+      <button class="navknop" onclick="window.location.href='../gastenmodus/recepten.html'">Recepten</button>
+      <button class="navknop" onclick="window.location.href='../gastenmodus/kaarsje.html'">Kaarsje aansteken</button>
+      <button class="navknop" onclick="window.location.href='../gastenmodus/heiligen.html'">Heiligen</button>
+      <button class="navknop" onclick="window.location.href='../gastenmodus/praxis.html'">Orthodoxe Praxis</button>
+      <button class="navknop" onclick="window.location.href='../gastenmodus/weekmenu.html'">Weekmenu</button>
+    </div>
+    <button class="navknop kinder" onclick="window.location.href='../kindermodus/startpagina.html'">Kindermodus</button>
   </div>
 
   <div class="maincontent">
@@ -148,18 +165,10 @@
         <em>De gegevens worden geladen...</em>
       </div>
     </div>
-
-    <div class="knoppenrij">
-      <button class="knop" onclick="window.location.href='../index.html'">Terug naar start</button>
-      <button class="knop" onclick="window.location.href='../inloggen.html'">Inloggen</button>
-      <button class="knop" onclick="window.location.href='../registreren.html'">Registreren</button>
-      <button class="knop" onclick="window.location.href='../gastenmodus/volledige-kalender.html'">Bekijk volledige kalender</button>
-    </div>
   </div>
 
-  <!-- Straks hier Firestore script voor dagkalender (nu nog placeholder) -->
   <script>
-    // Placeholder tot database werkt
+    // Placeholder: toon huidige datum & standaardtekst (vervang later door Firestore-koppeling)
     document.addEventListener("DOMContentLoaded", function() {
       let vandaag = new Date();
       let datumTekst = vandaag.toLocaleDateString('nl-BE', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'});
