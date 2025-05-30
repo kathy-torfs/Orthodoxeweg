@@ -1,118 +1,242 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welkom bij Orthodoxeweg</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Orthodoxeweg</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background: linear-gradient(to bottom, #f6e7b4, #f0d98c);
-      padding: 50px;
-      margin: 0;
+    :root {
+      --oker: #f9e7b1;
+      --bruin: #6d3a17;
+      --bruin-donker: #4e2710;
+      --priesterpaars: #8722aa;
+      --wit: #fff;
     }
-    img.kruis {
-      max-width: 200px;
-      margin: 30px auto;
+
+    body {
+      background: var(--oker);
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+    }
+
+    .topbar {
+      background: var(--bruin);
+      color: var(--wit);
+      width: 100vw;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      box-shadow: 0 2px 8px #0002;
+      position: relative;
+    }
+
+    .priesterknop {
+      background: var(--priesterpaars);
+      color: var(--wit);
+      border: none;
+      border-radius: 20px;
+      padding: 12px 30px;
+      font-size: 16px;
+      font-weight: bold;
+      margin-right: 40px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .priesterknop:hover {
+      background: #b04eff;
+    }
+
+    .maincontent {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: calc(100vh - 64px);
+      padding-top: 40px;
+    }
+
+    .kruis {
+      width: 120px;
+      margin: 0 0 20px 0;
       display: block;
     }
+
     h1 {
-      font-size: 2.2em;
-      color: #5e3907;
+      font-size: 2.3rem;
+      margin: 0 0 10px 0;
+      font-weight: bold;
+      color: var(--bruin-donker);
+      letter-spacing: 1px;
     }
-    .knoppen {
+    h2 {
+      margin: 0 0 40px 0;
+      font-weight: normal;
+      font-size: 1.35rem;
+      color: #654321;
+    }
+
+    .knoppenrij {
       display: flex;
+      gap: 30px;
+      margin-top: 10px;
+      margin-bottom: 50px;
       justify-content: center;
-      gap: 20px;
-      flex-wrap: wrap;
-      margin-top: 30px;
+      width: 100%;
+      max-width: 600px;
     }
-    .knoppen button {
-      font-size: 1em;
-      padding: 12px 24px;
+    .knop {
+      background: var(--bruin-donker);
+      color: var(--wit);
       border: none;
-      border-radius: 10px;
-      background-color: #fff1cd;
-      color: #5e3907;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+      border-radius: 12px;
+      padding: 18px 36px;
+      font-size: 1.15rem;
+      font-weight: bold;
+      box-shadow: 0 4px 16px #0002;
       cursor: pointer;
-      transition: 0.3s;
+      transition: background 0.15s, box-shadow 0.15s;
+      flex: 1;
+      max-width: 200px;
     }
-    .knoppen button:hover {
-      background-color: #ffedaa;
+    .knop:hover {
+      background: #825029;
+      box-shadow: 0 6px 24px #0003;
+    }
+
+    /* Pop-ups */
+    #overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
     }
     .popup {
       display: none;
       position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.6);
-      z-index: 1000;
+      top: 14%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      padding: 26px 20px 16px 20px;
+      border: 2px solid #654321;
+      border-radius: 14px;
+      z-index: 1001;
+      min-width: 310px;
+      box-shadow: 0 10px 32px #0003;
     }
-    .popup-content {
-      background: white;
-      padding: 30px;
-      width: 300px;
-      margin: 100px auto;
-      border-radius: 10px;
-      box-shadow: 0 0 10px #000;
-      text-align: left;
-    }
-    .popup-content input, .popup-content select {
-      width: 100%;
-      padding: 10px;
+    .popup h2 {
+      margin-top: 0;
       margin-bottom: 10px;
     }
-    .popup-content button {
-      padding: 10px 20px;
+    .popup input, .popup select {
+      display: block;
+      margin: 12px auto;
+      padding: 11px;
+      width: 90%;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #bbb;
+    }
+    .popup button {
+      padding: 12px 30px;
+      font-size: 1.05rem;
+      background: var(--bruin-donker);
+      color: var(--wit);
+      border: none;
+      border-radius: 8px;
+      margin-top: 8px;
+      cursor: pointer;
+    }
+    .popup button:hover {
+      background: #825029;
+    }
+    .popup .sluiten {
+      position: absolute;
+      top: 8px; right: 16px;
+      background: none;
+      color: #c00;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    @media (max-width: 800px) {
+      .knoppenrij { flex-direction: column; gap: 18px; }
+      .knop { max-width: none; width: 100%; }
+      .priesterknop { margin-right: 12px; }
+      .maincontent { padding-top: 20px; }
+      .kruis { width: 85px;}
     }
   </style>
 </head>
 <body>
-  <h1>Welkom bij Orthodoxeweg</h1>
-  <img src="images/kruis.png" alt="Orthodox kruis" class="kruis">
-  <p>De weg naar het Orthodoxe geloof</p>
-
-  <div class="knoppen">
-    <button onclick="toonPopup('loginPopup')">Inloggen</button>
-    <button onclick="toonPopup('registerPopup')">Registreren</button>
-    <button onclick="window.location.href='gastenmodus/startpagina.html'">Gastenmodus</button>
+  <!-- Bovenste bruine balk met rechts de priesterknop -->
+  <div class="topbar">
+    <button class="priesterknop" onclick="openPopup('priesterPopup')">Priesters</button>
   </div>
 
-  <!-- LOGIN -->
-  <div id="loginPopup" class="popup">
-    <div class="popup-content">
-      <h2>Inloggen</h2>
-      <input type="text" id="login-gebruiker" placeholder="Gebruikersnaam">
-      <input type="password" id="login-wachtwoord" placeholder="Wachtwoord">
-      <button onclick="inloggen()">Inloggen</button>
-      <p><a href="#" onclick="verbergPopup('loginPopup')">Annuleren</a></p>
+  <!-- Centrale inhoud -->
+  <div class="maincontent">
+    <img class="kruis" src="images/kruis.png" alt="Kruis" />
+    <h1>Welkom bij Orthodoxeweg</h1>
+    <h2>de weg naar het Orthodoxe leven</h2>
+
+    <div class="knoppenrij">
+      <button class="knop" onclick="openPopup('loginPopup')">Inloggen</button>
+      <button class="knop" onclick="openPopup('registratiePopup')">Registreren</button>
+      <button class="knop" onclick="gastmodus()">Gastenmodus</button>
     </div>
   </div>
 
-  <!-- REGISTREREN -->
-  <div id="registerPopup" class="popup">
-    <div class="popup-content">
-      <h2>Registreren</h2>
-      <input type="text" id="reg-naam" placeholder="Naam">
-      <input type="text" id="reg-adres" placeholder="Adres">
-      <input type="text" id="reg-telefoon" placeholder="Telefoonnummer">
-      <input type="email" id="reg-email" placeholder="E-mailadres">
-      <select id="reg-parochie">
+  <!-- Pop-ups -->
+  <div id="overlay" onclick="closeAllPopups()"></div>
+
+  <div id="loginPopup" class="popup">
+    <button class="sluiten" onclick="closeAllPopups()">&times;</button>
+    <h2>Inloggen</h2>
+    <input type="text" id="loginNaam" placeholder="Gebruikersnaam" autocomplete="username" />
+    <input type="password" id="loginWachtwoord" placeholder="Wachtwoord" autocomplete="current-password" />
+    <button onclick="login()">Inloggen</button>
+  </div>
+
+  <div id="registratiePopup" class="popup">
+    <button class="sluiten" onclick="closeAllPopups()">&times;</button>
+    <h2>Registreren</h2>
+    <form id="registratieForm">
+      <input type="text" id="naam" placeholder="Naam" required />
+      <input type="text" id="adres" placeholder="Adres" required />
+      <input type="text" id="telefoon" placeholder="Telefoon" required />
+      <input type="email" id="email" placeholder="E-mail" required />
+      <select id="parochieSelect" required>
         <option>Bezig met laden...</option>
       </select>
-      <button onclick="verzendRegistratie()">Versturen</button>
-      <p><a href="#" onclick="verbergPopup('registerPopup')">Annuleren</a></p>
-    </div>
+      <button type="submit">Verzenden</button>
+    </form>
+  </div>
+
+  <div id="priesterPopup" class="popup">
+    <button class="sluiten" onclick="closeAllPopups()">&times;</button>
+    <h2>Priesterlogin</h2>
+    <select id="priesterParochie">
+      <option>Bezig met laden...</option>
+    </select>
+    <input type="password" id="priesterWachtwoord" placeholder="Wachtwoord" autocomplete="current-password" />
+    <button onclick="priesterLogin()">Inloggen</button>
   </div>
 
   <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js"></script>
   <script>
+    // JOUW ECHTE FIREBASE CONFIG
     const firebaseConfig = {
-      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YTqBbNVHL4",
       authDomain: "orthodoxeweg.firebaseapp.com",
       projectId: "orthodoxeweg",
       storageBucket: "orthodoxeweg.appspot.com",
@@ -122,67 +246,101 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    function toonPopup(id) {
-      document.getElementById(id).style.display = 'block';
-    }
-    function verbergPopup(id) {
-      document.getElementById(id).style.display = 'none';
-    }
-
-    async function inloggen() {
-      const gebruiker = document.getElementById("login-gebruiker").value.trim().toLowerCase();
-      const wachtwoord = document.getElementById("login-wachtwoord").value.trim();
-
-      try {
-        const doc = await db.collection("parochies").doc(gebruiker).get();
-        if (doc.exists && doc.data().postcode === wachtwoord) {
-          window.location.href = "priestermodus/startpagina.html";
-        } else {
-          // Fallback: gewone login
-          window.location.href = "volwassenmodus/startpagina.html";
-        }
-      } catch (err) {
-        alert("Fout bij inloggen. Probeer opnieuw.");
-        console.error(err);
-      }
-    }
-
-    async function verzendRegistratie() {
-      const naam = document.getElementById("reg-naam").value;
-      const adres = document.getElementById("reg-adres").value;
-      const telefoon = document.getElementById("reg-telefoon").value;
-      const email = document.getElementById("reg-email").value;
-      const parochie = document.getElementById("reg-parochie").value;
-
-      if (!parochie) {
-        alert("Kies een parochie.");
-        return;
-      }
-
-      try {
-        await db.collection("registraties").doc(parochie).collection("aanvragen").add({
-          naam, adres, telefoon, email, parochie, tijdstip: new Date()
+    // Parochielijst laden voor registratie + priesterlogin
+    function laadParochies() {
+      db.collection("parochies").get().then(snapshot => {
+        const regSel = document.getElementById("parochieSelect");
+        const priestSel = document.getElementById("priesterParochie");
+        regSel.innerHTML = "";
+        priestSel.innerHTML = "";
+        snapshot.forEach(doc => {
+          const naam = doc.data().naam;
+          const id = doc.id;
+          const optie1 = document.createElement("option");
+          optie1.value = id;
+          optie1.textContent = naam;
+          regSel.appendChild(optie1);
+          priestSel.appendChild(optie1.cloneNode(true));
         });
-        alert("Registratie verzonden!");
-        verbergPopup("registerPopup");
-      } catch (error) {
-        alert("Fout bij registratie.");
-        console.error(error);
-      }
+      });
     }
+    window.addEventListener('DOMContentLoaded', laadParochies);
 
-    // Parochielijst automatisch laden
-    db.collection("parochies").get().then(snapshot => {
-      const select = document.getElementById("reg-parochie");
-      select.innerHTML = "";
-      snapshot.forEach(doc => {
-        const p = doc.data();
-        const optie = document.createElement("option");
-        optie.value = doc.id;
-        optie.textContent = `${p.naam} (${p.gemeente})`;
-        select.appendChild(optie);
+    // Registratie opslaan in Firestore
+    document.getElementById("registratieForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      db.collection("registraties").add({
+        naam: document.getElementById("naam").value,
+        adres: document.getElementById("adres").value,
+        telefoon: document.getElementById("telefoon").value,
+        email: document.getElementById("email").value,
+        parochie: document.getElementById("parochieSelect").value,
+        status: "in afwachting"
+      }).then(() => {
+        alert("Registratie succesvol verzonden!");
+        closeAllPopups();
+      }).catch((err) => {
+        alert("Fout bij registratie.");
+        console.error(err);
       });
     });
+
+    // Login gebruikers (volwassenen)
+    function login() {
+      const naam = document.getElementById("loginNaam").value.trim();
+      const wachtwoord = document.getElementById("loginWachtwoord").value;
+      db.collection("gebruikers")
+        .where("gebruikersnaam", "==", naam)
+        .where("wachtwoord", "==", wachtwoord)
+        .get()
+        .then(snapshot => {
+          if (!snapshot.empty) {
+            alert("Inloggen gelukt!");
+            closeAllPopups();
+          } else {
+            alert("Onjuiste gegevens.");
+          }
+        }).catch(err => {
+          alert("Fout bij inloggen.");
+          console.error(err);
+        });
+    }
+
+    // Login priester
+    function priesterLogin() {
+      const parochie = document.getElementById("priesterParochie").value;
+      const wachtwoord = document.getElementById("priesterWachtwoord").value;
+      db.collection("gebruikers")
+        .where("parochie", "==", parochie)
+        .where("wachtwoord", "==", wachtwoord)
+        .where("rol", "==", "priester")
+        .get()
+        .then(snapshot => {
+          if (!snapshot.empty) {
+            alert("Welkom, priester!");
+            closeAllPopups();
+          } else {
+            alert("Onjuiste gegevens.");
+          }
+        }).catch(err => {
+          alert("Fout bij inloggen.");
+          console.error(err);
+        });
+    }
+
+    // Pop-ups openen en sluiten
+    function openPopup(id) {
+      document.getElementById("overlay").style.display = "block";
+      document.getElementById(id).style.display = "block";
+    }
+    function closeAllPopups() {
+      document.getElementById("overlay").style.display = "none";
+      document.querySelectorAll(".popup").forEach(p => p.style.display = "none");
+    }
+    function gastmodus() {
+      alert('Gastmodus actief. Beperkte toegang.');
+    }
   </script>
+
 </body>
 </html>
