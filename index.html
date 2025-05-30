@@ -3,227 +3,149 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Orthodoxe Weg</title>
+  <title>Orthodoxeweg</title>
   <style>
     body {
       font-family: Arial, sans-serif;
+      background-color: #f9e7b1; /* okergeel */
       text-align: center;
-      padding: 50px;
+      margin: 0;
+      padding-top: 40px;
     }
-    .button {
-      display: block;
-      width: 200px;
-      margin: 20px auto;
-      padding: 15px;
-      background-color: #4CAF50;
+
+    .kruis {
+      width: 80px;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      margin: 5px 0 0 0;
+    }
+
+    h2 {
+      margin: 5px 0 30px 0;
+      font-weight: normal;
+    }
+
+    .top-right {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+    }
+
+    .priesterknop {
+      background-color: purple;
       color: white;
-      text-decoration: none;
-      border-radius: 5px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
     }
-    .popup {
+
+    .knoppenrij {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 50px;
+    }
+
+    .knop {
+      padding: 15px 30px;
+      border: none;
+      border-radius: 10px;
+      font-size: 18px;
+      cursor: pointer;
+      color: white;
+    }
+
+    .inloggen { background-color: #4CAF50; }
+    .registreren { background-color: #f0ad4e; }
+    .gast { background-color: #007BFF; }
+
+    /* Pop-up stijl */
+    .popup, #overlay {
       display: none;
       position: fixed;
+      z-index: 1000;
+    }
+
+    #overlay {
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+    }
+
+    .popup {
       top: 10%;
       left: 50%;
-      transform: translate(-50%, 0);
+      transform: translateX(-50%);
       background-color: white;
       padding: 20px;
       border: 2px solid #444;
-      z-index: 1000;
+      border-radius: 10px;
     }
+
     .popup input, .popup select {
       display: block;
       margin: 10px auto;
       padding: 10px;
       width: 80%;
     }
+
     .popup button {
       padding: 10px 20px;
-      margin-top: 10px;
-    }
-    #overlay {
-      display: none;
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-      z-index: 999;
-    }
-    .kruis {
-      width: 100px;
-      margin-bottom: 30px;
     }
   </style>
 </head>
 <body>
 
-  <img src="images/kruis.png" alt="Kruis bovenaan" class="kruis" />
+  <div class="top-right">
+    <button class="priesterknop" onclick="openPopup('priesterPopup')">Priesters</button>
+  </div>
 
-  <h1>Welkom bij Orthodoxe Weg</h1>
+  <img src="images/kruis.png" alt="Kruis" class="kruis" />
+  <h1>Welkom bij Orthodoxeweg</h1>
+  <h2>de weg naar het Orthodoxe leven</h2>
 
-  <a href="#" class="button" onclick="openPopup('loginPopup')">Inloggen</a>
-  <a href="#" class="button" onclick="openPopup('priestPopup')">Priesterlogin</a>
-  <a href="#" class="button" onclick="openPopup('registerPopup')">Registreren</a>
+  <div class="knoppenrij">
+    <button class="knop inloggen" onclick="openPopup('loginPopup')">Inloggen</button>
+    <button class="knop registreren" onclick="openPopup('registratiePopup')">Registreren</button>
+    <button class="knop gast" onclick="alert('Gastmodus actief. Beperkte toegang.')">Gastenmodus</button>
+  </div>
 
   <div id="overlay" onclick="closeAllPopups()"></div>
 
-  <!-- Inloggen Volwassenen -->
+  <!-- Pop-ups -->
   <div id="loginPopup" class="popup">
-    <h2>Inloggen Volwassenen</h2>
-    <input type="text" id="loginUser" placeholder="Gebruikersnaam" />
-    <input type="password" id="loginPass" placeholder="Wachtwoord" />
-    <button onclick="loginUser()">Inloggen</button>
+    <h2>Inloggen</h2>
+    <input type="text" id="loginNaam" placeholder="Gebruikersnaam">
+    <input type="password" id="loginWachtwoord" placeholder="Wachtwoord">
+    <button onclick="login()">Inloggen</button>
   </div>
 
-  <!-- Priesterlogin -->
-  <div id="priestPopup" class="popup">
-    <h2>Priesterlogin</h2>
-    <select id="priestParish">
-      <option>Bezig met laden...</option>
-    </select>
-    <input type="password" id="priestPass" placeholder="Wachtwoord" />
-    <button onclick="loginPriest()">Inloggen</button>
-  </div>
-
-  <!-- Registratie -->
-  <div id="registerPopup" class="popup">
-    <h2>Registreren</h2>
-    <form id="registrationForm">
-      <input type="text" id="regName" placeholder="Naam" required />
-      <input type="text" id="regAddress" placeholder="Adres" required />
-      <input type="text" id="regPhone" placeholder="Telefoon" required />
-      <input type="email" id="regEmail" placeholder="E-mail" required />
-      <select id="regParish" required>
+  <div id="registratiePopup" class="popup">
+    <h2>Registratie</h2>
+    <form id="registratieForm">
+      <input type="text" id="naam" placeholder="Naam" required>
+      <input type="text" id="adres" placeholder="Adres" required>
+      <input type="text" id="telefoon" placeholder="Telefoon" required>
+      <input type="email" id="email" placeholder="E-mail" required>
+      <select id="parochieSelect" required>
         <option>Bezig met laden...</option>
       </select>
-      <button type="submit">Versturen</button>
+      <button type="submit">Verzenden</button>
     </form>
   </div>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js"></script>
+  <div id="priesterPopup" class="popup">
+    <h2>Priesterlogin</h2>
+    <select id="priesterParochie">
+      <option>Bezig met laden...</option>
+    </select>
+    <input type="password" id="priesterWachtwoord" placeholder="Wachtwoord">
+    <button onclick="priesterLogin()">Inloggen</button>
+  </div>
 
-  <script>
-    // Firebase-configuratie
-    const firebaseConfig = {
-      apiKey: "JOUW_API_KEY",
-      authDomain: "orthodoxeweg.firebaseapp.com",
-      projectId: "orthodoxeweg",
-      storageBucket: "orthodoxeweg.appspot.com",
-      messagingSenderId: "408582263618",
-      appId: "1:408582263618:web:2e02833fa0d4d8903ceedb"
-    };
-
-    // Initialiseer Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    // Pop-upbeheer
-    function openPopup(id) {
-      document.getElementById('overlay').style.display = 'block';
-      document.getElementById(id).style.display = 'block';
-    }
-
-    function closeAllPopups() {
-      document.getElementById('overlay').style.display = 'none';
-      document.querySelectorAll('.popup').forEach(p => p.style.display = 'none');
-    }
-
-    // Parochies laden in dropdowns
-    function loadParishes() {
-      db.collection("parochies").get().then((querySnapshot) => {
-        const regParish = document.getElementById("regParish");
-        const priestParish = document.getElementById("priestParish");
-        regParish.innerHTML = "";
-        priestParish.innerHTML = "";
-        querySnapshot.forEach((doc) => {
-          const option = document.createElement("option");
-          option.value = doc.id;
-          option.textContent = doc.data().naam;
-          regParish.appendChild(option);
-          priestParish.appendChild(option.cloneNode(true));
-        });
-      }).catch((error) => {
-        console.error("Fout bij laden van parochies:", error);
-      });
-    }
-
-    loadParishes();
-
-    // Registratieformulier verzenden
-    document.getElementById("registrationForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-      const naam = document.getElementById("regName").value;
-      const adres = document.getElementById("regAddress").value;
-      const telefoon = document.getElementById("regPhone").value;
-      const email = document.getElementById("regEmail").value;
-      const parochie = document.getElementById("regParish").value;
-
-      db.collection("registraties").add({
-        naam: naam,
-        adres: adres,
-        telefoon: telefoon,
-        email: email,
-        parochie: parochie,
-        status: "in afwachting"
-      }).then(() => {
-        alert("Registratie succesvol verstuurd!");
-        document.getElementById("registrationForm").reset();
-        closeAllPopups();
-      }).catch((error) => {
-        console.error("Fout bij registratie:", error);
-        alert("Registratie mislukt. Probeer opnieuw.");
-      });
-    });
-
-    // Inloggen volwassenen
-    function loginUser() {
-      const gebruikersnaam = document.getElementById("loginUser").value;
-      const wachtwoord = document.getElementById("loginPass").value;
-
-      db.collection("gebruikers")
-        .where("gebruikersnaam", "==", gebruikersnaam)
-        .where("wachtwoord", "==", wachtwoord)
-        .get()
-        .then((querySnapshot) => {
-          if (!querySnapshot.empty) {
-            alert("Inloggen succesvol!");
-            // Hier kun je doorverwijzen naar de juiste pagina
-            closeAllPopups();
-          } else {
-            alert("Ongeldige inloggegevens.");
-          }
-        })
-        .catch((error) => {
-          console.error("Fout bij inloggen:", error);
-        });
-    }
-
-    // Inloggen priester
-    function loginPriest() {
-      const parochie = document.getElementById("priestParish").value;
-      const wachtwoord = document.getElementById("priestPass").value;
-
-      db.collection("gebruikers")
-        .where("parochie", "==", parochie)
-        .where("wachtwoord", "==", wachtwoord)
-        .where("rol", "==", "priester")
-        .get()
-        .then((querySnapshot) => {
-          if (!querySnapshot.empty) {
-            alert("Priesterlogin succesvol!");
-            // Hier kun je doorverwijzen naar de priesterpagina
-            closeAllPopups();
-          } else {
-            alert("Ongeldige inloggegevens voor priester.");
-          }
-        })
-        .catch((error) => {
-          console.error("Fout bij priesterlogin:", error);
-        });
-    }
-  </script>
-</body>
-</html>
-
+  <!-- Firebase -->
+  <
