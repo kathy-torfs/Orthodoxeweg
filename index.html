@@ -20,18 +20,13 @@
     h1 {
       font-size: 2.2em;
       color: #5e3907;
-      margin-bottom: 10px;
-    }
-    p {
-      font-size: 1.3em;
-      color: #6e4b15;
-      margin-bottom: 40px;
     }
     .knoppen {
       display: flex;
       justify-content: center;
       gap: 20px;
       flex-wrap: wrap;
+      margin-top: 30px;
     }
     .knoppen button {
       font-size: 1em;
@@ -76,27 +71,27 @@
 </head>
 <body>
   <h1>Welkom bij Orthodoxeweg</h1>
-  <img src="kruis.png" alt="Orthodox kruis" class="kruis">
+  <img src="images/kruis.png" alt="Orthodox kruis" class="kruis">
   <p>De weg naar het Orthodoxe geloof</p>
 
   <div class="knoppen">
-    <button onclick="showPopup('loginPopup')">Inloggen</button>
-    <button onclick="showPopup('registerPopup')">Registreren</button>
-    <button onclick="window.location.href='gastenmodus.html'">Gastenmodus</button>
+    <button onclick="toonPopup('loginPopup')">Inloggen</button>
+    <button onclick="toonPopup('registerPopup')">Registreren</button>
+    <button onclick="window.location.href='gastenmodus/startpagina.html'">Gastenmodus</button>
   </div>
 
-  <!-- Login -->
+  <!-- LOGIN -->
   <div id="loginPopup" class="popup">
     <div class="popup-content">
       <h2>Inloggen</h2>
-      <input type="text" id="username" placeholder="Gebruikersnaam">
-      <input type="password" id="password" placeholder="Wachtwoord">
-      <button onclick="doLogin()">Inloggen</button>
-      <p><a href="#" onclick="closePopup('loginPopup')">Annuleren</a></p>
+      <input type="text" id="login-gebruiker" placeholder="Gebruikersnaam">
+      <input type="password" id="login-wachtwoord" placeholder="Wachtwoord">
+      <button onclick="inloggen()">Inloggen</button>
+      <p><a href="#" onclick="verbergPopup('loginPopup')">Annuleren</a></p>
     </div>
   </div>
 
-  <!-- Registratie -->
+  <!-- REGISTREREN -->
   <div id="registerPopup" class="popup">
     <div class="popup-content">
       <h2>Registreren</h2>
@@ -104,9 +99,11 @@
       <input type="text" id="reg-adres" placeholder="Adres">
       <input type="text" id="reg-telefoon" placeholder="Telefoonnummer">
       <input type="email" id="reg-email" placeholder="E-mailadres">
-      <select id="parochie"></select>
+      <select id="reg-parochie">
+        <option>Bezig met laden...</option>
+      </select>
       <button onclick="verzendRegistratie()">Versturen</button>
-      <p><a href="#" onclick="closePopup('registerPopup')">Annuleren</a></p>
+      <p><a href="#" onclick="verbergPopup('registerPopup')">Annuleren</a></p>
     </div>
   </div>
 
@@ -125,68 +122,67 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Parochielijst dynamisch laden uit Firestore
-    db.collection("parochies").get().then(snapshot => {
-      const select = document.getElementById('parochie');
-      select.innerHTML = '<option>-- Kies je parochie --</option>'; // reset
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        const option = document.createElement('option');
-        option.value = doc.id;
-        option.textContent = `${data.naam}, ${data.gemeente}`;
-        select.appendChild(option);
-      });
-    });
-
-    function showPopup(id) {
+    function toonPopup(id) {
       document.getElementById(id).style.display = 'block';
     }
-
-    function closePopup(id) {
+    function verbergPopup(id) {
       document.getElementById(id).style.display = 'none';
     }
 
-    function doLogin() {
-      const user = document.getElementById('username').value;
-      const pass = document.getElementById('password').value;
-      if (user === 'test' && pass === '1234') {
-        alert('Welkom! Je wordt doorgestuurd.');
-        window.location.href = 'volwassen.html';
-      } else {
-        alert('Ongeldige inloggegevens');
+    async function inloggen() {
+      const gebruiker = document.getElementById("login-gebruiker").value.trim().toLowerCase();
+      const wachtwoord = document.getElementById("login-wachtwoord").value.trim();
+
+      try {
+        const doc = await db.collection("parochies").doc(gebruiker).get();
+        if (doc.exists && doc.data().postcode === wachtwoord) {
+          window.location.href = "priestermodus/startpagina.html";
+        } else {
+          // Fallback: gewone login
+          window.location.href = "volwassenmodus/startpagina.html";
+        }
+      } catch (err) {
+        alert("Fout bij inloggen. Probeer opnieuw.");
+        console.error(err);
       }
     }
 
-    function verzendRegistratie() {
-      const naam = document.getElementById('reg-naam').value;
-      const adres = document.getElementById('reg-adres').value;
-      const telefoon = document.getElementById('reg-telefoon').value;
-      const email = document.getElementById('reg-email').value;
-      const parochie = document.getElementById('parochie').value;
+    async function verzendRegistratie() {
+      const naam = document.getElementById("reg-naam").value;
+      const adres = document.getElementById("reg-adres").value;
+      const telefoon = document.getElementById("reg-telefoon").value;
+      const email = document.getElementById("reg-email").value;
+      const parochie = document.getElementById("reg-parochie").value;
 
-      if (!parochie || parochie === "-- Kies je parochie --") {
-        alert("Gelieve een parochie te kiezen.");
+      if (!parochie) {
+        alert("Kies een parochie.");
         return;
       }
 
-      db.collection("registraties").doc(parochie).collection("aanvragen").add({
-        naam: naam,
-        adres: adres,
-        telefoon: telefoon,
-        email: email,
-        parochie: parochie,
-        tijdstip: new Date()
-      })
-      .then(() => {
-        alert("Je registratie is verstuurd naar je parochie. Je ontvangt een login zodra het goedgekeurd is.");
-        closePopup('registerPopup');
-      })
-      .catch(error => {
-        console.error("Fout bij opslaan:", error);
-        alert("Er is iets fout gegaan. Probeer opnieuw.");
-      });
+      try {
+        await db.collection("registraties").doc(parochie).collection("aanvragen").add({
+          naam, adres, telefoon, email, parochie, tijdstip: new Date()
+        });
+        alert("Registratie verzonden!");
+        verbergPopup("registerPopup");
+      } catch (error) {
+        alert("Fout bij registratie.");
+        console.error(error);
+      }
     }
+
+    // Parochielijst automatisch laden
+    db.collection("parochies").get().then(snapshot => {
+      const select = document.getElementById("reg-parochie");
+      select.innerHTML = "";
+      snapshot.forEach(doc => {
+        const p = doc.data();
+        const optie = document.createElement("option");
+        optie.value = doc.id;
+        optie.textContent = `${p.naam} (${p.gemeente})`;
+        select.appendChild(optie);
+      });
+    });
   </script>
 </body>
 </html>
-
