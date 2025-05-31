@@ -2,236 +2,88 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>Scheurkalender | Orthodoxeweg</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scheurkalender</title>
   <style>
     body {
-      background: #f9e7b1;
-      font-family: 'Georgia', 'Times New Roman', serif;
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .scheurkalender-container {
-      position: relative;
-      width: 420px;
-      max-width: 98vw;
-      min-height: 570px;
+      background: #f6ecd9;
+      font-family: 'Georgia', serif;
       display: flex;
       flex-direction: column;
       align-items: center;
-      user-select: none;
+      margin-top: 40px;
     }
-    .calendar-stack {
-      position: absolute;
-      width: 100%;
-      height: 96%;
-      top: 0;
-      left: 0;
-      z-index: 1;
-      pointer-events: none;
-    }
-    .stack-blad {
-      position: absolute;
-      left: 12px;
-      top: 18px;
-      width: 395px;
-      height: 530px;
-      max-width: 92vw;
-      background: #f8f6ed;
-      border-radius: 20px 20px 48px 48px / 18px 18px 45px 44px;
-      box-shadow: 0 10px 38px #baa88422;
-      z-index: 1;
-      opacity: 0.30;
-      transform: rotate(-2deg);
-    }
-    .calendar-blad {
+    .kalender-container {
       position: relative;
-      background: #fcf8eb;
-      border-radius: 22px 22px 54px 54px / 17px 17px 49px 45px;
-      box-shadow: 0 12px 48px #baa88433, 0 0px 0 #0000;
-      width: 420px;
-      max-width: 98vw;
-      min-height: 570px;
-      padding: 38px 38px 0 38px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      z-index: 5;
+      width: 380px;
+      height: 500px;
+      margin-bottom: 30px;
+    }
+    .volgende-dag {
+      position: absolute;
+      right: -55px;
+      top: 210px;
+      background: none;
+      border: none;
       cursor: pointer;
-      overflow: hidden;
-      border: 1.2px solid #e1d7bc;
-      /* optioneel lichte rimpel: */
-      background-image:
-        repeating-linear-gradient(120deg, transparent, transparent 18px, #efe3c34a 22px, transparent 36px);
-      transition: box-shadow 0.20s, transform 0.25s;
     }
-    .calendar-blad.toss {
-      animation: scheurBlaadje 0.7s cubic-bezier(.86,0,.07,1);
+    .volgende-dag svg {
+      width: 48px;
+      height: 48px;
+      filter: drop-shadow(2px 2px 3px #999);
     }
-    @keyframes scheurBlaadje {
-      0% { transform: translateY(0) rotate(0) scale(1); opacity: 1; }
-      50% { transform: translateY(-40px) rotate(-7deg) scale(1.06); opacity: 0.7; }
-      100% { transform: translateY(-220px) rotate(-16deg) scale(1.10); opacity: 0; }
-    }
-    .ring {
+    .kalender-inhoud {
       position: absolute;
-      top: -14px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 58px;
-      height: 25px;
-      background: #917047;
-      border-radius: 13px;
-      box-shadow: 0 2px 8px #6a563344;
-      z-index: 10;
+      top: 64px;
+      left: 38px;
+      width: 300px;
+      height: 370px;
+      padding: 36px 28px 24px 28px;
+      font-size: 1.16em;
+      color: #3a2c17;
+      overflow-y: auto;
+      z-index: 2;
     }
-    .ring::after {
-      content: '';
-      position: absolute;
-      left: 15px;
-      top: 5px;
-      width: 28px;
-      height: 16px;
-      border-radius: 10px;
-      background: #d6bb84;
-      opacity: 0.4;
-    }
-    .date-big {
-      font-size: 3.1rem;
-      font-weight: bold;
-      color: #92722c;
-      margin-top: 34px;
-      margin-bottom: 4px;
-      letter-spacing: 2px;
-      font-family: Georgia, serif;
-      text-shadow: 0 2px 2px #fff7, 0 1px 0 #c2b09d55;
-    }
-    .weekday {
-      font-size: 1.15rem;
-      font-weight: 600;
-      color: #a7823d;
-      margin-bottom: 13px;
-      font-family: Georgia, serif;
-    }
-    .daginfo {
-      font-size: 1.16rem;
-      color: #473210;
-      margin: 22px 0 16px 0;
-      text-align: left;
-      width: 100%;
-      line-height: 1.65;
-      letter-spacing: .02em;
-    }
-    .calendar-hint {
-      margin-top: 35px;
-      color: #a7904b;
-      font-size: 1.09rem;
-      font-style: italic;
-      text-align: center;
-      user-select: none;
-      opacity: 0.82;
-      letter-spacing: .02em;
-    }
-    .gescheurde-rand {
-      position: absolute;
-      bottom: 0; left: 0;
-      width: 100%;
-      height: 56px;
-      z-index: 9;
-      pointer-events: none;
-    }
-    /* Mobiel: */
-    @media (max-width: 600px) {
-      .scheurkalender-container { width: 100vw; min-width: 0; }
-      .calendar-blad, .stack-blad { width: 99vw; min-width: 0; max-width: 99vw; padding: 12px 2vw 0 2vw;}
-      .daginfo { font-size: 1rem; }
-      .date-big { font-size: 2.2rem; }
-      .calendar-hint { margin-top: 15px; font-size: .98rem; }
+    /* Mobiel */
+    @media (max-width: 450px) {
+      .kalender-container { width: 98vw; height: 400px; }
+      .kalender-inhoud { width: 76vw; left: 10vw; }
     }
   </style>
 </head>
 <body>
-  <div class="scheurkalender-container">
-    <div class="ring"></div>
-    <div class="calendar-stack">
-      <div class="stack-blad"></div>
-      <div class="stack-blad" style="top: 8px; left: 20px; opacity: 0.18; background:#f1e8d8;"></div>
-    </div>
-    <div class="calendar-blad" id="kalender" onclick="volgendeDag()">
-      <div class="date-big" id="datum">30</div>
-      <div class="weekday" id="weekdag">vrijdag</div>
-      <div class="daginfo">
-        <b>Heilige:</b> <span id="heilige">Symeon de Stylite</span><br>
-        <b>Vastenregel:</b> <span id="vasten">Volledige vasten</span><br>
-        <b>Apostel lezing:</b> <span id="apostel">1 Tim. 2:1-7</span><br>
-        <b>Evangelielezing:</b> <span id="evangelie">Lucas 4:16-22</span>
-      </div>
-      <svg class="gescheurde-rand" viewBox="0 0 420 54" preserveAspectRatio="none">
-        <path d="M0,6 Q25,28 60,26 Q95,18 120,40 Q150,49 180,27 Q210,35 240,44 Q260,46 300,30 Q340,10 370,40 Q395,30 420,17 L420,54 L0,54 Z"
-              fill="#f7f0dd" stroke="#e0d7bb" stroke-width="2"/>
-      </svg>
-      <div class="calendar-hint" id="hint">Klik op het blaadje om de volgende dag te zien</div>
-    </div>
-  </div>
-  <script>
-    // Dummy data (vervang door echte database-data)
-    const dagen = [
-      {
-        datum: "29",
-        weekdag: "donderdag",
-        heilige: "Johannes de Theoloog",
-        vasten: "Olie en wijn toegestaan",
-        apostel: "Hand. 20:1-16",
-        evangelie: "Joh. 6:14-27"
-      },
-      {
-        datum: "30",
-        weekdag: "vrijdag",
-        heilige: "Symeon de Stylite",
-        vasten: "Volledige vasten",
-        apostel: "1 Tim. 2:1-7",
-        evangelie: "Lucas 4:16-22"
-      },
-      {
-        datum: "31",
-        weekdag: "zaterdag",
-        heilige: "Bartholomeus de Apostel",
-        vasten: "Vis toegestaan",
-        apostel: "Hand. 11:19-30",
-        evangelie: "Mat. 11:2-15"
-      }
-    ];
-    let huidigeIndex = 1; // start op 30 mei
+  <div class="kalender-container">
+    <!-- SVG: scheurbladen -->
+    <svg width="380" height="500" style="position:absolute;left:0;top:0;z-index:0">
+      <!-- Achterste blaadjes -->
+      <rect x="30" y="30" width="320" height="410" rx="30" fill="#f3e6cc" stroke="#e3d2a1" stroke-width="4"/>
+      <rect x="22" y="18" width="320" height="410" rx="28" fill="#eee3c6" stroke="#dcc897" stroke-width="4"/>
+      <!-- Hoofdblad -->
+      <rect x="18" y="8" width="320" height="410" rx="28" fill="#faf8f1" stroke="#c2a06a" stroke-width="5"/>
+      <!-- "Perforatie" bolletjes bovenaan -->
+      <circle cx="60" cy="18" r="5" fill="#cfb987" />
+      <circle cx="180" cy="14" r="5" fill="#cfb987" />
+      <circle cx="300" cy="18" r="5" fill="#cfb987" />
+    </svg>
 
-    function toonDag(idx) {
-      const d = dagen[idx];
-      document.getElementById('datum').textContent = d.datum;
-      document.getElementById('weekdag').textContent = d.weekdag;
-      document.getElementById('heilige').textContent = d.heilige;
-      document.getElementById('vasten').textContent = d.vasten;
-      document.getElementById('apostel').textContent = d.apostel;
-      document.getElementById('evangelie').textContent = d.evangelie;
-      document.getElementById('hint').style.display = (huidigeIndex < dagen.length-1) ? 'block' : 'none';
-    }
-    function volgendeDag() {
-      if (huidigeIndex < dagen.length-1) {
-        animatieScheur(() => {
-          huidigeIndex++; toonDag(huidigeIndex);
-        });
-      }
-    }
-    function animatieScheur(callback) {
-      const page = document.getElementById('kalender');
-      page.classList.add('toss');
-      setTimeout(() => {
-        page.classList.remove('toss');
-        callback();
-      }, 700);
-    }
-    window.onload = () => toonDag(huidigeIndex);
-  </script>
+    <!-- Dag-inhoud -->
+    <div class="kalender-inhoud">
+      <h2 style="text-align:center;margin:0 0 12px 0;font-size:2em;letter-spacing:1px;">31 mei 2025</h2>
+      <p><b>Heilige:</b> Theodotus van Ancyra</p>
+      <p><b>Vasten:</b> Volledige vasten (geen olie, wijn of vis)</p>
+      <p><b>Dagtekst:</b><br>‘Vertrouw op de Heer met heel uw hart, steun niet op eigen inzicht’<br><i>Spreuken 3:5</i></p>
+      <p><b>Recept:</b> Griekse linzensoep (Fakes)</p>
+      <hr>
+      <p style="font-size:0.95em;color:#9d7c54;text-align:center;">
+        <i>Op weg naar het licht: elke dag een blad dichter bij Pasen!</i>
+      </p>
+    </div>
+    <!-- Volgende dag knop -->
+    <button class="volgende-dag" title="Volgende dag">
+      <svg viewBox="0 0 50 50">
+        <ellipse cx="25" cy="25" rx="20" ry="20" fill="#f6ecd9" stroke="#cfb987" stroke-width="2"/>
+        <polygon points="22,15 36,25 22,35" fill="#a47a4d"/>
+      </svg>
+    </button>
+  </div>
 </body>
 </html>
