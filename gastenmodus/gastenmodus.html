@@ -54,12 +54,16 @@
       flex-direction: column;
       align-items: center;
       padding: 32px 24px 24px 24px;
-      transition: transform 0.6s cubic-bezier(.86,0,.07,1);
+      transition: transform 0.6s cubic-bezier(.86,0,.07,1), opacity 0.6s;
+      cursor: pointer;
     }
     .calendar-page.toss {
       transform: translateY(-200px) rotate(-10deg) scale(1.05);
       opacity: 0.1;
-      transition: transform 0.6s, opacity 0.6s;
+    }
+    .calendar-page:hover {
+      box-shadow: 0 8px 32px #be983944;
+      background: #fffbe0;
     }
     .ring {
       position: absolute;
@@ -105,25 +109,12 @@
       text-align: left;
       width: 100%;
     }
-    .nav-buttons {
-      display: flex;
-      justify-content: space-between;
-      width: 100%;
-      margin-top: 28px;
-    }
-    .nav-buttons button {
-      background: #8d5c19;
-      color: #fff;
-      font-size: 1.1rem;
-      border: none;
-      border-radius: 8px;
-      padding: 11px 24px;
-      cursor: pointer;
-      box-shadow: 0 2px 8px #65432111;
-      transition: background 0.2s;
-    }
-    .nav-buttons button:hover {
-      background: #b18137;
+    .calendar-hint {
+      margin-top: 24px;
+      color: #a69051;
+      font-size: 0.97rem;
+      font-style: italic;
+      text-align: center;
     }
     @media (max-width: 600px) {
       .calendar-container { width: 98vw; min-width: 0; }
@@ -138,7 +129,7 @@
       <div class="backpage"></div>
       <div class="backpage" style="top: 10px; left: 5px; opacity: 0.3;"></div>
     </div>
-    <div class="calendar-page" id="kalender">
+    <div class="calendar-page" id="kalender" onclick="volgendeDag()">
       <div class="date-big" id="datum">30</div>
       <div class="weekday" id="weekdag">vrijdag</div>
       <div class="daginfo">
@@ -147,10 +138,7 @@
         <b>Apostel lezing:</b> <span id="apostel">1 Tim. 2:1-7</span><br>
         <b>Evangelielezing:</b> <span id="evangelie">Lucas 4:16-22</span>
       </div>
-      <div class="nav-buttons">
-        <button onclick="vorigeDag()">&larr; Vorige</button>
-        <button onclick="volgendeDag()">Volgende &rarr;</button>
-      </div>
+      <div class="calendar-hint" id="hint">Klik op het blaadje om de volgende dag te zien</div>
     </div>
   </div>
   <script>
@@ -191,18 +179,13 @@
       document.getElementById('vasten').textContent = d.vasten;
       document.getElementById('apostel').textContent = d.apostel;
       document.getElementById('evangelie').textContent = d.evangelie;
+      // Hint alleen tonen als er nog een dag over is
+      document.getElementById('hint').style.display = (huidigeIndex < dagen.length-1) ? 'block' : 'none';
     }
     function volgendeDag() {
       if (huidigeIndex < dagen.length-1) {
         animatieScheur(() => {
           huidigeIndex++; toonDag(huidigeIndex);
-        });
-      }
-    }
-    function vorigeDag() {
-      if (huidigeIndex > 0) {
-        animatieScheur(() => {
-          huidigeIndex--; toonDag(huidigeIndex);
         });
       }
     }
