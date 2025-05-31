@@ -7,129 +7,160 @@
   <style>
     body {
       background: #f9e7b1;
-      font-family: 'Segoe UI', Arial, sans-serif;
+      font-family: 'Georgia', 'Times New Roman', serif;
       margin: 0;
       min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
     }
-    .calendar-container {
+    .scheurkalender-container {
       position: relative;
-      width: 350px;
-      height: 420px;
+      width: 420px;
+      max-width: 98vw;
+      min-height: 570px;
       display: flex;
       flex-direction: column;
       align-items: center;
+      user-select: none;
     }
-    .page-stack {
+    .calendar-stack {
       position: absolute;
       width: 100%;
-      height: 100%;
+      height: 96%;
       top: 0;
       left: 0;
-      z-index: 0;
-    }
-    .page-stack .backpage {
-      position: absolute;
-      width: 98%;
-      height: 97%;
-      left: 1%;
-      background: #fffbe7;
-      border-radius: 22px 22px 40px 40px;
-      box-shadow: 0 6px 14px #c9b18e44;
       z-index: 1;
-      transform: translateY(20px) rotate(-2deg);
-      opacity: 0.5;
+      pointer-events: none;
     }
-    .calendar-page {
-      width: 100%;
-      min-height: 370px;
-      background: #fffbe7;
-      border-radius: 22px 22px 40px 40px;
-      box-shadow: 0 6px 24px #c9b18e66;
+    .stack-blad {
+      position: absolute;
+      left: 12px;
+      top: 18px;
+      width: 395px;
+      height: 530px;
+      max-width: 92vw;
+      background: #f8f6ed;
+      border-radius: 20px 20px 48px 48px / 18px 18px 45px 44px;
+      box-shadow: 0 10px 38px #baa88422;
+      z-index: 1;
+      opacity: 0.30;
+      transform: rotate(-2deg);
+    }
+    .calendar-blad {
       position: relative;
-      z-index: 2;
+      background: #fcf8eb;
+      border-radius: 22px 22px 54px 54px / 17px 17px 49px 45px;
+      box-shadow: 0 12px 48px #baa88433, 0 0px 0 #0000;
+      width: 420px;
+      max-width: 98vw;
+      min-height: 570px;
+      padding: 38px 38px 0 38px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 32px 24px 24px 24px;
-      transition: transform 0.6s cubic-bezier(.86,0,.07,1), opacity 0.6s;
+      z-index: 5;
       cursor: pointer;
+      overflow: hidden;
+      border: 1.2px solid #e1d7bc;
+      /* optioneel lichte rimpel: */
+      background-image:
+        repeating-linear-gradient(120deg, transparent, transparent 18px, #efe3c34a 22px, transparent 36px);
+      transition: box-shadow 0.20s, transform 0.25s;
     }
-    .calendar-page.toss {
-      transform: translateY(-200px) rotate(-10deg) scale(1.05);
-      opacity: 0.1;
+    .calendar-blad.toss {
+      animation: scheurBlaadje 0.7s cubic-bezier(.86,0,.07,1);
     }
-    .calendar-page:hover {
-      box-shadow: 0 8px 32px #be983944;
-      background: #fffbe0;
+    @keyframes scheurBlaadje {
+      0% { transform: translateY(0) rotate(0) scale(1); opacity: 1; }
+      50% { transform: translateY(-40px) rotate(-7deg) scale(1.06); opacity: 0.7; }
+      100% { transform: translateY(-220px) rotate(-16deg) scale(1.10); opacity: 0; }
     }
     .ring {
       position: absolute;
-      top: -12px;
+      top: -14px;
       left: 50%;
       transform: translateX(-50%);
-      width: 54px;
-      height: 26px;
-      background: #9c7c4b;
+      width: 58px;
+      height: 25px;
+      background: #917047;
       border-radius: 13px;
-      box-shadow: 0 2px 5px #0003;
-      z-index: 5;
+      box-shadow: 0 2px 8px #6a563344;
+      z-index: 10;
     }
     .ring::after {
       content: '';
       position: absolute;
       left: 15px;
-      top: 4px;
-      width: 24px;
-      height: 18px;
-      border-radius: 12px;
-      background: #d7b77c;
-      opacity: 0.5;
+      top: 5px;
+      width: 28px;
+      height: 16px;
+      border-radius: 10px;
+      background: #d6bb84;
+      opacity: 0.4;
     }
     .date-big {
-      font-size: 2.8rem;
+      font-size: 3.1rem;
       font-weight: bold;
-      color: #8d5c19;
-      margin-top: 24px;
-      margin-bottom: 6px;
+      color: #92722c;
+      margin-top: 34px;
+      margin-bottom: 4px;
       letter-spacing: 2px;
+      font-family: Georgia, serif;
+      text-shadow: 0 2px 2px #fff7, 0 1px 0 #c2b09d55;
     }
     .weekday {
-      font-size: 1.1rem;
+      font-size: 1.15rem;
       font-weight: 600;
-      color: #a6824a;
-      margin-bottom: 12px;
+      color: #a7823d;
+      margin-bottom: 13px;
+      font-family: Georgia, serif;
     }
     .daginfo {
-      font-size: 1.05rem;
+      font-size: 1.16rem;
       color: #473210;
-      margin: 14px 0 10px 0;
+      margin: 22px 0 16px 0;
       text-align: left;
       width: 100%;
+      line-height: 1.65;
+      letter-spacing: .02em;
     }
     .calendar-hint {
-      margin-top: 24px;
-      color: #a69051;
-      font-size: 0.97rem;
+      margin-top: 35px;
+      color: #a7904b;
+      font-size: 1.09rem;
       font-style: italic;
       text-align: center;
+      user-select: none;
+      opacity: 0.82;
+      letter-spacing: .02em;
     }
+    .gescheurde-rand {
+      position: absolute;
+      bottom: 0; left: 0;
+      width: 100%;
+      height: 56px;
+      z-index: 9;
+      pointer-events: none;
+    }
+    /* Mobiel: */
     @media (max-width: 600px) {
-      .calendar-container { width: 98vw; min-width: 0; }
-      .calendar-page { padding: 20px 8px; }
+      .scheurkalender-container { width: 100vw; min-width: 0; }
+      .calendar-blad, .stack-blad { width: 99vw; min-width: 0; max-width: 99vw; padding: 12px 2vw 0 2vw;}
+      .daginfo { font-size: 1rem; }
+      .date-big { font-size: 2.2rem; }
+      .calendar-hint { margin-top: 15px; font-size: .98rem; }
     }
   </style>
 </head>
 <body>
-  <div class="calendar-container">
+  <div class="scheurkalender-container">
     <div class="ring"></div>
-    <div class="page-stack">
-      <div class="backpage"></div>
-      <div class="backpage" style="top: 10px; left: 5px; opacity: 0.3;"></div>
+    <div class="calendar-stack">
+      <div class="stack-blad"></div>
+      <div class="stack-blad" style="top: 8px; left: 20px; opacity: 0.18; background:#f1e8d8;"></div>
     </div>
-    <div class="calendar-page" id="kalender" onclick="volgendeDag()">
+    <div class="calendar-blad" id="kalender" onclick="volgendeDag()">
       <div class="date-big" id="datum">30</div>
       <div class="weekday" id="weekdag">vrijdag</div>
       <div class="daginfo">
@@ -138,6 +169,10 @@
         <b>Apostel lezing:</b> <span id="apostel">1 Tim. 2:1-7</span><br>
         <b>Evangelielezing:</b> <span id="evangelie">Lucas 4:16-22</span>
       </div>
+      <svg class="gescheurde-rand" viewBox="0 0 420 54" preserveAspectRatio="none">
+        <path d="M0,6 Q25,28 60,26 Q95,18 120,40 Q150,49 180,27 Q210,35 240,44 Q260,46 300,30 Q340,10 370,40 Q395,30 420,17 L420,54 L0,54 Z"
+              fill="#f7f0dd" stroke="#e0d7bb" stroke-width="2"/>
+      </svg>
       <div class="calendar-hint" id="hint">Klik op het blaadje om de volgende dag te zien</div>
     </div>
   </div>
@@ -179,7 +214,6 @@
       document.getElementById('vasten').textContent = d.vasten;
       document.getElementById('apostel').textContent = d.apostel;
       document.getElementById('evangelie').textContent = d.evangelie;
-      // Hint alleen tonen als er nog een dag over is
       document.getElementById('hint').style.display = (huidigeIndex < dagen.length-1) ? 'block' : 'none';
     }
     function volgendeDag() {
@@ -195,7 +229,7 @@
       setTimeout(() => {
         page.classList.remove('toss');
         callback();
-      }, 600);
+      }, 700);
     }
     window.onload = () => toonDag(huidigeIndex);
   </script>
