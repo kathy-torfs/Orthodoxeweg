@@ -308,15 +308,16 @@
     function priesterLogin() {
       const parochie = document.getElementById("priesterParochie").value;
       const wachtwoord = document.getElementById("priesterWachtwoord").value;
-      db.collection("gebruikers")
-        .where("parochie", "==", parochie)
-        .where("wachtwoord", "==", wachtwoord)
-        .where("rol", "==", "priester")
+      db.collection("parochies")
+        .where("naam", "==", parochie)
+        .where("postcode", "==", wachtwoord)
         .get()
         .then(snapshot => {
           if (!snapshot.empty) {
             window.location.href = "priestermodus/startpagina.html";
           } else {
+            console.log(parochie)
+            console.log(wachtwoord)
             alert("Onjuiste gegevens.");
           }
         }).catch(err => {
