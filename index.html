@@ -13,11 +13,15 @@
       --wit: #fff;
     }
 
-    body {
-      background: var(--oker);
+    html, body {
       margin: 0;
-      min-height: 100vh;
+      padding: 0;
+      box-sizing: border-box;
+      background: var(--oker);
       font-family: Arial, sans-serif;
+      min-height: 100vh;
+      width: 100%;
+      overflow-x: hidden;
     }
 
     .topbar {
@@ -30,6 +34,7 @@
       justify-content: flex-end;
       box-shadow: 0 2px 8px #0002;
       position: relative;
+      z-index: 10;
     }
 
     .priesterknop {
@@ -55,10 +60,14 @@
       justify-content: flex-start;
       min-height: calc(100vh - 64px);
       padding-top: 40px;
+      padding-bottom: 40px;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .kruis {
       width: 360px;
+      max-width: 90vw;
       margin: 0 0 40px 0;
       display: block;
     }
@@ -69,12 +78,16 @@
       font-weight: bold;
       color: var(--bruin-donker);
       letter-spacing: 1px;
+      text-align: center;
+      word-break: break-word;
     }
     h2 {
       margin: 0 0 40px 0;
       font-weight: normal;
       font-size: 1.35rem;
       color: #654321;
+      text-align: center;
+      word-break: break-word;
     }
 
     .knoppenrij {
@@ -85,6 +98,7 @@
       justify-content: center;
       width: 100%;
       max-width: 600px;
+      flex-wrap: wrap;
     }
     .knop {
       background: var(--bruin-donker);
@@ -99,6 +113,7 @@
       transition: background 0.15s, box-shadow 0.15s;
       flex: 1;
       max-width: 200px;
+      min-width: 120px;
     }
     .knop:hover {
       background: #825029;
@@ -126,6 +141,8 @@
       border-radius: 14px;
       z-index: 1001;
       min-width: 310px;
+      max-width: 95vw;
+      box-sizing: border-box;
       box-shadow: 0 10px 32px #0003;
     }
     .popup h2 {
@@ -135,11 +152,13 @@
     .popup input, .popup select {
       display: block;
       margin: 12px auto;
-      padding: 11px;
-      width: 90%;
+      padding: 12px;
+      width: 96%;
       font-size: 1rem;
       border-radius: 6px;
       border: 1px solid #bbb;
+      box-sizing: border-box;
+      max-width: 99vw;
     }
     .popup button {
       padding: 12px 30px;
@@ -165,12 +184,28 @@
       font-weight: bold;
     }
 
+    /* Mobiel optimalisatie */
     @media (max-width: 800px) {
       .knoppenrij { flex-direction: column; gap: 18px; }
       .knop { max-width: none; width: 100%; }
-      .priesterknop { margin-right: 12px; }
+      .priesterknop { margin-right: 12px; font-size: 1rem; padding: 10px 18px; }
       .maincontent { padding-top: 20px; }
-      .kruis { width: 120px;}
+      .kruis { width: 120px; }
+      h1 { font-size: 1.5rem; }
+      h2 { font-size: 1.07rem; }
+      .popup { min-width: 90vw; padding: 16px 5vw 12px 5vw; top: 8%; }
+      .popup input, .popup select { font-size: 1rem; }
+    }
+    @media (max-width: 480px) {
+      .topbar { height: 48px; }
+      .priesterknop { font-size: 0.93rem; padding: 7px 12px; margin-right: 6px;}
+      .popup { min-width: 98vw; max-width: 99vw; padding: 10px 2vw 8px 2vw; }
+      .maincontent { padding-top: 10px; }
+      .kruis { width: 65px; }
+      h1 { font-size: 1.08rem;}
+      h2 { font-size: 0.91rem;}
+      .knoppenrij { margin-bottom: 25px; }
+      .knop { font-size: 0.97rem; padding: 12px 0; }
     }
   </style>
 </head>
@@ -229,7 +264,7 @@
     <button onclick="priesterLogin()">Inloggen</button>
   </div>
 
-  <!-- JUISTE Firebase compat scripts voor GitHub Pages -->
+  <!-- Firebase scripts en custom JS zoals eerder -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script>
@@ -245,7 +280,6 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Parochielijst laden voor registratie + priesterlogin
     function laadParochies() {
       db.collection("parochies").get().then(snapshot => {
         const regSel = document.getElementById("parochieSelect");
@@ -265,7 +299,6 @@
     }
     window.addEventListener('DOMContentLoaded', laadParochies);
 
-    // Registratie opslaan in Firestore
     document.getElementById("registratieForm").addEventListener("submit", function(e) {
       e.preventDefault();
       db.collection("registraties").add({
@@ -284,7 +317,6 @@
       });
     });
 
-    // Login gebruikers (volwassenen)
     function login() {
       const naam = document.getElementById("loginNaam").value.trim();
       const wachtwoord = document.getElementById("loginWachtwoord").value;
@@ -304,7 +336,6 @@
         });
     }
 
-    // Login priester
     function priesterLogin() {
       const parochie = document.getElementById("priesterParochie").value;
       const wachtwoord = document.getElementById("priesterWachtwoord").value;
@@ -316,8 +347,6 @@
           if (!snapshot.empty) {
             window.location.href = "priestermodus/startpagina.html";
           } else {
-            console.log(parochie)
-            console.log(wachtwoord)
             alert("Onjuiste gegevens.");
           }
         }).catch(err => {
@@ -326,7 +355,6 @@
         });
     }
 
-    // Pop-ups openen en sluiten
     function openPopup(id) {
       document.getElementById("overlay").style.display = "block";
       document.getElementById(id).style.display = "block";
@@ -336,7 +364,6 @@
       document.querySelectorAll(".popup").forEach(p => p.style.display = "none");
     }
 
-    // Gastenmodus: direct doorlinken
     function gastenmodus() {
       window.location.href = "gastenmodus/startpagina.html";
     }
