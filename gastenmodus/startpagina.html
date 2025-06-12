@@ -35,7 +35,7 @@
     }
     .kalender-main {
       max-width: 860px;
-      margin: 30px auto 60px auto;  /* Net als psalmenpagina */
+      margin: 30px auto 60px auto;
       padding: 0 15px;
     }
     .kalender-container {
@@ -77,7 +77,6 @@
     .dag-vis         { color: #2969b0; }
     .dag-oliewijn    { color: #7a349b; }
     .dag-strikt      { color: #bb2222; }
-    /* Responsive */
     @media (max-width: 1024px) {
       .kalender-container {
         width: 99vw;
@@ -134,6 +133,22 @@
       }
     }
   </style>
+  <!-- FIREBASE SCRIPTS EN CONFIG -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",  // LET OP: dit moet meestal eindigen op .appspot.com
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb",
+      measurementId: "G-C942F2NYQV"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
 </head>
 <body>
 <nav class="menu">
@@ -174,37 +189,51 @@
       <circle cx="244" cy="56" r="6" fill="#b8a17c"/>
       <circle cx="408" cy="68" r="6" fill="#b8a17c"/>
     </svg>
-    <div class="kalender-inhoud">
-      <h2 id="kalender-dag" class="" style="margin:0 0 18px 0; font-size:2.2em; letter-spacing:1px; text-align:left;">
-        31 mei 2025
-      </h2>
-      <p><b>Heilige(n):</b> Theodotus van Ancyra, Cyrillus & Paula</p>
-      <p><b>Vasten:</b> Volledige vasten (geen olie, wijn of vis)</p>
-      <p><b>Bijbeltekst:</b><br>
-        <i>‘Vertrouw op de Heer met heel uw hart, steun niet op eigen inzicht’</i>
-        <br>Spreuken 3:5
-      </p>
-      <p><b>Orthodoxe tip:</b> Begin je dag met een kort gebed en het kruisje.</p>
-      <p><b>Recept:</b> Griekse linzensoep (Fakes)
-        <br><small>Bekijk het volledige recept onder “Weekmenu”.</small>
-      </p>
-      <hr>
-      <p style="font-size:1.08em;color:#9d7c54;text-align:left;">
-        <i>Elke dag dichter bij God!</i>
-      </p>
+    <div class="kalender-inhoud" id="kalender-inhoud">
+      <p style="text-align:center;color:#a6a5a4;">Bezig met laden...</p>
     </div>
   </div>
 </div>
 <script>
-  let vastenType = "strikt";
-  const dagElement = document.getElementById('kalender-dag');
-  if (dagElement) {
-    dagElement.classList.remove('dag-vastenvrij', 'dag-vis', 'dag-oliewijn', 'dag-strikt');
-    if (vastenType === "vastenvrij")   dagElement.classList.add("dag-vastenvrij");
-    if (vastenType === "vis")          dagElement.classList.add("dag-vis");
-    if (vastenType === "oliewijn")     dagElement.classList.add("dag-oliewijn");
-    if (vastenType === "strikt")       dagElement.classList.add("dag-strikt");
+  // Functie om datum om te zetten naar dd-mm-yyyy formaat
+  function pad(n) { return n<10?'0'+n:n }
+  function datumVandaag() {
+    const d = new Date();
+    return pad(d.getDate()) + '-' + pad(d.getMonth()+1) + '-' + d.getFullYear();
   }
+  const vandaag = datumVandaag();
+
+  db.collection("kalender2025").where("Datum", "==", vandaag).get().then(snapshot => {
+    const el = document.getElementById('kalender-inhoud');
+    if (snapshot.empty) {
+      el.innerHTML = `<p>Geen kalenderdata voor vandaag (${vandaag})</p>`;
+      return;
+    }
+    const data = snapshot.docs[0].data();
+    // Bepaal type vastenregel voor kleur
+    let vastenClass = "";
+    if ((data["Vastenregel NL"]||'').toLowerCase().includes("vis"))         vastenClass = "dag-vis";
+    else if ((data["Vastenregel NL"]||'').toLowerCase().includes("olie") ||
+             (data["Vastenregel NL"]||'').toLowerCase().includes("wijn"))  vastenClass = "dag-oliewijn";
+    else if ((data["Vastenregel NL"]||'').toLowerCase().includes("vrij"))  vastenClass = "dag-vastenvrij";
+    else if ((data["Vastenregel NL"]||'').toLowerCase().trim() !== "")     vastenClass = "dag-strikt";
+
+    el.innerHTML = `
+      <h2 id="kalender-dag" class="${vastenClass}" style="margin:0 0 18px 0; font-size:2.2em; letter-spacing:1px; text-align:left;">
+        ${data.Datum || ""}
+      </h2>
+      <p><b>Heilige(n):</b> ${data["Heiligen NL"]||""}</p>
+      <p><b>Vasten:</b> ${data["Vastenregel NL"]||""}</p>
+      <p><b>Epistel:</b> ${data["Epistel Ref NL (netjes NL)"]||""}</p>
+      <p><b>Evangelie:</b> ${data["Evangelie Ref NL (netjes NL)"]||""}</p>
+      <p><b>Orthodoxe tip:</b> ${data["Tip/Wens NL"]||""}</p>
+      <p><b>Symbool:</b> ${data["Symbool"]||""}</p>
+      <hr>
+      <p style="font-size:1.08em;color:#9d7c54;text-align:left;">
+        <i>Elke dag dichter bij God!</i>
+      </p>
+    `;
+  });
 </script>
 </body>
 </html>
