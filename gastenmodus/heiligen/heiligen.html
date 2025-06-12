@@ -86,3 +86,105 @@
     <h1>Heiligen</h1>
   </header>
 </body>
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Orthodoxe Kalender – Automatisch</title>
+  <style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #fffbe9; color: #563B16; margin:0; padding:0;}
+    .container { max-width: 800px; margin: 30px auto; padding: 24px; background: #fff8df; border-radius: 16px; box-shadow: 0 4px 20px #d7c79b33;}
+    h1 { font-size: 2.2em; color: #b98b38; margin-bottom: 10px;}
+    .event { border-bottom: 1px solid #efd490; margin-bottom: 22px; padding-bottom: 15px;}
+    .event:last-child { border-bottom: none;}
+    .date { font-weight: bold; color: #ad7800;}
+    .event h2 { font-size: 1.4em; margin: 7px 0;}
+    .event a { color: #4e4eab; text-decoration: none;}
+    .desc { font-size: 1em; margin-top: 7px; color: #70521a;}
+    .bron { font-size: 0.88em; color: #a3947a;}
+    .small { font-size:0.95em; color:#ab9e87;}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📅 Orthodoxe Feesten & Heiligen</h1>
+    <div id="kalender">Bezig met laden...</div>
+    <div class="small">Gegevens automatisch ingeladen van <a href="https://www.iconograms.org/rss/upcoming.php" target="_blank">Iconograms.org</a>. | Layout © 2025 Orthodoxeweg</div>
+  </div>
+  <script>
+    // Let op: gratis proxy service nodig i.v.m. browser security
+    const RSS_URL = 'https://www.iconograms.org/rss/upcoming.php';
+    const vertaalTabel = {
+      "Pentecost": "Pinksteren",
+      "Trinity Sunday": "Drie-eenheidszondag",
+      "All Saints": "Allerheiligen",
+      "Peter and Paul, the Holy Apostles": "Petrus en Paulus, de Heilige Apostelen",
+      "Synaxis of the Twelve Holy Apostles": "Feest van de Twaalf Heilige Apostelen",
+      "Nativity of the Forerunner John the Baptist": "Geboorte van Johannes de Doper",
+      // Voeg gerust meer vertalingen toe...
+    };
+
+    function vertaalTitel(titel) {
+      for (const eng in vertaalTabel) {
+        if (titel.includes(eng)) {
+          return titel.replace(eng, vertaalTabel[eng]);
+        }
+      }
+      // Kleine 'cosmetische' vertalingen:
+      if (titel.includes('the')) return titel.replace('the', 'de');
+      if (titel.includes('Saint')) return titel.replace('Saint', 'Heilige');
+      return titel;
+    }
+
+    function verkortBeschrijving(desc) {
+      // Haal copyright regels weg en maak tekst korter
+      return desc.split('Reading copyright')[0].replace(/(\r\n|\n|\r)/gm, "").trim();
+    }
+
+    function vertaalBeschrijving(desc) {
+      // Zeer basis: sleutelwoorden vertalen
+      return desc
+        .replace(/martyr/gi, 'martelaar')
+        .replace(/saint/gi, 'heilige')
+        .replace(/apostle/gi, 'apostel')
+        .replace(/church/gi, 'kerk')
+        .replace(/feast/gi, 'feest')
+        .replace(/holy/gi, 'heilig')
+        .replace(/forerunner/gi, 'voorloper')
+        // Voeg gerust meer termen toe...
+        ;
+    }
+
+    async function haalRSS() {
+      const resp = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(RSS_URL)}`);
+      const data = await resp.json();
+      const parser = new DOMParser();
+      const xml = parser.parseFromString(data.contents, "text/xml");
+      const items = xml.querySelectorAll("item");
+      const container = document.getElementById('kalender');
+      if (!items.length) {
+        container.innerHTML = "Geen data beschikbaar.";
+        return;
+      }
+      container.innerHTML = '';
+      items.forEach(item => {
+        const title = vertaalTitel(item.querySelector("title").textContent);
+        const link = item.querySelector("link").textContent;
+        const desc = item.querySelector("description").textContent;
+        const date = item.querySelector("dc\\:date, date").textContent;
+        let uitleg = verkortBeschrijving(desc);
+        uitleg = vertaalBeschrijving(uitleg);
+
+        container.innerHTML += `
+          <div class="event">
+            <div class="date">📅 ${date}</div>
+            <h2><a href="${link}" target="_blank">${title}</a></h2>
+            <div class="desc">${uitleg}</div>
+          </div>
+        `;
+      });
+    }
+    haalRSS();
+  </script>
+</body>
+</html>
