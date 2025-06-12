@@ -1,118 +1,185 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <title>Recept met speelse ingrediënten achtergrond</title>
-  <meta name="viewport" content="width=700, initial-scale=1.0">
-  <style>
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: linear-gradient(135deg, #fff9e5 0%, #faf6f1 100%);
-      font-family: 'Arial Rounded MT', Arial, sans-serif;
-      position: relative;
-      overflow-x: hidden;
-    }
-    /* "Ingrediënten-emoji's" als decoratie in de hoeken */
-    .ingredient-emoji {
-      position: fixed;
-      z-index: 0;
-      font-size: 3em;
-      pointer-events: none;
-      opacity: 0.88;
-      filter: drop-shadow(0 2px 10px #f6efd2);
-      animation: float 6s infinite ease-in-out;
-    }
-    .ingredient1 { top: 24px; left: 22px; animation-delay: 0s;}
-    .ingredient2 { top: 40px; right: 30px; animation-delay: 1.5s;}
-    .ingredient3 { bottom: 40px; left: 40px; animation-delay: 2s;}
-    .ingredient4 { bottom: 45px; right: 34px; animation-delay: 0.9s;}
-    .ingredient5 { top: 47%; left: 0; font-size: 2.4em; animation-delay: 3s;}
-    .ingredient6 { top: 55%; right: 0; font-size: 2.4em; animation-delay: 2.4s;}
-    .ingredient7 { bottom: 10%; left: 13vw; font-size: 2em; animation-delay: 1.2s;}
-    .ingredient8 { top: 8vw; right: 20vw; font-size: 2.1em; animation-delay: 2.8s;}
-    @keyframes float {
-      0%,100% { transform: translateY(0);}
-      50% { transform: translateY(-15px);}
-    }
-
-    .container {
-      position: relative;
-      max-width: 620px;
-      margin: 110px auto 44px auto;
-      background: rgba(255,255,255,0.96);
-      border-radius: 20px;
-      box-shadow: 0 8px 32px rgba(186, 132, 54, 0.11);
-      padding: 42px 35px 32px 35px;
-      z-index: 2;
-    }
-    h1 {
-      color: #b34d1d;
-      text-align: center;
-      margin-bottom: 10px;
-      margin-top: 0;
-      font-size: 1.28em;
-      letter-spacing: 1px;
-    }
-    .ondertitel {
-      text-align: center;
-      font-size: 1.09em;
-      color: #775f44;
-      margin-bottom: 18px;
-      font-style: italic;
-    }
-    .personen {
-      text-align: center;
-      color: #115a8b;
-      font-size: 1.05em;
-      margin-bottom: 14px;
-    }
-    ul, ol { margin-top: 6px; margin-bottom: 16px;}
-    ul li, ol li { margin-bottom: 2px;}
-    @media (max-width: 700px) {
-      .container { padding: 5vw 2vw 3vw 2vw; }
-      h1 { font-size: 1.08em; }
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Orthodoxeweg - Recepten</title>
+<style>
+  body {
+    background-color: #f5e9b8;
+    color: #6f4e1a;
+    font-family: Arial, sans-serif;
+    margin: 0; padding: 0;
+    position: relative;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  nav.menu {
+    background-color: #7a5f35;
+    padding: 10px 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+  }
+  nav.menu a {
+    color: #f5e9b8;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 16px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    transition: background-color 0.3s;
+  }
+  nav.menu a:hover {
+    background-color: #5d4726;
+    text-decoration: underline;
+  }
+  main {
+    max-width: 860px;
+    margin: 32px auto 60px auto;
+    padding: 0 15px;
+    position: relative;
+    z-index: 2;
+  }
+  h1 {
+    font-size: 32px;
+    text-align: center;
+    margin-bottom: 12px;
+    text-decoration: underline;
+  }
+  .intro {
+    text-align: center;
+    font-size: 1.19em;
+    margin-bottom: 38px;
+    color: #83652c;
+    background: rgba(255,255,255,0.7);
+    padding: 20px 12px;
+    border-radius: 15px;
+    box-shadow: 0 3px 15px #ffe7b25c;
+  }
+  .categorieen {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    justify-content: center;
+    margin-bottom: 32px;
+  }
+  .cat-blok {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 170px;
+    min-height: 120px;
+    padding: 18px 14px 14px 14px;
+    background: linear-gradient(135deg,#fffbe9 70%,#f9e3b7 100%);
+    border-radius: 18px;
+    border: 2.5px solid #e6c77b;
+    box-shadow: 0 2px 9px #f9e9c77a;
+    text-align: center;
+    text-decoration: none;
+    color: #6f4e1a;
+    font-size: 1.06em;
+    transition: transform 0.18s, box-shadow 0.19s;
+    font-weight: 600;
+    position: relative;
+  }
+  .cat-blok:hover, .cat-blok:focus {
+    transform: scale(1.06) rotate(-2deg);
+    box-shadow: 0 6px 16px #ebdbbb8b;
+    background: linear-gradient(120deg,#fffbe9 50%,#f7e6c3 100%);
+    z-index: 10;
+  }
+  .cat-icon {
+    font-size: 2.2em;
+    margin-bottom: 6px;
+  }
+  @media (max-width: 750px) {
+    .categorieen { flex-direction: column; align-items: center;}
+    .cat-blok { width: 86vw; margin-bottom: 12px; }
+    main { margin: 12vw 0 7vw 0;}
+  }
+  /* === Speelse extra emoji's over het scherm === */
+  .ingredient-emoji {
+    position: fixed;
+    z-index: 0;
+    font-size: 2.3em;
+    pointer-events: none;
+    opacity: 0.86;
+    filter: drop-shadow(0 2px 10px #f6efd2);
+    animation: float 7s infinite ease-in-out;
+    user-select: none;
+  }
+  .ingredient1 { top: 24px; left: 22px; animation-delay: 0s;}
+  .ingredient2 { top: 80px; right: 44px; animation-delay: 1.5s;}
+  .ingredient3 { bottom: 32px; left: 32px; animation-delay: 2.2s;}
+  .ingredient4 { bottom: 28px; right: 25px; animation-delay: 0.9s;}
+  .ingredient5 { top: 50%; left: 0; font-size: 2em; animation-delay: 2.7s;}
+  .ingredient6 { top: 66%; right: 0; font-size: 2.1em; animation-delay: 2.4s;}
+  .ingredient7 { bottom: 12%; left: 20vw; font-size: 1.8em; animation-delay: 1.2s;}
+  .ingredient8 { top: 12vw; right: 10vw; font-size: 2em; animation-delay: 2.2s;}
+  .ingredient9 { top: 34%; left: 44vw; font-size: 2.5em; animation-delay: 3.5s;}
+  .ingredient10 { bottom: 30%; right: 35vw; font-size: 2em; animation-delay: 1.9s;}
+  .ingredient11 { top: 77%; left: 7vw; font-size: 2em; animation-delay: 3.1s;}
+  .ingredient12 { top: 8vw; right: 34vw; font-size: 1.8em; animation-delay: 2.5s;}
+  @keyframes float {
+    0%,100% { transform: translateY(0);}
+    50% { transform: translateY(-13px);}
+  }
+</style>
 </head>
 <body>
-  <span class="ingredient-emoji ingredient1">🍅</span>
-  <span class="ingredient-emoji ingredient2">🥕</span>
-  <span class="ingredient-emoji ingredient3">🌿</span>
-  <span class="ingredient-emoji ingredient4">🫑</span>
-  <span class="ingredient-emoji ingredient5">🍚</span>
-  <span class="ingredient-emoji ingredient6">🥔</span>
-  <span class="ingredient-emoji ingredient7">🧄</span>
-  <span class="ingredient-emoji ingredient8">🧅</span>
+<!-- Emoji decoratie in de hoeken en midden -->
+<span class="ingredient-emoji ingredient1">🍅</span>
+<span class="ingredient-emoji ingredient2">🥕</span>
+<span class="ingredient-emoji ingredient3">🌿</span>
+<span class="ingredient-emoji ingredient4">🫑</span>
+<span class="ingredient-emoji ingredient5">🍚</span>
+<span class="ingredient-emoji ingredient6">🥔</span>
+<span class="ingredient-emoji ingredient7">🧄</span>
+<span class="ingredient-emoji ingredient8">🧅</span>
+<span class="ingredient-emoji ingredient9">🥒</span>
+<span class="ingredient-emoji ingredient10">🍋</span>
+<span class="ingredient-emoji ingredient11">🥦</span>
+<span class="ingredient-emoji ingredient12">🍞</span>
 
-  <div class="container">
-    <h1>Paprikarijst met verse tomaat en peterselie</h1>
-    <div class="ondertitel">Een kleurrijk, plantaardig rijstgerecht uit de Vlaamse keuken</div>
-    <div class="personen">Voor 4 personen</div>
-    <b>Ingrediënten:</b>
-    <ul>
-      <li>2 rode paprika’s 🫑</li>
-      <li>1 ui 🧅</li>
-      <li>1 teentje look 🧄</li>
-      <li>120 g rijst 🍚</li>
-      <li>1 wortel 🥕</li>
-      <li>1 tomaat 🍅</li>
-      <li>Handvol peterselie 🌿</li>
-      <li>2 el olijfolie</li>
-      <li>Peper & zout</li>
-    </ul>
-    <b>Bereiding:</b>
-    <ol>
-      <li>Snijd paprika, ui, look en wortel in kleine stukjes.</li>
-      <li>Stoof de ui en look in olijfolie.</li>
-      <li>Voeg de paprika en wortel toe, bak even mee.</li>
-      <li>Doe de rijst erbij en roer tot de korrels glanzen.</li>
-      <li>Voeg blokjes tomaat toe en 250 ml water.</li>
-      <li>Laat 15 minuten zacht koken tot de rijst gaar is.</li>
-      <li>Werk af met peterselie, peper & zout.</li>
-      <li>Serveer als hoofdgerecht of bijgerecht.</li>
-    </ol>
+<nav class="menu">
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/gastenmodus/startpagina.html">🏠 Home</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/gastenmodus/catechese/catechese.html">📖 Catechese</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/gastenmodus/psalmen/psalmen.html">📜 Psalmen</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/gastenmodus/gebeden/gebeden.html">🙏 Gebeden</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/gastenmodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/gastenmodus/heiligen/heiligen.html">🌟 Heiligen</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/gastenmodus/menu/recepten.html">🍽️ Recepten</a>
+</nav>
+
+<main>
+  <h1>Orthodoxe Recepten</h1>
+  <div class="intro">
+    Welkom in de Orthodoxe receptenhoek! Hier vind je allerlei lekkere, eenvoudige en seizoensgebonden gerechten voor de grote en kleine vasten, maar ook op feestdagen en gewone dagen. Klik hieronder op een categorie om meteen naar de recepten te gaan!
   </div>
+  <div class="categorieen">
+    <a class="cat-blok" href="strikte-vasten.html">
+      <span class="cat-icon">🥕🌿</span>
+      <span>Strikte vasten<br><small>(geen olie, wijn, vis, zuivel of eieren)</small></span>
+    </a>
+    <a class="cat-blok" href="olie-wijn-toegelaten.html">
+      <span class="cat-icon">🍞🫒🍷</span>
+      <span>Olie &amp; wijn toegelaten</span>
+    </a>
+    <a class="cat-blok" href="vis.html">
+      <span class="cat-icon">🐟🍋</span>
+      <span>Vis toegelaten</span>
+    </a>
+    <a class="cat-blok" href="zuivel.html">
+      <span class="cat-icon">🧀🥛</span>
+      <span>Zuivel toegelaten</span>
+    </a>
+    <a class="cat-blok" href="vastenvrij.html">
+      <span class="cat-icon">🍰🥚</span>
+      <span>Vastenvrij<br><small>(alle ingrediënten)</small></span>
+    </a>
+  </div>
+</main>
 </body>
 </html>
-
