@@ -33,6 +33,27 @@
       background-color: #5d4726;
       text-decoration: underline;
     }
+    .taal-keuze {
+      text-align: center;
+      margin: 18px 0 0 0;
+    }
+    .taal-btn {
+      border: none;
+      background: #ead48c;
+      color: #6f4e1a;
+      font-size: 1em;
+      padding: 7px 15px;
+      border-radius: 9px;
+      margin: 0 7px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.2s;
+    }
+    .taal-btn.selected,
+    .taal-btn:hover {
+      background: #c8a85d;
+      color: #fff;
+    }
     .kalender-main {
       max-width: 860px;
       margin: 30px auto 60px auto;
@@ -78,62 +99,21 @@
     .dag-oliewijn    { color: #7a349b; }
     .dag-strikt      { color: #bb2222; }
     @media (max-width: 1024px) {
-      .kalender-container {
-        width: 99vw;
-        height: auto;
-        max-height: none;
-        aspect-ratio: 650/820;
-      }
-      .kalender-inhoud {
-        font-size: 1em;
-        padding: 2vw 3vw 4vw 2vw;
-        max-height: 76vw;
-      }
+      .kalender-container { width: 99vw; height: auto; max-height: none; aspect-ratio: 650/820; }
+      .kalender-inhoud { font-size: 1em; padding: 2vw 3vw 4vw 2vw; max-height: 76vw; }
     }
     @media (max-width: 700px) {
-      .kalender-main {
-        margin: 22px auto 32px auto;
-        padding: 0 3vw;
-      }
-      .kalender-container {
-        width: 99vw;
-        height: auto;
-        aspect-ratio: 650/820;
-        margin-bottom: 8px;
-      }
-      .kalender-inhoud {
-        width: 82%;
-        left: 9%;
-        top: 11%;
-        height: 74%;
-        font-size: 0.98em;
-        padding: 3vw 3vw 2vw 3vw;
-        max-height: 74vw;
-      }
+      .kalender-main { margin: 22px auto 32px auto; padding: 0 3vw; }
+      .kalender-container { width: 99vw; height: auto; aspect-ratio: 650/820; margin-bottom: 8px; }
+      .kalender-inhoud { width: 82%; left: 9%; top: 11%; height: 74%; font-size: 0.98em; padding: 3vw 3vw 2vw 3vw; max-height: 74vw; }
     }
     @media (max-width: 520px) {
       nav.menu a { padding: 7px 2px; font-size: 0.93em;}
-      .kalender-main {
-        margin: 14px auto 14vw auto;
-        padding: 0 2vw;
-      }
-      .kalender-container {
-        width: 100vw;
-        min-width: 100vw;
-        margin-bottom: 2vw;
-      }
-      .kalender-inhoud {
-        font-size: 0.9em;
-        top: 12%;
-        left: 4%;
-        width: 92%;
-        height: 75%;
-        padding: 4vw 3vw 2vw 3vw;
-        max-height: 90vw;
-      }
+      .kalender-main { margin: 14px auto 14vw auto; padding: 0 2vw; }
+      .kalender-container { width: 100vw; min-width: 100vw; margin-bottom: 2vw; }
+      .kalender-inhoud { font-size: 0.9em; top: 12%; left: 4%; width: 92%; height: 75%; padding: 4vw 3vw 2vw 3vw; max-height: 90vw; }
     }
   </style>
-  <!-- FIREBASE SCRIPTS EN CONFIG -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <script>
@@ -141,7 +121,7 @@
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain: "orthodoxeweg.firebaseapp.com",
       projectId: "orthodoxeweg",
-      storageBucket: "orthodoxeweg.appspot.com",  // LET OP: dit moet meestal eindigen op .appspot.com
+      storageBucket: "orthodoxeweg.appspot.com",
       messagingSenderId: "408582263618",
       appId: "1:408582263618:web:0a20f4bf0704989d3ceedb",
       measurementId: "G-C942F2NYQV"
@@ -160,6 +140,13 @@
   <a href="https://kathy-torfs.github.io/Orthodoxeweg/gastenmodus/heiligen/heiligen.html">🌟 Heiligen</a>
   <a href="https://kathy-torfs.github.io/Orthodoxeweg/gastenmodus/menu/recepten.html">🍽️ Recepten</a>
 </nav>
+
+<div class="taal-keuze">
+  <button class="taal-btn selected" data-taal="NL">🇧🇪 Vlaams</button>
+  <button class="taal-btn" data-taal="EN">🇬🇧 English</button>
+  <button class="taal-btn" data-taal="EL">🇬🇷 Ελληνικά</button>
+</div>
+
 <div class="kalender-main">
   <div class="kalender-container">
     <svg viewBox="0 0 650 820" preserveAspectRatio="xMinYMin meet" style="position:absolute;left:0;top:0;z-index:0; width:100%; height:100%;">
@@ -194,45 +181,107 @@
     </div>
   </div>
 </div>
+
 <script>
-  // Functie om datum om te zetten naar dd-mm-yyyy formaat
+  // Taalkeuze instellen en bewaren
+  function getTaal() {
+    return localStorage.getItem('kalender_taal') || 'NL';
+  }
+  function setTaal(taal) {
+    localStorage.setItem('kalender_taal', taal);
+  }
   function pad(n) { return n<10?'0'+n:n }
-  function datumVandaag() {
+  function vandaagDatum() {
     const d = new Date();
     return pad(d.getDate()) + '-' + pad(d.getMonth()+1) + '-' + d.getFullYear();
   }
-  const vandaag = datumVandaag();
 
-  db.collection("kalender2025").where("Datum", "==", vandaag).get().then(snapshot => {
-    const el = document.getElementById('kalender-inhoud');
-    if (snapshot.empty) {
-      el.innerHTML = `<p>Geen kalenderdata voor vandaag (${vandaag})</p>`;
-      return;
+  // Document ready
+  document.addEventListener("DOMContentLoaded", function() {
+    const taalKnoppen = document.querySelectorAll(".taal-btn");
+    let huidigeTaal = getTaal();
+
+    function highlightTaalBtn() {
+      taalKnoppen.forEach(knop => {
+        knop.classList.toggle('selected', knop.dataset.taal === huidigeTaal);
+      });
     }
-    const data = snapshot.docs[0].data();
-    // Bepaal type vastenregel voor kleur
-    let vastenClass = "";
-    if ((data["Vastenregel NL"]||'').toLowerCase().includes("vis"))         vastenClass = "dag-vis";
-    else if ((data["Vastenregel NL"]||'').toLowerCase().includes("olie") ||
-             (data["Vastenregel NL"]||'').toLowerCase().includes("wijn"))  vastenClass = "dag-oliewijn";
-    else if ((data["Vastenregel NL"]||'').toLowerCase().includes("vrij"))  vastenClass = "dag-vastenvrij";
-    else if ((data["Vastenregel NL"]||'').toLowerCase().trim() !== "")     vastenClass = "dag-strikt";
 
-    el.innerHTML = `
-      <h2 id="kalender-dag" class="${vastenClass}" style="margin:0 0 18px 0; font-size:2.2em; letter-spacing:1px; text-align:left;">
-        ${data.Datum || ""}
-      </h2>
-      <p><b>Heilige(n):</b> ${data["Heiligen NL"]||""}</p>
-      <p><b>Vasten:</b> ${data["Vastenregel NL"]||""}</p>
-      <p><b>Epistel:</b> ${data["Epistel Ref NL (netjes NL)"]||""}</p>
-      <p><b>Evangelie:</b> ${data["Evangelie Ref NL (netjes NL)"]||""}</p>
-      <p><b>Orthodoxe tip:</b> ${data["Tip/Wens NL"]||""}</p>
-      <p><b>Symbool:</b> ${data["Symbool"]||""}</p>
-      <hr>
-      <p style="font-size:1.08em;color:#9d7c54;text-align:left;">
-        <i>Elke dag dichter bij God!</i>
-      </p>
-    `;
+    taalKnoppen.forEach(knop => {
+      knop.addEventListener('click', function() {
+        huidigeTaal = knop.dataset.taal;
+        setTaal(huidigeTaal);
+        highlightTaalBtn();
+        laadKalender();
+      });
+    });
+
+    highlightTaalBtn();
+    laadKalender();
+
+    function laadKalender() {
+      const el = document.getElementById('kalender-inhoud');
+      el.innerHTML = `<p style="text-align:center;color:#a6a5a4;">Bezig met laden...</p>`;
+      const vandaag = vandaagDatum();
+      db.collection("kalender2025").where("Datum", "==", vandaag).get().then(snapshot => {
+        if (snapshot.empty) {
+          el.innerHTML = `<p style="text-align:center;color:#bb2222;">Geen kalenderdata voor vandaag (${vandaag})</p>`;
+          return;
+        }
+        const data = snapshot.docs[0].data();
+
+        // Vastenkleur bepalen
+        let vastenregel = data["Vastenregel NL"] || data["Vastenregel EN"] || data["Vastenregel EL"] || "";
+        let vastenClass = "";
+        if (vastenregel.toLowerCase().includes("vis"))        vastenClass = "dag-vis";
+        else if (vastenregel.toLowerCase().includes("olie") || vastenregel.toLowerCase().includes("wijn")) vastenClass = "dag-oliewijn";
+        else if (vastenregel.toLowerCase().includes("vrij"))  vastenClass = "dag-vastenvrij";
+        else if (vastenregel.trim() !== "")                   vastenClass = "dag-strikt";
+
+        // Velden per taal
+        let h = {
+          "NL": {
+            "heiligen": data["Heiligen NL"] || "Geen heiligen vandaag 🕊️",
+            "epistel": data["Epistel Ref NL (netjes NL)"] || "",
+            "evangelie": data["Evangelie Ref NL (netjes NL)"] || "",
+            "vasten": data["Vastenregel NL"] || "",
+            "tip": data["Tip/Wens NL"] || "",
+          },
+          "EN": {
+            "heiligen": data["Heiligen EN"] || "No saints today 🕊️",
+            "epistel": data["Epistel Ref EN (netjes NL)"] || "",
+            "evangelie": data["Evangelie Ref EN (netjes NL)"] || "",
+            "vasten": data["Vastenregel EN"] || "",
+            "tip": data["Tip/Wens EN"] || "",
+          },
+          "EL": {
+            "heiligen": data["Heiligen EL"] || "Δεν υπάρχουν άγιοι σήμερα 🕊️",
+            "epistel": data["Epistel Ref EL (netjes NL)"] || "",
+            "evangelie": data["Evangelie Ref EL (netjes NL)"] || "",
+            "vasten": data["Vastenregel EL"] || "",
+            "tip": data["Tip/Wens EL"] || "",
+          }
+        };
+
+        el.innerHTML = `
+          <h2 id="kalender-dag" class="${vastenClass}" style="margin:0 0 18px 0; font-size:2.2em; letter-spacing:1px; text-align:left;">
+            ${data.Datum || ""}
+          </h2>
+          <p><b>Heilige(n):</b> ${h[huidigeTaal].heiligen}</p>
+          <p><b>Vasten:</b> ${h[huidigeTaal].vasten}</p>
+          <p><b>Epistel:</b> ${h[huidigeTaal].epistel}</p>
+          <p><b>Evangelie:</b> ${h[huidigeTaal].evangelie}</p>
+          <p><b>Orthodoxe tip:</b> ${h[huidigeTaal].tip}</p>
+          <p><b>Symbool:</b> ${data["Symbool"]||""}</p>
+          <hr>
+          <p style="font-size:1.08em;color:#9d7c54;text-align:left;">
+            <i>Elke dag dichter bij God!</i>
+          </p>
+        `;
+      }).catch(e => {
+        el.innerHTML = `<p style="color:#bb2222;">Fout bij laden van de kalender.</p>`;
+      });
+    }
   });
 </script>
 </body>
