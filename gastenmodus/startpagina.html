@@ -42,10 +42,12 @@
     }
     .scheurkalender {
       position: relative;
-      width: 320px;
-      min-height: 390px;
+      width: 430px;
+      height: 520px;
       z-index: 0;
       margin-bottom: 40px;
+      max-width: 99vw;
+      max-height: 97vh;
     }
     .scheurkalender-svg {
       position: absolute;
@@ -64,15 +66,42 @@
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
-      padding: 54px 24px 24px 24px;
+      padding: 76px 30px 32px 30px;
       box-sizing: border-box;
       background: none;
       color: #443018;
     }
+    .taalknoppen {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+    }
+    .taalknoppen button {
+      background: #e4dab3;
+      color: #6f4e1a;
+      border: none;
+      border-radius: 7px;
+      padding: 8px 14px;
+      font-weight: 700;
+      font-size: 1em;
+      cursor: pointer;
+      margin-top: 5px;
+      margin-bottom: 4px;
+      outline: none;
+      transition: background 0.2s, color 0.2s;
+    }
+    .taalknoppen button.selected {
+      background: #7a5f35;
+      color: #f5e9b8;
+      font-weight: 900;
+    }
     .scheur-datum {
       font-family: 'Georgia', serif;
-      font-size: 2.3em;
-      margin: 0 0 14px 0;
+      font-size: 2.8em;
+      margin: 0 0 12px 0;
       letter-spacing: 2px;
       text-align: center;
       color: #3b2610;
@@ -80,8 +109,8 @@
       text-shadow: 1px 1px 0 #eee3c6, 0 1px 0 #c4b090;
     }
     .scheur-vasten {
-      font-size: 1.13em;
-      margin: 0 0 12px 0;
+      font-size: 1.18em;
+      margin: 0 0 13px 0;
       font-weight: 600;
       color: #7a349b;
       display: flex;
@@ -95,32 +124,40 @@
     .scheur-vasten.dag-strikt   { color: #bb2222; }
     .scheur-vasten.dag-vastenvrij { color: #4e3c18; }
     .scheur-heiligen {
-      font-size: 1.05em;
+      font-size: 1.13em;
       margin-bottom: 12px;
       text-align: center;
       color: #5a3c1a;
       font-weight: 600;
+      max-height: 6em;
+      overflow-y: auto;
+      width: 99%;
     }
     .scheur-lezing {
-      font-size: 1em;
+      font-size: 1.06em;
       color: #2e2311;
       text-align: left;
       margin: 3px 0;
       font-weight: 500;
+      width: 100%;
+      word-break: break-word;
     }
     .scheur-tip {
-      font-size: 1.1em;
+      font-size: 1.16em;
       color: #a88354;
       margin-top: auto;
       font-style: italic;
-      padding-top: 16px;
+      padding-top: 18px;
       text-align: center;
       border-top: 1px solid #e1d1b1;
       width: 100%;
       letter-spacing: 0.2px;
     }
     @media (max-width: 600px) {
-      .scheurkalender { width: 97vw; }
+      .scheurkalender { width: 98vw; height: auto; min-height: 440px;}
+      .scheur-inhoud { padding: 55px 4vw 10vw 4vw; }
+      .scheur-datum { font-size: 2.1em; }
+      .scheur-heiligen, .scheur-tip, .scheur-lezing { font-size: 0.99em;}
     }
   </style>
   <!-- FIREBASE SCRIPTS EN CONFIG -->
@@ -154,26 +191,27 @@
 <div class="scheurkalender-wrapper">
   <div class="scheurkalender">
     <!-- SVG Scheurkalender achtergrond -->
-    <svg class="scheurkalender-svg" viewBox="0 0 320 390">
-      <!-- Papier -->
-      <rect x="14" y="26" width="292" height="340" rx="18" fill="#f7f6f4" stroke="#b2a278" stroke-width="4"/>
-      <!-- Rand -->
-      <rect x="0" y="0" width="320" height="50" rx="5" fill="#39a4a9" stroke="#126672" stroke-width="2"/>
-      <!-- Gaatjes -->
-      <circle cx="55" cy="25" r="7" fill="#e3e8ed" stroke="#bbb" stroke-width="2"/>
-      <circle cx="160" cy="25" r="7" fill="#e3e8ed" stroke="#bbb" stroke-width="2"/>
-      <circle cx="265" cy="25" r="7" fill="#e3e8ed" stroke="#bbb" stroke-width="2"/>
-      <!-- Schaduw -->
-      <ellipse cx="160" cy="380" rx="90" ry="10" fill="#e4dab3" fill-opacity="0.5"/>
+    <svg class="scheurkalender-svg" viewBox="0 0 430 520">
+      <rect x="20" y="60" width="390" height="410" rx="26" fill="#f7f6f4" stroke="#b2a278" stroke-width="6"/>
+      <rect x="0" y="0" width="430" height="90" rx="7" fill="#39a4a9" stroke="#126672" stroke-width="3"/>
+      <circle cx="85" cy="46" r="14" fill="#e3e8ed" stroke="#bbb" stroke-width="2.5"/>
+      <circle cx="215" cy="36" r="14" fill="#e3e8ed" stroke="#bbb" stroke-width="2.5"/>
+      <circle cx="345" cy="46" r="14" fill="#e3e8ed" stroke="#bbb" stroke-width="2.5"/>
+      <ellipse cx="215" cy="515" rx="110" ry="12" fill="#e4dab3" fill-opacity="0.54"/>
     </svg>
-    <!-- Kalender inhoud -->
     <div class="scheur-inhoud" id="kalender-inhoud">
-      <div style="color:#bbb;text-align:center;font-size:1.2em;margin-top:70px;">Bezig met laden...</div>
+      <div style="color:#bbb;text-align:center;font-size:1.2em;margin-top:90px;">Bezig met laden...</div>
     </div>
   </div>
 </div>
 <script>
-  // Functie om datum om te zetten naar YYYYMMDD (zoals in jouw Firestore!)
+  // Taalvelden
+  const talen = [
+    {code: 'NL', label: 'Vlaams', veld: ''},
+    {code: 'EN', label: 'Engels', veld: 'EN'},
+    {code: 'EL', label: 'Grieks', veld: 'EL'}
+  ];
+  let huidigeTaal = 'NL';
   function datumFirestoreId() {
     const d = new Date();
     let dag = (d.getDate() < 10 ? '0' : '') + d.getDate();
@@ -181,50 +219,82 @@
     let jaar = d.getFullYear();
     return '' + jaar + maand + dag;
   }
-  // Functie voor een nette, klassieke datumstring (in het Vlaams)
-  function formatteerDatumNL(d) {
-    const maanden = ['januari', 'februari', 'maart', 'april', 'mei', 'juni',
-      'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
-    let parts = d.split('-'); // "2025-06-13"
-    return parseInt(parts[2], 10) + ' ' + maanden[parseInt(parts[1], 10) - 1] + ' ' + parts[0];
+  function formatteerDatum(d, taal) {
+    if (!d) return '';
+    if (taal === 'EN') {
+      const maanden = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+      let p = d.split('-');
+      return maanden[parseInt(p[1])-1] + ' ' + parseInt(p[2],10) + ', ' + p[0];
+    } else if (taal === 'EL') {
+      const maanden = ["Ιανουαρίου","Φεβρουαρίου","Μαρτίου","Απριλίου","Μαΐου","Ιουνίου","Ιουλίου","Αυγούστου","Σεπτεμβρίου","Οκτωβρίου","Νοεμβρίου","Δεκεμβρίου"];
+      let p = d.split('-');
+      return parseInt(p[2],10) + ' ' + maanden[parseInt(p[1])-1] + ' ' + p[0];
+    } else {
+      const maanden = ['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
+      let p = d.split('-');
+      return parseInt(p[2],10) + ' ' + maanden[parseInt(p[1])-1] + ' ' + p[0];
+    }
   }
-  // Vastenkleur bepalen
   function bepaalVastenClass(regel) {
     let tekst = (regel||'').toLowerCase();
     if (tekst.includes("vis")) return "dag-vis";
     if (tekst.includes("olie") || tekst.includes("wijn")) return "dag-oliewijn";
     if (tekst.includes("strenge")) return "dag-strikt";
+    if (tekst.includes("strict")) return "dag-strikt";
     if (tekst.includes("vrij")) return "dag-vastenvrij";
+    if (tekst.includes("free")) return "dag-vastenvrij";
     return "";
   }
-  // Inhoud dynamisch vullen
-  (function(){
+  // UI aanmaken
+  function renderKalender(data, taal) {
+    const datum = data.Datum || '';
+    const veld = (talen.find(t=>t.code===taal)||{}).veld;
+    // Veldnamen bepalen per taal
+    const heiligen = data["Heiligen "+taal]||data["Heiligen NL"]||"";
+    const vasten = data["Vastenregel "+taal]||data["Vastenregel NL"]||"Vastenvrij";
+    const symbool = data["Symbool"]||"";
+    const epistel = data["Epistel Ref "+taal+" (netjes NL)"]||data["Epistel Ref "+taal]||"";
+    const evangelie = data["Evangelie Ref "+taal+" (netjes NL)"]||data["Evangelie Ref "+taal]||"";
+    const tip = data["Tip/Wens "+taal]||data["Tip/Wens NL"]||"";
+    const vastenClass = bepaalVastenClass(vasten);
+
+    return `
+      <div class="taalknoppen">
+        ${talen.map(t => `<button onclick="wisselTaal('${t.code}')" class="${taal===t.code?'selected':''}">${t.label}</button>`).join('')}
+      </div>
+      <div class="scheur-datum">${formatteerDatum(datum, taal)}</div>
+      <div class="scheur-vasten ${vastenClass}">${vasten} ${symbool}</div>
+      <div class="scheur-heiligen">${heiligen}</div>
+      <div class="scheur-lezing"><b>Epistel:</b> ${epistel}</div>
+      <div class="scheur-lezing"><b>Evangelie:</b> ${evangelie}</div>
+      <div class="scheur-tip">${tip}</div>
+    `;
+  }
+  // Laden uit Firestore
+  let huidigeData = null;
+  function toonDag() {
     const el = document.getElementById('kalender-inhoud');
     let docId = datumFirestoreId();
     db.collection("kalender2025").doc(docId).get().then(doc => {
       if (!doc.exists) {
-        el.innerHTML = `<div style="margin-top:70px;text-align:center;">Geen kalenderdata voor vandaag (${docId})</div>`;
+        el.innerHTML = `<div style="margin-top:90px;text-align:center;">Geen kalenderdata voor vandaag (${docId})</div>`;
         return;
       }
-      const data = doc.data();
-      const datumNL = data.Datum ? formatteerDatumNL(data.Datum) : '';
-      const vastenClass = bepaalVastenClass(data["Vastenregel NL"]);
-      // symbool mag nooit dubbel komen
-      const symbool = data["Symbool"]||"";
-      // vastenregel altijd tonen (ook vastenvrij)
-      const vastenTekst = (data["Vastenregel NL"]||"Vastenvrij") + (symbool ? ' ' + symbool : "");
-      el.innerHTML = `
-        <div class="scheur-datum">${datumNL}</div>
-        <div class="scheur-vasten ${vastenClass}">${vastenTekst}</div>
-        <div class="scheur-heiligen">${data["Heiligen NL"]||""}</div>
-        <div class="scheur-lezing"><b>Epistel:</b> ${data["Epistel Ref NL (netjes NL)"]||""}</div>
-        <div class="scheur-lezing"><b>Evangelie:</b> ${data["Evangelie Ref NL (netjes NL)"]||""}</div>
-        <div class="scheur-tip">${data["Tip/Wens NL"]||""}</div>
-      `;
+      huidigeData = doc.data();
+      el.innerHTML = renderKalender(huidigeData, huidigeTaal);
     }).catch(() => {
-      el.innerHTML = `<div style="margin-top:70px;text-align:center;">Fout bij het laden van de kalenderdata.</div>`;
+      el.innerHTML = `<div style="margin-top:90px;text-align:center;">Fout bij het laden van de kalenderdata.</div>`;
     });
-  })();
+  }
+  function wisselTaal(nieuweTaal) {
+    huidigeTaal = nieuweTaal;
+    const el = document.getElementById('kalender-inhoud');
+    if (huidigeData) {
+      el.innerHTML = renderKalender(huidigeData, huidigeTaal);
+    }
+  }
+  window.wisselTaal = wisselTaal;
+  window.onload = toonDag;
 </script>
 </body>
 </html>
