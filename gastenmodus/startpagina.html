@@ -400,18 +400,25 @@
       else heiligen = data["Heiligen NL"] || "Nog geen vertaling beschikbaar.";
 
       // Lezingen
-      let apostellezing = "";
-      let evangelie = "";
-      if (huidigeTaal === "engels") {
-        epistel = data["Epistel Ref EN (netjes NL)"] || "Nog geen vertaling beschikbaar.";
-        evangelie = data["Evangelie Ref EN (netjes NL)"] || "Nog geen vertaling beschikbaar.";
-      } else if (huidigeTaal === "grieks") {
-        epistel = data["Epistel Ref EL (netjes NL)"] || "Nog geen vertaling beschikbaar.";
-        evangelie = data["Evangelie Ref EL (netjes NL)"] || "Nog geen vertaling beschikbaar.";
-      } else {
-        epistel = data["Epistel Ref NL (netjes NL)"] || "Nog geen vertaling beschikbaar.";
-        evangelie = data["Evangelie Ref NL (netjes NL)"] || "Nog geen vertaling beschikbaar.";
-      }
+let epistelLabel = "Epistel:";
+let evangelieLabel = "Evangelie:";
+if (huidigeTaal === "engels") {
+  epistelLabel = "Epistle:";
+  evangelieLabel = "Gospel:";
+  epistel = data["Epistel Ref EN (netjes NL)"] || "Nog geen vertaling beschikbaar.";
+  evangelie = data["Evangelie Ref EN (netjes NL)"] || "Nog geen vertaling beschikbaar.";
+} else if (huidigeTaal === "grieks") {
+  epistelLabel = "Ἀπόστολος:";
+  evangelieLabel = "Εὐαγγέλιον:";
+  epistel = data["Epistel Ref EL (netjes NL)"] || "Nog geen vertaling beschikbaar.";
+  evangelie = data["Evangelie Ref EL (netjes NL)"] || "Nog geen vertaling beschikbaar.";
+} else {
+  epistelLabel = "Apostellezing:";
+  evangelieLabel = "Evangelielezing:";
+  epistel = data["Epistel Ref NL (netjes NL)"] || "Nog geen vertaling beschikbaar.";
+  evangelie = data["Evangelie Ref NL (netjes NL)"] || "Nog geen vertaling beschikbaar.";
+}
+
 
       // Tip/Wens
       let tip = "";
@@ -420,13 +427,14 @@
       else tip = data["Tip/Wens NL"] || "Nog geen vertaling beschikbaar.";
 
       // HTML opbouwen
-      kalenderContainer.innerHTML = `
-        <div class="dagkalender-datum">${datumTekst}</div>
-        <div class="vastenregel-regel">${vastenRegelBlok}</div>
-        <div class="heiligenrij">${heiligen}</div>
-        <div class="lezingblok"><b>Epistel:</b> ${epistel}</div>
-        <div class="lezingblok"><b>Evangelie:</b> ${evangelie}</div>
-      `;
+     kalenderContainer.innerHTML = `
+  <div class="dagkalender-datum">${datumTekst}</div>
+  <div class="vastenregel-regel">${vastenRegelBlok}</div>
+  <div class="heiligenrij">${heiligen}</div>
+  <div class="lezingblok"><b>${epistelLabel}</b> ${epistel}</div>
+  <div class="lezingblok"><b>${evangelieLabel}</b> ${evangelie}</div>
+`;
+
       tipBlok.innerHTML = tip;
     });
   }
