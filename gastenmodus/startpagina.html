@@ -2,15 +2,14 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Orthodoxeweg - Dagkalender</title>
   <style>
     body {
       background-color: #f5e9b8;
       color: #6f4e1a;
       font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
+      margin: 0; padding: 0;
     }
     nav.menu {
       background-color: #7a5f35;
@@ -33,134 +32,151 @@
       background-color: #5d4726;
       text-decoration: underline;
     }
-    .scheurkalender-wrapper {
+    .taal-knoppen {
       display: flex;
       justify-content: center;
-      align-items: flex-start;
-      min-height: 70vh;
-      margin-top: 40px;
+      gap: 18px;
+      margin: 22px 0 10px 0;
+      flex-wrap: wrap;
     }
-    .scheurkalender {
+    .taal-knoppen button {
+      background: #fff6e1;
+      color: #7a5f35;
+      border: 2px solid #c2a06a;
+      border-radius: 7px;
+      font-size: 1.11em;
+      padding: 8px 16px;
+      cursor: pointer;
+      font-weight: 700;
+      box-shadow: 0 2px 5px #e2d5b7b0;
+      transition: background 0.18s, color 0.18s;
+      margin-bottom: 5px;
+    }
+    .taal-knoppen button.actief,
+    .taal-knoppen button:hover {
+      background: #7a5f35;
+      color: #fff6e1;
+      border-color: #a2834b;
+    }
+    .kalender-main {
+      max-width: 1200px;
+      margin: 24px auto 60px auto;
+      padding: 0 10px;
+    }
+    .kalender-container {
       position: relative;
-      width: 430px;
-      height: 520px;
-      z-index: 0;
-      margin-bottom: 40px;
-      max-width: 99vw;
+      width: 860px;
+      height: 1200px;
+      margin: 0 auto 22px auto;
+      filter: drop-shadow(0 11px 28px #ccb38c90);
+      max-width: 98vw;
       max-height: 97vh;
+      box-sizing: border-box;
+      aspect-ratio: 860/1200;
+      background: transparent;
     }
-    .scheurkalender-svg {
-      position: absolute;
-      left: 0; top: 0;
-      width: 100%; height: 100%;
-      z-index: 1;
-      pointer-events: none;
-    }
-    .scheur-inhoud {
-      position: absolute;
-      z-index: 2;
-      left: 0; top: 0;
+    .kalender-container svg {
       width: 100%;
       height: 100%;
+      display: block;
+      max-width: 100%;
+      max-height: 100%;
+      pointer-events: none;
+    }
+    .kalender-inhoud {
+      position: absolute;
+      top: 9.3%;
+      left: 8%;
+      width: 84%;
+      height: 83%;
+      padding: 48px 56px 60px 56px;
+      font-size: 1.28em;
+      color: #3a2c17;
+      overflow-y: auto;
+      background: transparent;
+      z-index: 2;
+      text-align: left;
+      box-sizing: border-box;
+      word-break: break-word;
+      border-radius: 32px;
       display: flex;
       flex-direction: column;
-      align-items: center;
       justify-content: flex-start;
-      padding: 76px 30px 32px 30px;
-      box-sizing: border-box;
-      background: none;
-      color: #443018;
+      min-height: 780px;
+      min-width: 470px;
+      font-family: 'Georgia', 'Times New Roman', serif;
     }
-    .taalknoppen {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 12px;
-      justify-content: center;
-      align-items: center;
-      width: 100%;
-    }
-    .taalknoppen button {
-      background: #e4dab3;
-      color: #6f4e1a;
-      border: none;
-      border-radius: 7px;
-      padding: 8px 14px;
+    .kalender-inhoud h2 {
+      font-family: 'Lora', 'Georgia', serif;
+      margin-top: 0; margin-bottom: 20px;
+      font-size: 2.7em;
       font-weight: 700;
-      font-size: 1em;
-      cursor: pointer;
-      margin-top: 5px;
-      margin-bottom: 4px;
-      outline: none;
-      transition: background 0.2s, color 0.2s;
-    }
-    .taalknoppen button.selected {
-      background: #7a5f35;
-      color: #f5e9b8;
-      font-weight: 900;
-    }
-    .scheur-datum {
-      font-family: 'Georgia', serif;
-      font-size: 2.8em;
-      margin: 0 0 12px 0;
-      letter-spacing: 2px;
-      text-align: center;
-      color: #3b2610;
-      font-weight: bold;
-      text-shadow: 1px 1px 0 #eee3c6, 0 1px 0 #c4b090;
-    }
-    .scheur-vasten {
-      font-size: 1.18em;
-      margin: 0 0 13px 0;
-      font-weight: 600;
-      color: #7a349b;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.4em;
+      color: #593b0f;
+      text-align: left;
       letter-spacing: 1px;
     }
-    .scheur-vasten.dag-vis   { color: #2969b0; }
-    .scheur-vasten.dag-oliewijn { color: #7a349b; }
-    .scheur-vasten.dag-strikt   { color: #bb2222; }
-    .scheur-vasten.dag-vastenvrij { color: #4e3c18; }
-    .scheur-heiligen {
-      font-size: 1.13em;
-      margin-bottom: 12px;
-      text-align: center;
-      color: #5a3c1a;
+    .kalender-inhoud .vastregelblok {
+      display: flex;
+      align-items: center;
+      gap: 17px;
+      margin-bottom: 13px;
+      margin-top: 8px;
+      font-size: 1.18em;
       font-weight: 600;
-      max-height: 6em;
-      overflow-y: auto;
-      width: 99%;
     }
-    .scheur-lezing {
-      font-size: 1.06em;
-      color: #2e2311;
-      text-align: left;
-      margin: 3px 0;
-      font-weight: 500;
-      width: 100%;
-      word-break: break-word;
-    }
-    .scheur-tip {
-      font-size: 1.16em;
-      color: #a88354;
-      margin-top: auto;
-      font-style: italic;
-      padding-top: 18px;
-      text-align: center;
-      border-top: 1px solid #e1d1b1;
-      width: 100%;
+    .kalender-inhoud .heiligen {
+      margin-bottom: 22px;
+      font-size: 1.17em;
+      color: #7a5f35;
+      font-weight: 600;
+      line-height: 1.47;
       letter-spacing: 0.2px;
     }
-    @media (max-width: 600px) {
-      .scheurkalender { width: 98vw; height: auto; min-height: 440px;}
-      .scheur-inhoud { padding: 55px 4vw 10vw 4vw; }
-      .scheur-datum { font-size: 2.1em; }
-      .scheur-heiligen, .scheur-tip, .scheur-lezing { font-size: 0.99em;}
+    .kalender-inhoud .lezingen-blok {
+      margin-bottom: 38px;
+    }
+    .lezing-label {
+      font-weight: bold;
+      margin-right: 9px;
+      color: #775c2b;
+      font-size: 1.11em;
+      vertical-align: middle;
+      display: inline-block;
+    }
+    .kalender-inhoud .lezing {
+      margin-bottom: 11px;
+      font-size: 1.10em;
+    }
+    .kalender-inhoud .dag-tip {
+      margin-top: auto;
+      padding: 20px 0 4px 0;
+      color: #b4895e;
+      font-size: 1.22em;
+      text-align: left;
+      font-style: italic;
+      border-top: 1.7px dashed #dfcba6;
+      margin-bottom: 0;
+      font-family: 'Georgia', 'Times New Roman', serif;
+      line-height: 1.4;
+      background: transparent;
+      width: 100%;
+    }
+    @media (max-width: 1050px) {
+      .kalender-container { width: 99vw; height: auto; aspect-ratio: 860/1200;}
+      .kalender-inhoud { font-size: 1.08em; padding: 2vw 2vw 5vw 2vw; min-width: 0; }
+    }
+    @media (max-width: 750px) {
+      .kalender-main { margin: 12px auto 12vw auto;}
+      .kalender-container { width: 100vw; min-width: 0; aspect-ratio: 860/1200;}
+      .kalender-inhoud { width: 96%; left: 2%; top: 11%; height: 77%; font-size: 0.98em; min-width: 0;}
+      .taal-knoppen { gap: 8px; }
+    }
+    @media (max-width: 530px) {
+      .kalender-main { margin: 8px auto 7vw auto;}
+      .kalender-inhoud { font-size: 0.91em; width: 98%; left: 1%; top: 13%; min-width: 0;}
     }
   </style>
-  <!-- FIREBASE SCRIPTS EN CONFIG -->
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@600;700&display=swap" rel="stylesheet">
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <script>
@@ -188,113 +204,142 @@
   <a href="https://kathy-torfs.github.io/Orthodoxeweg/gastenmodus/menu/recepten.html">🍽️ Recepten</a>
 </nav>
 
-<div class="scheurkalender-wrapper">
-  <div class="scheurkalender">
-    <!-- SVG Scheurkalender achtergrond -->
-    <svg class="scheurkalender-svg" viewBox="0 0 430 520">
-      <rect x="20" y="60" width="390" height="410" rx="26" fill="#f7f6f4" stroke="#b2a278" stroke-width="6"/>
-      <rect x="0" y="0" width="430" height="90" rx="7" fill="#39a4a9" stroke="#126672" stroke-width="3"/>
-      <circle cx="85" cy="46" r="14" fill="#e3e8ed" stroke="#bbb" stroke-width="2.5"/>
-      <circle cx="215" cy="36" r="14" fill="#e3e8ed" stroke="#bbb" stroke-width="2.5"/>
-      <circle cx="345" cy="46" r="14" fill="#e3e8ed" stroke="#bbb" stroke-width="2.5"/>
-      <ellipse cx="215" cy="515" rx="110" ry="12" fill="#e4dab3" fill-opacity="0.54"/>
+<div class="taal-knoppen">
+  <button id="knop-vlaams" class="actief" onclick="setTaal('vlaams')">🇧🇪 Vlaams</button>
+  <button id="knop-engels" onclick="setTaal('engels')">🇬🇧 English</button>
+  <button id="knop-grieks" onclick="setTaal('grieks')">🇬🇷 Ελληνικά</button>
+</div>
+
+<div class="kalender-main">
+  <div class="kalender-container">
+    <svg viewBox="0 0 860 1200" preserveAspectRatio="xMinYMin meet" style="position:absolute;left:0;top:0;z-index:0; width:100%; height:100%;">
+      <defs>
+        <radialGradient id="ringSilver" cx="50%" cy="40%" r="80%">
+          <stop offset="0%" stop-color="#ffffff" />
+          <stop offset="15%" stop-color="#e2e8ec" />
+          <stop offset="50%" stop-color="#c3cace" />
+          <stop offset="80%" stop-color="#959ba0" />
+          <stop offset="100%" stop-color="#787c80" />
+        </radialGradient>
+        <radialGradient id="ringHighlight" cx="30%" cy="30%" r="60%">
+          <stop offset="0%" stop-color="#ffffffcc" />
+          <stop offset="100%" stop-color="#ffffff00" />
+        </radialGradient>
+      </defs>
+      <rect x="66" y="100" width="710" height="990" rx="50" fill="#eee3c6" stroke="#e3d2a1" stroke-width="6"/>
+      <rect x="36" y="54" width="780" height="1080" rx="55" fill="#f3e6cc" stroke="#dcc897" stroke-width="5"/>
+      <rect x="18" y="16" width="824" height="1160" rx="60" fill="#faf8f1" stroke="#c2a06a" stroke-width="9"/>
+      <ellipse cx="99" cy="58" rx="23" ry="13" fill="url(#ringSilver)" stroke="#adb5bd" stroke-width="4"/>
+      <ellipse cx="429" cy="45" rx="23" ry="13" fill="url(#ringSilver)" stroke="#adb5bd" stroke-width="4"/>
+      <ellipse cx="761" cy="58" rx="23" ry="13" fill="url(#ringSilver)" stroke="#adb5bd" stroke-width="4"/>
+      <ellipse cx="99" cy="52" rx="10" ry="6" fill="url(#ringHighlight)" />
+      <ellipse cx="429" cy="41" rx="10" ry="6" fill="url(#ringHighlight)" />
+      <ellipse cx="761" cy="52" rx="10" ry="6" fill="url(#ringHighlight)" />
+      <circle cx="99" cy="78" r="8" fill="#b8a17c"/>
+      <circle cx="429" cy="66" r="8" fill="#b8a17c"/>
+      <circle cx="761" cy="78" r="8" fill="#b8a17c"/>
     </svg>
-    <div class="scheur-inhoud" id="kalender-inhoud">
-      <div style="color:#bbb;text-align:center;font-size:1.2em;margin-top:90px;">Bezig met laden...</div>
+    <div class="kalender-inhoud" id="kalender-inhoud">
+      <p style="text-align:center;color:#a6a5a4;">Bezig met laden...</p>
     </div>
   </div>
 </div>
-<script>
-  // Taalvelden
-  const talen = [
-    {code: 'NL', label: 'Vlaams', veld: ''},
-    {code: 'EN', label: 'Engels', veld: 'EN'},
-    {code: 'EL', label: 'Grieks', veld: 'EL'}
-  ];
-  let huidigeTaal = 'NL';
-  function datumFirestoreId() {
-    const d = new Date();
-    let dag = (d.getDate() < 10 ? '0' : '') + d.getDate();
-    let maand = ((d.getMonth() + 1) < 10 ? '0' : '') + (d.getMonth() + 1);
-    let jaar = d.getFullYear();
-    return '' + jaar + maand + dag;
-  }
-  function formatteerDatum(d, taal) {
-    if (!d) return '';
-    if (taal === 'EN') {
-      const maanden = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-      let p = d.split('-');
-      return maanden[parseInt(p[1])-1] + ' ' + parseInt(p[2],10) + ', ' + p[0];
-    } else if (taal === 'EL') {
-      const maanden = ["Ιανουαρίου","Φεβρουαρίου","Μαρτίου","Απριλίου","Μαΐου","Ιουνίου","Ιουλίου","Αυγούστου","Σεπτεμβρίου","Οκτωβρίου","Νοεμβρίου","Δεκεμβρίου"];
-      let p = d.split('-');
-      return parseInt(p[2],10) + ' ' + maanden[parseInt(p[1])-1] + ' ' + p[0];
-    } else {
-      const maanden = ['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
-      let p = d.split('-');
-      return parseInt(p[2],10) + ' ' + maanden[parseInt(p[1])-1] + ' ' + p[0];
-    }
-  }
-  function bepaalVastenClass(regel) {
-    let tekst = (regel||'').toLowerCase();
-    if (tekst.includes("vis")) return "dag-vis";
-    if (tekst.includes("olie") || tekst.includes("wijn")) return "dag-oliewijn";
-    if (tekst.includes("strenge")) return "dag-strikt";
-    if (tekst.includes("strict")) return "dag-strikt";
-    if (tekst.includes("vrij")) return "dag-vastenvrij";
-    if (tekst.includes("free")) return "dag-vastenvrij";
-    return "";
-  }
-  // UI aanmaken
-  function renderKalender(data, taal) {
-    const datum = data.Datum || '';
-    const veld = (talen.find(t=>t.code===taal)||{}).veld;
-    // Veldnamen bepalen per taal
-    const heiligen = data["Heiligen "+taal]||data["Heiligen NL"]||"";
-    const vasten = data["Vastenregel "+taal]||data["Vastenregel NL"]||"Vastenvrij";
-    const symbool = data["Symbool"]||"";
-    const epistel = data["Epistel Ref "+taal+" (netjes NL)"]||data["Epistel Ref "+taal]||"";
-    const evangelie = data["Evangelie Ref "+taal+" (netjes NL)"]||data["Evangelie Ref "+taal]||"";
-    const tip = data["Tip/Wens "+taal]||data["Tip/Wens NL"]||"";
-    const vastenClass = bepaalVastenClass(vasten);
 
-    return `
-      <div class="taalknoppen">
-        ${talen.map(t => `<button onclick="wisselTaal('${t.code}')" class="${taal===t.code?'selected':''}">${t.label}</button>`).join('')}
-      </div>
-      <div class="scheur-datum">${formatteerDatum(datum, taal)}</div>
-      <div class="scheur-vasten ${vastenClass}">${vasten} ${symbool}</div>
-      <div class="scheur-heiligen">${heiligen}</div>
-      <div class="scheur-lezing"><b>Epistel:</b> ${epistel}</div>
-      <div class="scheur-lezing"><b>Evangelie:</b> ${evangelie}</div>
-      <div class="scheur-tip">${tip}</div>
-    `;
+<script>
+let huidigeTaal = 'vlaams';
+const TaalLabels = {
+  vlaams: {
+    apostel: "Apostellezing",
+    evangelie: "Evangelie",
+    vastenvrij: "Vastenvrij",
+    heiligen: "Heilige(n)",
+    dag: (d) => d.toLocaleDateString('nl-BE', { day: 'numeric', month: 'long', year: 'numeric' }),
+  },
+  engels: {
+    apostel: "Epistle",
+    evangelie: "Gospel",
+    vastenvrij: "Fast free",
+    heiligen: "Saint(s)",
+    dag: (d) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
+  },
+  grieks: {
+    apostel: "Απόστολος",
+    evangelie: "Ευαγγέλιο",
+    vastenvrij: "Κατάλυσις εις πάντα",
+    heiligen: "Άγιος/Άγιοι",
+    dag: (d) => d.toLocaleDateString('el-GR', { day: 'numeric', month: 'long', year: 'numeric' }),
   }
-  // Laden uit Firestore
-  let huidigeData = null;
-  function toonDag() {
-    const el = document.getElementById('kalender-inhoud');
-    let docId = datumFirestoreId();
-    db.collection("kalender2025").doc(docId).get().then(doc => {
-      if (!doc.exists) {
-        el.innerHTML = `<div style="margin-top:90px;text-align:center;">Geen kalenderdata voor vandaag (${docId})</div>`;
-        return;
-      }
-      huidigeData = doc.data();
-      el.innerHTML = renderKalender(huidigeData, huidigeTaal);
-    }).catch(() => {
-      el.innerHTML = `<div style="margin-top:90px;text-align:center;">Fout bij het laden van de kalenderdata.</div>`;
-    });
-  }
-  function wisselTaal(nieuweTaal) {
-    huidigeTaal = nieuweTaal;
-    const el = document.getElementById('kalender-inhoud');
-    if (huidigeData) {
-      el.innerHTML = renderKalender(huidigeData, huidigeTaal);
+};
+
+function setTaal(nieuweTaal) {
+  huidigeTaal = nieuweTaal;
+  document.querySelectorAll('.taal-knoppen button').forEach(btn => btn.classList.remove('actief'));
+  if (nieuweTaal === 'vlaams') document.getElementById('knop-vlaams').classList.add('actief');
+  if (nieuweTaal === 'engels') document.getElementById('knop-engels').classList.add('actief');
+  if (nieuweTaal === 'grieks') document.getElementById('knop-grieks').classList.add('actief');
+  laadDagkalender();
+}
+
+function pad(n) { return n < 10 ? '0' + n : n }
+function vandaagISO() {
+  const d = new Date();
+  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+}
+function vandaagDatumObj() {
+  return new Date();
+}
+
+function bepaalVastenClass(regel) {
+  if (!regel) return "dag-vastenvrij";
+  const r = regel.toLowerCase();
+  if (r.includes("vis")) return "dag-vis";
+  if (r.includes("olie") || r.includes("wijn")) return "dag-oliewijn";
+  if (r.includes("strenge") || r.includes("strict")) return "dag-strikt";
+  if (r.includes("vrij")) return "dag-vastenvrij";
+  return "dag-vastenvrij";
+}
+
+function laadDagkalender() {
+  const datum = vandaagISO();
+  const datumObj = vandaagDatumObj();
+  const el = document.getElementById('kalender-inhoud');
+  db.collection("kalender2025").doc(datum).get().then(doc => {
+    if (!doc.exists) {
+      el.innerHTML = `<p style="text-align:center;">Geen kalenderdata voor vandaag (${TaalLabels[huidigeTaal].dag(datumObj)})</p>`;
+      return;
     }
-  }
-  window.wisselTaal = wisselTaal;
-  window.onload = toonDag;
-</script>
-</body>
-</html>
+    const data = doc.data();
+
+    // Labels per taal
+    let vasteNL = data["Vastenregel NL"];
+    let vasteEN = data["Vastenregel EN"];
+    let vasteEL = data["Vastenregel EL"];
+    let symb = data["Symbool"] || "";
+    let vastenText = "";
+    let vastenClass = "";
+
+    if (huidigeTaal === "vlaams") {
+      vastenText = vasteNL ? vasteNL : TaalLabels.vlaams.vastenvrij;
+      vastenClass = bepaalVastenClass(vasteNL);
+    } else if (huidigeTaal === "engels") {
+      vastenText = vasteEN ? vasteEN : TaalLabels.engels.vastenvrij;
+      vastenClass = bepaalVastenClass(vasteEN);
+    } else if (huidigeTaal === "grieks") {
+      vastenText = vasteEL ? vasteEL : TaalLabels.grieks.vastenvrij;
+      vastenClass = bepaalVastenClass(vasteEL);
+    }
+
+    // Heiligen tekst
+    let heiligen =
+      huidigeTaal === "vlaams" ? (data["Heiligen NL"] || "")
+      : huidigeTaal === "engels" ? (data["Heiligen EN"] || "")
+      : (data["Heiligen EL"] || "");
+
+    // Apostel & Evangelie
+    let apostel =
+      huidigeTaal === "vlaams" ? (data["Epistel Ref NL (netjes NL)"] || "")
+      : huidigeTaal === "engels" ? (data["Epistel Ref EN"] || "")
+      : (data["Epistel Ref EL"] || "");
+    let evangelie =
+      huidigeTaal === "vlaams" ? (data["Evangelie Ref NL (netjes NL)"] || "")
+      : huidigeTaal === "engels" ? (data["Evangelie Ref EN"]
