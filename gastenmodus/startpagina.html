@@ -343,3 +343,37 @@ function laadDagkalender() {
     let evangelie =
       huidigeTaal === "vlaams" ? (data["Evangelie Ref NL (netjes NL)"] || "")
       : huidigeTaal === "engels" ? (data["Evangelie Ref EN"]
+      : huidigeTaal === "grieks" ? (data["Evangelie Ref EL"] || "")
+      : "";
+
+    // Tip/wens
+    let tip =
+      huidigeTaal === "vlaams" ? (data["Tip/Wens NL"] || "")
+      : huidigeTaal === "engels" ? (data["Tip/Wens EN"] || "")
+      : (data["Tip/Wens EL"] || "");
+
+    // Datum als mooie string
+    let dagString = TaalLabels[huidigeTaal].dag(datumObj);
+
+    // Opmaak HTML
+    el.innerHTML = `
+      <h2 class="${vastenClass}">${dagString}</h2>
+      <div class="vastregelblok">
+        <span>${vastenText}</span>
+        <span style="font-size:1.5em;margin-left:6px;">${symb}</span>
+      </div>
+      <div class="heiligen">${heiligen ? `<span>${heiligen}</span>` : "<span style='font-size:1.35em;'>🕊️</span>"}</div>
+      <div class="lezingen-blok">
+        ${apostel ? `<div class="lezing"><span class="lezing-label">${TaalLabels[huidigeTaal].apostel}:</span> ${apostel}</div>` : ""}
+        ${evangelie ? `<div class="lezing"><span class="lezing-label">${TaalLabels[huidigeTaal].evangelie}:</span> ${evangelie}</div>` : ""}
+      </div>
+      <div class="dag-tip">${tip}</div>
+    `;
+  });
+}
+
+// Automatisch opstarten bij laden
+window.onload = laadDagkalender;
+</script>
+</body>
+</html>
