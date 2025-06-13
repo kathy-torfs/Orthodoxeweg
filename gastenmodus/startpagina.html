@@ -2,184 +2,131 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Orthodoxeweg – Dagkalender</title>
-  <!-- Google Fonts: EB Garamond voor klassiek, Open Sans voor tekst -->
-  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@600;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Orthodoxeweg - Dagkalender</title>
   <style>
     body {
-      background: #f8f6ec url('https://www.transparenttextures.com/patterns/arabesque.png');
-      color: #3a2c17;
-      font-family: 'Open Sans', Arial, sans-serif;
+      background-color: #f5e9b8;
+      color: #6f4e1a;
+      font-family: Arial, sans-serif;
       margin: 0;
       padding: 0;
-      min-height: 100vh;
     }
     nav.menu {
-      background: #806537 url('https://www.transparenttextures.com/patterns/batthern.png');
-      padding: 12px 0 12px 0;
+      background-color: #7a5f35;
+      padding: 10px 15px;
       display: flex;
       flex-wrap: wrap;
-      gap: 14px;
+      gap: 12px;
       justify-content: center;
-      border-bottom: 3px solid #ccb38c;
     }
     nav.menu a {
-      color: #f7eac3;
+      color: #f5e9b8;
       text-decoration: none;
-      font-weight: 700;
-      font-size: 1.07em;
-      padding: 7px 14px;
-      border-radius: 9px;
-      transition: background .3s;
-      letter-spacing: 0.03em;
+      font-weight: 600;
+      font-size: 16px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      transition: background-color 0.3s;
     }
     nav.menu a:hover {
-      background: #5d4726;
+      background-color: #5d4726;
+      text-decoration: underline;
     }
-    .taalbox {
-      margin: 32px auto 12px auto;
-      text-align: right;
-      max-width: 600px;
+    .scheurkalender-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 70vh;
+      margin-top: 40px;
     }
-    .taalknop {
-      font-family: 'EB Garamond', serif;
-      font-size: 1.02em;
-      background: #e8dcc2;
-      border: none;
-      border-radius: 18px;
-      padding: 6px 16px;
-      margin-left: 6px;
-      margin-right: 1px;
-      cursor: pointer;
-      color: #6f4e1a;
-      font-weight: 700;
-      letter-spacing: 0.02em;
-      transition: background .2s, box-shadow .2s;
-      box-shadow: 0 2px 10px #ccb38c32;
+    .scheurkalender {
+      position: relative;
+      width: 320px;
+      min-height: 390px;
+      z-index: 0;
+      margin-bottom: 40px;
     }
-    .taalknop.active, .taalknop:focus {
-      background: #7a5f35;
-      color: #fffbe2;
-      outline: none;
+    .scheurkalender-svg {
+      position: absolute;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      z-index: 1;
+      pointer-events: none;
     }
-    .kalender-hoes {
+    .scheur-inhoud {
+      position: absolute;
+      z-index: 2;
+      left: 0; top: 0;
+      width: 100%;
+      height: 100%;
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-top: 24px;
-    }
-    .dagkaart {
-      width: 100%;
-      max-width: 510px;
-      background: #fffbe9dd;
-      border-radius: 28px;
-      box-shadow: 0 6px 32px #c2a98238, 0 1px 2px #ccb38c24;
-      border: 2.5px solid #e3d2a1;
-      position: relative;
-      padding: 0 0 22px 0;
-      margin-bottom: 42px;
-      animation: fadein .8s cubic-bezier(.19,1,.22,1);
-    }
-    .dagkaart:before {
-      content: "";
-      position: absolute;
-      left: 18%;
-      top: -16px;
-      width: 64%;
-      height: 25px;
-      background: url('https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Greek_ornament_01.svg/500px-Greek_ornament_01.svg.png') center/contain no-repeat;
-      opacity: .15;
-      z-index: 0;
-    }
-    .dag-header {
-      text-align: center;
-      margin: 0;
-      font-family: 'EB Garamond', serif;
-      font-weight: 800;
-      font-size: 2.4em;
-      color: #5d4726;
-      letter-spacing: 1.5px;
-      padding: 30px 20px 5px 20px;
+      justify-content: flex-start;
+      padding: 54px 24px 24px 24px;
+      box-sizing: border-box;
       background: none;
-      border: none;
+      color: #443018;
     }
-    .vastenlabel {
+    .scheur-datum {
+      font-family: 'Georgia', serif;
+      font-size: 2.3em;
+      margin: 0 0 14px 0;
+      letter-spacing: 2px;
+      text-align: center;
+      color: #3b2610;
+      font-weight: bold;
+      text-shadow: 1px 1px 0 #eee3c6, 0 1px 0 #c4b090;
+    }
+    .scheur-vasten {
+      font-size: 1.13em;
+      margin: 0 0 12px 0;
+      font-weight: 600;
+      color: #7a349b;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 9px;
-      font-weight: 700;
-      margin: 0 auto 14px auto;
-      max-width: 90%;
-      font-size: 1.16em;
-      letter-spacing: 0.02em;
-      border-radius: 18px;
-      padding: 6px 18px 6px 12px;
-      background: #e4e0d6;
-      box-shadow: 0 1px 6px #dcc89739;
-      border: 1.5px solid #e7c873;
+      gap: 0.4em;
+      letter-spacing: 1px;
     }
-    .vastenlabel.dag-vastenvrij { background: #ede0b3; color: #6e5124; border-color: #f1e3be;}
-    .vastenlabel.dag-vis       { background: #cbe3ff; color: #2175b7; border-color: #79b0e2;}
-    .vastenlabel.dag-oliewijn  { background: #e6cdf7; color: #843c96; border-color: #cdb1dd;}
-    .vastenlabel.dag-strikt    { background: #ffe0e0; color: #b13d2b; border-color: #f5b6b6;}
-    .heiligen {
+    .scheur-vasten.dag-vis   { color: #2969b0; }
+    .scheur-vasten.dag-oliewijn { color: #7a349b; }
+    .scheur-vasten.dag-strikt   { color: #bb2222; }
+    .scheur-vasten.dag-vastenvrij { color: #4e3c18; }
+    .scheur-heiligen {
+      font-size: 1.05em;
+      margin-bottom: 12px;
       text-align: center;
-      margin: 8px 0 18px 0;
-      font-size: 1.17em;
-      color: #4a381f;
-      font-family: 'EB Garamond', serif;
+      color: #5a3c1a;
+      font-weight: 600;
     }
-    .heiligen .kruis {
-      font-size: 1.18em;
-      color: #b09c68;
-      vertical-align: middle;
-      margin-right: 7px;
+    .scheur-lezing {
+      font-size: 1em;
+      color: #2e2311;
+      text-align: left;
+      margin: 3px 0;
+      font-weight: 500;
     }
-    .lezingen {
-      margin: 0 auto 15px auto;
-      background: #f5e9b8;
-      border-radius: 18px;
-      padding: 12px 18px 11px 18px;
-      box-shadow: 0 1px 8px #ccb38c15;
-      font-size: 1.05em;
-      max-width: 92%;
-      border: 1.5px solid #e6d8b3;
-    }
-    .lezingen span.bijbel {
-      margin-right: 6px;
-      color: #8d733b;
-      font-size: 1.05em;
-    }
-    .footer-tip {
+    .scheur-tip {
+      font-size: 1.1em;
+      color: #a88354;
+      margin-top: auto;
       font-style: italic;
-      color: #9d7c54;
-      font-size: 1.07em;
-      margin: 25px 0 0 0;
-      padding: 0 22px 0 22px;
-      border-top: 1.5px dashed #dbc49454;
-      padding-top: 12px;
+      padding-top: 16px;
       text-align: center;
-      min-height: 34px;
-      letter-spacing: 0.02em;
+      border-top: 1px solid #e1d1b1;
+      width: 100%;
+      letter-spacing: 0.2px;
     }
-    @keyframes fadein {
-      from { opacity: 0; transform: translateY(30px);}
-      to { opacity: 1; transform: none;}
-    }
-    @media (max-width: 700px) {
-      .kalender-hoes { margin-top: 5vw;}
-      .dagkaart { max-width: 98vw; border-radius: 13vw;}
-      .dag-header { font-size: 1.7em; padding: 19px 7vw 7px 7vw;}
-      .lezingen { font-size: 0.99em;}
+    @media (max-width: 600px) {
+      .scheurkalender { width: 97vw; }
     }
   </style>
-  <!-- Firebase -->
+  <!-- FIREBASE SCRIPTS EN CONFIG -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <script>
-    // CONFIG
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -203,142 +150,81 @@
   <a href="https://kathy-torfs.github.io/Orthodoxeweg/gastenmodus/heiligen/heiligen.html">🌟 Heiligen</a>
   <a href="https://kathy-torfs.github.io/Orthodoxeweg/gastenmodus/menu/recepten.html">🍽️ Recepten</a>
 </nav>
-<div class="taalbox">
-  <span style="font-weight:600;color:#7a5f35;margin-right:5px;">Taal:</span>
-  <button class="taalknop active" data-taal="nl" id="taal-nl">🇧🇪 Vlaams</button>
-  <button class="taalknop" data-taal="en" id="taal-en">🇬🇧 Engels</button>
-  <button class="taalknop" data-taal="el" id="taal-el">🇬🇷 Grieks</button>
-</div>
-<div class="kalender-hoes">
-  <div class="dagkaart" id="dagkaart">
-    <div style="padding:36px;text-align:center;color:#b0a276;font-size:1.2em;">
-      Even laden...
+
+<div class="scheurkalender-wrapper">
+  <div class="scheurkalender">
+    <!-- SVG Scheurkalender achtergrond -->
+    <svg class="scheurkalender-svg" viewBox="0 0 320 390">
+      <!-- Papier -->
+      <rect x="14" y="26" width="292" height="340" rx="18" fill="#f7f6f4" stroke="#b2a278" stroke-width="4"/>
+      <!-- Rand -->
+      <rect x="0" y="0" width="320" height="50" rx="5" fill="#39a4a9" stroke="#126672" stroke-width="2"/>
+      <!-- Gaatjes -->
+      <circle cx="55" cy="25" r="7" fill="#e3e8ed" stroke="#bbb" stroke-width="2"/>
+      <circle cx="160" cy="25" r="7" fill="#e3e8ed" stroke="#bbb" stroke-width="2"/>
+      <circle cx="265" cy="25" r="7" fill="#e3e8ed" stroke="#bbb" stroke-width="2"/>
+      <!-- Schaduw -->
+      <ellipse cx="160" cy="380" rx="90" ry="10" fill="#e4dab3" fill-opacity="0.5"/>
+    </svg>
+    <!-- Kalender inhoud -->
+    <div class="scheur-inhoud" id="kalender-inhoud">
+      <div style="color:#bbb;text-align:center;font-size:1.2em;margin-top:70px;">Bezig met laden...</div>
     </div>
   </div>
 </div>
 <script>
-  // Hulp: Datum -> '20250613'
-  function getTodayId() {
+  // Functie om datum om te zetten naar YYYYMMDD (zoals in jouw Firestore!)
+  function datumFirestoreId() {
     const d = new Date();
-    let m = "" + (d.getMonth() + 1);
-    let day = "" + d.getDate();
-    if (m.length === 1) m = "0" + m;
-    if (day.length === 1) day = "0" + day;
-    return "" + d.getFullYear() + m + day;
+    let dag = (d.getDate() < 10 ? '0' : '') + d.getDate();
+    let maand = ((d.getMonth() + 1) < 10 ? '0' : '') + (d.getMonth() + 1);
+    let jaar = d.getFullYear();
+    return '' + jaar + maand + dag;
   }
-  // Hulp: datum -> mooie string
-  function formatDate(d, lang) {
-    const maanden = {
-      "nl": ['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'],
-      "en": ['January','February','March','April','May','June','July','August','September','October','November','December'],
-      "el": ['Ιανουαρίου','Φεβρουαρίου','Μαρτίου','Απριλίου','Μαΐου','Ιουνίου','Ιουλίου','Αυγούστου','Σεπτεμβρίου','Οκτωβρίου','Νοεμβρίου','Δεκεμβρίου']
-    };
-    if (!d) return "";
-    let arr = d.split("-");
-    if (arr.length < 3) return d;
-    if (lang === 'en')
-      return `${maanden.en[parseInt(arr[1],10)-1]} ${parseInt(arr[2],10)}, ${arr[0]}`;
-    if (lang === 'el')
-      return `${arr[2]} ${maanden.el[parseInt(arr[1],10)-1]} ${arr[0]}`;
-    // standaard nl
-    return `${parseInt(arr[2],10)} ${maanden.nl[parseInt(arr[1],10)-1]} ${arr[0]}`;
+  // Functie voor een nette, klassieke datumstring (in het Vlaams)
+  function formatteerDatumNL(d) {
+    const maanden = ['januari', 'februari', 'maart', 'april', 'mei', 'juni',
+      'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
+    let parts = d.split('-'); // "2025-06-13"
+    return parseInt(parts[2], 10) + ' ' + maanden[parseInt(parts[1], 10) - 1] + ' ' + parts[0];
   }
-  // Vasten symbool bepalen
-  function vastenIcon(regel) {
-    if (!regel) return "";
-    if (regel.toLowerCase().includes("strenge")) return "✝️";
-    if (regel.toLowerCase().includes("vis"))    return "🐟";
-    if (regel.toLowerCase().includes("olie") || regel.toLowerCase().includes("wijn")) return "🍇";
-    if (regel.toLowerCase().includes("vrij"))   return "🌞";
+  // Vastenkleur bepalen
+  function bepaalVastenClass(regel) {
+    let tekst = (regel||'').toLowerCase();
+    if (tekst.includes("vis")) return "dag-vis";
+    if (tekst.includes("olie") || tekst.includes("wijn")) return "dag-oliewijn";
+    if (tekst.includes("strenge")) return "dag-strikt";
+    if (tekst.includes("vrij")) return "dag-vastenvrij";
     return "";
   }
-  // Kleur class bepalen
-  function vastenClass(regel) {
-    if (!regel) return "";
-    if (regel.toLowerCase().includes("strenge")) return "dag-strikt";
-    if (regel.toLowerCase().includes("vis"))     return "dag-vis";
-    if (regel.toLowerCase().includes("olie") || regel.toLowerCase().includes("wijn")) return "dag-oliewijn";
-    if (regel.toLowerCase().includes("vrij"))    return "dag-vastenvrij";
-    return "";
-  }
-  // Render-functie
-  function renderDag(data, taal) {
-    if (!data) return `<div style="padding:36px;text-align:center;color:#b0a276;font-size:1.15em;">Geen data voor vandaag.</div>`;
-    // Juiste velden per taal:
-    const tmap = {
-      nl: {
-        heiligen: data['Heiligen NL'],
-        vasten: data['Vastenregel NL'],
-        epistel: data['Epistel Ref NL (netjes NL)'],
-        evangelie: data['Evangelie Ref NL (netjes NL)'],
-        tip: data['Tip/Wens NL'],
-        datum: data['Datum']
-      },
-      en: {
-        heiligen: data['Heiligen EN'],
-        vasten: data['Vastenregel EN'],
-        epistel: data['Epistel Ref EN'],
-        evangelie: data['Evangelie Ref EN'],
-        tip: data['Tip/Wens EN'],
-        datum: data['Datum']
-      },
-      el: {
-        heiligen: data['Heiligen EL'],
-        vasten: data['Vastenregel EL'],
-        epistel: data['Epistel Ref EL'],
-        evangelie: data['Evangelie Ref EL'],
-        tip: data['Tip/Wens EL'],
-        datum: data['Datum']
+  // Inhoud dynamisch vullen
+  (function(){
+    const el = document.getElementById('kalender-inhoud');
+    let docId = datumFirestoreId();
+    db.collection("kalender2025").doc(docId).get().then(doc => {
+      if (!doc.exists) {
+        el.innerHTML = `<div style="margin-top:70px;text-align:center;">Geen kalenderdata voor vandaag (${docId})</div>`;
+        return;
       }
-    };
-    const t = tmap[taal];
-    let vastenLabel = "";
-    if (t.vasten) {
-      vastenLabel = `<div class="vastenlabel ${vastenClass(t.vasten)}">${vastenIcon(t.vasten)} ${t.vasten}</div>`;
-    }
-    // Heiligen met kruisje, of duif als geen heilige
-    let heiligenShow = t.heiligen && t.heiligen.trim() !== "" ? 
-        `<div class="heiligen"><span class="kruis">✝️</span>${t.heiligen}</div>`
-        : `<div class="heiligen" style="font-size:1.3em;color:#b1b1b1;"><span title="Geen heilige van de dag">🕊️</span> Geen heilige van de dag</div>`;
-    // Lezingen
-    let lezingenShow = "";
-    if (t.epistel || t.evangelie) {
-      lezingenShow = `<div class="lezingen">${
-        t.epistel ? `<span class="bijbel">📖</span><b>Epistel:</b> <span>${t.epistel}</span><br>` : ""
-      }${
-        t.evangelie ? `<span class="bijbel">📜</span><b>Evangelie:</b> <span>${t.evangelie}</span>` : ""
-      }</div>`;
-    }
-    // Tip/wens onderaan, zonder label
-    let tipShow = t.tip ? `<div class="footer-tip">${t.tip}</div>` : "";
-
-    // Klassieke header
-    return `
-      <div class="dag-header">${formatDate(t.datum, taal)}</div>
-      ${vastenLabel}
-      ${heiligenShow}
-      ${lezingenShow}
-      ${tipShow}
-    `;
-  }
-  // Taalkeuze
-  let huidigTaal = "nl";
-  function laadDag() {
-    const id = getTodayId();
-    db.collection("kalender2025").doc(id).get().then(doc => {
-      document.getElementById('dagkaart').innerHTML = renderDag(doc.data(), huidigTaal);
+      const data = doc.data();
+      const datumNL = data.Datum ? formatteerDatumNL(data.Datum) : '';
+      const vastenClass = bepaalVastenClass(data["Vastenregel NL"]);
+      // symbool mag nooit dubbel komen
+      const symbool = data["Symbool"]||"";
+      // vastenregel altijd tonen (ook vastenvrij)
+      const vastenTekst = (data["Vastenregel NL"]||"Vastenvrij") + (symbool ? ' ' + symbool : "");
+      el.innerHTML = `
+        <div class="scheur-datum">${datumNL}</div>
+        <div class="scheur-vasten ${vastenClass}">${vastenTekst}</div>
+        <div class="scheur-heiligen">${data["Heiligen NL"]||""}</div>
+        <div class="scheur-lezing"><b>Epistel:</b> ${data["Epistel Ref NL (netjes NL)"]||""}</div>
+        <div class="scheur-lezing"><b>Evangelie:</b> ${data["Evangelie Ref NL (netjes NL)"]||""}</div>
+        <div class="scheur-tip">${data["Tip/Wens NL"]||""}</div>
+      `;
+    }).catch(() => {
+      el.innerHTML = `<div style="margin-top:70px;text-align:center;">Fout bij het laden van de kalenderdata.</div>`;
     });
-  }
-  laadDag();
-  // Taal-knoppen
-  document.querySelectorAll('.taalknop').forEach(btn => {
-    btn.addEventListener('click', function() {
-      document.querySelectorAll('.taalknop').forEach(b=>b.classList.remove('active'));
-      this.classList.add('active');
-      huidigTaal = this.dataset.taal;
-      laadDag();
-    });
-  });
+  })();
 </script>
 </body>
 </html>
