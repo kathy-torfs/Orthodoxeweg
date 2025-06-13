@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Orthodoxe Dagkalender</title>
+  <title>Orthodoxeweg - Dagkalender</title>
   <style>
     body {
       background-color: #f5e9b8;
-      color: #45361a;
+      color: #6f4e1a;
       font-family: Arial, sans-serif;
-      margin: 0; padding: 0;
-      min-height: 100vh;
+      margin: 0;
+      padding: 0;
     }
     nav.menu {
       background-color: #7a5f35;
@@ -33,214 +33,178 @@
       background-color: #5d4726;
       text-decoration: underline;
     }
-    .taal-keuze {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
-      margin: 36px auto 0 auto;
+    .taalkeuze {
+      text-align: center;
+      margin: 18px 0 6px 0;
     }
-    .taal-keuze button {
-      background: #e2ce99;
-      color: #513f1c;
-      border: 1.5px solid #b19e77;
-      border-radius: 7px;
-      font-weight: bold;
+    .taalkeuze button {
+      background: #eee3c6;
+      color: #6f4e1a;
+      border: 1.5px solid #b29467;
+      border-radius: 6px;
+      padding: 7px 20px;
       font-size: 1em;
-      padding: 7px 17px;
-      margin: 0 2px;
+      font-weight: bold;
       cursor: pointer;
-      box-shadow: 1px 2px 7px #dacaa655;
-      transition: background .17s, color .17s, border .18s;
+      margin: 0 6px;
+      transition: background 0.2s;
     }
-    .taal-keuze button.selected {
-      background: #7a5f35;
-      color: #fffbe8;
-      border: 2px solid #7a5f35;
+    .taalkeuze button.selected {
+      background: #d3b87c;
+      color: #3a2c17;
+      border: 2px solid #85652a;
     }
     .boek-wrapper {
+      width: 920px;
+      max-width: 99vw;
+      margin: 0 auto 30px auto;
+      padding: 0 1vw;
       display: flex;
       justify-content: center;
-      align-items: flex-start;
-      min-height: 74vh;
-      margin-top: 10px;
-    }
-    .boek-outer {
-      position: relative;
-      width: 900px;
-      max-width: 99vw;
-      height: 600px;
-      max-height: 83vw;
-      margin: 28px 0 0 0;
-      background: none;
-    }
-    .boek-bg {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      z-index: 1;
-      user-select: none;
-      pointer-events: none;
-      border-radius: 23px;
-      box-shadow: 0 7px 42px #cab16b33, 0 1px 2px #fff2  ;
+      align-items: stretch;
     }
     .boek {
-      position: relative;
       display: flex;
-      width: 100%;
-      height: 100%;
-      z-index: 2;
+      width: 900px;
+      max-width: 100vw;
+      min-height: 570px;
+      background: linear-gradient(90deg, #ede4ca 48%, #fff9e1 52%);
+      border-radius: 24px;
+      box-shadow: 0 8px 40px #a88b5488;
+      border: 3px solid #ceb27d;
+      position: relative;
+      overflow: visible;
     }
-    .boek-blad {
-      background: #f9f5e8;
-      border-radius: 21px 18px 20px 18px;
-      box-shadow: 1px 6px 35px #b79c5c44, 0 1px 2px #fff6;
-      width: 50%;
-      height: 97%;
-      padding: 42px 42px 34px 42px;
+    .pagina {
+      flex: 1 1 0%;
+      padding: 44px 28px 30px 28px;
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
-      align-items: stretch;
-      font-family: 'Georgia', serif;
-      font-size: 1.22em;
-      color: #3b2c14;
+      min-height: 490px;
       position: relative;
-      overflow: hidden;
+      font-size: 1.14em;
     }
-    .boek-blad.links {
-      border-right: 2px solid #ecd8b5;
-      background: linear-gradient(90deg, #f8eee1 89%, #e1c99f 100%);
-      z-index: 3;
+    .boek .pagina.links {
+      border-right: 2px dashed #c6b187;
+      background: linear-gradient(110deg, #ede4ca 90%, #fff7e2 100%);
+      align-items: flex-end;
+      box-shadow: 2px 0 12px #d2bc908a inset;
     }
-    .boek-blad.rechts {
-      border-left: 2px solid #ecd8b5;
-      background: linear-gradient(-90deg, #f8eee1 89%, #e1c99f 100%);
-      z-index: 4;
+    .boek .pagina.rechts {
+      background: linear-gradient(-110deg, #fff9e1 90%, #ede4ca 100%);
+      align-items: flex-start;
+      box-shadow: -2px 0 12px #e5dab58a inset;
     }
-    .boek-blad .heilige-icoon {
-      margin: 18px auto 12px auto;
-      width: 98px; height: 98px; border-radius: 50%;
-      background: #f1e3c1;
-      border: 2.7px solid #c6ad82;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-      box-shadow: 0 2px 7px #c3ab7b29;
+    .hoek-linksboven, .hoek-rechtsonder {
+      width: 50px; height: 40px;
+      position: absolute; z-index: 2;
+      opacity: 0.13; cursor: pointer; transition: opacity 0.2s;
     }
-    .boek-blad .heilige-icoon img {
-      width: 96px;
-      height: 96px;
-      border-radius: 50%;
-      object-fit: cover;
-      background: #fffbe0;
-    }
-    .boek-blad .heilige-titel {
+    .hoek-linksboven { left: -16px; top: -13px; }
+    .hoek-rechtsonder { right: -14px; bottom: -16px; transform: scaleX(-1); }
+    .hoek-linksboven:hover, .hoek-rechtsonder:hover { opacity: 0.38; }
+    .boek h2 {
+      font-family: 'Georgia', serif;
+      font-size: 2em;
+      margin: 0 0 10px 0;
+      color: #745d35;
       text-align: center;
-      font-size: 1.07em;
-      color: #856a34;
-      font-weight: bold;
-      letter-spacing: 1.2px;
-      margin-bottom: 5px;
-    }
-    .boek-blad .heilige-tekst {
-      text-align: center;
-      font-size: 1em;
-      color: #533f19;
-      font-style: italic;
-      margin: 12px 0 0 0;
-      max-height: 220px;
-      overflow-y: auto;
-      padding: 4px 6px;
-    }
-    .boek-blad .boek-hoekje {
-      position: absolute;
-      bottom: 0;
-      width: 58px; height: 58px;
-      cursor: pointer;
-      z-index: 10;
-      opacity: .82;
-      transition: opacity 0.14s;
-    }
-    .boek-blad .boek-hoekje:hover { opacity: 1; }
-    .boek-blad.links .boek-hoekje { left: 0; }
-    .boek-blad.rechts .boek-hoekje { right: 0; }
-    .boek-blad .boek-hoekje svg { width: 100%; height: 100%; }
-    .boek-blad .boek-hoekje text { pointer-events: none; user-select: none;}
-    .boek-blad .dag-tip {
-      position: absolute;
-      bottom: 18px;
-      left: 0; right: 0;
-      text-align: center;
-      font-size: 1.05em;
-      font-style: italic;
-      color: #a0843a;
-      padding: 0 11px;
-      z-index: 12;
-    }
-    .boek-blad .dag-tip span { font-style: italic; }
-    .boek-blad .boek-datum {
-      text-align: center;
-      font-size: 1.6em;
-      font-family: Georgia, serif;
-      font-weight: bold;
       letter-spacing: 2px;
-      margin-bottom: 6px;
-      margin-top: 5px;
-      color: #6a4d18;
     }
-    .boek-blad .boek-vasten {
-      text-align: center;
-      font-size: 1.08em;
-      color: #a85727;
+    .boek .heilige-foto {
+      width: 120px; height: 140px;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto 18px auto;
+      background: #f4e8d5;
+      border-radius: 12px;
+      box-shadow: 0 1px 8px #d3be9e63;
+      border: 1.5px solid #d8caad;
+    }
+    .boek .heilige-naam {
       font-weight: bold;
-      margin-bottom: 9px;
-      margin-top: 8px;
+      color: #664b1c;
+      text-align: center;
+      margin-bottom: 8px;
+      font-size: 1.18em;
+      letter-spacing: 1px;
     }
-    .boek-blad .boek-heiligenlijst {
+    .boek .heilige-levensverhaal {
+      font-size: 0.97em;
+      line-height: 1.36;
+      color: #3a2c17;
+      max-height: 240px;
+      overflow-y: auto;
+      margin-top: 10px;
+      padding-right: 5px;
       text-align: left;
-      font-size: 1em;
-      color: #57492a;
-      margin-bottom: 12px;
-      background: #f5ead2;
-      padding: 8px 13px;
-      border-radius: 11px;
-      min-height: 33px;
-      box-shadow: 0 2px 12px #e5dabd11;
-      font-family: Georgia, serif;
     }
-    .boek-blad .boek-lezingen {
-      margin: 0 0 7px 0;
-      background: #f7f1e0;
-      border-radius: 9px;
-      padding: 8px 12px;
-      color: #3b2c14;
-      font-size: 1.03em;
-      box-shadow: 0 1px 5px #c9c2b422;
+    .boek .dagkalender-datum {
+      font-family: 'Georgia', serif;
+      font-size: 2em;
+      margin-bottom: 10px;
+      color: #85652a;
+      text-align: left;
+      letter-spacing: 1px;
     }
-    .boek-blad .boek-lezingen strong { color: #7a5f35; }
-    @media (max-width: 1200px) {
-      .boek-outer { width: 99vw; height: 530px; }
-      .boek-blad { padding: 18px 6vw 24px 6vw; font-size: 1em;}
+    .boek .vastenregel-regel {
+      margin: 0 0 12px 0;
+      font-weight: 600;
+      font-size: 1.10em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
-    @media (max-width: 870px) {
-      .boek-outer { width: 99vw; height: 440px;}
-      .boek-blad { padding: 14px 4vw 14px 4vw; font-size: 0.94em;}
+    .boek .vastenregel-symbool {
+      font-size: 1.65em;
+      margin-left: 7px;
+      vertical-align: middle;
     }
-    @media (max-width: 620px) {
-      .boek-outer { width: 99vw; height: 340px;}
-      .boek-blad { padding: 8px 2vw 8px 2vw; font-size: 0.91em;}
-      .taal-keuze { font-size: 0.93em;}
+    .boek .heiligenrij {
+      margin-bottom: 11px;
+      color: #725721;
+      font-size: 1.04em;
+      font-weight: 600;
     }
-    @media (max-width: 440px) {
-      .boek-outer { width: 99vw; height: 235px;}
-      .boek-blad { font-size: 0.83em; }
+    .boek .lezingblok {
+      margin-bottom: 10px;
+      color: #444;
+    }
+    .boek .tip-blok {
+      position: absolute;
+      left: 30px;
+      right: 30px;
+      bottom: 32px;
+      background: #f7ecd1;
+      border-radius: 10px;
+      padding: 13px 22px;
+      font-size: 1.11em;
+      color: #a78225;
+      text-align: center;
+      font-style: italic;
+      box-shadow: 0 2px 10px #d8c48c22;
+    }
+    @media (max-width: 1024px) {
+      .boek-wrapper, .boek { width: 99vw; min-width: 0; max-width: 100vw; }
+      .boek { min-height: 0; }
+    }
+    @media (max-width: 900px) {
+      .boek { flex-direction: column; min-height: 0; width: 99vw; }
+      .pagina { min-height: 240px; padding: 26px 10vw 30px 10vw; }
+      .boek .tip-blok { left: 12vw; right: 12vw; bottom: 18px;}
+    }
+    @media (max-width: 650px) {
+      .boek-wrapper, .boek { width: 100vw; }
+      .pagina { font-size: 0.95em; padding: 18px 4vw 16px 4vw; }
+      .boek .tip-blok { left: 4vw; right: 4vw; font-size:0.98em; }
     }
   </style>
-  <!-- FIREBASE SCRIPTS -->
+  <!-- FIREBASE SCRIPTS EN CONFIG -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <script>
+    // Je Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -264,147 +228,160 @@
   <a href="https://kathy-torfs.github.io/Orthodoxeweg/gastenmodus/heiligen/heiligen.html">🌟 Heiligen</a>
   <a href="https://kathy-torfs.github.io/Orthodoxeweg/gastenmodus/menu/recepten.html">🍽️ Recepten</a>
 </nav>
-<div class="taal-keuze" id="taal-keuze">
-  <span>Taal:</span>
-  <button class="selected" onclick="setTaal('NL')" id="btn-nl">🇧🇪 Vlaams</button>
-  <button onclick="setTaal('EN')" id="btn-en">🇬🇧 Engels</button>
-  <button onclick="setTaal('EL')" id="btn-el">🇬🇷 Grieks</button>
+
+<div class="taalkeuze">
+  <button id="btn-vlaams" class="selected">🇧🇪 Vlaams</button>
+  <button id="btn-engels">🇬🇧 English</button>
+  <button id="btn-grieks">🇬🇷 Ελληνικά</button>
 </div>
+
 <div class="boek-wrapper">
-  <div class="boek-outer">
-    <!-- Sfeervolle achtergrond (optioneel) -->
-    <!-- <img class="boek-bg" src="images/oud-boek-open-op-donkere-houten-achtergrond.avif" alt="" draggable="false"> -->
-    <div class="boek">
-      <div class="boek-blad links">
-        <div class="heilige-titel" id="heilige-titel"></div>
-        <div class="heilige-icoon" id="heilige-icoon" style="margin-top:9px;">
-          <!-- Heiligen-icoon komt hier (later) -->
-          <img id="heilige-img" src="" alt="" style="display:none;">
-        </div>
-        <div class="heilige-tekst" id="heilige-tekst"></div>
-        <!-- Hoekje links -->
-        <div class="boek-hoekje" id="hoekje-prev" style="left:0;bottom:0;">
-          <svg width="58" height="58"><polygon points="0,58 58,58 0,0" fill="#e4dcc8" stroke="#c4b07c" stroke-width="2"/><text x="7" y="46" font-size="31" fill="#ad9150" font-family="Georgia,serif">&#8592;</text></svg>
-        </div>
-      </div>
-      <div class="boek-blad rechts">
-        <div class="boek-datum" id="boek-datum"></div>
-        <div class="boek-vasten" id="boek-vasten"></div>
-        <div class="boek-heiligenlijst" id="boek-heiligen"></div>
-        <div class="boek-lezingen" id="boek-lezingen"></div>
-        <!-- Tip onderaan -->
-        <div class="dag-tip" id="dag-tip"></div>
-        <!-- Hoekje rechts -->
-        <div class="boek-hoekje" id="hoekje-next" style="right:0;bottom:0;">
-          <svg width="58" height="58"><polygon points="58,58 0,58 58,0" fill="#e4dcc8" stroke="#c4b07c" stroke-width="2"/><text x="27" y="46" font-size="31" fill="#ad9150" font-family="Georgia,serif">&#8594;</text></svg>
-        </div>
+  <div class="boek">
+    <!-- Hoekje linksboven voor 'vorige dag' -->
+    <img src="https://upload.wikimedia.org/wikipedia/commons/7/7e/Page-corner-fold.png" class="hoek-linksboven" alt="Vorige dag" title="Vorige dag" id="vorigeDag">
+    <!-- PAGINA LINKS: Heilige van de dag -->
+    <div class="pagina links" id="boek-links">
+      <div id="heilige-inhoud">
+        <div style="color:#a6a5a4;text-align:center;">Bezig met laden...</div>
       </div>
     </div>
+    <!-- PAGINA RECHTS: Dagkalender -->
+    <div class="pagina rechts" id="boek-rechts">
+      <div id="dagkalender-inhoud">
+        <div style="color:#a6a5a4;text-align:center;">Bezig met laden...</div>
+      </div>
+      <div class="tip-blok" id="dagkalender-tip"></div>
+    </div>
+    <!-- Hoekje rechtsonder voor 'volgende dag' -->
+    <img src="https://upload.wikimedia.org/wikipedia/commons/7/7e/Page-corner-fold.png" class="hoek-rechtsonder" alt="Volgende dag" title="Volgende dag" id="volgendeDag">
   </div>
 </div>
+
 <script>
-  // ---------------- TAAL EN DATUM SETUP ----------------------
-  let huidigTaal = 'NL';
-  let huidigeDatum = new Date();
-  function pad(n) { return n<10 ? '0'+n : n; }
-  // VLAAMS formaat
-  function naarDatumString(d) {
-    return pad(d.getDate())+'-'+pad(d.getMonth()+1)+'-'+d.getFullYear();
+  // Taal-setup
+  let huidigeTaal = "vlaams"; // "vlaams", "engels", "grieks"
+
+  // Bijhouden van de actieve dag (initieel: vandaag)
+  let actieveDatum = new Date();
+
+  // Knoppen om dag te wisselen
+  document.getElementById("vorigeDag").onclick = function() {
+    actieveDatum.setDate(actieveDatum.getDate() - 1);
+    laadAlles();
   }
-  function naarFeestdagString(d) {
-    // Formaat MM-DD
-    return pad(d.getMonth()+1)+'-'+pad(d.getDate());
+  document.getElementById("volgendeDag").onclick = function() {
+    actieveDatum.setDate(actieveDatum.getDate() + 1);
+    laadAlles();
   }
 
-  // ---- TAAL KNOPPEN
-  function setTaal(taal) {
-    huidigTaal = taal;
-    document.getElementById('btn-nl').classList.toggle('selected', taal==='NL');
-    document.getElementById('btn-en').classList.toggle('selected', taal==='EN');
-    document.getElementById('btn-el').classList.toggle('selected', taal==='EL');
-    laadHeiligeVanDeDag(huidigeDatum);
-    laadDagkalender(huidigeDatum);
+  // Taalkeuze
+  document.getElementById("btn-vlaams").onclick = function() { huidigeTaal = "vlaams"; setTaal(); }
+  document.getElementById("btn-engels").onclick = function() { huidigeTaal = "engels"; setTaal(); }
+  document.getElementById("btn-grieks").onclick = function() { huidigeTaal = "grieks"; setTaal(); }
+
+  function setTaal() {
+    document.querySelectorAll('.taalkeuze button').forEach(btn => btn.classList.remove('selected'));
+    document.getElementById("btn-vlaams").classList.toggle('selected', huidigeTaal === "vlaams");
+    document.getElementById("btn-engels").classList.toggle('selected', huidigeTaal === "engels");
+    document.getElementById("btn-grieks").classList.toggle('selected', huidigeTaal === "grieks");
+    laadAlles();
   }
 
-  // ---- NAVIGATIE
-  document.getElementById('hoekje-prev').onclick = function() {
-    huidigeDatum.setDate(huidigeDatum.getDate() - 1);
-    laadHeiligeVanDeDag(huidigeDatum);
-    laadDagkalender(huidigeDatum);
-  }
-  document.getElementById('hoekje-next').onclick = function() {
-    huidigeDatum.setDate(huidigeDatum.getDate() + 1);
-    laadHeiligeVanDeDag(huidigeDatum);
-    laadDagkalender(huidigeDatum);
-  }
+  function pad(n) { return n < 10 ? '0' + n : n; }
 
-  // ---- LAAD HEILIGE VAN DE DAG
-  function laadHeiligeVanDeDag(d) {
-    document.getElementById('heilige-titel').innerText = 'Laden...';
-    document.getElementById('heilige-img').style.display = 'none';
-    document.getElementById('heilige-tekst').innerText = '';
-    const feestdag = naarFeestdagString(d);
+  function laadAlles() {
+    // Kalenderformaat voor rechts (yyyy-mm-dd)
+    const jaar = actieveDatum.getFullYear();
+    const maand = pad(actieveDatum.getMonth() + 1);
+    const dag = pad(actieveDatum.getDate());
+    const kalenderId = `${jaar}${maand}${dag}`;  // bv 20250613
+    const feestdag = `${dag}-${maand}`;          // bv 13-06
+
+    // -------------------------------
+    // LINKS: Heilige van de dag
+    // -------------------------------
+    const heiligeContainer = document.getElementById('heilige-inhoud');
+    heiligeContainer.innerHTML = '<div style="color:#a6a5a4;text-align:center;">Bezig met laden...</div>';
     db.collection("heiligen").where("feestdag", "==", feestdag).get().then(snapshot => {
       if (snapshot.empty) {
-        document.getElementById('heilige-titel').innerText = "Geen heilige van de dag gevonden";
+        heiligeContainer.innerHTML = '<div style="color:#b8b7b4;text-align:center;margin-top:60px;font-size:1.2em">Geen heilige van de dag gevonden.</div>';
         return;
       }
+      // Random heilige als er meerdere zijn
       const docs = snapshot.docs;
-      // Random één kiezen indien meerdere
-      const doc = docs[Math.floor(Math.random()*docs.length)].data();
-      document.getElementById('heilige-titel').innerText = (doc.id || doc.naam || 'Heilige van de dag');
-      // Later: Icoon? Zo ja, display img. Voorlopig geen icoon.
-      // document.getElementById('heilige-img').src = doc.icoon_url || '';
-      // document.getElementById('heilige-img').style.display = doc.icoon_url ? 'block' : 'none';
-      // Levensverhaal volwassen
-      document.getElementById('heilige-tekst').innerText = doc.levensverhaal_volwassenen || doc.beschrijving || '';
+      const data = docs[Math.floor(Math.random() * docs.length)].data();
+      let naam = data[`naam_${huidigeTaal}`] || data.naam_nl || data.naam_en || data.naam_el || "Heilige";
+      let levensverhaal = data[`levensverhaal_${huidigeTaal}`] || data.levensverhaal_nl || data.levensverhaal_en || data.levensverhaal_el || "";
+      let fotoUrl = data.foto_url || "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Byzantine_icon_of_a_saint_%28unknown%29.jpg/120px-Byzantine_icon_of_a_saint_%28unknown%29.jpg";
+      heiligeContainer.innerHTML = `
+        <div class="heilige-naam">${naam}</div>
+        <img src="${fotoUrl}" class="heilige-foto" alt="Heilige icoon">
+        <div class="heilige-levensverhaal">${levensverhaal}</div>
+      `;
     });
-  }
 
-  // ---- LAAD DAGKALENDER
-  function laadDagkalender(d) {
-    // Boekdatum
-    document.getElementById('boek-datum').innerText = naarDatumString(d);
-    document.getElementById('boek-vasten').innerText = "Laden...";
-    document.getElementById('boek-heiligen').innerText = "";
-    document.getElementById('boek-lezingen').innerText = "";
-    document.getElementById('dag-tip').innerText = "";
-    const datumVlaams = naarDatumString(d);
-    db.collection("kalender2025").where("Datum", "==", datumVlaams).get().then(snapshot => {
-      if (snapshot.empty) {
-        document.getElementById('boek-vasten').innerText = "Geen kalenderinfo gevonden";
-        document.getElementById('boek-heiligen').innerText = "";
-        document.getElementById('boek-lezingen').innerText = "";
-        document.getElementById('dag-tip').innerText = "";
+    // -------------------------------
+    // RECHTS: Dagkalender
+    // -------------------------------
+    const kalenderContainer = document.getElementById('dagkalender-inhoud');
+    const tipBlok = document.getElementById('dagkalender-tip');
+    kalenderContainer.innerHTML = '<div style="color:#a6a5a4;text-align:center;">Bezig met laden...</div>';
+    tipBlok.innerHTML = "";
+    db.collection("kalender2025").doc(kalenderId).get().then(doc => {
+      if (!doc.exists) {
+        kalenderContainer.innerHTML = '<div style="color:#b8b7b4;text-align:center;margin-top:60px;font-size:1.1em">Geen kalenderinfo gevonden.</div>';
+        tipBlok.innerHTML = "";
         return;
       }
-      const data = snapshot.docs[0].data();
-      // Vastenregel + symbool
-      let vasten = data[`Vastenregel ${huidigTaal}`] || data["Vastenregel NL"] || "";
+      const data = doc.data();
+      // Vastenregel en symbool
+      let vasten = data[`Vastenregel NL`] || data[`Vastenregel EN`] || data[`Vastenregel EL`] || "Vastenvrij";
+      if (huidigeTaal === "engels" && data[`Vastenregel EN`]) vasten = data[`Vastenregel EN`];
+      if (huidigeTaal === "grieks" && data[`Vastenregel EL`]) vasten = data[`Vastenregel EL`];
       let symbool = data["Symbool"] || "";
-      document.getElementById('boek-vasten').innerHTML = `${vasten ? vasten : "Vastenvrij"}${symbool ? " &nbsp;"+symbool : ""}`;
-      // Heiligenlijst
-      document.getElementById('boek-heiligen').innerText = 
-        data[`Heiligen ${huidigTaal}`] || data["Heiligen NL"] || "";
+      let vastenRegelBlok = `<span>${vasten}</span>`;
+      if (symbool) vastenRegelBlok += `<span class="vastenregel-symbool">${symbool}</span>`;
+
+      // Datum als Vlaams
+      let datumTekst = `${dag}-${maand}-${jaar}`;
+
+      // Heiligenrij
+      let heiligen = data[`Heiligen NL`] || data[`Heiligen EN`] || data[`Heiligen EL`] || "";
+      if (huidigeTaal === "engels" && data[`Heiligen EN`]) heiligen = data[`Heiligen EN`];
+      if (huidigeTaal === "grieks" && data[`Heiligen EL`]) heiligen = data[`Heiligen EL`];
+
       // Lezingen
-      let epistel = data[`Epistel Ref ${huidigTaal} (netjes NL)`] || data["Epistel Ref NL (netjes NL)"] || "";
-      let evangelie = data[`Evangelie Ref ${huidigTaal} (netjes NL)`] || data["Evangelie Ref NL (netjes NL)"] || "";
-      let lezingen = "";
-      if (epistel) lezingen += `<strong>Apostellezing:</strong> ${epistel}<br>`;
-      if (evangelie) lezingen += `<strong>Evangelie:</strong> ${evangelie}`;
-      document.getElementById('boek-lezingen').innerHTML = lezingen;
-      // Tip/wens
-      let tip = data[`Tip/Wens ${huidigTaal}`] || data["Tip/Wens NL"] || "";
-      document.getElementById('dag-tip').innerHTML = tip ? `<span>${tip}</span>` : "";
+      let epistel = data[`Epistel Ref NL (netjes NL)`] || "";
+      let evangelie = data[`Evangelie Ref NL (netjes NL)`] || "";
+      if (huidigeTaal === "engels") {
+        epistel = data[`Epistel Ref EN (netjes NL)`] || "";
+        evangelie = data[`Evangelie Ref EN (netjes NL)`] || "";
+      }
+      if (huidigeTaal === "grieks") {
+        epistel = data[`Epistel Ref EL (netjes NL)`] || "";
+        evangelie = data[`Evangelie Ref EL (netjes NL)`] || "";
+      }
+
+      // Tip/Wens
+      let tip = data[`Tip/Wens NL`] || "";
+      if (huidigeTaal === "engels" && data[`Tip/Wens EN`]) tip = data[`Tip/Wens EN`];
+      if (huidigeTaal === "grieks" && data[`Tip/Wens EL`]) tip = data[`Tip/Wens EL`];
+
+      // HTML opbouwen
+      kalenderContainer.innerHTML = `
+        <div class="dagkalender-datum">${datumTekst}</div>
+        <div class="vastenregel-regel">${vastenRegelBlok}</div>
+        <div class="heiligenrij">${heiligen}</div>
+        <div class="lezingblok"><b>Epistel:</b> ${epistel}</div>
+        <div class="lezingblok"><b>Evangelie:</b> ${evangelie}</div>
+      `;
+      tipBlok.innerHTML = tip;
     });
   }
 
-  // ---- INIT
-  window.onload = function() {
-    setTaal('NL');
-    laadHeiligeVanDeDag(huidigeDatum);
-    laadDagkalender(huidigeDatum);
-  }
+  // Initieel laden
+  laadAlles();
 </script>
+
 </body>
 </html>
