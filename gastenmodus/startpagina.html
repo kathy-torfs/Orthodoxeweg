@@ -309,17 +309,55 @@
     const feestdag = `${dag}-${maand}`;          // bv 13-06
 
     // -------------------------------
-    // LINKS: Heilige van de dag
-    // -------------------------------
-    const heiligeContainer = document.getElementById('heilige-inhoud');
-    heiligeContainer.innerHTML = '<div style="color:#a6a5a4;text-align:center;">Bezig met laden...</div>';
-    db.collection("heiligen").where("feestdag", "==", feestdag).get().then(snapshot => {
-      if (snapshot.empty) {
-        heiligeContainer.innerHTML = `
-          <div class="heilige-naam">✝️</div>
-          <img src="https://upload.wikimedia.org/wikipedia/commons/4/43/Latin_cross.svg" class="heilige-foto" alt="Geen heilige">
-          <div class="heilige-levensverhaal" style="text-align:center;">Geen heilige van de dag beschikbaar.</div>
-        `;
+    // ---- LINKS: Heilige van de dag ---- 
+const heiligeContainer = document.getElementById('heilige-inhoud');
+heiligeContainer.innerHTML = '<div style="color:#a6a5a4;text-align:center;">Bezig met laden...</div>';
+db.collection("heiligen").where("feestdag", "==", feestdag).get().then(snapshot => {
+  if (snapshot.empty) {
+    heiligeContainer.innerHTML = `
+      <div style="color:#b8b7b4;text-align:center;margin-top:22px;font-size:1.15em">
+        <br>Geen heilige van de dag gevonden.<br>
+        <span style="font-size:3em;">✝️</span>
+      </div>`;
+    return;
+  }
+  // Random heilige als er meerdere zijn
+  const docs = snapshot.docs;
+  const data = docs[Math.floor(Math.random() * docs.length)].data();
+  let naam = "";
+  let levensverhaal = "";
+  // Voorlopig geen foto: plaats een pictogram (gebedssnoer)
+  let fotoUrl = ""; // later vervangen door upload of veld
+  let pictogram = "📿";
+
+  if (huidigeTaal === "engels") {
+    naam = data.naam_en || "";
+    levensverhaal = data.levensverhaal_en || "";
+  } else if (huidigeTaal === "grieks") {
+    naam = data.naam_el || "";
+    levensverhaal = data.levensverhaal_el || "";
+  } else {
+    naam = data.naam_nl || data.naam || data.id || "Heilige";
+    levensverhaal = data.levensverhaal_nl || data.levensverhaal_volwassenen || "";
+  }
+
+  // Enkel tonen als ze bestaan (geen fallback!)
+  if (!naam && !levensverhaal) {
+    heiligeContainer.innerHTML = `
+      <div style="color:#b8b7b4;text-align:center;margin-top:22px;font-size:1.15em">
+        <br>Geen heilige van de dag gevonden.<br>
+        <span style="font-size:3em;">✝️</span>
+      </div>`;
+    return;
+  }
+
+  heiligeContainer.innerHTML = `
+    <div class="heilige-naam">${naam}</div>
+    <div style="font-size:2.7em; text-align:center; margin:14px 0 13px 0;">${pictogram}</div>
+    <div class="heilige-levensverhaal">${levensverhaal}</div>
+  `;
+});
+
         return;
       }
       // Random heilige als er meerdere zijn
