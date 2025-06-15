@@ -337,23 +337,23 @@
     }
 
     function priesterLogin() {
-      const parochie = document.getElementById("priesterParochie").value;
-      const wachtwoord = document.getElementById("priesterWachtwoord").value;
-      db.collection("parochies")
-        .where("id", "==", parochie)
-        .where("postcode", "==", wachtwoord)
-        .get()
-        .then(snapshot => {
-          if (!snapshot.empty) {
-            window.location.href = "priestermodus/startpagina.html";
-          } else {
-            alert("Onjuiste gegevens.");
-          }
-        }).catch(err => {
-          alert("Fout bij inloggen.");
-          console.error(err);
-        });
-    }
+  const parochie = document.getElementById("priesterParochie").value;
+  const wachtwoord = document.getElementById("priesterWachtwoord").value;
+  db.collection("parochies")
+    .doc(parochie)
+    .get()
+    .then(doc => {
+      if (doc.exists && doc.data().postcode === wachtwoord) {
+        window.location.href = "priestermodus/startpagina.html";
+      } else {
+        alert("Onjuiste gegevens.");
+      }
+    })
+    .catch(err => {
+      alert("Fout bij inloggen.");
+      console.error(err);
+    });
+}
 
     function openPopup(id) {
       document.getElementById("overlay").style.display = "block";
