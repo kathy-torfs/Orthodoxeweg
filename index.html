@@ -47,7 +47,9 @@
       cursor: pointer;
       transition: background 0.2s;
     }
-    .priesterknop:hover { background: #b04eff; }
+    .priesterknop:hover {
+      background: #b04eff;
+    }
     .maincontent {
       display: flex;
       flex-direction: column;
@@ -151,9 +153,6 @@
       box-sizing: border-box;
       max-width: 99vw;
     }
-    .popup input[type="file"] {
-      padding: 0;
-    }
     .popup button {
       padding: 12px 30px;
       font-size: 1.05rem;
@@ -199,22 +198,12 @@
       .knoppenrij { margin-bottom: 25px; }
       .knop { font-size: 0.97rem; padding: 12px 0; }
     }
-    .login-suggestie {
-      color: #555;
-      font-size: 0.93rem;
-      margin-bottom: 2px;
-      margin-top: -8px;
-      padding-left: 10px;
-    }
   </style>
 </head>
 <body>
-  <!-- Bovenste bruine balk met rechts de priesterknop -->
   <div class="topbar">
     <button class="priesterknop" onclick="openPopup('priesterPopup')">Priesters</button>
   </div>
-
-  <!-- Centrale inhoud -->
   <div class="maincontent">
     <img class="kruis" src="images/kruis.png" alt="Kruis" />
     <h1>Welkom bij Orthodoxeweg</h1>
@@ -232,11 +221,13 @@
   <!-- Parochiaan Login -->
   <div id="loginPopup" class="popup">
     <button class="sluiten" onclick="closeAllPopups()">&times;</button>
-    <h2>Parochiaan inloggen</h2>
-    <select id="loginParochie" required></select>
-    <input type="text" id="loginGebruikersnaam" placeholder="Loginnaam" autocomplete="username" required />
-    <input type="password" id="loginWachtwoord" placeholder="Wachtwoord" autocomplete="current-password" required />
-    <button onclick="parochiaanLogin()">Inloggen</button>
+    <h2>Inloggen parochiaan</h2>
+    <select id="loginParochie">
+      <option>Bezig met laden...</option>
+    </select>
+    <input type="text" id="loginNaam" placeholder="Gebruikersnaam" autocomplete="username" />
+    <input type="password" id="loginWachtwoord" placeholder="Wachtwoord" autocomplete="current-password" />
+    <button onclick="login()">Inloggen</button>
   </div>
 
   <!-- Parochiaan Registratie -->
@@ -247,33 +238,36 @@
       <input type="text" id="voornaam" placeholder="Voornaam" required />
       <input type="text" id="achternaam" placeholder="Achternaam" required />
       <input type="date" id="geboortedatum" placeholder="Geboortedatum" required />
-      <input type="text" id="doopnaam" placeholder="Doopnaam" required />
+      <input type="text" id="doopnaam" placeholder="Doopnaam" />
       <input type="email" id="email" placeholder="E-mail" required />
-      <select id="parochieSelect" required></select>
-      <input type="text" id="loginNaam" placeholder="Kies je loginnaam" required />
-      <div class="login-suggestie" id="loginSuggestie"></div>
+      <select id="parochieSelect" required>
+        <option>Bezig met laden...</option>
+      </select>
+      <input type="text" id="loginKeuze" placeholder="Kies een gebruikersnaam" required />
+      <label style="font-size:0.96rem; color:#543;" for="profielfoto">Profielfoto (optioneel):</label>
       <input type="file" id="profielfoto" accept="image/*" />
       <button type="submit">Verzenden</button>
       <div style="font-size: 0.95rem; color: #764e0b; margin-top: 10px;">
-        Na goedkeuring ontvang je een automatisch wachtwoord per e-mail.
+        Na goedkeuring ontvang je een wachtwoord via e-mail. Je kan je daarna aanmelden.
       </div>
     </form>
   </div>
 
-  <!-- Priester Login -->
+  <!-- Priesterlogin -->
   <div id="priesterPopup" class="popup">
     <button class="sluiten" onclick="closeAllPopups()">&times;</button>
     <h2>Priesterlogin</h2>
     <select id="priesterParochie">
       <option>Bezig met laden...</option>
     </select>
-    <input type="password" id="priesterWachtwoord" placeholder="Wachtwoord (postcode)" autocomplete="current-password" />
+    <input type="password" id="priesterWachtwoord" placeholder="Wachtwoord" autocomplete="current-password" />
     <button onclick="priesterLogin()">Inloggen</button>
   </div>
 
-  <!-- Firebase & JS -->
+  <!-- Firebase en custom JS -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
   <script>
     // JOUW FIREBASE CONFIG
     const firebaseConfig = {
@@ -286,8 +280,9 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    const storage = firebase.storage();
 
-    // Laad parochies in keuzemenu's
+    // Parochielijsten laden
     function laadParochies() {
       db.collection("parochies").get().then(snapshot => {
         const regSel = document.getElementById("parochieSelect");
@@ -302,7 +297,7 @@
           const optie1 = document.createElement("option");
           optie1.value = id;
           optie1.textContent = naam;
-          regSel.appendChild(optie1);
+          regSel.appendChild(optie1.cloneNode(true));
           priestSel.appendChild(optie1.cloneNode(true));
           loginSel.appendChild(optie1.cloneNode(true));
         });
@@ -310,23 +305,7 @@
     }
     window.addEventListener('DOMContentLoaded', laadParochies);
 
-    // Loginnaam suggesties bij registratie
-    document.getElementById("loginNaam").addEventListener("input", function () {
-      const voornaam = document.getElementById("voornaam").value.trim().toLowerCase();
-      const achternaam = document.getElementById("achternaam").value.trim().toLowerCase();
-      const loginNaam = this.value.trim();
-      const suggestie = [];
-      if (voornaam && achternaam) {
-        suggestie.push(voornaam + achternaam[0]);
-        suggestie.push(voornaam + "." + achternaam);
-        suggestie.push(voornaam + achternaam.slice(-2));
-      }
-      document.getElementById("loginSuggestie").textContent =
-        (suggestie.length && loginNaam.length < 2)
-          ? "Voorbeelden: " + suggestie.join(", ") : "";
-    });
-
-    // Registratieformulier
+    // Registratie versturen
     document.getElementById("registratieForm").addEventListener("submit", function(e) {
       e.preventDefault();
       const voornaam = document.getElementById("voornaam").value.trim();
@@ -335,37 +314,52 @@
       const doopnaam = document.getElementById("doopnaam").value.trim();
       const email = document.getElementById("email").value.trim();
       const parochie = document.getElementById("parochieSelect").value;
-      const loginnaam = document.getElementById("loginNaam").value.trim();
+      const loginKeuze = document.getElementById("loginKeuze").value.trim();
+      const profielfoto = document.getElementById("profielfoto").files[0];
 
-      // Eventueel upload van profielfoto toevoegen bij latere stap
+      // Sla eerst de profielfoto op, indien opgegeven
+      let uploadPromise = Promise.resolve(null);
+      if (profielfoto) {
+        const storageRef = storage.ref('profielfotos/' + Date.now() + '_' + profielfoto.name);
+        uploadPromise = storageRef.put(profielfoto).then(snapshot => snapshot.ref.getDownloadURL());
+      }
 
-      db.collection("registraties").add({
-        voornaam, achternaam, geboortedatum, doopnaam, email, parochie, loginnaam,
-        status: "in afwachting"
-      }).then(() => {
-        alert("Registratie succesvol verzonden! Je ontvangt na goedkeuring een wachtwoord per e-mail.");
-        closeAllPopups();
-      }).catch((err) => {
-        alert("Fout bij registratie.");
-        console.error(err);
+      uploadPromise.then(url => {
+        db.collection("registraties").add({
+          voornaam: voornaam,
+          achternaam: achternaam,
+          geboortedatum: geboortedatum,
+          doopnaam: doopnaam,
+          email: email,
+          parochie: parochie,
+          loginKeuze: loginKeuze,
+          profielfoto: url || "",
+          status: "in afwachting"
+        }).then(() => {
+          alert("Registratie succesvol verzonden! Je ontvangt na goedkeuring een e-mail.");
+          closeAllPopups();
+        }).catch((err) => {
+          alert("Fout bij registratie.");
+          console.error(err);
+        });
       });
     });
 
     // Parochiaan login
-    function parochiaanLogin() {
+    function login() {
       const parochie = document.getElementById("loginParochie").value;
-      const loginnaam = document.getElementById("loginGebruikersnaam").value.trim();
+      const gebruikersnaam = document.getElementById("loginNaam").value.trim();
       const wachtwoord = document.getElementById("loginWachtwoord").value;
-      db.collection("gebruikers")
+      db.collection("leden")
         .where("parochie", "==", parochie)
-        .where("loginnaam", "==", loginnaam)
+        .where("gebruikersnaam", "==", gebruikersnaam)
         .where("wachtwoord", "==", wachtwoord)
         .get()
         .then(snapshot => {
           if (!snapshot.empty) {
             window.location.href = "volwassenenmodus/startpagina.html";
           } else {
-            alert("Onjuiste gegevens.");
+            alert("Onjuiste gegevens of nog niet geactiveerd.");
           }
         }).catch(err => {
           alert("Fout bij inloggen.");
@@ -378,11 +372,10 @@
       const parochie = document.getElementById("priesterParochie").value;
       const wachtwoord = document.getElementById("priesterWachtwoord").value;
       db.collection("parochies")
-        .where("id", "==", parochie)
-        .where("postcode", "==", wachtwoord)
+        .doc(parochie)
         .get()
-        .then(snapshot => {
-          if (!snapshot.empty) {
+        .then(doc => {
+          if (doc.exists && doc.data().postcode === wachtwoord) {
             window.location.href = "priestermodus/startpagina.html";
           } else {
             alert("Onjuiste gegevens.");
@@ -393,7 +386,6 @@
         });
     }
 
-    // Popup logic
     function openPopup(id) {
       document.getElementById("overlay").style.display = "block";
       document.getElementById(id).style.display = "block";
