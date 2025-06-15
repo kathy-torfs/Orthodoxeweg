@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Registratie-aanvragen - Priestermodus</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 30px; background: #f9e7b1;}
+    h1 { color: #4e2710; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px;}
+    th, td { padding: 12px 8px; border-bottom: 1px solid #aaa; text-align: left;}
+    th { background: #6d3a17; color: #fff;}
+    button { padding: 6px 15px; border-radius: 8px; border: none; margin-right: 10px; font-weight: bold;}
+    .akkoord { background: #5ba867; color: #fff;}
+    .weigeren { background: #b94747; color: #fff;}
+    tr.goedgekeurd td { background: #e0ffe0; }
+    tr.geweigerd td { background: #ffe0e0; }
+  </style>
+</head>
+<body>
+  <h1>Openstaande registraties voor uw parochie</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Voornaam</th>
+        <th>Achternaam</th>
+        <th>Doopnaam</th>
+        <th>Email</th>
+        <th>Login</th>
+        <th>Geboortedatum</th>
+        <th>Actie</th>
+      </tr>
+    </thead>
+    <tbody id="registratiesTabel"></tbody>
+  </table>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script>
+    // Firebase config (zoals elders)
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:2e02833fa0d4d8903ceedb"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Huidige parochie ophalen uit localStorage (die kan je bij login instellen)
+    const parochieNaam = localStorage.getItem("ingelogdeParochie"); // Moet je zetten bij login!
+
+    // Registraties tonen
+    function laadRegistraties() {
+      db.collection("registraties")
+        .where("parochie", "==", parochieNaam)
+        .where("status", "==", "in afwachting")
+        .get()
+        .then(snapshot => {
+          const tbody = document.getElementById("registratiesTabel");
+          tbody.innerHTML = "";
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${data.voornaam}</td>
+              <td>${data.achternaam}</td>
+              <td>${data.doopnaam}</td>
+              <td>${data.email}</td>
+              <td>${data.loginKeuze}</td>
+              <td>${data.geboortedatum}</td>
+              <td>
+                <button class="akkoord" onclick="aanvaarden('${doc.id}', '${data.email}', '${data.loginKeuze}')">Aanvaarden</button>
+                <button class="weigeren" onclick="weigeren('${doc.id}')">Weigeren</button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        });
+    }
+
+    // Random wachtwoordgenerator
+    function genWachtwoord(length = 5) {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+      let pwd = '';
+      for (let i = 0; i < length; i++) pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+      return pwd;
+    }
+
+    // Aanvaarden
+    function aanvaarden(id, email, loginKeuze) {
+      const wachtwoord = genWachtwoord();
+      db.collection("registraties").doc(id).update({status: "goedgekeurd"});
+      db.collection("gebruikers").add({
+        gebruikersnaam: loginKeuze,
+        wachtwoord: wachtwoord,
+        email: email
+      });
+      alert(`Gebruiker goedgekeurd!\n\nGebruikersnaam: ${loginKeuze}\nWachtwoord: ${wachtwoord}\n\nStuur deze gegevens handmatig per e-mail, of laat later automatisch versturen.`);
+      laadRegistraties();
+    }
+
+    // Weigeren
+    function weigeren(id) {
+      db.collection("registraties").doc(id).update({status: "geweigerd"});
+      laadRegistraties();
+    }
+
+    laadRegistraties();
+  </script>
+</body>
+</html>
