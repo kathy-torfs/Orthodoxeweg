@@ -325,22 +325,26 @@
       }
 
       uploadPromise.then(url => {
-        db.collection("registraties").add({
-          voornaam: voornaam,
-          achternaam: achternaam,
-          geboortedatum: geboortedatum,
-          doopnaam: doopnaam,
-          email: email,
-          parochie: parochie,
-          loginKeuze: loginKeuze,
-          profielfoto: url || "",
-          status: "in afwachting"
-        }).then(() => {
-          alert("Registratie succesvol verzonden! Je ontvangt na goedkeuring een e-mail.");
-          closeAllPopups();
-        }).catch((err) => {
-          alert("Fout bij registratie.");
-          console.error(err);
+  db.collection("registraties").add({
+    voornaam: voornaam,
+    achternaam: achternaam,
+    geboortedatum: geboortedatum,
+    doopnaam: doopnaam,
+    email: email,
+    parochie: parochie,
+    loginKeuze: loginKeuze,
+    profielfoto: url || "",
+    status: "in afwachting"
+  }).then(() => {
+    alert("Registratie succesvol verzonden! Je ontvangt na goedkeuring een e-mail.");
+    document.getElementById("registratieForm").reset(); // <-- veldjes leegmaken
+    closeAllPopups(); // popup sluiten
+  }).catch((err) => {
+    alert("Fout bij registratie.");
+    console.error(err);
+  });
+});
+
         });
       });
     });
