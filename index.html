@@ -44,13 +44,18 @@
     </div>
   </div>
   <div id="overlay" onclick="closeAllPopups()"></div>
+  <!-- LOGIN PAROCHIAAN (MET PAROCHIEDROPDOWN) -->
   <div id="loginPopup" class="popup">
     <button class="sluiten" onclick="closeAllPopups()">&times;</button>
     <h2>Inloggen</h2>
-    <input type="text" id="loginNaam" placeholder="Gebruikersnaam" autocomplete="username" />
-    <input type="password" id="loginWachtwoord" placeholder="Wachtwoord" autocomplete="current-password" />
+    <select id="loginParochie" required>
+      <option>Bezig met laden...</option>
+    </select>
+    <input type="text" id="loginNaam" placeholder="Gebruikersnaam" autocomplete="username" required />
+    <input type="password" id="loginWachtwoord" placeholder="Wachtwoord" autocomplete="current-password" required />
     <button onclick="login()">Inloggen</button>
   </div>
+  <!-- REGISTRATIEFORMULIER -->
   <div id="registratiePopup" class="popup">
     <button class="sluiten" onclick="closeAllPopups()">&times;</button>
     <h2>Registreren</h2>
@@ -66,6 +71,7 @@
       <button type="submit">Verzenden</button>
     </form>
   </div>
+  <!-- PRIESTERLOGIN -->
   <div id="priesterPopup" class="popup">
     <button class="sluiten" onclick="closeAllPopups()">&times;</button>
     <h2>Priesterlogin</h2>
@@ -90,25 +96,29 @@
     const db = firebase.firestore();
     const storage = firebase.storage();
 
+    // Parochielijsten in alle drop-downs laden
     function laadParochies() {
       db.collection("parochies").get().then(snapshot => {
         const regSel = document.getElementById("parochieSelect");
         const priestSel = document.getElementById("priesterParochie");
-        regSel.innerHTML = "";
-        priestSel.innerHTML = "";
+        const loginParSel = document.getElementById("loginParochie");
+        if(regSel) regSel.innerHTML = "";
+        if(priestSel) priestSel.innerHTML = "";
+        if(loginParSel) loginParSel.innerHTML = "";
         snapshot.forEach(doc => {
           const naam = doc.data().naam;
           const optie1 = document.createElement("option");
           optie1.value = naam;
           optie1.textContent = naam;
-          regSel.appendChild(optie1);
-          priestSel.appendChild(optie1.cloneNode(true));
+          if(regSel) regSel.appendChild(optie1);
+          if(priestSel) priestSel.appendChild(optie1.cloneNode(true));
+          if(loginParSel) loginParSel.appendChild(optie1.cloneNode(true));
         });
       });
     }
     window.addEventListener('DOMContentLoaded', laadParochies);
 
-    // REGISTRATIEFORMULIER met upload profielfoto
+    // REGISTRATIEFORMULIER — met profielfoto upload
     document.getElementById("registratieForm").addEventListener("submit", async function(e) {
       e.preventDefault();
       const voornaam = document.getElementById("voornaam").value;
@@ -137,25 +147,29 @@
         profielfotoUrl,
         status: "in afwachting"
       }).then(() => {
-        alert("Registratie succesvol verzonden!");
         closeAllPopups();
-        document.getElementById("registratieForm").reset();
+        setTimeout(() => {
+          alert("Registratie succesvol verzonden! Zodra je registratie door de priester is goedgekeurd, ontvang je een e-mail met jouw login en wachtwoord.\n\nJe kan nu alvast de gastenmodus verkennen.");
+        }, 250);
       }).catch((err) => {
         alert("Fout bij registratie.");
         console.error(err);
       });
     });
 
-    // PAROCHIAAN login (deze blijft basis, niet veranderen als niet gevraagd)
+    // LOGIN parochiaan: mét parochie-dropdown
     function login() {
-      const naam = document.getElementById("loginNaam").value.trim();
+      const parochie = document.getElementById("loginParochie").value;
+      const gebruikersnaam = document.getElementById("loginNaam").value.trim();
       const wachtwoord = document.getElementById("loginWachtwoord").value;
       db.collection("gebruikers")
-        .where("gebruikersnaam", "==", naam)
+        .where("parochie", "==", parochie)
+        .where("gebruikersnaam", "==", gebruikersnaam)
         .where("wachtwoord", "==", wachtwoord)
         .get()
         .then(snapshot => {
           if (!snapshot.empty) {
+            closeAllPopups();
             window.location.href = "volwassenen/startpagina.html";
           } else {
             alert("Onjuiste gegevens.");
@@ -176,6 +190,7 @@
         .get()
         .then(snapshot => {
           if (!snapshot.empty) {
+            closeAllPopups();
             window.location.href = "priestermodus/startpagina.html";
           } else {
             alert("Onjuiste gegevens.");
@@ -202,3 +217,4 @@
   </script>
 </body>
 </html>
+
