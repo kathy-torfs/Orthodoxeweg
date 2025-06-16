@@ -1,45 +1,151 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <title>Gebeden - Priestermodus</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gebed – Priestermodus</title>
   <style>
-    body { background: #f9e7b1; color: #4e2710; font-family: Arial, sans-serif; margin: 0; }
-    nav.menu { background-color: #7a5f35; padding: 12px 20px; display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
-    nav.menu a { color: #f8f5e9; text-decoration: none; font-weight: bold; font-size: 16px; padding: 6px 14px; border-radius: 8px; transition: background-color 0.3s; }
-    nav.menu a:hover { background-color: #5e4724; }
-    .container { max-width: 680px; margin: 24px auto 48px auto; background: #fffdf7; border-radius: 18px; box-shadow: 0 4px 18px #b6a47244; padding: 26px 28px 38px 28px; }
-    h1 { text-align: center; color: #6d3a17; margin-top: 0; }
-    .parochie-context { text-align: center; color: #b39052; font-size: 1.1em; margin-bottom: 12px;}
-    .gebed { background: #f4e8d5; border-radius: 10px; margin-bottom: 25px; box-shadow: 0 2px 12px #e7d9bc33; padding: 19px 18px; }
-    .gebed-titel { color: #4e2710; font-size: 1.15em; font-weight: bold; margin-bottom: 9px; }
-    .gebed-tekst { white-space: pre-line; color: #4e2710; font-size: 1.05em; }
-    .laadbericht { text-align: center; color: #bbb; font-size: 1.15em; margin-top: 30px; }
-    @media (max-width: 750px) { .container { max-width: 98vw; padding: 12px 2vw 20px 2vw; } }
+    body {
+      font-family: Georgia, serif;
+      background-color: #fffdf6;
+      color: #3e2f1c;
+      margin: 0;
+      text-align: center;
+    }
+    header {
+      background-color: #5e3907;
+      color: white;
+      padding: 20px 8px 13px 8px;
+    }
+    nav {
+      background-color: #fff1cd;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 15px;
+      border-bottom: 2px solid #c4a85d;
+    }
+    nav a {
+      text-decoration: none;
+      background-color: #ffeeba;
+      padding: 10px 16px;
+      border-radius: 8px;
+      color: #5e3907;
+      font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      transition: 0.3s;
+    }
+    nav a:hover {
+      background-color: #ffeda2;
+    }
+    main {
+      max-width: 800px;
+      margin: 40px auto 0 auto;
+      padding: 20px 10px 50px 10px;
+      background: #fffefb;
+      border-radius: 16px;
+      box-shadow: 0 2px 22px #e2d3a544;
+    }
+    .gebed-titel {
+      font-size: 2.1em;
+      font-weight: bold;
+      color: #432810;
+      margin-bottom: 16px;
+      margin-top: 16px;
+      letter-spacing: 0.04em;
+    }
+    .gebed-inhoud {
+      text-align: left;
+      font-size: 1.23em;
+      line-height: 1.6;
+      background: #fff7e2;
+      color: #4b371b;
+      border-radius: 11px;
+      padding: 28px 24px 24px 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 10px #ebd9b6a3;
+      white-space: pre-line;
+      word-break: break-word;
+    }
+    .terug-link {
+      display: inline-block;
+      margin-bottom: 28px;
+      background: #e0bb6a;
+      color: #fff;
+      padding: 10px 32px;
+      border-radius: 9px;
+      font-weight: bold;
+      text-decoration: none;
+      transition: background 0.18s;
+      font-size: 1.08em;
+    }
+    .terug-link:hover {
+      background: #a17d2d;
+      color: #fffbea;
+    }
+    .pdf-link {
+      display: inline-block;
+      background: #d6a847;
+      color: #fff;
+      border-radius: 10px;
+      font-weight: bold;
+      text-align: center;
+      padding: 14px 42px;
+      box-shadow: 0 2px 7px #e1d5ae29;
+      font-size: 1.07em;
+      text-decoration: none;
+      letter-spacing: 0.03em;
+      margin-top: 12px;
+    }
+    .pdf-link:hover {
+      background: #a17d2d;
+      color: #fffbea;
+    }
+    .meta-info {
+      color: #a9955c;
+      margin-bottom: 8px;
+      font-size: 1em;
+      font-style: italic;
+    }
+    @media (max-width: 900px) {
+      main { width: 98vw; padding: 4vw 1vw 7vw 1vw; }
+    }
   </style>
-  <!-- FIREBASE SCRIPTS -->
+  <!-- FIREBASE SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
+
+  <header>
+    <h1>Gebed – detail</h1>
+  </header>
+
   <nav class="menu">
-    <a href="index.html">🏠 Startpagina</a>
+    <a href="startpagina.html">🏠 Home</a>
     <a href="parochie.html">🛐 Mijn parochie</a>
     <a href="psalmen.html">📜 Psalmen</a>
-    <a href="gebeden.html"><b>🙏 Gebeden</b></a>
+    <a href="gebeden.html">🙏 Gebeden</a>
     <a href="geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
     <a href="catechese.html">📖 Catechese</a>
     <a href="layout.html">🧰 Bewerk parochie</a>
     <a href="uitloggen.html">🚪 Uitloggen</a>
   </nav>
-  <div class="container">
-    <div id="parochieContext" class="parochie-context"></div>
-    <h1>Gebeden voor volwassenen</h1>
-    <div id="gebedenLijst" class="laadbericht">Bezig met laden...</div>
-  </div>
+
+  <main>
+    <a class="terug-link" href="gebeden.html">&larr; Terug naar alle gebeden</a>
+    <div class="meta-info" id="metaInfo"></div>
+    <div class="gebed-titel" id="gebedTitel">Bezig met laden...</div>
+    <div class="gebed-inhoud" id="gebedInhoud"></div>
+    <a class="pdf-link" href="https://orthodoxekerkhasselt.com/wp-content/uploads/2024/11/liturgische-teksten-het-klein-orthodox-gebedenboekje-v7.5-nld.pdf" 
+      target="_blank">
+      📖 Volledig Gebedenboekje (PDF)
+    </a>
+  </main>
+
   <script>
-    // Firebase config
+    // FIREBASE INIT
     const firebaseConfig = {
       apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -51,41 +157,44 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Optioneel: toon parochie-context bovenaan (uit localStorage na login)
-    const parochieNaam = localStorage.getItem("ingelogdeParochie");
-    if (parochieNaam) {
-      document.getElementById("parochieContext").textContent = "U bent ingelogd in: " + parochieNaam;
+    // Helper om id uit de URL te halen
+    function getGebedId() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("id");
     }
 
-    // Gebeden ophalen (volwassenen)
-    function laadGebeden() {
-      const lijstDiv = document.getElementById('gebedenLijst');
-      lijstDiv.innerHTML = 'Bezig met laden...';
-      db.collection("gebeden_vw").orderBy("volgorde", "asc").get()
-        .then(snapshot => {
-          if (snapshot.empty) {
-            lijstDiv.innerHTML = "<div class='laadbericht'>Geen gebeden gevonden.</div>";
-            return;
-          }
-          let html = '';
-          snapshot.forEach(doc => {
-            const g = doc.data();
-            html += `
-              <div class="gebed">
-                <div class="gebed-titel">${g.titel || "(Geen titel)"}</div>
-                <div class="gebed-tekst">${g.tekst ? g.tekst.replace(/\n/g,"<br>") : ""}</div>
-              </div>
-            `;
-          });
-          lijstDiv.innerHTML = html;
-        })
-        .catch(err => {
-          lijstDiv.innerHTML = "<div class='laadbericht'>Fout bij laden van de gebeden.</div>";
-          console.error(err);
-        });
-    }
+    // Ophalen uit Firestore
+    function laadGebed() {
+      const id = getGebedId();
+      if (!id) {
+        document.getElementById("gebedTitel").textContent = "Geen gebed opgegeven.";
+        document.getElementById("gebedInhoud").innerHTML = "<div style='color:#a00;font-size:1.15em;'>Er is geen geldig gebeds-ID opgegeven.</div>";
+        return;
+      }
+      db.collection("gebeden_vw").doc(id).get().then(doc => {
+        if (!doc.exists) {
+          document.getElementById("gebedTitel").textContent = "Niet gevonden";
+          document.getElementById("gebedInhoud").innerHTML = "<div style='color:#a00;font-size:1.12em;'>Dit gebed werd niet gevonden in de database.</div>";
+          return;
+        }
+        const data = doc.data();
+        document.getElementById("gebedTitel").textContent = data.naam || "Gebed";
+        document.getElementById("gebedInhoud").textContent = data.tekst || "Geen tekst beschikbaar.";
 
-    laadGebeden();
+        // Extra metadata tonen als die bestaat
+        let meta = "";
+        if (data.type) meta += "Type: " + data.type + " &nbsp;•&nbsp; ";
+        if (data.doelgroep) meta += "Doelgroep: " + data.doelgroep + " &nbsp;•&nbsp; ";
+        if (data.toelichting) meta += "Toelichting: " + data.toelichting;
+        document.getElementById("metaInfo").innerHTML = meta;
+      }).catch(err => {
+        document.getElementById("gebedTitel").textContent = "Fout";
+        document.getElementById("gebedInhoud").innerHTML = "<div style='color:#a00;'>Fout bij laden van het gebed.</div>";
+        console.error(err);
+      });
+    }
+    laadGebed();
   </script>
+
 </body>
 </html>
