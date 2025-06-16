@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Gebeden - Priestermodus</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background: #f9e7b1; color: #4e2710; font-family: Arial, sans-serif; margin: 0; }
+    nav.menu { background-color: #7a5f35; padding: 12px 20px; display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
+    nav.menu a { color: #f8f5e9; text-decoration: none; font-weight: bold; font-size: 16px; padding: 6px 14px; border-radius: 8px; transition: background-color 0.3s; }
+    nav.menu a:hover { background-color: #5e4724; }
+    .container { max-width: 680px; margin: 24px auto 48px auto; background: #fffdf7; border-radius: 18px; box-shadow: 0 4px 18px #b6a47244; padding: 26px 28px 38px 28px; }
+    h1 { text-align: center; color: #6d3a17; margin-top: 0; }
+    .parochie-context { text-align: center; color: #b39052; font-size: 1.1em; margin-bottom: 12px;}
+    .gebed { background: #f4e8d5; border-radius: 10px; margin-bottom: 25px; box-shadow: 0 2px 12px #e7d9bc33; padding: 19px 18px; }
+    .gebed-titel { color: #4e2710; font-size: 1.15em; font-weight: bold; margin-bottom: 9px; }
+    .gebed-tekst { white-space: pre-line; color: #4e2710; font-size: 1.05em; }
+    .laadbericht { text-align: center; color: #bbb; font-size: 1.15em; margin-top: 30px; }
+    @media (max-width: 750px) { .container { max-width: 98vw; padding: 12px 2vw 20px 2vw; } }
+  </style>
+  <!-- FIREBASE SCRIPTS -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <nav class="menu">
+    <a href="index.html">🏠 Startpagina</a>
+    <a href="parochie.html">🛐 Mijn parochie</a>
+    <a href="psalmen.html">📜 Psalmen</a>
+    <a href="gebeden.html"><b>🙏 Gebeden</b></a>
+    <a href="geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
+    <a href="catechese.html">📖 Catechese</a>
+    <a href="layout.html">🧰 Bewerk parochie</a>
+    <a href="uitloggen.html">🚪 Uitloggen</a>
+  </nav>
+  <div class="container">
+    <div id="parochieContext" class="parochie-context"></div>
+    <h1>Gebeden voor volwassenen</h1>
+    <div id="gebedenLijst" class="laadbericht">Bezig met laden...</div>
+  </div>
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:2e02833fa0d4d8903ceedb"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Optioneel: toon parochie-context bovenaan (uit localStorage na login)
+    const parochieNaam = localStorage.getItem("ingelogdeParochie");
+    if (parochieNaam) {
+      document.getElementById("parochieContext").textContent = "U bent ingelogd in: " + parochieNaam;
+    }
+
+    // Gebeden ophalen (volwassenen)
+    function laadGebeden() {
+      const lijstDiv = document.getElementById('gebedenLijst');
+      lijstDiv.innerHTML = 'Bezig met laden...';
+      db.collection("gebeden_vw").orderBy("volgorde", "asc").get()
+        .then(snapshot => {
+          if (snapshot.empty) {
+            lijstDiv.innerHTML = "<div class='laadbericht'>Geen gebeden gevonden.</div>";
+            return;
+          }
+          let html = '';
+          snapshot.forEach(doc => {
+            const g = doc.data();
+            html += `
+              <div class="gebed">
+                <div class="gebed-titel">${g.titel || "(Geen titel)"}</div>
+                <div class="gebed-tekst">${g.tekst ? g.tekst.replace(/\n/g,"<br>") : ""}</div>
+              </div>
+            `;
+          });
+          lijstDiv.innerHTML = html;
+        })
+        .catch(err => {
+          lijstDiv.innerHTML = "<div class='laadbericht'>Fout bij laden van de gebeden.</div>";
+          console.error(err);
+        });
+    }
+
+    laadGebeden();
+  </script>
+</body>
+</html>
