@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Gebed – Priestermodus</title>
+  <title>Gebeden – Priestermodus</title>
   <style>
     body {
       font-family: Georgia, serif;
@@ -15,7 +15,7 @@
     header {
       background-color: #5e3907;
       color: white;
-      padding: 20px 8px 13px 8px;
+      padding: 20px;
     }
     nav {
       background-color: #fff1cd;
@@ -41,85 +41,46 @@
     }
     main {
       max-width: 800px;
-      margin: 40px auto 0 auto;
-      padding: 20px 10px 50px 10px;
-      background: #fffefb;
-      border-radius: 16px;
-      box-shadow: 0 2px 22px #e2d3a544;
+      margin: 40px auto;
+      padding: 20px;
     }
-    .gebed-titel {
-      font-size: 2.1em;
-      font-weight: bold;
-      color: #432810;
-      margin-bottom: 16px;
-      margin-top: 16px;
-      letter-spacing: 0.04em;
-    }
-    .gebed-inhoud {
-      text-align: left;
-      font-size: 1.23em;
-      line-height: 1.6;
-      background: #fff7e2;
-      color: #4b371b;
-      border-radius: 11px;
-      padding: 28px 24px 24px 24px;
-      margin-bottom: 24px;
-      box-shadow: 0 2px 10px #ebd9b6a3;
-      white-space: pre-line;
-      word-break: break-word;
-    }
-    .terug-link {
-      display: inline-block;
-      margin-bottom: 28px;
-      background: #e0bb6a;
-      color: #fff;
-      padding: 10px 32px;
-      border-radius: 9px;
-      font-weight: bold;
+    .gebed-knoppen a {
+      display: block;
+      margin: 15px auto;
+      padding: 12px 24px;
+      background-color: #fff1cd;
+      color: #5e3907;
       text-decoration: none;
-      transition: background 0.18s;
-      font-size: 1.08em;
+      border-radius: 10px;
+      font-size: 1.2em;
+      width: 60%;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: 0.3s;
     }
-    .terug-link:hover {
-      background: #a17d2d;
-      color: #fffbea;
+    .gebed-knoppen a:hover {
+      background-color: #ffeda2;
     }
     .pdf-link {
-      display: inline-block;
-      background: #d6a847;
+      display: block;
+      margin: 40px auto 0 auto;
+      width: fit-content;
+      padding: 11px 25px;
+      background: #deb757;
       color: #fff;
-      border-radius: 10px;
       font-weight: bold;
-      text-align: center;
-      padding: 14px 42px;
-      box-shadow: 0 2px 7px #e1d5ae29;
-      font-size: 1.07em;
+      border-radius: 8px;
       text-decoration: none;
-      letter-spacing: 0.03em;
-      margin-top: 12px;
+      font-size: 1.12em;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.12);
+      transition: background 0.2s;
     }
-    .pdf-link:hover {
-      background: #a17d2d;
-      color: #fffbea;
-    }
-    .meta-info {
-      color: #a9955c;
-      margin-bottom: 8px;
-      font-size: 1em;
-      font-style: italic;
-    }
-    @media (max-width: 900px) {
-      main { width: 98vw; padding: 4vw 1vw 7vw 1vw; }
-    }
+    .pdf-link:hover { background: #c49d3c; }
   </style>
-  <!-- FIREBASE SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
   <header>
-    <h1>Gebed – detail</h1>
+    <h1>Kies een Gebed</h1>
   </header>
 
   <nav class="menu">
@@ -134,18 +95,19 @@
   </nav>
 
   <main>
-    <a class="terug-link" href="gebeden.html">&larr; Terug naar alle gebeden</a>
-    <div class="meta-info" id="metaInfo"></div>
-    <div class="gebed-titel" id="gebedTitel">Bezig met laden...</div>
-    <div class="gebed-inhoud" id="gebedInhoud"></div>
-    <a class="pdf-link" href="https://orthodoxekerkhasselt.com/wp-content/uploads/2024/11/liturgische-teksten-het-klein-orthodox-gebedenboekje-v7.5-nld.pdf" 
-      target="_blank">
+    <div class="gebed-knoppen" id="gebedKnoppen">
+      <div>Laden van gebeden...</div>
+    </div>
+    <a class="pdf-link" href="https://orthodoxekerkhasselt.com/wp-content/uploads/2024/11/liturgische-teksten-het-klein-orthodox-gebedenboekje-v7.5-nld.pdf" target="_blank">
       📖 Volledig Gebedenboekje (PDF)
     </a>
   </main>
 
+  <!-- FIREBASE -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script>
-    // FIREBASE INIT
+    // Firebase config priestermodus (zelfde als elders)
     const firebaseConfig = {
       apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -157,44 +119,29 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Helper om id uit de URL te halen
-    function getGebedId() {
-      const params = new URLSearchParams(window.location.search);
-      return params.get("id");
-    }
-
-    // Ophalen uit Firestore
-    function laadGebed() {
-      const id = getGebedId();
-      if (!id) {
-        document.getElementById("gebedTitel").textContent = "Geen gebed opgegeven.";
-        document.getElementById("gebedInhoud").innerHTML = "<div style='color:#a00;font-size:1.15em;'>Er is geen geldig gebeds-ID opgegeven.</div>";
+    // Toon lijst van gebeden uit 'gebeden_vw'
+    db.collection("gebeden_vw").get().then(snapshot => {
+      const container = document.getElementById("gebedKnoppen");
+      container.innerHTML = "";
+      if (snapshot.empty) {
+        container.innerHTML = "<div>Geen gebeden gevonden.</div>";
         return;
       }
-      db.collection("gebeden_vw").doc(id).get().then(doc => {
-        if (!doc.exists) {
-          document.getElementById("gebedTitel").textContent = "Niet gevonden";
-          document.getElementById("gebedInhoud").innerHTML = "<div style='color:#a00;font-size:1.12em;'>Dit gebed werd niet gevonden in de database.</div>";
-          return;
-        }
-        const data = doc.data();
-        document.getElementById("gebedTitel").textContent = data.naam || "Gebed";
-        document.getElementById("gebedInhoud").textContent = data.tekst || "Geen tekst beschikbaar.";
-
-        // Extra metadata tonen als die bestaat
-        let meta = "";
-        if (data.type) meta += "Type: " + data.type + " &nbsp;•&nbsp; ";
-        if (data.doelgroep) meta += "Doelgroep: " + data.doelgroep + " &nbsp;•&nbsp; ";
-        if (data.toelichting) meta += "Toelichting: " + data.toelichting;
-        document.getElementById("metaInfo").innerHTML = meta;
-      }).catch(err => {
-        document.getElementById("gebedTitel").textContent = "Fout";
-        document.getElementById("gebedInhoud").innerHTML = "<div style='color:#a00;'>Fout bij laden van het gebed.</div>";
-        console.error(err);
+      // Sorteer alfabetisch op titel
+      const docs = snapshot.docs.sort((a, b) => {
+        const tA = (a.data().titel || a.id).toLowerCase();
+        const tB = (b.data().titel || b.id).toLowerCase();
+        return tA.localeCompare(tB);
       });
-    }
-    laadGebed();
+      docs.forEach(doc => {
+        const data = doc.data();
+        const titel = data.titel || doc.id;
+        container.innerHTML += `<a href="gebed.html?id=${encodeURIComponent(doc.id)}">${titel}</a>`;
+      });
+    }).catch(err => {
+      document.getElementById("gebedKnoppen").innerHTML = "<div>Fout bij laden van gebeden.</div>";
+      console.error(err);
+    });
   </script>
-
 </body>
 </html>
