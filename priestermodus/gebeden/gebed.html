@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gebed – Priestermodus</title>
+  <style>
+    body { font-family: Georgia, serif; background: #fffdf6; color: #3e2f1c; margin:0; }
+    header { background: #5e3907; color: #fff; padding: 20px; text-align: center; }
+    nav.menu { background-color: #fff1cd; display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; padding: 15px; border-bottom: 2px solid #c4a85d; }
+    nav.menu a { text-decoration: none; background-color: #ffeeba; padding: 10px 16px; border-radius: 8px; color: #5e3907; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.15); transition: 0.3s;}
+    nav.menu a:hover { background-color: #ffeda2;}
+    main { max-width: 800px; margin: 40px auto; padding: 20px; background: #fff9ec; border-radius: 10px; box-shadow: 0 2px 10px #e2d3ad2a;}
+    .titel { font-size: 2em; color: #4a3316; margin-bottom: 20px; }
+    .tekst { font-size: 1.15em; line-height: 1.7; white-space: pre-wrap; background: #f9f5e5; padding: 20px; border-radius: 10px; box-shadow: 0 1px 6px #e2d3ad1a; }
+    .terug { margin: 38px 0 0 0; display: block; text-align: center; }
+    .terug a { background: #deb757; color: #fff; padding: 9px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 1.07em; }
+    .terug a:hover { background: #c49d3c; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Gebed</h1>
+  </header>
+
+  <nav class="menu">
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/startpagina.html">🏠 Home</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/parochie.html">🛐 Mijn parochie</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/psalmen/psalmen.html">📜 Psalmen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/gebeden.html">🙏 Gebeden</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/catechese/catechese.html">📖 Catechese</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/layout.html">🧰 Bewerk parochie</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/uitloggen.html">🚪 Uitloggen</a>
+  </nav>
+
+  <main>
+    <div class="titel" id="gebedTitel">Laden...</div>
+    <div class="tekst" id="gebedTekst"></div>
+    <div class="terug">
+      <a href="gebeden.html">&larr; Terug naar alle gebeden</a>
+    </div>
+  </main>
+
+  <!-- FIREBASE -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:2e02833fa0d4d8903ceedb"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Haal het id uit de URL
+    function getParam(name) {
+      return new URLSearchParams(window.location.search).get(name);
+    }
+    const id = getParam('id');
+    if (!id) {
+      document.getElementById('gebedTitel').innerText = "Geen gebed gekozen.";
+      document.getElementById('gebedTekst').innerText = "Je bent hier terechtgekomen zonder geldig gebed.";
+    } else {
+      db.collection("gebeden_vw").doc(id).get().then(doc => {
+        if (!doc.exists) {
+          document.getElementById('gebedTitel').innerText = "Gebed niet gevonden";
+          document.getElementById('gebedTekst').innerText = "Dit gebed bestaat niet of is niet beschikbaar.";
+        } else {
+          const data = doc.data();
+          document.getElementById('gebedTitel').innerText = data.titel || id;
+          document.getElementById('gebedTekst').innerText = data.tekst || "Geen tekst gevonden voor dit gebed.";
+        }
+      }).catch(err => {
+        document.getElementById('gebedTitel').innerText = "Fout";
+        document.getElementById('gebedTekst').innerText = "Fout bij het laden van het gebed.";
+        console.error(err);
+      });
+    }
+  </script>
+</body>
+</html>
