@@ -198,7 +198,7 @@
 
     // Hoofdstukken ophalen en per deel in de juiste ul zetten
     db.collection("catechese_vw").get().then(snapshot => {
-      // Alle docs in een array [nummer, {titel...}, id]
+      // Alle docs in een array [nummer, titel]
       let docs = snapshot.docs.map(doc => {
         let nr = parseInt(doc.id.replace(/[^\d]/g,''));
         let data = doc.data();
@@ -216,7 +216,7 @@
         indeling[deel].forEach(nr => {
           let doc = docs.find(d => d[0] === nr);
           if(doc) {
-            ul.innerHTML += `<li><a href="hoofdstuk${nr}.html" class="hoofdstuk-link">${nr}. ${doc[1]}</a></li>`;
+            ul.innerHTML += `<li><a href="hoofdstuk.html?nr=${nr}" class="hoofdstuk-link">${nr}. ${doc[1]}</a></li>`;
           }
         });
       }
