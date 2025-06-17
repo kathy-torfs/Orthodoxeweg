@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Orthodoxeweg – Catechese Hoofdstuk</title>
+  <title>Orthodoxeweg - Catechese Hoofdstuk</title>
   <style>
     body {
       background-color: #f5e9b8;
@@ -20,23 +20,6 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-    }
-    .uitlog-link {
-      color: #fff;
-      background: #9a2617;
-      padding: 6px 16px;
-      border-radius: 8px;
-      font-size: 1em;
-      text-decoration: none;
-      font-weight: bold;
-      margin-left: 20px;
-      transition: background 0.18s;
-      cursor: pointer;
-      border: none;
-      outline: none;
-    }
-    .uitlog-link:hover {
-      background: #bd2e23;
     }
     nav.menu {
       background-color: #7a5f35;
@@ -64,19 +47,19 @@
       margin: 30px auto 60px auto;
       padding: 0 15px;
     }
-    h1, h2, h3 {
-      font-weight: bold;
-      text-decoration: underline;
-    }
     h1 {
       font-size: 28px;
       margin-bottom: 20px;
       text-align: center;
+      font-weight: bold;
+      text-decoration: underline;
     }
     h2 {
       margin-top: 30px;
       margin-bottom: 8px;
-      font-size: 1.2em;
+      font-weight: bold;
+      text-decoration: underline;
+      font-size: 1.18em;
     }
     ul {
       margin-top: 5px;
@@ -106,7 +89,7 @@
       justify-content: center;
       gap: 20px;
     }
-    footer button, footer a {
+    footer a, footer button {
       background-color: #7a5f35;
       color: #f5e9b8;
       padding: 10px 20px;
@@ -121,7 +104,7 @@
       text-align: center;
       transition: background 0.2s;
     }
-    footer button:hover, footer a:hover {
+    footer a:hover, footer button:hover {
       background-color: #5d4726;
     }
     .error {
@@ -135,19 +118,14 @@
       text-align: center;
       box-shadow: 0 4px 16px #d98f5d26;
     }
-    #debug { color:#a00; font-size:1em; margin-top:24px; }
   </style>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
-<!-- STATUSBALK -->
 <div class="statusbar">
-  <span>
-    U bent ingelogd in: <span id="parochieNaam">...</span>
-  </span>
-  <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
+  <span>U bent ingelogd in: <span id="parochieNaam">...</span></span>
 </div>
 
 <nav class="menu">
@@ -176,30 +154,20 @@
     <div id="slot"></div>
   </section>
   <div id="error" class="error" style="display:none;"></div>
-  <div id="debug"></div>
 </main>
 
-<footer id="hoofdstuknav" style="display:flex;">
+<footer id="hoofdstuknav">
   <button id="vorigeBtn">&lt; Vorige</button>
   <a href="catechese.html" id="overzichtBtn">Overzicht</a>
   <button id="volgendeBtn">Volgende &gt;</button>
 </footer>
 
 <script>
-  // =========== STATUSBALK: parochie ophalen ===========
+  // Parochie-status
   let parochieNaam = localStorage.getItem("ingelogdeParochie");
-  if (parochieNaam) {
-    document.getElementById("parochieNaam").textContent = parochieNaam;
-  } else {
-    document.getElementById("parochieNaam").textContent = "[niet ingelogd]";
-  }
-  document.getElementById("uitlogKnop").onclick = function() {
-    localStorage.removeItem("ingelogdeParochie");
-    localStorage.removeItem("ingelogdeParochieId");
-    window.location.href = "../index.html";
-  };
+  document.getElementById("parochieNaam").textContent = parochieNaam || "[niet ingelogd]";
 
-  // =========== FIREBASE SETUP ===========
+  // Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
     authDomain: "orthodoxeweg.firebaseapp.com",
@@ -224,7 +192,6 @@
     const volgendeBtn = document.getElementById("volgendeBtn");
     vorigeBtn.disabled = (nr <= minHoofdstuk);
     volgendeBtn.disabled = (nr >= maxHoofdstuk);
-
     vorigeBtn.onclick = () => {
       if (nr > minHoofdstuk)
         window.location.href = `hoofdstuk.html?nr=${nr-1}`;
@@ -246,7 +213,6 @@
     }
     setNavigatie(nr);
 
-    // Ophalen uit firestore
     const docId = "hoofdstuk_" + nr;
     let doc;
     try {
@@ -256,7 +222,6 @@
       document.getElementById("error").style.display = "";
       document.querySelector("main").style.display = "none";
       document.getElementById("hoofdstuknav").style.display = "none";
-      document.getElementById("debug").textContent = "Firebase error: " + e;
       return;
     }
     if(!doc.exists) {
@@ -264,21 +229,12 @@
       document.getElementById("error").style.display = "";
       document.querySelector("main").style.display = "none";
       document.getElementById("hoofdstuknav").style.display = "none";
-      document.getElementById("debug").textContent = "Firestore: document niet gevonden: " + docId;
       return;
     }
     const data = doc.data();
     document.getElementById("hoofdstuktitel").textContent = data.titel || `Hoofdstuk ${nr}`;
 
-    // DEBUG: toon wat er werkelijk uit Firestore komt
-    document.getElementById("debug").innerHTML = "<b>DEBUG Firestore:</b><br><pre>"+JSON.stringify(data, null, 2)+"</pre>";
-
-    if (!data.inhoud || data.inhoud.trim().length < 3) {
-      document.getElementById("error").textContent = "Geen hoofdstukinhoud gevonden! Controleer of het veld 'inhoud' aanwezig en niet leeg is in Firestore voor dit hoofdstuk.";
-      document.getElementById("error").style.display = "";
-      return;
-    }
-
+    // Split tekst in hoofd + 3 blokjes
     verwerkHoofdstukTekst(data.inhoud || "");
     if (nr === minHoofdstuk) document.getElementById("vorigeBtn").style.display = "none";
     else document.getElementById("vorigeBtn").style.display = "";
@@ -286,25 +242,18 @@
     else document.getElementById("volgendeBtn").style.display = "";
   }
 
-  // AUTOMATISCHE OPMAAK VAN TEKST
+  // Opmaak naar html (zoals gastenmodus)
   function formatHoofdstukTekst(tekst) {
-    // Herken koppen: '1. ...', '2. ...'
     tekst = tekst.replace(/^(\d+\.\s.*)$/gm, '<h2>$1</h2>');
-    // Herken subkopjes met '-'
     tekst = tekst.replace(/^- (.*)$/gm, '<li>$1</li>');
-    // Zet lijsten samen in <ul>...</ul>
     tekst = tekst.replace(/(<li>[\s\S]+?<\/li>)/g, function(matchs) {
-      // Alleen als het géén <ul> eromheen heeft
       if (!/^<ul>/.test(matchs)) {
         return '<ul>' + matchs.replace(/(<li>.*?<\/li>)(?!<li>)/g, '$1') + '</ul>';
       }
       return matchs;
     });
-    // Vetgedrukte delen
     tekst = tekst.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    // Nieuwe alinea's: dubbele enter = nieuwe paragraaf
     tekst = tekst.split(/\n\s*\n/).map(p => {
-      // Maak geen <p> om <h2> of <ul>...
       if (/^<h2>.*<\/h2>$/.test(p) || /^<ul>/.test(p) || /^<\/ul>/.test(p)) return p;
       return `<p>${p.trim()}</p>`;
     }).join("");
@@ -312,7 +261,7 @@
   }
 
   function verwerkHoofdstukTekst(tekst) {
-    // Regex om te zoeken naar koppen (emoji + titel)
+    // Herken de blokjes
     const regBijbel = /📖\s*Bijbelverwijzingen/i;
     const regOSB = /🕊️?\s*Samenvatting Orthodox Study Bible/i;
     const regSlot = /✍️?\s*Slotbeschouwing/i;
@@ -365,11 +314,8 @@
         }
       }
     }
-
-    // Gebruik automatisch opgemaakte tekst
     document.getElementById("hoofdstuktekst").innerHTML = formatHoofdstukTekst(hoofd);
 
-    // De blokjes werken zoals eerder:
     if(bijbel) {
       document.getElementById("bijbelblok").style.display = "";
       document.getElementById("bijbelverwijzingen").innerHTML = formatHoofdstukTekst(bijbel);
