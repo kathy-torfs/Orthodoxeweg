@@ -8,7 +8,9 @@
   <style>
     :root { --oker: #f9e7b1; --bruin: #6d3a17; --bruin-donker: #4e2710; --priesterpaars: #8722aa; --wit: #fff; }
     html, body { margin: 0; padding: 0; box-sizing: border-box; background: var(--oker); font-family: Arial, sans-serif; min-height: 100vh; width: 100%; overflow-x: hidden; }
-    .topbar { background: var(--bruin); color: var(--wit); width: 100vw; height: 64px; display: flex; align-items: center; justify-content: flex-end; box-shadow: 0 2px 8px #0002; position: relative; z-index: 10; }
+    .topbar { background: var(--bruin); color: var(--wit); width: 100vw; height: 64px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px #0002; position: relative; z-index: 10; }
+    .horologionknop { background: var(--bruin-donker); color: var(--wit); border: none; border-radius: 20px; padding: 12px 22px; font-size: 15px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block; margin-left: 20px;}
+    .horologionknop:hover { background: #825029; }
     .priesterknop { background: var(--priesterpaars); color: var(--wit); border: none; border-radius: 20px; padding: 12px 30px; font-size: 16px; font-weight: bold; margin-right: 40px; cursor: pointer; transition: background 0.2s;}
     .priesterknop:hover { background: #b04eff;}
     .maincontent { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: calc(100vh - 64px); padding-top: 40px; padding-bottom: 40px; width: 100%; box-sizing: border-box; }
@@ -31,6 +33,7 @@
 </head>
 <body>
   <div class="topbar">
+    <a href="horologion.html" class="horologionknop">🕯️ Horologion App</a>
     <button class="priesterknop" onclick="openPopup('priesterPopup')">Priesters</button>
   </div>
   <div class="maincontent">
@@ -85,12 +88,12 @@
   <script>
     // JOUW FIREBASE CONFIG
     const firebaseConfig = {
-      apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
-      authDomain: "orthodoxeweg.firebaseapp.com",
-      projectId: "orthodoxeweg",
-      storageBucket: "orthodoxeweg.appspot.com",
-      messagingSenderId: "408582263618",
-      appId: "1:408582263618:web:2e02833fa0d4d8903ceedb"
+      apiKey: \"AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4\",
+      authDomain: \"orthodoxeweg.firebaseapp.com\",
+      projectId: \"orthodoxeweg\",
+      storageBucket: \"orthodoxeweg.appspot.com\",
+      messagingSenderId: \"408582263618\",
+      appId: \"1:408582263618:web:2e02833fa0d4d8903ceedb\"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
@@ -98,16 +101,16 @@
 
     // Parochielijsten in alle drop-downs laden
     function laadParochies() {
-      db.collection("parochies").get().then(snapshot => {
-        const regSel = document.getElementById("parochieSelect");
-        const priestSel = document.getElementById("priesterParochie");
-        const loginParSel = document.getElementById("loginParochie");
-        if(regSel) regSel.innerHTML = "";
-        if(priestSel) priestSel.innerHTML = "";
-        if(loginParSel) loginParSel.innerHTML = "";
+      db.collection(\"parochies\").get().then(snapshot => {
+        const regSel = document.getElementById(\"parochieSelect\");
+        const priestSel = document.getElementById(\"priesterParochie\");
+        const loginParSel = document.getElementById(\"loginParochie\");
+        if(regSel) regSel.innerHTML = \"\";
+        if(priestSel) priestSel.innerHTML = \"\";
+        if(loginParSel) loginParSel.innerHTML = \"\";
         snapshot.forEach(doc => {
           const naam = doc.data().naam;
-          const optie1 = document.createElement("option");
+          const optie1 = document.createElement(\"option\");
           optie1.value = naam;
           optie1.textContent = naam;
           if(regSel) regSel.appendChild(optie1);
@@ -119,24 +122,24 @@
     window.addEventListener('DOMContentLoaded', laadParochies);
 
     // REGISTRATIEFORMULIER — met profielfoto upload
-    document.getElementById("registratieForm").addEventListener("submit", async function(e) {
+    document.getElementById(\"registratieForm\").addEventListener(\"submit\", async function(e) {
       e.preventDefault();
-      const voornaam = document.getElementById("voornaam").value;
-      const achternaam = document.getElementById("achternaam").value;
-      const doopnaam = document.getElementById("doopnaam").value;
-      const email = document.getElementById("email").value;
-      const parochie = document.getElementById("parochieSelect").value;
-      const geboortedatum = document.getElementById("geboortedatum").value;
-      const loginKeuze = document.getElementById("loginKeuze").value;
-      const file = document.getElementById("profielfoto").files[0];
+      const voornaam = document.getElementById(\"voornaam\").value;
+      const achternaam = document.getElementById(\"achternaam\").value;
+      const doopnaam = document.getElementById(\"doopnaam\").value;
+      const email = document.getElementById(\"email\").value;
+      const parochie = document.getElementById(\"parochieSelect\").value;
+      const geboortedatum = document.getElementById(\"geboortedatum\").value;
+      const loginKeuze = document.getElementById(\"loginKeuze\").value;
+      const file = document.getElementById(\"profielfoto\").files[0];
 
-      let profielfotoUrl = "";
+      let profielfotoUrl = \"\";
       if (file) {
-        const storageRef = storage.ref().child("profielfotos/" + Date.now() + "_" + file.name);
+        const storageRef = storage.ref().child(\"profielfotos/\" + Date.now() + \"_\" + file.name);
         await storageRef.put(file);
         profielfotoUrl = await storageRef.getDownloadURL();
       }
-      db.collection("registraties").add({
+      db.collection(\"registraties\").add({
         voornaam,
         achternaam,
         doopnaam,
@@ -145,74 +148,74 @@
         geboortedatum,
         loginKeuze,
         profielfotoUrl,
-        status: "in afwachting"
+        status: \"in afwachting\"
       }).then(() => {
         closeAllPopups();
         setTimeout(() => {
-          alert("Registratie succesvol verzonden! Zodra je registratie door de priester is goedgekeurd, ontvang je een e-mail met jouw login en wachtwoord.\n\nJe kan nu alvast de gastenmodus verkennen.");
+          alert(\"Registratie succesvol verzonden! Zodra je registratie door de priester is goedgekeurd, ontvang je een e-mail met jouw login en wachtwoord.\\n\\nJe kan nu alvast de gastenmodus verkennen.\");
         }, 250);
       }).catch((err) => {
-        alert("Fout bij registratie.");
+        alert(\"Fout bij registratie.\");
         console.error(err);
       });
     });
 
     // LOGIN parochiaan: mét parochie-dropdown
     function login() {
-      const parochie = document.getElementById("loginParochie").value;
-      const gebruikersnaam = document.getElementById("loginNaam").value.trim();
-      const wachtwoord = document.getElementById("loginWachtwoord").value;
-      db.collection("gebruikers")
-        .where("parochie", "==", parochie)
-        .where("gebruikersnaam", "==", gebruikersnaam)
-        .where("wachtwoord", "==", wachtwoord)
+      const parochie = document.getElementById(\"loginParochie\").value;
+      const gebruikersnaam = document.getElementById(\"loginNaam\").value.trim();
+      const wachtwoord = document.getElementById(\"loginWachtwoord\").value;
+      db.collection(\"gebruikers\")
+        .where(\"parochie\", \"==\", parochie)
+        .where(\"gebruikersnaam\", \"==\", gebruikersnaam)
+        .where(\"wachtwoord\", \"==\", wachtwoord)
         .get()
         .then(snapshot => {
           if (!snapshot.empty) {
             closeAllPopups();
-            window.location.href = "volwassenen/startpagina.html";
+            window.location.href = \"volwassenen/startpagina.html\";
           } else {
-            alert("Onjuiste gegevens.");
+            alert(\"Onjuiste gegevens.\");
           }
         }).catch(err => {
-          alert("Fout bij inloggen.");
+          alert(\"Fout bij inloggen.\");
           console.error(err);
         });
     }
 
     // PRIESTERLOGIN — niet meer wijzigen!
     function priesterLogin() {
-  const parochie = document.getElementById("priesterParochie").value;
-  const wachtwoord = document.getElementById("priesterWachtwoord").value;
-  db.collection("parochies")
-    .where("naam", "==", parochie)
-    .where("postcode", "==", wachtwoord)
-    .get()
-    .then(snapshot => {
-      if (!snapshot.empty) {
-        localStorage.setItem("ingelogdeParochie", parochie); // <--- DIT IS ESSENTIEEL!
-        closeAllPopups();
-        window.location.href = "priestermodus/startpagina.html";
-      } else {
-        alert("Onjuiste gegevens.");
-      }
-    }).catch(err => {
-      alert("Fout bij inloggen.");
-      console.error(err);
-    });
-}
+      const parochie = document.getElementById(\"priesterParochie\").value;
+      const wachtwoord = document.getElementById(\"priesterWachtwoord\").value;
+      db.collection(\"parochies\")
+        .where(\"naam\", \"==\", parochie)
+        .where(\"postcode\", \"==\", wachtwoord)
+        .get()
+        .then(snapshot => {
+          if (!snapshot.empty) {
+            localStorage.setItem(\"ingelogdeParochie\", parochie); // <--- DIT IS ESSENTIEEL!
+            closeAllPopups();
+            window.location.href = \"priestermodus/startpagina.html\";
+          } else {
+            alert(\"Onjuiste gegevens.\");
+          }
+        }).catch(err => {
+          alert(\"Fout bij inloggen.\");
+          console.error(err);
+        });
+    }
     // POPUPS
     function openPopup(id) {
-      document.getElementById("overlay").style.display = "block";
-      document.getElementById(id).style.display = "block";
+      document.getElementById(\"overlay\").style.display = \"block\";
+      document.getElementById(id).style.display = \"block\";
     }
     function closeAllPopups() {
-      document.getElementById("overlay").style.display = "none";
-      document.querySelectorAll(".popup").forEach(p => p.style.display = "none");
+      document.getElementById(\"overlay\").style.display = \"none\";
+      document.querySelectorAll(\".popup\").forEach(p => p.style.display = \"none\");
     }
 
     function gastenmodus() {
-      window.location.href = "gastenmodus/startpagina.html";
+      window.location.href = \"gastenmodus/startpagina.html\";
     }
   </script>
 </body>
