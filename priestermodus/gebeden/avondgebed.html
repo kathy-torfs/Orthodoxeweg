@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Avondgebed - Priestermodus</title>
+  <style>
+    /* ... identiek aan hierboven ... */
+  </style>
+  <!-- FIREBASE -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <header>
+    <h1>🌙 Avondgebed</h1>
+  </header>
+  <nav class="menu">
+    <!-- zelfde menubalk als hierboven -->
+  </nav>
+  <div class="parochie-balk" id="parochieBalk">U bent ingelogd in ...</div>
+  <main>
+    <h2>Avondgebed</h2>
+    <div id="gebedstekst" class="gebedtekst">Gebed wordt geladen...</div>
+    <a href="gebeden.html" class="terug">← Terug naar overzicht</a>
+  </main>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:2e02833fa0d4d8903ceedb"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const parochie = localStorage.getItem('ingelogdeParochie') || "onbekende parochie";
+    document.getElementById('parochieBalk').textContent = "U bent ingelogd in " + parochie;
+
+    db.collection("gebeden_vw").where("titel", "==", "Avondgebed").get().then(snapshot => {
+      if (snapshot.empty) {
+        document.getElementById('gebedstekst').textContent = "Geen gebed gevonden.";
+      } else {
+        document.getElementById('gebedstekst').textContent = snapshot.docs[0].data().tekst || "Geen tekst gevonden.";
+      }
+    }).catch(err => {
+      document.getElementById('gebedstekst').textContent = "Fout bij laden van gebed.";
+      console.error(err);
+    });
+  </script>
+</body>
+</html>
