@@ -3,25 +3,117 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Gebed – Priestermodus</title>
+  <title>Gebed – detail</title>
   <style>
-    body { font-family: Georgia, serif; background: #fffdf6; color: #3e2f1c; margin:0; }
-    header { background: #5e3907; color: #fff; padding: 20px; text-align: center; }
-    nav.menu { background-color: #fff1cd; display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; padding: 15px; border-bottom: 2px solid #c4a85d; }
-    nav.menu a { text-decoration: none; background-color: #ffeeba; padding: 10px 16px; border-radius: 8px; color: #5e3907; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.15); transition: 0.3s;}
-    nav.menu a:hover { background-color: #ffeda2;}
-    main { max-width: 800px; margin: 40px auto; padding: 20px; background: #fff9ec; border-radius: 10px; box-shadow: 0 2px 10px #e2d3ad2a;}
-    .titel { font-size: 2em; color: #4a3316; margin-bottom: 20px; }
-    .tekst { font-size: 1.15em; line-height: 1.7; white-space: pre-wrap; background: #f9f5e5; padding: 20px; border-radius: 10px; box-shadow: 0 1px 6px #e2d3ad1a; }
-    .terug { margin: 38px 0 0 0; display: block; text-align: center; }
-    .terug a { background: #deb757; color: #fff; padding: 9px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 1.07em; }
-    .terug a:hover { background: #c49d3c; }
+    body {
+      font-family: Georgia, serif;
+      background-color: #fffdf6;
+      color: #3e2f1c;
+      margin: 0;
+      text-align: center;
+    }
+    header {
+      background-color: #5e3907;
+      color: white;
+      padding: 20px;
+    }
+    nav.menu {
+      background-color: #fff1cd;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 15px;
+      border-bottom: 2px solid #c4a85d;
+    }
+    nav.menu a {
+      text-decoration: none;
+      background-color: #ffeeba;
+      padding: 10px 16px;
+      border-radius: 8px;
+      color: #5e3907;
+      font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      transition: 0.3s;
+    }
+    nav.menu a:hover {
+      background-color: #ffeda2;
+    }
+    main {
+      max-width: 700px;
+      margin: 40px auto 0 auto;
+      padding: 20px 16px 50px 16px;
+      background: #fffbe6;
+      border-radius: 16px;
+      box-shadow: 0 2px 14px #ead7aa33;
+    }
+    h2 {
+      color: #4e2710;
+      margin-top: 10px;
+      margin-bottom: 26px;
+      font-size: 1.7em;
+      font-family: Georgia, serif;
+    }
+    .terug {
+      margin: 24px 0 20px 0;
+      display: inline-block;
+      background: #fff1cd;
+      color: #664c24;
+      border-radius: 9px;
+      border: none;
+      padding: 11px 25px;
+      font-size: 1.07em;
+      font-family: inherit;
+      text-decoration: none;
+      font-weight: bold;
+      transition: background 0.19s;
+      cursor: pointer;
+    }
+    .terug:hover { background: #ffeda2; }
+    .pdf-link {
+      display: block;
+      margin: 35px auto 0 auto;
+      width: fit-content;
+      padding: 12px 24px;
+      background: #deb757;
+      color: #fff;
+      font-weight: bold;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 1.11em;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.10);
+      transition: background 0.2s;
+    }
+    .pdf-link:hover { background: #c49d3c; }
+    .foutmelding {
+      background: #fff4e1;
+      border-radius: 12px;
+      color: #c72619;
+      font-weight: bold;
+      padding: 18px 8px;
+      margin-top: 28px;
+      font-size: 1.12em;
+    }
+    .gebed-tekst {
+      text-align: left;
+      font-size: 1.12em;
+      color: #422a16;
+      line-height: 1.7;
+      margin-bottom: 10px;
+      margin-top: 0;
+      background: #fffcf7;
+      border-radius: 7px;
+      padding: 20px 18px;
+      box-shadow: 0 1px 4px #efdba77a inset;
+      white-space: pre-line;
+      min-height: 30px;
+    }
   </style>
 </head>
 <body>
 
   <header>
-    <h1>Gebed</h1>
+    <h1>Gebed – detail</h1>
   </header>
 
   <nav class="menu">
@@ -36,17 +128,18 @@
   </nav>
 
   <main>
-    <div class="titel" id="gebedTitel">Laden...</div>
-    <div class="tekst" id="gebedTekst"></div>
-    <div class="terug">
-      <a href="gebeden.html">&larr; Terug naar alle gebeden</a>
-    </div>
+    <a class="terug" href="gebeden.html">← Terug naar alle gebeden</a>
+    <div id="content"></div>
+    <a class="pdf-link" href="https://orthodoxekerkhasselt.com/wp-content/uploads/2024/11/liturgische-teksten-het-klein-orthodox-gebedenboekje-v7.5-nld.pdf" target="_blank">
+      📖 Volledig Gebedenboekje (PDF)
+    </a>
   </main>
 
   <!-- FIREBASE -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script>
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -58,30 +151,58 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Haal het id uit de URL
-    function getParam(name) {
-      return new URLSearchParams(window.location.search).get(name);
+    // Haal gebed-ID uit de URL
+    function getGebedId() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('id');
     }
-    const id = getParam('id');
-    if (!id) {
-      document.getElementById('gebedTitel').innerText = "Geen gebed gekozen.";
-      document.getElementById('gebedTekst').innerText = "Je bent hier terechtgekomen zonder geldig gebed.";
-    } else {
-      db.collection("gebeden_vw").doc(id).get().then(doc => {
-        if (!doc.exists) {
-          document.getElementById('gebedTitel').innerText = "Gebed niet gevonden";
-          document.getElementById('gebedTekst').innerText = "Dit gebed bestaat niet of is niet beschikbaar.";
+
+    // Slim ophalen uit gebeden_vw OF gebeden
+    function laadGebed() {
+      const gebedId = getGebedId();
+      const contentDiv = document.getElementById('content');
+      if (!gebedId) {
+        contentDiv.innerHTML = `
+          <div class="foutmelding">Er is geen geldig gebeds-ID opgegeven.</div>
+        `;
+        return;
+      }
+      // Eerst zoeken in 'gebeden_vw'
+      db.collection('gebeden_vw').doc(gebedId).get().then(doc => {
+        if (doc.exists) {
+          toonGebed(doc.data(), gebedId);
         } else {
-          const data = doc.data();
-          document.getElementById('gebedTitel').innerText = data.titel || id;
-          document.getElementById('gebedTekst').innerText = data.tekst || "Geen tekst gevonden voor dit gebed.";
+          // Niet gevonden? Dan in 'gebeden'
+          db.collection('gebeden').doc(gebedId).get().then(doc2 => {
+            if (doc2.exists) {
+              toonGebed(doc2.data(), gebedId);
+            } else {
+              contentDiv.innerHTML = `
+                <div class="foutmelding">Gebed niet gevonden.<br>Controleer of de link correct is.</div>
+              `;
+            }
+          }).catch(fout);
         }
-      }).catch(err => {
-        document.getElementById('gebedTitel').innerText = "Fout";
-        document.getElementById('gebedTekst').innerText = "Fout bij het laden van het gebed.";
+      }).catch(fout);
+
+      function toonGebed(data, fallbackId) {
+        const titel = data.titel || fallbackId;
+        let tekst = data.volledige_tekst || data.tekst || "";
+        let html = tekst;
+        if (!html) html = "<i>Geen tekst gevonden voor dit gebed.</i>";
+        else if (!html.startsWith('<')) html = tekst.replace(/\n/g, "<br>");
+        contentDiv.innerHTML = `
+          <h2>${titel}</h2>
+          <div class="gebed-tekst">${html}</div>
+        `;
+      }
+      function fout(err) {
+        contentDiv.innerHTML = `<div class="foutmelding">Fout bij ophalen gebed.<br>${err.message}</div>`;
         console.error(err);
-      });
+      }
     }
+
+    laadGebed();
   </script>
 </body>
 </html>
