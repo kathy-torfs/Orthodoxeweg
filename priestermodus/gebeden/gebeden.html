@@ -17,7 +17,7 @@
       color: white;
       padding: 20px;
     }
-    nav {
+    nav.menu {
       background-color: #fff1cd;
       display: flex;
       justify-content: center;
@@ -26,7 +26,7 @@
       padding: 15px;
       border-bottom: 2px solid #c4a85d;
     }
-    nav a {
+    nav.menu a {
       text-decoration: none;
       background-color: #ffeeba;
       padding: 10px 16px;
@@ -36,7 +36,7 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.15);
       transition: 0.3s;
     }
-    nav a:hover {
+    nav.menu a:hover {
       background-color: #ffeda2;
     }
     main {
@@ -84,14 +84,14 @@
   </header>
 
   <nav class="menu">
-    <a href="startpagina.html">🏠 Home</a>
-    <a href="parochie.html">🛐 Mijn parochie</a>
-    <a href="psalmen.html">📜 Psalmen</a>
-    <a href="gebeden.html">🙏 Gebeden</a>
-    <a href="geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
-    <a href="catechese.html">📖 Catechese</a>
-    <a href="layout.html">🧰 Bewerk parochie</a>
-    <a href="uitloggen.html">🚪 Uitloggen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/startpagina.html">🏠 Home</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/parochie.html">🛐 Mijn parochie</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/psalmen/psalmen.html">📜 Psalmen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/gebeden.html">🙏 Gebeden</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/catechese/catechese.html">📖 Catechese</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/layout.html">🧰 Bewerk parochie</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/uitloggen.html">🚪 Uitloggen</a>
   </nav>
 
   <main>
@@ -107,7 +107,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script>
-    // Firebase config priestermodus (zelfde als elders)
+    // Firebase config priestermodus
     const firebaseConfig = {
       apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -119,7 +119,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Toon lijst van gebeden uit 'gebeden_vw'
+    // Gebeden ophalen uit 'gebeden_vw' en alfabetisch sorteren
     db.collection("gebeden_vw").get().then(snapshot => {
       const container = document.getElementById("gebedKnoppen");
       container.innerHTML = "";
@@ -127,7 +127,7 @@
         container.innerHTML = "<div>Geen gebeden gevonden.</div>";
         return;
       }
-      // Sorteer alfabetisch op titel
+      // Sorteren op titel (Vlaams/NL of anders ID)
       const docs = snapshot.docs.sort((a, b) => {
         const tA = (a.data().titel || a.id).toLowerCase();
         const tB = (b.data().titel || b.id).toLowerCase();
