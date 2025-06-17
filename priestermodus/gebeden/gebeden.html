@@ -147,10 +147,10 @@
 
   <main>
     <!-- Hoofdknoppen -->
-    <a class="hoofdknoop" href="ochtendgebed.html">🌅 Ochtendgebed</a>
-    <a class="hoofdknoop" href="avondgebed.html">🌙 Avondgebed</a>
-    <a class="hoofdknoop" href="tafelgebeden.html">🍽️ Tafelgebeden</a>
-    <a class="hoofdknoop" href="geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
+    <a class="hoofdknoop" id="ochtendKnop">🌅 Ochtendgebed</a>
+    <a class="hoofdknoop" id="avondKnop">🌙 Avondgebed</a>
+    <a class="hoofdknoop" id="tafelKnop">🍽️ Tafelgebeden</a>
+    <a class="hoofdknoop" id="geloofKnop">✝ Geloofsbelijdenis</a>
     <a class="pdf-link" href="https://orthodoxekerkhasselt.com/wp-content/uploads/2024/11/liturgische-teksten-het-klein-orthodox-gebedenboekje-v7.5-nld.pdf" target="_blank">
       📖 Volledig Gebedenboekje (PDF)
     </a>
@@ -183,15 +183,23 @@
       messagingSenderId: "408582263618",
       appId: "1:408582263618:web:2e02833fa0d4d8903ceedb"
     };
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
-    // Lijst met hoofdgebeden die niet in de accordion moeten (en het pdf-linkje)
-    const hoofdGebeden = [
-      "Ochtendgebed", "Avondgebed", "Tafelgebeden", "Geloofsbelijdenis"
-    ];
+    // Koppeling: hoofdknoppen linken naar de juiste gebed-id (uit collectie gebeden_vw)
+    function setHoofdKnop(knopId, gebedId) {
+      document.getElementById(knopId).onclick = function() {
+        window.location.href = "gebed.html?id=" + encodeURIComponent(gebedId);
+      };
+    }
 
-    // Accordion vullen met alle andere gebeden (collectie 'gebeden')
+    // Deze id's moeten overeenkomen met je Firestore-documenten in gebeden_vw
+    setHoofdKnop("ochtendKnop", "ochtendgebed");
+    setHoofdKnop("avondKnop", "avondgebed");
+    setHoofdKnop("tafelKnop", "tafelgebeden");
+    setHoofdKnop("geloofKnop", "geloofsbelijdenis");
+
+    // Accordion vullen met overige gebeden uit collectie 'gebeden'
     db.collection("gebeden").get().then(snapshot => {
       const container = document.getElementById("accordion-content");
       container.innerHTML = "";
@@ -199,7 +207,7 @@
         container.innerHTML = "<div>Geen overige gebeden gevonden.</div>";
         return;
       }
-      // Handhaaf de originele volgorde zoals in jouw lijst
+      // Exacte volgorde zoals jij opgaf
       const gewensteVolgorde = [
         "Gebed bij het aansteken van een kaars",
         "Gebed bij het aansteken van een kaarsje",
@@ -230,16 +238,15 @@
         "Voor het ontbijt"
       ];
 
-      // Bouw object: {titel -> doc.id}
+      // Map {titel -> doc.id}
       const docsByTitel = {};
       snapshot.docs.forEach(doc => {
         const titel = doc.data().titel || doc.id;
         docsByTitel[titel] = doc.id;
       });
 
-      // Voeg toe volgens gewenste volgorde
       gewensteVolgorde.forEach(titel => {
-        if (!hoofdGebeden.includes(titel) && docsByTitel[titel]) {
+        if (docsByTitel[titel]) {
           container.innerHTML += `<a href="gebed.html?id=${encodeURIComponent(docsByTitel[titel])}">${titel}</a>`;
         }
       });
