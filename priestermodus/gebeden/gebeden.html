@@ -1,82 +1,281 @@
-<script>
-  // Accordion
-  function toggleAccordion() {
-    const content = document.getElementById('accordion-content');
-    content.style.display = (content.style.display === "block") ? "none" : "block";
-  }
-
-  // Firebase config priestermodus (zelfde als elders)
-  const firebaseConfig = {
-    apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
-    authDomain: "orthodoxeweg.firebaseapp.com",
-    projectId: "orthodoxeweg",
-    storageBucket: "orthodoxeweg.appspot.com",
-    messagingSenderId: "408582263618",
-    appId: "1:408582263618:web:2e02833fa0d4d8903ceedb"
-  };
-  if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-  const db = firebase.firestore();
-
-  // VOLLEDIGE vaste lijst in juiste volgorde
-  const vasteLijst = [
-    "Avondgebed",
-    "Gebed bij het aansteken van een kaars",
-    "Gebed bij het aansteken van een kaarsje",
-    "Gebed bij het verlaten van het huis",
-    "Gebed bij verdriet",
-    "Gebed bij ziekte",
-    "Gebed om vergeving",
-    "Gebed tot Christus",
-    "Gebed tot de Moeder Gods",
-    "Gebed tot de heilige Geest",
-    "Gebed tot de heilige beschermengel",
-    "Gebed tot je beschermengel",
-    "Gebed voor broers en zussen",
-    "Gebed voor de kinderen",
-    "Gebed voor de ouders",
-    "Gebed voor de priester",
-    "Gebed voor de start van de dagtaak",
-    "Gebed voor de vrede",
-    "Gebed voor de zielenrust van overledenen",
-    "Gebed voor een zieke",
-    "Gebed voor je parochie",
-    "Gebed voor vrede",
-    "Geloofsbelijdenis",
-    "Na het avondmaal",
-    "Na het middagmaal",
-    "Na het ontbijt",
-    "Ochtendgebed",
-    "Voor het avondmaal",
-    "Voor het middagmaal",
-    "Voor het ontbijt"
-  ];
-
-  // Vul accordion met deze titels, in deze volgorde, vanuit collectie "gebeden"
-  db.collection("gebeden").get().then(snapshot => {
-    const container = document.getElementById("accordion-content");
-    container.innerHTML = "";
-    if (snapshot.empty) {
-      container.innerHTML = "<div>Geen gebeden gevonden.</div>";
-      return;
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gebeden – Priestermodus</title>
+  <style>
+    body {
+      font-family: Georgia, serif;
+      background-color: #fffdf6;
+      color: #3e2f1c;
+      margin: 0;
+      text-align: center;
     }
-    // Map {titel -> doc.id} voor snelle lookup
-    const docsByTitel = {};
-    snapshot.docs.forEach(doc => {
-      const titel = doc.data().titel || doc.id;
-      docsByTitel[titel.trim()] = doc.id;
-    });
+    header {
+      background-color: #5e3907;
+      color: white;
+      padding: 20px;
+    }
+    nav.menu {
+      background-color: #fff1cd;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 15px;
+      border-bottom: 2px solid #c4a85d;
+    }
+    nav.menu a {
+      text-decoration: none;
+      background-color: #ffeeba;
+      padding: 10px 16px;
+      border-radius: 8px;
+      color: #5e3907;
+      font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      transition: 0.3s;
+    }
+    nav.menu a:hover {
+      background-color: #ffeda2;
+    }
+    main {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+    .hoofdknoop {
+      display: block;
+      margin: 18px auto;
+      padding: 14px 0;
+      background-color: #fff1cd;
+      color: #5e3907;
+      text-decoration: none;
+      border-radius: 10px;
+      font-size: 1.24em;
+      width: 65%;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.09);
+      font-weight: bold;
+      transition: 0.3s;
+      border: none;
+      cursor: pointer;
+    }
+    .hoofdknoop:hover { background: #ffeda2; }
+    .pdf-link {
+      display: block;
+      margin: 24px auto 0 auto;
+      width: fit-content;
+      padding: 12px 26px;
+      background: #deb757;
+      color: #fff;
+      font-weight: bold;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 1.13em;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.12);
+      transition: background 0.2s;
+    }
+    .pdf-link:hover { background: #c49d3c; }
+    .accordion {
+      width: 65%;
+      margin: 32px auto 0 auto;
+      border-radius: 11px;
+      overflow: hidden;
+      background: #fff1cd;
+      box-shadow: 0 1px 5px #edd9a34a;
+      text-align: left;
+    }
+    .accordion-button {
+      background: #ffecad;
+      color: #5e3907;
+      border: none;
+      padding: 16px 24px;
+      width: 100%;
+      font-size: 1.17em;
+      text-align: left;
+      cursor: pointer;
+      outline: none;
+      font-weight: bold;
+      border-bottom: 1.5px solid #e3c87d;
+      transition: background 0.2s;
+      border-radius: 11px 11px 0 0;
+    }
+    .accordion-button:hover {
+      background: #ffe28d;
+    }
+    .accordion-content {
+      display: none;
+      background: #fffde8;
+      padding: 8px 24px 16px 24px;
+      border-radius: 0 0 11px 11px;
+      border-top: 1px solid #e8d48c;
+    }
+    .accordion-section {
+      margin: 14px 0 8px 0;
+      font-weight: bold;
+      color: #a2822b;
+      font-size: 1.08em;
+      padding-top: 8px;
+    }
+    .accordion-content a {
+      display: block;
+      color: #5e3907;
+      text-decoration: none;
+      margin: 7px 0;
+      padding: 8px 0 8px 8px;
+      font-size: 1.08em;
+      border-radius: 7px;
+      transition: background 0.15s;
+    }
+    .accordion-content a:hover {
+      background: #ffeda2;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
 
-    // Voor elk item uit de vaste lijst: toon alleen als aanwezig in collectie
-    vasteLijst.forEach(titel => {
-      if (docsByTitel[titel.trim()]) {
-        container.innerHTML += `<a href="gebed.html?id=${encodeURIComponent(docsByTitel[titel.trim()])}">${titel}</a>`;
-      } else {
-        // Eventueel: om ontbrekende documenten op te sporen (comment uit als je niet wilt zien)
-        // container.innerHTML += `<span style="color:#b99">(${titel} ontbreekt)</span><br>`;
+  <header>
+    <h1>Kies een Gebed</h1>
+  </header>
+
+  <nav class="menu">
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/startpagina.html">🏠 Home</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/parochie.html">🛐 Mijn parochie</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/psalmen/psalmen.html">📜 Psalmen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/gebeden.html">🙏 Gebeden</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/catechese/catechese.html">📖 Catechese</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/layout.html">🧰 Bewerk parochie</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/uitloggen.html">🚪 Uitloggen</a>
+  </nav>
+
+  <main>
+    <!-- Hoofdknoppen -->
+    <a class="hoofdknoop" id="ochtendKnop">🌅 Ochtendgebed</a>
+    <a class="hoofdknoop" id="avondKnop">🌙 Avondgebed</a>
+    <a class="hoofdknoop" id="tafelKnop">🍽️ Tafelgebeden</a>
+    <a class="hoofdknoop" id="geloofKnop">✝ Geloofsbelijdenis</a>
+    <a class="pdf-link" href="https://orthodoxekerkhasselt.com/wp-content/uploads/2024/11/liturgische-teksten-het-klein-orthodox-gebedenboekje-v7.5-nld.pdf" target="_blank">
+      📖 Volledig Gebedenboekje (PDF)
+    </a>
+
+    <!-- Accordion voor andere gebeden -->
+    <div class="accordion" id="accordion">
+      <button class="accordion-button" onclick="toggleAccordion()">▼ Andere gebeden weergeven</button>
+      <div class="accordion-content" id="accordion-content">
+        <div>Laden...</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- FIREBASE -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script>
+    // Accordion
+    function toggleAccordion() {
+      const content = document.getElementById('accordion-content');
+      content.style.display = (content.style.display === "block") ? "none" : "block";
+    }
+
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:2e02833fa0d4d8903ceedb"
+    };
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const db = firebase.firestore();
+
+    // Koppeling: hoofdknoppen linken naar de juiste gebed-id (uit collectie gebeden_vw)
+    function setHoofdKnop(knopId, gebedId) {
+      document.getElementById(knopId).onclick = function() {
+        window.location.href = "gebed.html?id=" + encodeURIComponent(gebedId);
+      };
+    }
+    setHoofdKnop("ochtendKnop", "ochtendgebed");
+    setHoofdKnop("avondKnop", "avondgebed");
+    setHoofdKnop("tafelKnop", "tafelgebeden");
+    setHoofdKnop("geloofKnop", "geloofsbelijdenis");
+
+    // Dynamisch groeperen op basis van titels
+    db.collection("gebeden").get().then(snapshot => {
+      const container = document.getElementById("accordion-content");
+      container.innerHTML = "";
+
+      if (snapshot.empty) {
+        container.innerHTML = "<div>Geen overige gebeden gevonden.</div>";
+        return;
       }
+
+      // Indeling (let op hoofd/kleine letters in Firestore)
+      const groepen = {
+        "Maaltijdgebeden": [
+          "Na het avondmaal","Na het middagmaal","Na het ontbijt",
+          "Voor het avondmaal","Voor het middagmaal","Voor het ontbijt"
+        ],
+        "Gebeden voor bescherming & intentie": [
+          "Gebed bij het verlaten van het huis","Gebed voor de vrede","Gebed voor vrede",
+          "Gebed voor je parochie","Gebed voor de priester","Gebed voor de kinderen",
+          "Gebed voor de ouders","Gebed voor broers en zussen"
+        ],
+        "Gebeden voor moeilijke tijden": [
+          "Gebed bij verdriet","Gebed bij ziekte","Gebed voor een zieke","Gebed om vergeving",
+          "Gebed voor de zielenrust van overledenen"
+        ],
+        "Gebeden tot heiligen": [
+          "Gebed tot Christus","Gebed tot de Moeder Gods","Gebed tot de heilige Geest",
+          "Gebed tot de heilige beschermengel","Gebed tot je beschermengel"
+        ],
+        "Gebeden bij kaarsjes": [
+          "Gebed bij het aansteken van een kaars","Gebed bij het aansteken van een kaarsje"
+        ],
+        "Andere": []
+      };
+
+      // Gebeden die nog niet geplaatst zijn, komen onder 'Andere'
+      const reedsToegewezen = new Set();
+      Object.values(groepen).forEach(arr => arr.forEach(t => reedsToegewezen.add(t)));
+
+      // Map {titel -> doc.id}
+      const docsByTitel = {};
+      snapshot.docs.forEach(doc => {
+        const titel = doc.data().titel || doc.id;
+        docsByTitel[titel.trim()] = doc.id;
+      });
+
+      // Groepeer en toon in accordion
+      for (const [groep, lijst] of Object.entries(groepen)) {
+        let toegevoegd = false;
+        lijst.forEach(titel => {
+          if (docsByTitel[titel.trim()]) {
+            if (!toegevoegd) {
+              container.innerHTML += `<div class="accordion-section">${groep}</div>`;
+              toegevoegd = true;
+            }
+            container.innerHTML += `<a href="gebed.html?id=${encodeURIComponent(docsByTitel[titel.trim()])}">${titel}</a>`;
+          }
+        });
+      }
+      // Voeg alle overige gebeden toe onder "Andere"
+      snapshot.docs.forEach(doc => {
+        const titel = doc.data().titel || doc.id;
+        if (!reedsToegewezen.has(titel.trim()) &&
+            !["Ochtendgebed","Avondgebed","Tafelgebeden","Geloofsbelijdenis"].includes(titel.trim())) {
+          // Vermijd hoofdknoppen
+          container.innerHTML += `<div class="accordion-section">Andere</div>
+            <a href="gebed.html?id=${encodeURIComponent(doc.id)}">${titel}</a>`;
+        }
+      });
+
+    }).catch(err => {
+      document.getElementById("accordion-content").innerHTML = "<div>Fout bij laden van gebeden.</div>";
+      console.error(err);
     });
-  }).catch(err => {
-    document.getElementById("accordion-content").innerHTML = "<div>Fout bij laden van gebeden.</div>";
-    console.error(err);
-  });
-</script>
+  </script>
+</body>
+</html>
