@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Horologion-widget</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <style>
+    body {
+      font-family: Georgia, serif;
+      background: #fffaf5;
+      color: #4a2c2a;
+      padding: 2em;
+      max-width: 600px;
+      margin: auto;
+    }
+    h1 {
+      text-align: center;
+    }
+    .tijd {
+      font-size: 1.4em;
+      margin-bottom: 1em;
+      text-align: center;
+    }
+    .gebed, .vastenregel {
+      margin: 1em 0;
+      padding: 1em;
+      border-left: 5px solid #a04545;
+      background: #fff8f4;
+      border-radius: 8px;
+    }
+    .symbool {
+      font-size: 2em;
+      display: inline-block;
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Horologion</h1>
+  <div class="tijd" id="tijd">⏳ Tijd wordt geladen...</div>
+  <div class="gebed" id="gebed">🙏 Gebed wordt opgehaald...</div>
+  <div class="vastenregel"><span class="symbool" id="symbool">⏳</span> <span id="vasten">Vastenregel wordt opgehaald...</span></div>
+
+  <script>
+    const tijdElement = document.getElementById("tijd");
+    const gebedElement = document.getElementById("gebed");
+    const vastenElement = document.getElementById("vasten");
+    const symboolElement = document.getElementById("symbool");
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.firebasestorage.app",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb",
+      measurementId: "G-C942F2NYQV"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    function bepaalGebedsmoment(uur) {
+      if (uur >= 8 && uur < 11) return "derde_uur";
+      if (uur >= 11 && uur < 14) return "zesde_uur";
+      if (uur >= 14 && uur < 17) return "negende_uur";
+      if (uur >= 17 && uur < 20) return "vespers";
+      if (uur >= 20 && uur < 23) return "complet";
+      return "nacht";
+    }
+
+    function updateWidget() {
+      const nu = new Date();
+      const datum = nu.toISOString().slice(0,10).replace(/-/g, "");
+      tijdElement.textContent = nu.toLocaleTimeString();
+
+      const uur = nu.getHours();
+      const moment = bepaalGebedsmoment(uur);
+
+      db.collection("gebeden_uren").doc(moment).get().then(doc => {
+        if (doc.exists) {
+          gebedElement.textContent = doc.data().tekst_NL;
+        } else {
+          gebedElement.textContent = "Geen gebed gevonden.";
+        }
+      });
+
+      db.collection("kalender2025").doc(String(datum)).get().then(doc => {
+        if (doc.exists) {
+          const data = doc.data();
+          vastenElement.textContent = data["Vastenregel NL"] || "Geen vastenregel.";
+          symboolElement.textContent = data["Symbool"] || "✝️";
+        } else {
+          vastenElement.textContent = "Geen gegevens.";
+          symboolElement.textContent = "🙏";
+        }
+      });
+    }
+
+    setInterval(updateWidget, 10000);
+    updateWidget();
+  </script>
+</body>
+</html>
