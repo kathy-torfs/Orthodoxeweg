@@ -49,10 +49,12 @@
   h2 {
     margin-top: 30px;
     margin-bottom: 8px;
+    font-size: 1.2em;
   }
   ul {
     margin-top: 5px;
     margin-bottom: 15px;
+    margin-left: 28px;
   }
   li {
     margin-bottom: 6px;
@@ -159,7 +161,6 @@
   if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
   const db = firebase.firestore();
 
-  // ========== HOOFDSTUK OPHALEN ==========
   const minHoofdstuk = 1;
   const maxHoofdstuk = 24;
 
@@ -218,11 +219,35 @@
     document.getElementById("hoofdstuktitel").textContent = data.titel || `Hoofdstuk ${nr}`;
     // Split de tekst in blokken
     verwerkHoofdstukTekst(data.inhoud || "");
-    // Footer navigatie aanpassen
     if (nr === minHoofdstuk) document.getElementById("vorigeBtn").style.display = "none";
     else document.getElementById("vorigeBtn").style.display = "";
     if (nr === maxHoofdstuk) document.getElementById("volgendeBtn").style.display = "none";
     else document.getElementById("volgendeBtn").style.display = "";
+  }
+
+  // AUTOMATISCHE OPMAAK VAN TEKST
+  function formatHoofdstukTekst(tekst) {
+    // Herken koppen: '1. ...', '2. ...'
+    tekst = tekst.replace(/^(\d+\.\s.*)$/gm, '<h2>$1</h2>');
+    // Herken subkopjes met '-'
+    tekst = tekst.replace(/^- (.*)$/gm, '<li>$1</li>');
+    // Zet lijsten samen in <ul>...</ul>
+    tekst = tekst.replace(/(<li>[\s\S]+?<\/li>)/g, function(matchs) {
+      // Alleen als het géén <ul> eromheen heeft
+      if (!/^<ul>/.test(matchs)) {
+        return '<ul>' + matchs.replace(/(<li>.*?<\/li>)(?!<li>)/g, '$1') + '</ul>';
+      }
+      return matchs;
+    });
+    // Vetgedrukte delen
+    tekst = tekst.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    // Nieuwe alinea's: dubbele enter = nieuwe paragraaf
+    tekst = tekst.split(/\n\s*\n/).map(p => {
+      // Maak geen <p> om <h2> of <ul>...
+      if (/^<h2>.*<\/h2>$/.test(p) || /^<ul>/.test(p) || /^<\/ul>/.test(p)) return p;
+      return `<p>${p.trim()}</p>`;
+    }).join("");
+    return tekst;
   }
 
   function verwerkHoofdstukTekst(tekst) {
@@ -234,17 +259,14 @@
     let hoofd = tekst;
     let bijbel = "", osb = "", slot = "";
 
-    // Bijbelverwijzingen zoeken
     let mBijbel = regBijbel.exec(hoofd);
     if(mBijbel) {
       bijbel = hoofd.substring(mBijbel.index);
       hoofd = hoofd.substring(0, mBijbel.index);
-      // OSB zoeken in bijbelblok
       let mOSB = regOSB.exec(bijbel);
       if(mOSB) {
         osb = bijbel.substring(mOSB.index);
         bijbel = bijbel.substring(0, mOSB.index);
-        // Slot zoeken in osb-blok
         let mSlot = regSlot.exec(osb);
         if(mSlot) {
           slot = osb.substring(mSlot.index);
@@ -253,7 +275,6 @@
         }
         osb = osb.replace(regOSB, "").trim();
       } else {
-        // Slot zoeken in bijbel-blok als OSB ontbreekt
         let mSlot2 = regSlot.exec(bijbel);
         if(mSlot2) {
           slot = bijbel.substring(mSlot2.index);
@@ -263,7 +284,6 @@
       }
       bijbel = bijbel.replace(regBijbel, "").trim();
     } else {
-      // Geen bijbelverwijzingen, zoek direct OSB
       let mOSB = regOSB.exec(hoofd);
       if(mOSB) {
         osb = hoofd.substring(mOSB.index);
@@ -276,7 +296,6 @@
         }
         osb = osb.replace(regOSB, "").trim();
       } else {
-        // Geen OSB, zoek slot direct
         let mSlot = regSlot.exec(hoofd);
         if(mSlot) {
           slot = hoofd.substring(mSlot.index);
@@ -285,26 +304,26 @@
         }
       }
     }
-    // Hoofdtekst tonen
-    document.getElementById("hoofdstuktekst").innerHTML = hoofd.trim().replace(/\n\n+/g,"<br><br>");
-    // Bijbelverwijzingen
+
+    // Gebruik automatisch opgemaakte tekst
+    document.getElementById("hoofdstuktekst").innerHTML = formatHoofdstukTekst(hoofd);
+
+    // De blokjes werken zoals eerder:
     if(bijbel) {
       document.getElementById("bijbelblok").style.display = "";
-      document.getElementById("bijbelverwijzingen").innerHTML = bijbel.replace(/\n\n+/g,"<br><br>");
+      document.getElementById("bijbelverwijzingen").innerHTML = formatHoofdstukTekst(bijbel);
     } else {
       document.getElementById("bijbelblok").style.display = "none";
     }
-    // OSB
     if(osb) {
       document.getElementById("osbblok").style.display = "";
-      document.getElementById("osbsamenvatting").innerHTML = osb.replace(/\n\n+/g,"<br><br>");
+      document.getElementById("osbsamenvatting").innerHTML = formatHoofdstukTekst(osb);
     } else {
       document.getElementById("osbblok").style.display = "none";
     }
-    // Slot
     if(slot) {
       document.getElementById("slotblok").style.display = "";
-      document.getElementById("slot").innerHTML = slot.replace(/\n\n+/g,"<br><br>");
+      document.getElementById("slot").innerHTML = formatHoofdstukTekst(slot);
     } else {
       document.getElementById("slotblok").style.display = "none";
     }
