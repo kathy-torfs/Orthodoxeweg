@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kathismata – Psalmenoverzicht (Priestermodus)</title>
+  <style>
+    body {
+      background-color: #f5e9b8;
+      color: #6f4e1a;
+      font-family: Arial, sans-serif;
+      margin: 0; padding: 0;
+    }
+    .statusbar {
+      background: #7a5f35;
+      color: #fff;
+      padding: 10px 24px;
+      text-align: left;
+      font-size: 1.07em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .uitlog-link {
+      color: #fff;
+      background: #9a2617;
+      padding: 6px 16px;
+      border-radius: 8px;
+      font-size: 1em;
+      text-decoration: none;
+      font-weight: bold;
+      margin-left: 20px;
+      transition: background 0.18s;
+      cursor: pointer;
+      border: none;
+      outline: none;
+    }
+    .uitlog-link:hover {
+      background: #bd2e23;
+    }
+    nav.menu {
+      background-color: #7a5f35;
+      padding: 10px 15px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+    }
+    nav.menu a {
+      color: #f5e9b8;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 16px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      transition: background-color 0.3s;
+    }
+    nav.menu a:hover {
+      background-color: #5d4726;
+      text-decoration: underline;
+    }
+    main {
+      max-width: 860px;
+      margin: 30px auto 60px auto;
+      padding: 0 15px;
+    }
+    h1 {
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+      text-decoration: underline;
+      margin-bottom: 32px;
+    }
+    .kathisma-lijst {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      justify-content: center;
+      margin-top: 20px;
+      margin-bottom: 60px;
+    }
+    .kathisma-kaart {
+      background: #fff8dc;
+      border: 2px solid #c2a357;
+      border-radius: 13px;
+      width: 200px;
+      min-height: 90px;
+      box-shadow: 0 4px 16px #d98f5d20;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.16em;
+      font-weight: bold;
+      color: #7a5f35;
+      text-decoration: none;
+      transition: box-shadow 0.2s, background 0.18s;
+      cursor: pointer;
+      position: relative;
+    }
+    .kathisma-kaart:hover {
+      background: #ffeeb8;
+      box-shadow: 0 6px 24px #a88b5455;
+    }
+    .kathisma-nummer {
+      font-size: 2em;
+      font-weight: bold;
+      margin-bottom: 6px;
+      color: #ad831c;
+    }
+    .kathisma-label {
+      font-size: 1.09em;
+      color: #70540d;
+    }
+    .error {
+      color: #fff;
+      background: #b42c25;
+      border-radius: 8px;
+      padding: 14px;
+      margin: 40px auto 0 auto;
+      max-width: 400px;
+      font-size: 1.13em;
+      text-align: center;
+      box-shadow: 0 4px 16px #d98f5d26;
+    }
+    @media (max-width: 650px) {
+      .kathisma-kaart { width: 100%; min-width: 0; }
+      main { padding: 0 3vw;}
+    }
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <!-- Statusbalk -->
+  <div class="statusbar">
+    <span>
+      U bent ingelogd in: <span id="parochieNaam">...</span>
+    </span>
+    <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
+  </div>
+
+  <nav class="menu">
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/startpagina.html">🏠 Home</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/parochie.html">🛐 Mijn parochie</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/psalmen/psalmen.html">📜 Psalmen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/gebeden.html">🙏 Gebeden</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/catechese/catechese.html">📖 Catechese</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/layout.html">🧰 Bewerk parochie</a>
+  </nav>
+
+  <main>
+    <h1>📜 Kathismata – Psalmenoverzicht</h1>
+    <div class="kathisma-lijst" id="kathismaLijst">
+      <!-- Hier worden de kathismata kaarten ingeladen -->
+    </div>
+    <div id="error" class="error" style="display:none;"></div>
+  </main>
+
+  <script>
+    // Toon parochie in statusbar
+    let parochieNaam = localStorage.getItem("ingelogdeParochie");
+    if (parochieNaam) {
+      document.getElementById("parochieNaam").textContent = parochieNaam;
+    } else {
+      document.getElementById("parochieNaam").textContent = "(niet ingelogd)";
+    }
+    document.getElementById("uitlogKnop").onclick = function() {
+      localStorage.removeItem("ingelogdeParochie");
+      localStorage.removeItem("ingelogdeParochieId");
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    };
+
+    // Firebase setup
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:2e02833fa0d4d8903ceedb"
+    };
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const db = firebase.firestore();
+
+    // Lijst met alle kathisma's (1 t.e.m. 20)
+    const totaalKathismata = 20;
+
+    // Ophalen (je kan later uitbreiden met titels)
+    window.onload = function() {
+      const lijst = document.getElementById("kathismaLijst");
+      lijst.innerHTML = "";
+      for (let i = 1; i <= totaalKathismata; i++) {
+        // In Firestore: kathisma_1, kathisma_2, ...
+        let nummer = i;
+        let kaart = document.createElement("a");
+        kaart.className = "kathisma-kaart";
+        kaart.href = `kathisma.html?nr=${nummer}`;
+        kaart.innerHTML = `
+          <div class="kathisma-nummer">Kathisma ${nummer}</div>
+          <div class="kathisma-label">Klik om te openen</div>
+        `;
+        lijst.appendChild(kaart);
+      }
+    }
+  </script>
+</body>
+</html>
