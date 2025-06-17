@@ -1,1 +1,228 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Catechese – Priestermodus</title>
+  <style>
+    body {
+      background-color: #f5e9b8;
+      color: #6f4e1a;
+      font-family: Arial, sans-serif;
+      margin: 0; padding: 0;
+    }
+    .statusbar {
+      background: #7a5f35;
+      color: #fff;
+      padding: 10px 24px;
+      text-align: left;
+      font-size: 1.07em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .uitlog-link {
+      color: #fff;
+      background: #9a2617;
+      padding: 6px 16px;
+      border-radius: 8px;
+      font-size: 1em;
+      text-decoration: none;
+      font-weight: bold;
+      margin-left: 20px;
+      transition: background 0.18s;
+      cursor: pointer;
+      border: none;
+      outline: none;
+    }
+    .uitlog-link:hover {
+      background: #bd2e23;
+    }
+    nav.menu {
+      background-color: #7a5f35;
+      padding: 10px 15px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+    }
+    nav.menu a {
+      color: #f5e9b8;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 16px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      transition: background-color 0.3s;
+    }
+    nav.menu a:hover {
+      background-color: #5d4726;
+      text-decoration: underline;
+    }
+    main {
+      max-width: 860px;
+      margin: 30px auto 60px auto;
+      padding: 0 15px;
+    }
+    h1, h2, h3 {
+      font-weight: bold;
+      text-decoration: underline;
+    }
+    h1 {
+      text-align: center;
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+    ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    li {
+      margin: 8px 0;
+    }
+    a.hoofdstuk-link {
+      text-decoration: none;
+      color: #6f4e1a;
+      font-weight: bold;
+    }
+    a.hoofdstuk-link:hover {
+      text-decoration: underline;
+    }
+    section.intro {
+      background-color: #f7f0d5;
+      border-left: 5px solid #a68842;
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+    #parochieLabel.fout {
+      color: #fff;
+      background: #b42c25;
+      border-radius: 8px;
+      padding: 12px;
+      margin: 20px auto 0 auto;
+      max-width: 400px;
+      font-size: 1.13em;
+      text-align: center;
+      box-shadow: 0 4px 16px #d98f5d26;
+    }
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
 
+  <!-- STATUSBALK -->
+  <div class="statusbar">
+    <span>
+      U bent ingelogd in: <span id="parochieNaam">...</span>
+    </span>
+    <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
+  </div>
+
+  <nav class="menu">
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/startpagina.html">🏠 Home</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/parochie.html">🛐 Mijn parochie</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/psalmen/psalmen.html">📜 Psalmen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/gebeden.html">🙏 Gebeden</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/catechese/catechese.html">📖 Catechese</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/layout.html">🧰 Bewerk parochie</a>
+  </nav>
+
+  <div id="parochieLabel" style="background:#f8f0d4;color:#7a5f35;padding:10px 0 8px 0;text-align:center;font-weight:bold;letter-spacing:1px;font-size:1.07em;box-shadow:0 2px 8px #cbb96d44;"></div>
+
+  <main>
+    <h1>📖 Orthodoxe Catechese</h1>
+
+    <section class="intro">
+      <p>Welkom bij de orthodoxe catechese: een grondige ontdekkingstocht door het geloof van de oorspronkelijke christelijke Kerk. Elk hoofdstuk neemt je mee in de rijkdom van het orthodoxe leven, met uitleg die toegankelijk is voor jongeren én volwassenen.</p>
+      <p>De catechese is opgedeeld in duidelijke delen. Klik op een hoofdstuk om het volledig te lezen of te bewerken.</p>
+    </section>
+
+    <h2>🕊 DEEL I — GELOOF EN OPENBARING</h2>
+    <ul id="deel1"></ul>
+
+    <h2>🕍 DEEL II — DE KERK EN HAAR MYSTERIËN</h2>
+    <ul id="deel2"></ul>
+
+    <h2>🙏 DEEL III — GELOOF IN ONS DAGELIJKS LEVEN</h2>
+    <ul id="deel3"></ul>
+
+    <h2>🌍 DEEL IV — ONZE ZENDING EN VERANTWOORDELIJKHEID</h2>
+    <ul id="deel4"></ul>
+
+    <h2>📘 Extra modules</h2>
+    <ul id="modules"></ul>
+  </main>
+
+  <script>
+    // Parochie uit localStorage
+    let parochieNaam = localStorage.getItem("ingelogdeParochie");
+    if (parochieNaam) {
+      document.getElementById("parochieNaam").textContent = parochieNaam;
+      document.getElementById("parochieLabel").textContent = "U bent ingelogd in: " + parochieNaam;
+    } else {
+      document.getElementById("parochieLabel").textContent = "Fout: niet ingelogd. U wordt doorgestuurd naar de loginpagina...";
+      document.getElementById("parochieLabel").classList.add("fout");
+      setTimeout(function() {
+        window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/uitloggen.html";
+      }, 2000);
+    }
+
+    document.getElementById("uitlogKnop").onclick = function() {
+      localStorage.removeItem("ingelogdeParochie");
+      localStorage.removeItem("ingelogdeParochieId");
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    };
+
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:2e02833fa0d4d8903ceedb"
+    };
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const db = firebase.firestore();
+
+    // Indeling hoofdstukken in delen (zoals gastenmodus)
+    const indeling = {
+      deel1: [1,2,3,4,5],
+      deel2: [6,7,8,9,10],
+      deel3: [11,12,13,14,15,16],
+      deel4: [17,18,19,20],
+      modules: [21,22,23,24]
+    };
+
+    // Hoofdstukken ophalen en per deel in de juiste ul zetten
+    db.collection("catechese_vw").get().then(snapshot => {
+      // Alle docs in een array [nummer, {titel...}, id]
+      let docs = snapshot.docs.map(doc => {
+        let nr = parseInt(doc.id.replace(/[^\d]/g,''));
+        let data = doc.data();
+        let titel = data.titel || `Hoofdstuk ${nr}`;
+        return [nr, titel];
+      });
+
+      // Sorteer op nummer
+      docs.sort((a,b) => a[0]-b[0]);
+
+      // Per deel vullen
+      for (const deel in indeling) {
+        let ul = document.getElementById(deel);
+        ul.innerHTML = "";
+        indeling[deel].forEach(nr => {
+          let doc = docs.find(d => d[0] === nr);
+          if(doc) {
+            ul.innerHTML += `<li><a href="hoofdstuk${nr}.html" class="hoofdstuk-link">${nr}. ${doc[1]}</a></li>`;
+          }
+        });
+      }
+    }).catch(err => {
+      document.getElementById("deel1").innerHTML = "<li>Fout bij laden van catechese.</li>";
+    });
+  </script>
+</body>
+</html>
