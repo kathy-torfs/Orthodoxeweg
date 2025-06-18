@@ -39,11 +39,6 @@
     .uitlog-link:hover {
       background: #bd2e23;
     }
-    header {
-      background-color: #5e3907;
-      color: white;
-      padding: 20px;
-    }
     nav.menu {
       background-color: #fff1cd;
       display: flex;
@@ -67,96 +62,37 @@
       background-color: #ffeda2;
     }
     main {
-      max-width: 800px;
+      max-width: 700px;
       margin: 40px auto;
       padding: 20px;
-    }
-    .hoofdknoop {
-      display: block;
-      margin: 18px auto;
-      padding: 14px 0;
-      background-color: #fff1cd;
-      color: #5e3907;
-      text-decoration: none;
-      border-radius: 10px;
-      font-size: 1.24em;
-      width: 65%;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.09);
-      font-weight: bold;
-      transition: 0.3s;
-      border: none;
-      cursor: pointer;
-    }
-    .hoofdknoop:hover { background: #ffeda2; }
-    .pdf-link {
-      display: block;
-      margin: 24px auto 0 auto;
-      width: fit-content;
-      padding: 12px 26px;
-      background: #deb757;
-      color: #fff;
-      font-weight: bold;
-      border-radius: 8px;
-      text-decoration: none;
-      font-size: 1.13em;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.12);
-      transition: background 0.2s;
-    }
-    .pdf-link:hover { background: #c49d3c; }
-    .accordion {
-      width: 65%;
-      margin: 32px auto 0 auto;
-      border-radius: 11px;
-      overflow: hidden;
-      background: #fff1cd;
-      box-shadow: 0 1px 5px #edd9a34a;
       text-align: left;
-    }
-    .accordion-button {
-      background: #ffecad;
-      color: #5e3907;
-      border: none;
-      padding: 16px 24px;
-      width: 100%;
-      font-size: 1.17em;
-      text-align: left;
-      cursor: pointer;
-      outline: none;
-      font-weight: bold;
-      border-bottom: 1.5px solid #e3c87d;
-      transition: background 0.2s;
-      border-radius: 11px 11px 0 0;
-    }
-    .accordion-button:hover {
-      background: #ffe28d;
-    }
-    .accordion-content {
-      display: none;
       background: #fffde8;
-      padding: 8px 24px 16px 24px;
-      border-radius: 0 0 11px 11px;
-      border-top: 1px solid #e8d48c;
+      border-radius: 14px;
+      box-shadow: 0 2px 18px #cab88933;
     }
-    .accordion-section {
-      margin: 14px 0 8px 0;
-      font-weight: bold;
-      color: #a2822b;
-      font-size: 1.08em;
-      padding-top: 8px;
+    h1, h2 {
+      text-align: center;
     }
-    .accordion-content a {
-      display: block;
-      color: #5e3907;
-      text-decoration: none;
-      margin: 7px 0;
-      padding: 8px 0 8px 8px;
-      font-size: 1.08em;
-      border-radius: 7px;
-      transition: background 0.15s;
+    .error {
+      color: #fff;
+      background: #b42c25;
+      border-radius: 8px;
+      padding: 14px;
+      margin: 32px auto 0 auto;
+      max-width: 400px;
+      font-size: 1.13em;
+      text-align: center;
+      box-shadow: 0 4px 16px #d98f5d26;
     }
-    .accordion-content a:hover {
-      background: #ffeda2;
-      font-weight: bold;
+    #parochieLabel {
+      background:#f8f0d4;
+      color:#7a5f35;
+      padding:10px 0 8px 0;
+      text-align:center;
+      font-weight:bold;
+      letter-spacing:1px;
+      font-size:1.07em;
+      box-shadow:0 2px 8px #cbb96d44;
     }
     #parochieLabel.fout {
       color: #fff;
@@ -169,6 +105,9 @@
       text-align: center;
       box-shadow: 0 4px 16px #d98f5d26;
     }
+    @media (max-width: 900px) {
+      main { max-width: 98vw; }
+    }
   </style>
 </head>
 <body>
@@ -180,10 +119,6 @@
     <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
   </div>
 
-  <header>
-    <h1>Kies een Gebed</h1>
-  </header>
-
   <nav class="menu">
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/startpagina.html">🏠 Home</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/parochie.html">🛐 Mijn parochie</a>
@@ -194,7 +129,8 @@
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/layout.html">🧰 Bewerk parochie</a>
   </nav>
 
-  <div id="parochieLabel" style="background:#f8f0d4;color:#7a5f35;padding:10px 0 8px 0;text-align:center;font-weight:bold;letter-spacing:1px;font-size:1.07em;box-shadow:0 2px 8px #cbb96d44;"></div>
+  <div id="parochieLabel"></div>
+  <div id="error" class="error" style="display:none;"></div>
 
   <main>
     <h2>De Geloofsbelijdenis</h2>
@@ -223,5 +159,26 @@
     <p>Ik verwacht de opstanding van de doden</p>
     <p>en het leven van het komend Rijk. Amen.</p>
   </main>
+  <script>
+    // Parochie ophalen uit localStorage (en tonen, of foutmelding)
+    let parochieNaam = localStorage.getItem("ingelogdeParochie");
+    if (parochieNaam) {
+      document.getElementById("parochieNaam").textContent = parochieNaam;
+      document.getElementById("parochieLabel").textContent = "U bent ingelogd in: " + parochieNaam;
+    } else {
+      document.getElementById("parochieLabel").textContent = "Fout: niet ingelogd. U wordt doorgestuurd naar de loginpagina...";
+      document.getElementById("parochieLabel").classList.add("fout");
+      setTimeout(function() {
+        window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/uitloggen.html";
+      }, 2000);
+    }
+
+    // Uitloggen knop
+    document.getElementById("uitlogKnop").onclick = function() {
+      localStorage.removeItem("ingelogdeParochie");
+      localStorage.removeItem("ingelogdeParochieId");
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    };
+  </script>
 </body>
 </html>
