@@ -44,7 +44,7 @@
     </div>
   </div>
   <div id="overlay" onclick="closeAllPopups()"></div>
-  <!-- LOGIN PAROCHIAAN (MET PAROCHIEDROPDOWN) -->
+  <!-- LOGIN PAROCHIAAN -->
   <div id="loginPopup" class="popup">
     <button class="sluiten" onclick="closeAllPopups()">&times;</button>
     <h2>Inloggen</h2>
@@ -55,7 +55,7 @@
     <input type="password" id="loginWachtwoord" placeholder="Wachtwoord" autocomplete="current-password" required />
     <button onclick="login()">Inloggen</button>
   </div>
-  <!-- REGISTRATIEFORMULIER — ZONDER FOTO -->
+  <!-- REGISTRATIEFORMULIER -->
   <div id="registratiePopup" class="popup">
     <button class="sluiten" onclick="closeAllPopups()">&times;</button>
     <h2>Registreren</h2>
@@ -94,7 +94,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Parochielijsten in alle drop-downs laden (NAAM + GEMEENTE + POSTCODE)
+    // Parochielijsten in alle drop-downs laden
     function laadParochies() {
       db.collection("parochies").get().then(snapshot => {
         const regSel = document.getElementById("parochieSelect");
@@ -111,7 +111,7 @@
           // Toon als: Parochienaam — Gemeente (Postcode)
           const label = `${naam}${gemeente ? ' — ' + gemeente : ''}${postcode ? ' (' + postcode + ')' : ''}`;
           const optie1 = document.createElement("option");
-          optie1.value = naam; // Waarde blijft de korte naam (voor consistentie in login & registratie)
+          optie1.value = naam;
           optie1.textContent = label;
           if(regSel) regSel.appendChild(optie1);
           if(priestSel) priestSel.appendChild(optie1.cloneNode(true));
@@ -121,7 +121,7 @@
     }
     window.addEventListener('DOMContentLoaded', laadParochies);
 
-    // REGISTRATIEFORMULIER — zonder profielfoto
+    // REGISTRATIEFORMULIER
     document.getElementById("registratieForm").addEventListener("submit", async function(e) {
       e.preventDefault();
       const voornaam = document.getElementById("voornaam").value;
@@ -152,7 +152,7 @@
       });
     });
 
-    // LOGIN parochiaan: mét parochie-dropdown
+    // LOGIN parochiaan
     function login() {
       const parochie = document.getElementById("loginParochie").value;
       const gebruikersnaam = document.getElementById("loginNaam").value.trim();
@@ -164,8 +164,10 @@
         .get()
         .then(snapshot => {
           if (!snapshot.empty) {
+            localStorage.setItem("modus", "volwassene");
+            localStorage.removeItem("ingelogdeParochie");
             closeAllPopups();
-            window.location.href = "volwassenen/startpagina.html";
+            window.location.href = "startpagina.html";
           } else {
             alert("Onjuiste gegevens.");
           }
@@ -185,9 +187,10 @@
         .get()
         .then(snapshot => {
           if (!snapshot.empty) {
+            localStorage.setItem("modus", "priester");
             localStorage.setItem("ingelogdeParochie", parochie);
             closeAllPopups();
-            window.location.href = "priestermodus/startpagina.html";
+            window.location.href = "startpagina.html";
           } else {
             alert("Onjuiste gegevens.");
           }
@@ -206,7 +209,9 @@
       document.querySelectorAll(".popup").forEach(p => p.style.display = "none");
     }
     function gastenmodus() {
-      window.location.href = "gastenmodus/startpagina.html";
+      localStorage.setItem("modus", "gast");
+      localStorage.removeItem("ingelogdeParochie");
+      window.location.href = "startpagina.html";
     }
   </script>
 </body>
