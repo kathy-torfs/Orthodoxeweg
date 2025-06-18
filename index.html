@@ -55,7 +55,7 @@
     <input type="password" id="loginWachtwoord" placeholder="Wachtwoord" autocomplete="current-password" required />
     <button onclick="login()">Inloggen</button>
   </div>
-  <!-- REGISTRATIEFORMULIER -->
+  <!-- REGISTRATIEFORMULIER — ZONDER FOTO -->
   <div id="registratiePopup" class="popup">
     <button class="sluiten" onclick="closeAllPopups()">&times;</button>
     <h2>Registreren</h2>
@@ -67,7 +67,6 @@
       <select id="parochieSelect" required><option>Bezig met laden...</option></select>
       <input type="date" id="geboortedatum" placeholder="Geboortedatum" required />
       <input type="text" id="loginKeuze" placeholder="Kies uw loginnaam" required />
-      <input type="file" id="profielfoto" accept="image/*" />
       <button type="submit">Verzenden</button>
     </form>
   </div>
@@ -83,7 +82,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
   <script>
-    // JOUW FIREBASE CONFIG
+    // FIREBASE CONFIG
     const firebaseConfig = {
       apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -94,9 +93,8 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const storage = firebase.storage();
 
-    // Parochielijsten in alle drop-downs laden
+    // Parochielijsten in alle drop-downs laden (NAAM + GEMEENTE + POSTCODE)
     function laadParochies() {
       db.collection("parochies").get().then(snapshot => {
         const regSel = document.getElementById("parochieSelect");
@@ -106,10 +104,15 @@
         if(priestSel) priestSel.innerHTML = "";
         if(loginParSel) loginParSel.innerHTML = "";
         snapshot.forEach(doc => {
-          const naam = doc.data().naam;
+          const data = doc.data();
+          const naam = data.naam || "";
+          const gemeente = data.gemeente || "";
+          const postcode = data.postcode || "";
+          // Toon als: Parochienaam — Gemeente (Postcode)
+          const label = `${naam}${gemeente ? ' — ' + gemeente : ''}${postcode ? ' (' + postcode + ')' : ''}`;
           const optie1 = document.createElement("option");
-          optie1.value = naam;
-          optie1.textContent = naam;
+          optie1.value = naam; // Waarde blijft de korte naam (voor consistentie in login & registratie)
+          optie1.textContent = label;
           if(regSel) regSel.appendChild(optie1);
           if(priestSel) priestSel.appendChild(optie1.cloneNode(true));
           if(loginParSel) loginParSel.appendChild(optie1.cloneNode(true));
@@ -118,7 +121,7 @@
     }
     window.addEventListener('DOMContentLoaded', laadParochies);
 
-    // REGISTRATIEFORMULIER — met profielfoto upload
+    // REGISTRATIEFORMULIER — zonder profielfoto
     document.getElementById("registratieForm").addEventListener("submit", async function(e) {
       e.preventDefault();
       const voornaam = document.getElementById("voornaam").value;
@@ -128,14 +131,7 @@
       const parochie = document.getElementById("parochieSelect").value;
       const geboortedatum = document.getElementById("geboortedatum").value;
       const loginKeuze = document.getElementById("loginKeuze").value;
-      const file = document.getElementById("profielfoto").files[0];
 
-      let profielfotoUrl = "";
-      if (file) {
-        const storageRef = storage.ref().child("profielfotos/" + Date.now() + "_" + file.name);
-        await storageRef.put(file);
-        profielfotoUrl = await storageRef.getDownloadURL();
-      }
       db.collection("registraties").add({
         voornaam,
         achternaam,
@@ -144,7 +140,6 @@
         parochie,
         geboortedatum,
         loginKeuze,
-        profielfotoUrl,
         status: "in afwachting"
       }).then(() => {
         closeAllPopups();
@@ -180,27 +175,27 @@
         });
     }
 
-    // PRIESTERLOGIN — niet meer wijzigen!
+    // PRIESTERLOGIN
     function priesterLogin() {
-  const parochie = document.getElementById("priesterParochie").value;
-  const wachtwoord = document.getElementById("priesterWachtwoord").value;
-  db.collection("parochies")
-    .where("naam", "==", parochie)
-    .where("postcode", "==", wachtwoord)
-    .get()
-    .then(snapshot => {
-      if (!snapshot.empty) {
-        localStorage.setItem("ingelogdeParochie", parochie); // <--- DIT IS ESSENTIEEL!
-        closeAllPopups();
-        window.location.href = "priestermodus/startpagina.html";
-      } else {
-        alert("Onjuiste gegevens.");
-      }
-    }).catch(err => {
-      alert("Fout bij inloggen.");
-      console.error(err);
-    });
-}
+      const parochie = document.getElementById("priesterParochie").value;
+      const wachtwoord = document.getElementById("priesterWachtwoord").value;
+      db.collection("parochies")
+        .where("naam", "==", parochie)
+        .where("postcode", "==", wachtwoord)
+        .get()
+        .then(snapshot => {
+          if (!snapshot.empty) {
+            localStorage.setItem("ingelogdeParochie", parochie);
+            closeAllPopups();
+            window.location.href = "priestermodus/startpagina.html";
+          } else {
+            alert("Onjuiste gegevens.");
+          }
+        }).catch(err => {
+          alert("Fout bij inloggen.");
+          console.error(err);
+        });
+    }
     // POPUPS
     function openPopup(id) {
       document.getElementById("overlay").style.display = "block";
@@ -210,7 +205,6 @@
       document.getElementById("overlay").style.display = "none";
       document.querySelectorAll(".popup").forEach(p => p.style.display = "none");
     }
-
     function gastenmodus() {
       window.location.href = "gastenmodus/startpagina.html";
     }
