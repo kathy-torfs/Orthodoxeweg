@@ -83,6 +83,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    // Parochies laden in alle relevante dropdowns mét data-id attribuut!
     function laadParochies() {
       db.collection("parochies").get().then(snapshot => {
         ["parochieSelect", "priesterParochie", "loginParochie"].forEach(id => {
@@ -93,6 +94,7 @@
             const optie = document.createElement("option");
             optie.value = data.naam;
             optie.textContent = `${data.naam} — ${data.gemeente} (${data.postcode})`;
+            optie.setAttribute("data-id", doc.id); // <-- belangrijk!
             if (el) el.appendChild(optie);
           });
         });
@@ -100,6 +102,7 @@
     }
     window.addEventListener('DOMContentLoaded', laadParochies);
 
+    // Registratie verzendt naar de juiste subcollection onder parochie
     document.getElementById("registratieForm").addEventListener("submit", function(e) {
       e.preventDefault();
       const data = {
@@ -112,7 +115,9 @@
         loginKeuze: document.getElementById("loginKeuze").value,
         status: "in afwachting"
       };
-      db.collection("registraties").add(data).then(() => {
+      // Haal het Firestore document-id uit het geselecteerde option
+      const parochieId = document.getElementById("parochieSelect").selectedOptions[0].getAttribute("data-id");
+      db.collection("parochies").doc(parochieId).collection("registraties").add(data).then(() => {
         closeAllPopups();
         alert("Registratie verzonden. Je ontvangt een e-mail na goedkeuring.");
       });
