@@ -149,16 +149,54 @@
         });
     }
     laadAanvragen();
+// Functies voor goedkeuren/weigeren
 
-    // Functies voor goedkeuren/weigeren
-    function goedkeurAanvraag(id) {
-      // Volgende stap: in de volgende reply!
-      alert("Deze knop zal straks de aanvraag goedkeuren & verplaatsen naar leden.");
-    }
-    function weigerAanvraag(id) {
-      // Volgende stap: in de volgende reply!
-      alert("Deze knop zal straks de aanvraag weigeren & verwijderen.");
-    }
+// Random wachtwoordgenerator
+function genWachtwoord(length = 5) {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+  let pwd = '';
+  for (let i = 0; i < length; i++) pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+  return pwd;
+}
+
+// Goedkeuren-functie
+function goedkeurAanvraag(id) {
+  // Eerst registratie ophalen
+  db.collection("registraties").doc(id).get().then(doc => {
+    if (!doc.exists) return alert("Registratie niet gevonden!");
+    const data = doc.data();
+    const wachtwoord = genWachtwoord();
+    // Nieuwe gebruiker aanmaken
+    db.collection("gebruikers").add({
+      gebruikersnaam: data.loginKeuze,
+      wachtwoord: wachtwoord,
+      email: data.email,
+      voornaam: data.voornaam,
+      achternaam: data.achternaam,
+      doopnaam: data.doopnaam,
+      geboortedatum: data.geboortedatum,
+      parochie: data.parochie,
+      status: "actief"
+    }).then(() => {
+      // Status updaten naar goedgekeurd
+      db.collection("registraties").doc(id).update({status: "goedgekeurd"});
+      alert(
+        `Registratie goedgekeurd!\n\nGebruikersnaam: ${data.loginKeuze}\nWachtwoord: ${wachtwoord}\n\nStuur deze gegevens handmatig door naar de gebruiker.`
+      );
+      laadAanvragen(); // Lijst opnieuw laden
+    });
+  });
+}
+
+// Weiger-functie
+function weigerAanvraag(id) {
+  db.collection("registraties").doc(id).update({status: "geweigerd"})
+    .then(() => {
+      alert("Registratie geweigerd.");
+      laadAanvragen(); // Lijst opnieuw laden
+    });
+}
+
   </script>
 </body>
 </html>
