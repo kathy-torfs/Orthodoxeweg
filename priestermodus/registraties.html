@@ -68,6 +68,15 @@
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+  <script>
+    // BEVEILIGING: redirect als niet ingelogd als priester
+    if (
+      !localStorage.getItem("ingelogdeParochie") ||
+      localStorage.getItem("modus") !== "priester"
+    ) {
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    }
+  </script>
 </head>
 <body>
   <div class="statusbar">
@@ -101,14 +110,13 @@
 
     // Parochie ophalen
     let parochie = localStorage.getItem("ingelogdeParochie") || "";
-
-    // Vul statusbalk
     document.getElementById("parochieNaam").textContent = parochie;
 
     // Uitloggen-knop
     document.getElementById("uitlogKnop").onclick = function() {
       localStorage.removeItem("ingelogdeParochie");
       localStorage.removeItem("ingelogdeParochieId");
+      localStorage.removeItem("modus");
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     };
 
@@ -117,49 +125,40 @@
       const container = document.getElementById("aanvragenLijst");
       container.innerHTML = '<div class="geen-aanvragen">Bezig met laden...</div>';
       db.collection("parochies")
-        .where("naam", "==", parochie)
+        .doc(parochie)
+        .collection("registraties")
+        .where("status", "==", "in afwachting")
         .get()
-        .then(parSnap => {
-          if (parSnap.empty) {
-            container.innerHTML = '<div class="geen-aanvragen">Fout: parochie niet gevonden!</div>';
+        .then(snapshot => {
+          if (snapshot.empty) {
+            container.innerHTML = '<div class="geen-aanvragen">Geen nieuwe registratieaanvragen.</div>';
             return;
           }
-          const parId = parSnap.docs[0].id;
-          db.collection("parochies").doc(parId)
-            .collection("registraties")
-            .where("status", "==", "in afwachting")
-            .get()
-            .then(snapshot => {
-              if (snapshot.empty) {
-                container.innerHTML = '<div class="geen-aanvragen">Geen nieuwe registratieaanvragen.</div>';
-                return;
-              }
-              let html = "";
-              snapshot.forEach(doc => {
-                const d = doc.data();
-                html += `
-                  <div class="aanvraag" data-id="${doc.id}">
-                    <div class="aanvraag-info">
-                      <span class="naam">${d.voornaam} ${d.achternaam}</span><br>
-                      <span class="veld">Doopnaam: ${d.doopnaam}</span><br>
-                      <span class="veld">E-mail: ${d.email}</span><br>
-                      <span class="veld">Geboortedatum: ${d.geboortedatum}</span><br>
-                      <span class="veld">Login: ${d.loginKeuze}</span>
-                    </div>
-                    <div class="actieknoppen">
-                      <button class="goedkeur" onclick="goedkeurAanvraag('${parId}', '${doc.id}')">Goedkeuren</button>
-                      <button class="weiger" onclick="weigerAanvraag('${parId}', '${doc.id}')">Weigeren</button>
-                    </div>
-                  </div>
-                `;
-              });
-              container.innerHTML = html;
-            });
+          let html = "";
+          snapshot.forEach(doc => {
+            const d = doc.data();
+            html += `
+              <div class="aanvraag" data-id="${doc.id}">
+                <div class="aanvraag-info">
+                  <span class="naam">${d.voornaam} ${d.achternaam}</span><br>
+                  <span class="veld">Doopnaam: ${d.doopnaam}</span><br>
+                  <span class="veld">E-mail: ${d.email}</span><br>
+                  <span class="veld">Geboortedatum: ${d.geboortedatum}</span><br>
+                  <span class="veld">Login: ${d.loginKeuze}</span>
+                </div>
+                <div class="actieknoppen">
+                  <button class="goedkeur" onclick="goedkeurAanvraag('${doc.id}')">Goedkeuren</button>
+                  <button class="weiger" onclick="weigerAanvraag('${doc.id}')">Weigeren</button>
+                </div>
+              </div>
+            `;
+          });
+          container.innerHTML = html;
         });
     }
     laadAanvragen();
 
-    // Wachtwoord generator
+    // Wachtwoordgenerator
     function genWachtwoord(length = 5) {
       const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
       let pwd = '';
@@ -167,39 +166,65 @@
       return pwd;
     }
 
+    // Controle op unieke loginnaam in subleden
+    function checkUniekeLogin(parochie, loginKeuze) {
+      return db.collection("parochies")
+        .doc(parochie)
+        .collection("leden")
+        .where("loginKeuze", "==", loginKeuze)
+        .get().then(snap => snap.empty);
+    }
+
     // Goedkeuren
-    function goedkeurAanvraag(parId, regId) {
-      const regRef = db.collection("parochies").doc(parId).collection("registraties").doc(regId);
-      regRef.get().then(doc => {
+    function goedkeurAanvraag(id) {
+      db.collection("parochies").doc(parochie).collection("registraties").doc(id).get().then(doc => {
         if (!doc.exists) return alert("Registratie niet gevonden!");
         const data = doc.data();
-        const wachtwoord = genWachtwoord();
-        // Zet gebruiker in subcollectie leden
-        db.collection("parochies").doc(parId).collection("leden").add({
-          gebruikersnaam: data.loginKeuze,
-          wachtwoord: wachtwoord,
-          email: data.email,
-          voornaam: data.voornaam,
-          achternaam: data.achternaam,
-          doopnaam: data.doopnaam,
-          geboortedatum: data.geboortedatum,
-          status: "actief"
-        }).then(() => {
-          regRef.update({status: "goedgekeurd"}).then(() => {
-            alert(
-              `Registratie goedgekeurd!\n\nGebruikersnaam: ${data.loginKeuze}\nWachtwoord: ${wachtwoord}\n\nStuur deze gegevens handmatig door naar de gebruiker.`
-            );
-            laadAanvragen();
-          });
+        // Check op unieke loginKeuze
+        checkUniekeLogin(parochie, data.loginKeuze).then(isUniek => {
+          if (!isUniek) {
+            alert("Deze loginnaam bestaat al bij de leden van uw parochie. Kies een andere loginnaam.");
+            return;
+          }
+          const wachtwoord = genWachtwoord();
+          // Toevoegen aan subleden
+          db.collection("parochies")
+            .doc(parochie)
+            .collection("leden")
+            .add({
+              voornaam: data.voornaam,
+              achternaam: data.achternaam,
+              doopnaam: data.doopnaam,
+              email: data.email,
+              geboortedatum: data.geboortedatum,
+              loginKeuze: data.loginKeuze,
+              wachtwoord: wachtwoord,
+              status: "actief"
+            }).then(() => {
+              // Status updaten naar goedgekeurd
+              db.collection("parochies")
+                .doc(parochie)
+                .collection("registraties")
+                .doc(id)
+                .update({status: "goedgekeurd"});
+              alert(
+                `Registratie goedgekeurd!\n\nGebruikersnaam: ${data.loginKeuze}\nWachtwoord: ${wachtwoord}\n\nStuur deze gegevens handmatig door naar de gebruiker.`
+              );
+              laadAanvragen();
+            });
         });
       });
     }
 
     // Weigeren
-    function weigerAanvraag(parId, regId) {
-      db.collection("parochies").doc(parId).collection("registraties").doc(regId).update({status: "geweigerd"})
+    function weigerAanvraag(id) {
+      db.collection("parochies")
+        .doc(parochie)
+        .collection("registraties")
+        .doc(id)
+        .delete()
         .then(() => {
-          alert("Registratie geweigerd.");
+          alert("Registratie geweigerd en verwijderd.");
           laadAanvragen();
         });
     }
