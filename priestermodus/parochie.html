@@ -11,33 +11,6 @@
       padding: 0;
       background-color: #f8f5e9;
     }
-    .statusbar {
-      background: #7a5f35;
-      color: #fff;
-      padding: 10px 24px;
-      text-align: left;
-      font-size: 1.07em;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .uitlog-link {
-      color: #fff;
-      background: #9a2617;
-      padding: 6px 16px;
-      border-radius: 8px;
-      font-size: 1em;
-      text-decoration: none;
-      font-weight: bold;
-      margin-left: 20px;
-      transition: background 0.18s;
-      cursor: pointer;
-      border: none;
-      outline: none;
-    }
-    .uitlog-link:hover {
-      background: #bd2e23;
-    }
     nav.menu {
       background-color: #7a5f35;
       padding: 12px 20px;
@@ -60,13 +33,24 @@
     }
     header {
       background-color: #e6d6b8;
-      padding: 1.5rem;
+      padding: 2rem 1rem 0.7rem 1rem;
       text-align: center;
     }
     h1 {
       margin: 0;
-      font-size: 1.9rem;
+      font-size: 2.0rem;
       color: #5d4c2f;
+    }
+    #parochieLabel {
+      background: #fcf6e2;
+      color: #7a5f35;
+      padding: 10px 0 8px 0;
+      text-align: center;
+      font-weight: bold;
+      letter-spacing: 1px;
+      font-size: 1.08em;
+      box-shadow: 0 2px 8px #cbb96d44;
+      margin-bottom: 10px;
     }
     .dashboard {
       display: flex;
@@ -102,16 +86,22 @@
       font-size: 2.2rem;
       margin-bottom: 0.8rem;
     }
-    #parochieLabel.fout {
+    .uitlog-link {
       color: #fff;
-      background: #b42c25;
+      background: #9a2617;
+      padding: 6px 16px;
       border-radius: 8px;
-      padding: 12px;
-      margin: 20px auto 0 auto;
-      max-width: 400px;
-      font-size: 1.13em;
-      text-align: center;
-      box-shadow: 0 4px 16px #d98f5d26;
+      font-size: 1em;
+      text-decoration: none;
+      font-weight: bold;
+      margin-top: 14px;
+      margin-bottom: 12px;
+      margin-left: 6px;
+      transition: background 0.18s;
+      cursor: pointer;
+      border: none;
+      outline: none;
+      float: right;
     }
     @media (max-width: 600px) {
       .dashboard {
@@ -124,22 +114,19 @@
       }
     }
   </style>
-  <!-- Beveiliging -->
   <script>
+    // Beveiliging
     if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "priester") {
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     }
   </script>
 </head>
 <body>
-  <!-- STATUSBALK -->
-  <div class="statusbar">
-    <span>
-      U bent ingelogd in: <span id="parochieNaam">...</span>
-    </span>
+  <header>
     <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
-  </div>
-
+    <h1 id="welkom-tekst">Welkom vader, ik wens u een gezegende dag.</h1>
+    <div id="parochieLabel"></div>
+  </header>
   <nav class="menu">
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/startpagina.html">🏠 Startpagina</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/parochie.html">🛐 Mijn parochie</a>
@@ -149,13 +136,6 @@
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/catechese/catechese.html">📖 Catechese</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/layout.html">🧰 Bewerk parochie</a>
   </nav>
-
-  <div id="parochieLabel" style="display:none"></div>
-
-  <header>
-    <h1 id="welkom-tekst">Welkom vader, ik wens u een gezegende dag</h1>
-  </header>
-
   <div class="dashboard">
     <a class="tegel" href="registraties.html">
       <span class="emoji">📨</span>
@@ -190,35 +170,41 @@
       Contact met andere parochies
     </a>
   </div>
-
   <script>
     // Parochienaam ophalen uit localStorage
     let parochieNaam = localStorage.getItem("ingelogdeParochie");
 
-    // Vul statusbalk
+    // Welkomtekst aanpassen op dagdeel — precies zoals je het wilde:
+    const welkomTekst = document.getElementById("welkom-tekst");
+    const uur = new Date().getHours();
+    let moment = "dag";
+    if (uur >= 5 && uur < 10) moment = "goeiemorgen";
+    else if (uur >= 10 && uur < 11) moment = "dag";
+    else if (uur >= 11 && uur < 13) moment = "middag";
+    else if (uur >= 13 && uur < 17) moment = "dag";
+    else if (uur >= 17 && uur < 22) moment = "avond";
+    else moment = "nacht";
+    welkomTekst.textContent = `${moment} vader, ik wens u een gezegende dag.`;
+
+    // Parochiebalk invullen
     if (parochieNaam) {
-      document.getElementById("parochieNaam").textContent = parochieNaam;
+      document.getElementById("parochieLabel").textContent = `U bent ingelogd in de parochie van ${parochieNaam}`;
+    } else {
+      document.getElementById("parochieLabel").textContent = "Fout: niet ingelogd. U wordt doorgestuurd...";
+      document.getElementById("parochieLabel").style.background = "#b42c25";
+      document.getElementById("parochieLabel").style.color = "#fff";
+      setTimeout(function() {
+        window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/uitloggen.html";
+      }, 2000);
     }
 
-    // Uitloggen-knop (wist alleen login-info, rest blijft in database)
+    // Uitloggen-knop
     document.getElementById("uitlogKnop").onclick = function() {
       localStorage.removeItem("ingelogdeParochie");
       localStorage.removeItem("ingelogdeParochieId");
       localStorage.removeItem("modus");
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     };
-
-    // Welkomtekst aanpassen op dagdeel
-    const welkomTekst = document.getElementById("welkom-tekst");
-    const uur = new Date().getHours();
-    let moment = "dag";
-    if (uur >= 5 && uur < 10) moment = "ochtend";
-    else if (uur >= 10 && uur < 11) moment = "dag";
-    else if (uur >= 11 && uur < 13) moment = "middag";
-    else if (uur >= 13 && uur < 17) moment = "dag";
-    else if (uur >= 17 && uur < 22) moment = "avond";
-    else moment = "nacht";
-    welkomTekst.textContent = `Welkom vader, ik wens u een gezegende ${moment} in parochie: ${parochieNaam || ""}`;
   </script>
 </body>
 </html>
