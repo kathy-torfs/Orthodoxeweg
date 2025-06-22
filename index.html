@@ -102,7 +102,7 @@
     }
     window.addEventListener('DOMContentLoaded', laadParochies);
 
-    // Registratie verzendt naar de juiste subcollection onder parochie
+    // Registratie verzendt naar de juiste subcollection onder parochie MET check op unieke loginnaam
     document.getElementById("registratieForm").addEventListener("submit", function(e) {
       e.preventDefault();
       const data = {
@@ -117,10 +117,31 @@
       };
       // Haal het Firestore document-id uit het geselecteerde option
       const parochieId = document.getElementById("parochieSelect").selectedOptions[0].getAttribute("data-id");
-      db.collection("parochies").doc(parochieId).collection("registraties").add(data).then(() => {
-        closeAllPopups();
-        alert("Registratie verzonden. Je ontvangt een e-mail na goedkeuring.");
-      });
+      const loginKeuze = data.loginKeuze;
+
+      // 1. Eerst checken of de loginKeuze al bestaat bij REGISTRATIES van deze parochie
+      db.collection("parochies").doc(parochieId).collection("registraties")
+        .where("loginKeuze", "==", loginKeuze)
+        .get().then(snapshot => {
+          if (!snapshot.empty) {
+            alert("Deze loginnaam is al in gebruik voor deze parochie.");
+            return;
+          }
+          // 2. Nu checken of deze loginKeuze al bestaat in LEDEN van deze parochie
+          db.collection("parochies").doc(parochieId).collection("leden")
+            .where("loginKeuze", "==", loginKeuze)
+            .get().then(snapshot2 => {
+              if (!snapshot2.empty) {
+                alert("Deze loginnaam is al in gebruik voor deze parochie.");
+                return;
+              }
+              // 3. Zo niet, dan mag hij toegevoegd worden
+              db.collection("parochies").doc(parochieId).collection("registraties").add(data).then(() => {
+                closeAllPopups();
+                alert("Registratie verzonden. Je ontvangt een e-mail na goedkeuring.");
+              });
+            });
+        });
     });
 
     function login() {
@@ -171,3 +192,4 @@
   </script>
 </body>
 </html>
+
