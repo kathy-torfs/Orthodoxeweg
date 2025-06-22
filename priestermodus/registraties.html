@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Registratieaanvragen - Priestermodus</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
@@ -87,6 +87,11 @@
     <div class="geen-aanvragen">Bezig met laden...</div>
   </div>
   <script>
+    // BEVEILIGING: Alleen toegankelijk als priester
+    if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "priester") {
+      window.location.href = "../index.html";
+    }
+
     // FIREBASE INIT
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
@@ -99,27 +104,26 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Ophalen parochie uit localStorage (moet identiek zijn aan de parochie-document-id in Firestore)
-    let parochie = localStorage.getItem("ingelogdeParochie") || "";
+    // Parochie-ID ophalen uit localStorage
+    let parochieId = localStorage.getItem("ingelogdeParochie") || "";
 
-    document.getElementById("parochieNaam").textContent = parochie;
+    // Toon statusbalk
+    document.getElementById("parochieNaam").textContent = parochieId;
 
     // Uitloggen-knop
     document.getElementById("uitlogKnop").onclick = function() {
       localStorage.removeItem("ingelogdeParochie");
-      localStorage.removeItem("ingelogdeParochieId");
+      localStorage.removeItem("modus");
       window.location.href = "../index.html";
     };
 
-    // --- LAAD AANVRAGEN UIT SUBCOLLECTIE VAN PAROCHIE ---
+    // Registratie-aanvragen laden
     function laadAanvragen() {
       const container = document.getElementById("aanvragenLijst");
       container.innerHTML = '<div class="geen-aanvragen">Bezig met laden...</div>';
-      if (!parochie) {
-        container.innerHTML = '<div class="geen-aanvragen">Geen parochie geselecteerd.</div>';
-        return;
-      }
-      db.collection("parochies").doc(parochie).collection("registraties")
+      db.collection("parochies")
+        .doc(parochieId)
+        .collection("registraties")
         .where("status", "==", "in afwachting")
         .get()
         .then(snapshot => {
@@ -133,11 +137,11 @@
             html += `
               <div class="aanvraag" data-id="${doc.id}">
                 <div class="aanvraag-info">
-                  <span class="naam">${d.voornaam} ${d.achternaam}</span><br>
-                  <span class="veld">Doopnaam: ${d.doopnaam}</span><br>
-                  <span class="veld">E-mail: ${d.email}</span><br>
-                  <span class="veld">Geboortedatum: ${d.geboortedatum}</span><br>
-                  <span class="veld">Login: ${d.loginKeuze}</span>
+                  <span class="naam">${d.voornaam || ""} ${d.achternaam || ""}</span><br>
+                  <span class="veld">Doopnaam: ${d.doopnaam || ""}</span><br>
+                  <span class="veld">E-mail: ${d.email || ""}</span><br>
+                  <span class="veld">Geboortedatum: ${d.geboortedatum || ""}</span><br>
+                  <span class="veld">Login: ${d.loginKeuze || ""}</span>
                 </div>
                 <div class="actieknoppen">
                   <button class="goedkeur" onclick="goedkeurAanvraag('${doc.id}')">Goedkeuren</button>
@@ -151,7 +155,7 @@
     }
     laadAanvragen();
 
-    // Wachtwoordgenerator
+    // Random wachtwoordgenerator
     function genWachtwoord(length = 5) {
       const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
       let pwd = '';
@@ -159,41 +163,39 @@
       return pwd;
     }
 
-    // GOEDKEUREN: zet in sub 'leden', verwijder uit 'registraties'
+    // Goedkeuren
     function goedkeurAanvraag(id) {
-      db.collection("parochies").doc(parochie).collection("registraties").doc(id).get().then(doc => {
+      const registratieRef = db.collection("parochies").doc(parochieId).collection("registraties").doc(id);
+      registratieRef.get().then(doc => {
         if (!doc.exists) return alert("Registratie niet gevonden!");
         const data = doc.data();
-        const wachtwoord = genWachtwoord();
 
-        // Toevoegen aan 'leden' subcollectie onder de parochie
-        db.collection("parochies").doc(parochie).collection("leden").add({
-          gebruikersnaam: data.loginKeuze,
-          wachtwoord: wachtwoord,
-          email: data.email,
+        // 1. Voeg toe aan leden
+        db.collection("parochies").doc(parochieId).collection("leden").add({
           voornaam: data.voornaam,
           achternaam: data.achternaam,
           doopnaam: data.doopnaam,
+          email: data.email,
           geboortedatum: data.geboortedatum,
-          parochie: data.parochie,
+          loginKeuze: data.loginKeuze,
           status: "actief"
         }).then(() => {
-          // Verwijderen uit 'registraties'
-          db.collection("parochies").doc(parochie).collection("registraties").doc(id).delete();
-          alert(
-            `Registratie goedgekeurd!\n\nGebruikersnaam: ${data.loginKeuze}\nWachtwoord: ${wachtwoord}\n\nStuur deze gegevens handmatig door naar de gebruiker.`
-          );
-          laadAanvragen();
+          // 2. Verwijder registratie
+          registratieRef.delete().then(() => {
+            alert("Lid toegevoegd aan de parochie!");
+            laadAanvragen();
+          });
         });
       });
     }
 
-    // WEIGEREN: verwijder uit 'registraties'
+    // Weigeren
     function weigerAanvraag(id) {
-      db.collection("parochies").doc(parochie).collection("registraties").doc(id).delete().then(() => {
-        alert("Registratie geweigerd en verwijderd.");
-        laadAanvragen();
-      });
+      db.collection("parochies").doc(parochieId).collection("registraties").doc(id).delete()
+        .then(() => {
+          alert("Registratie geweigerd en verwijderd.");
+          laadAanvragen();
+        });
     }
   </script>
 </body>
