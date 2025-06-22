@@ -124,6 +124,12 @@
       }
     }
   </style>
+  <!-- Beveiliging -->
+  <script>
+    if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "priester") {
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    }
+  </script>
 </head>
 <body>
   <!-- STATUSBALK -->
@@ -144,7 +150,7 @@
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/layout.html">🧰 Bewerk parochie</a>
   </nav>
 
-  <div id="parochieLabel" style="background:#f8f0d4;color:#7a5f35;padding:10px 0 8px 0;text-align:center;font-weight:bold;letter-spacing:1px;font-size:1.07em;box-shadow:0 2px 8px #cbb96d44;"></div>
+  <div id="parochieLabel" style="display:none"></div>
 
   <header>
     <h1 id="welkom-tekst">Welkom vader, ik wens u een gezegende dag</h1>
@@ -189,22 +195,16 @@
     // Parochienaam ophalen uit localStorage
     let parochieNaam = localStorage.getItem("ingelogdeParochie");
 
-    // Vul statusbalk & label
+    // Vul statusbalk
     if (parochieNaam) {
       document.getElementById("parochieNaam").textContent = parochieNaam;
-      document.getElementById("parochieLabel").textContent = "U bent ingelogd in: " + parochieNaam;
-    } else {
-      document.getElementById("parochieLabel").textContent = "Fout: niet ingelogd. U wordt doorgestuurd naar de loginpagina...";
-      document.getElementById("parochieLabel").classList.add("fout");
-      setTimeout(function() {
-        window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/uitloggen.html";
-      }, 2000);
     }
 
     // Uitloggen-knop (wist alleen login-info, rest blijft in database)
     document.getElementById("uitlogKnop").onclick = function() {
       localStorage.removeItem("ingelogdeParochie");
       localStorage.removeItem("ingelogdeParochieId");
+      localStorage.removeItem("modus");
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     };
 
@@ -218,7 +218,7 @@
     else if (uur >= 13 && uur < 17) moment = "dag";
     else if (uur >= 17 && uur < 22) moment = "avond";
     else moment = "nacht";
-    welkomTekst.textContent = `Welkom vader, ik wens u een gezegende ${moment}`;
+    welkomTekst.textContent = `Welkom vader, ik wens u een gezegende ${moment} in parochie: ${parochieNaam || ""}`;
   </script>
 </body>
 </html>
