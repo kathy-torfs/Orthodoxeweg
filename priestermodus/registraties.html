@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Registratieaanvragen - Priestermodus</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
@@ -68,6 +68,12 @@
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+  <script>
+    // Toegangscontrole voor priesters
+    if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "priester") {
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    }
+  </script>
 </head>
 <body>
   <div class="statusbar">
@@ -87,11 +93,6 @@
     <div class="geen-aanvragen">Bezig met laden...</div>
   </div>
   <script>
-    // BEVEILIGING: Alleen toegankelijk als priester
-    if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "priester") {
-      window.location.href = "../index.html";
-    }
-
     // FIREBASE INIT
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
@@ -104,26 +105,35 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Parochie-ID ophalen uit localStorage
-    let parochieId = localStorage.getItem("ingelogdeParochie") || "";
+    // Haal de parochie naam én id op uit localStorage
+    let parochieNaam = localStorage.getItem("ingelogdeParochie");
+    document.getElementById("parochieNaam").textContent = parochieNaam || "...";
 
-    // Toon statusbalk
-    document.getElementById("parochieNaam").textContent = parochieId;
-
-    // Uitloggen-knop
+    // Uitloggen
     document.getElementById("uitlogKnop").onclick = function() {
       localStorage.removeItem("ingelogdeParochie");
+      localStorage.removeItem("ingelogdeParochieId");
       localStorage.removeItem("modus");
-      window.location.href = "../index.html";
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     };
 
-    // Registratie-aanvragen laden
-    function laadAanvragen() {
+    // Parochie-id bepalen (nodig voor subcollection!)
+    let parochieIdPromise = db.collection("parochies")
+      .where("naam", "==", parochieNaam)
+      .limit(1)
+      .get()
+      .then(snap => snap.empty ? null : snap.docs[0].id);
+
+    // Registraties laden
+    async function laadAanvragen() {
       const container = document.getElementById("aanvragenLijst");
       container.innerHTML = '<div class="geen-aanvragen">Bezig met laden...</div>';
-      db.collection("parochies")
-        .doc(parochieId)
-        .collection("registraties")
+      const parochieId = await parochieIdPromise;
+      if (!parochieId) {
+        container.innerHTML = '<div class="geen-aanvragen">Parochie niet gevonden. Probeer opnieuw in te loggen.</div>';
+        return;
+      }
+      db.collection("parochies").doc(parochieId).collection("registraties")
         .where("status", "==", "in afwachting")
         .get()
         .then(snapshot => {
@@ -137,11 +147,11 @@
             html += `
               <div class="aanvraag" data-id="${doc.id}">
                 <div class="aanvraag-info">
-                  <span class="naam">${d.voornaam || ""} ${d.achternaam || ""}</span><br>
-                  <span class="veld">Doopnaam: ${d.doopnaam || ""}</span><br>
-                  <span class="veld">E-mail: ${d.email || ""}</span><br>
-                  <span class="veld">Geboortedatum: ${d.geboortedatum || ""}</span><br>
-                  <span class="veld">Login: ${d.loginKeuze || ""}</span>
+                  <span class="naam">${d.voornaam} ${d.achternaam}</span><br>
+                  <span class="veld">Doopnaam: ${d.doopnaam}</span><br>
+                  <span class="veld">E-mail: ${d.email}</span><br>
+                  <span class="veld">Geboortedatum: ${d.geboortedatum}</span><br>
+                  <span class="veld">Login: ${d.loginKeuze}</span>
                 </div>
                 <div class="actieknoppen">
                   <button class="goedkeur" onclick="goedkeurAanvraag('${doc.id}')">Goedkeuren</button>
@@ -155,22 +165,15 @@
     }
     laadAanvragen();
 
-    // Random wachtwoordgenerator
-    function genWachtwoord(length = 5) {
-      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
-      let pwd = '';
-      for (let i = 0; i < length; i++) pwd += chars.charAt(Math.floor(Math.random() * chars.length));
-      return pwd;
-    }
-
-    // Goedkeuren
-    function goedkeurAanvraag(id) {
-      const registratieRef = db.collection("parochies").doc(parochieId).collection("registraties").doc(id);
-      registratieRef.get().then(doc => {
+    // Goedkeuren: verplaatst naar 'leden', verwijdert registratie
+    async function goedkeurAanvraag(id) {
+      const parochieId = await parochieIdPromise;
+      if (!parochieId) return alert("Fout: parochie niet gevonden.");
+      const regRef = db.collection("parochies").doc(parochieId).collection("registraties").doc(id);
+      regRef.get().then(doc => {
         if (!doc.exists) return alert("Registratie niet gevonden!");
         const data = doc.data();
-
-        // 1. Voeg toe aan leden
+        // Voeg toe aan leden
         db.collection("parochies").doc(parochieId).collection("leden").add({
           voornaam: data.voornaam,
           achternaam: data.achternaam,
@@ -180,22 +183,24 @@
           loginKeuze: data.loginKeuze,
           status: "actief"
         }).then(() => {
-          // 2. Verwijder registratie
-          registratieRef.delete().then(() => {
-            alert("Lid toegevoegd aan de parochie!");
+          // Verwijder registratie
+          regRef.delete().then(() => {
+            alert("Registratie goedgekeurd en toegevoegd aan de ledenlijst.");
             laadAanvragen();
           });
         });
       });
     }
 
-    // Weigeren
-    function weigerAanvraag(id) {
-      db.collection("parochies").doc(parochieId).collection("registraties").doc(id).delete()
-        .then(() => {
-          alert("Registratie geweigerd en verwijderd.");
-          laadAanvragen();
-        });
+    // Weigeren: verwijdert registratie
+    async function weigerAanvraag(id) {
+      const parochieId = await parochieIdPromise;
+      if (!parochieId) return alert("Fout: parochie niet gevonden.");
+      const regRef = db.collection("parochies").doc(parochieId).collection("registraties").doc(id);
+      regRef.delete().then(() => {
+        alert("Registratie geweigerd en verwijderd.");
+        laadAanvragen();
+      });
     }
   </script>
 </body>
