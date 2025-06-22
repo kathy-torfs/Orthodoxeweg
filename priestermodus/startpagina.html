@@ -258,7 +258,7 @@
 </head>
 <body>
   <div class="topbar">
-    <div id="welkom-tekst">Welkom vader</div>
+    <div id="welkom-tekst"></div>
     <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
   </div>
   <nav class="menu">
@@ -296,17 +296,17 @@
     </div>
   </div>
   <script>
-    // Begroeting
+    // Begroeting + parochie
     const welkomTekst = document.getElementById("welkom-tekst");
     const uur = new Date().getHours();
     let moment = "dag";
-    if (uur >= 5 && uur < 10) moment = "ochtend";
-    else if (uur >= 10 && uur < 11) moment = "dag";
-    else if (uur >= 11 && uur < 13) moment = "middag";
-    else if (uur >= 13 && uur < 17) moment = "dag";
-    else if (uur >= 17 && uur < 22) moment = "avond";
-    else moment = "nacht";
-    welkomTekst.textContent = `Welkom vader, ik wens u een gezegende ${moment}`;
+    if (uur >= 5 && uur < 12) moment = "goeiemorgen";
+    else if (uur >= 12 && uur < 18) moment = "goeiemiddag";
+    else moment = "goeienavond";
+    // Parochie uit localStorage
+    const parochie = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
+    welkomTekst.textContent = `${moment} vader, ik wens u een gezegende dag. U bent ingelogd in: ${parochie}`;
+
     document.getElementById("uitlogKnop").onclick = () => {
       localStorage.removeItem("modus");
       localStorage.removeItem("ingelogdeParochie");
