@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Parochianen - Priestermodus</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial, sans-serif; background: #f8f5e9; margin: 0; }
+    h1 { text-align: center; color: #5d4c2f; margin-top: 32px; }
+    table { width: 90%; margin: 40px auto; background: #fffef9; border-radius: 18px; box-shadow: 0 6px 32px #d7cbb142; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #f0e4c8; }
+    th { background: #7a5f35; color: #fff; }
+    select { font-size: 1em; }
+    .opslaan { background: #45a745; color: #fff; border: none; border-radius: 5px; padding: 6px 12px; cursor: pointer;}
+    .opslaan:hover { background: #358135; }
+    .kindlijst { margin: 5px 0 15px 30px; font-size: 0.97em; color: #50402a;}
+    .kindlabel { font-weight: bold; color: #88865a;}
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <h1>Ledenlijst</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Naam</th>
+        <th>E-mail</th>
+        <th>Rol</th>
+        <th>Kinderen</th>
+        <th>Actie</th>
+      </tr>
+    </thead>
+    <tbody id="ledenTabel">
+      <tr><td colspan="5">Bezig met laden...</td></tr>
+    </tbody>
+  </table>
+  <script>
+    // FIREBASE INIT
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let parochieNaam = localStorage.getItem("ingelogdeParochie");
+
+    // Parochie-id bepalen
+    let parochieIdPromise = db.collection("parochies")
+      .where("naam", "==", parochieNaam)
+      .limit(1)
+      .get()
+      .then(snap => snap.empty ? null : snap.docs[0].id);
+
+    async function laadLeden() {
+      const tbody = document.getElementById("ledenTabel");
+      const parochieId = await parochieIdPromise;
+      if (!parochieId) {
+        tbody.innerHTML = "<tr><td colspan='5'>Parochie niet gevonden!</td></tr>";
+        return;
+      }
+      db.collection("parochies").doc(parochieId).collection("leden")
+        .get().then(async snapshot => {
+          if (snapshot.empty) {
+            tbody.innerHTML = "<tr><td colspan='5'>Geen leden gevonden.</td></tr>";
+            return;
+          }
+          let html = "";
+          // Eerst alle leden ophalen, dan per lid hun kinderen
+          const promises = [];
+          snapshot.forEach(doc => {
+            const d = doc.data();
+            const lidId = doc.id;
+            // Kinderen ophalen als subcollectie onder elk lid
+            const kindPromise = db.collection("parochies").doc(parochieId).collection("leden").doc(lidId)
+              .collection("kinderen").get().then(kindSnap => {
+                let kindList = "";
+                if (kindSnap.empty) {
+                  kindList = "<span class='kindlabel'>Geen</span>";
+                } else {
+                  kindList = "<ul class='kindlijst'>";
+                  kindSnap.forEach(kindDoc => {
+                    const k = kindDoc.data();
+                    kindList += `<li>${k.voornaam} ${k.achternaam} (${k.geboortedatum || ""})</li>`;
+                  });
+                  kindList += "</ul>";
+                }
+                html += `
+                  <tr>
+                    <td>${d.voornaam} ${d.achternaam}</td>
+                    <td>${d.email}</td>
+                    <td>
+                      <select id="rol-${lidId}">
+                        <option value="parochiaan" ${d.rol === "parochiaan" ? "selected" : ""}>Parochiaan</option>
+                        <option value="catecheet" ${d.rol === "catecheet" ? "selected" : ""}>Catecheet</option>
+                      </select>
+                    </td>
+                    <td>${kindList}</td>
+                    <td>
+                      <button class="opslaan" onclick="rolOpslaan('${lidId}')">Opslaan</button>
+                    </td>
+                  </tr>
+                `;
+              });
+            promises.push(kindPromise);
+          });
+          await Promise.all(promises);
+          tbody.innerHTML = html;
+        });
+    }
+
+    laadLeden();
+
+    // Opslaan van rol
+    async function rolOpslaan(id) {
+      const parochieId = await parochieIdPromise;
+      const nieuweRol = document.getElementById("rol-" + id).value;
+      db.collection("parochies").doc(parochieId).collection("leden").doc(id).update({
+        rol: nieuweRol
+      }).then(() => {
+        alert("Rol bijgewerkt!");
+        laadLeden();
+      });
+    }
+  </script>
+</body>
+</html>
