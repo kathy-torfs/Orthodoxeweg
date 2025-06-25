@@ -165,64 +165,30 @@
     }
     laadAanvragen();
 
-    // --- Helper: random wachtwoord generator ---
-    function genereerWachtwoord(lengte = 8) {
-      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'; // zonder rare tekens
-      let pass = '';
-      for (let i = 0; i < lengte; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
-      return pass;
-    }
-
-    // Goedkeuren: verplaatst naar 'leden', verwijdert registratie en stuurt mail
+    // Goedkeuren: verplaatst naar 'leden', verwijdert registratie
     async function goedkeurAanvraag(id) {
       const parochieId = await parochieIdPromise;
       if (!parochieId) return alert("Fout: parochie niet gevonden.");
       const regRef = db.collection("parochies").doc(parochieId).collection("registraties").doc(id);
-      regRef.get().then(async doc => {
+      regRef.get().then(doc => {
         if (!doc.exists) return alert("Registratie niet gevonden!");
         const data = doc.data();
-
-        // 1. Genereer wachtwoord
-        const wachtwoord = genereerWachtwoord();
-
-        // 2. Voeg toe aan leden (met wachtwoord)
-        await db.collection("parochies").doc(parochieId).collection("leden").add({
+        // Voeg toe aan leden
+        db.collection("parochies").doc(parochieId).collection("leden").add({
           voornaam: data.voornaam,
           achternaam: data.achternaam,
           doopnaam: data.doopnaam,
           email: data.email,
           geboortedatum: data.geboortedatum,
           loginKeuze: data.loginKeuze,
-          wachtwoord: wachtwoord, // <-- hier opslaan
           status: "actief"
+        }).then(() => {
+          // Verwijder registratie
+          regRef.delete().then(() => {
+            alert("Registratie goedgekeurd en toegevoegd aan de ledenlijst.");
+            laadAanvragen();
+          });
         });
-
-        // 3. Verstuur mail via Firebase Function
-        await fetch("https://us-central1-orthodoxeweg.cloudfunctions.net/sendTestMail", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            to: data.email,
-            subject: "Welkom bij Orthodoxeweg!",
-            text: `Beste ${data.voornaam},
-
-Uw registratie werd goedgekeurd.
-U kan inloggen met deze gegevens:
-
-Login: ${data.loginKeuze}
-Wachtwoord: ${wachtwoord}
-
-Gelieve bij eerste login uw wachtwoord aan te passen.
-
-Met vriendelijke groeten,
-Orthodoxeweg`
-          })
-        });
-
-        // 4. Verwijder registratie
-        await regRef.delete();
-        alert("Registratie goedgekeurd, toegevoegd aan ledenlijst én mail verzonden!");
-        laadAanvragen();
       });
     }
 
