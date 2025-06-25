@@ -197,7 +197,10 @@
           status: "actief"
         });
 
-        // 3. Verstuur mail via Firebase Function
+        // 3. Extra log (NIETS AANPASSEN IN FETCH!):
+        console.log("Mail wordt verstuurd naar:", data.email, "met wachtwoord:", wachtwoord);
+
+        // 4. Verstuur mail via Firebase Function
         await fetch("https://us-central1-orthodoxeweg.cloudfunctions.net/sendTestMail", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -219,7 +222,7 @@ Orthodoxeweg`
           })
         });
 
-        // 4. Verwijder registratie
+        // 5. Verwijder registratie
         await regRef.delete();
         alert("Registratie goedgekeurd, toegevoegd aan ledenlijst én mail verzonden!");
         laadAanvragen();
