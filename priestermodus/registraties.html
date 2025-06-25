@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
@@ -144,7 +144,7 @@
           let html = "";
           snapshot.forEach(doc => {
             const d = doc.data();
-            html += `
+            html += 
               <div class="aanvraag" data-id="${doc.id}">
                 <div class="aanvraag-info">
                   <span class="naam">${d.voornaam} ${d.achternaam}</span><br>
@@ -158,7 +158,7 @@
                   <button class="weiger" onclick="weigerAanvraag('${doc.id}')">Weigeren</button>
                 </div>
               </div>
-            `;
+            ;
           });
           container.innerHTML = html;
         });
@@ -197,17 +197,14 @@
           status: "actief"
         });
 
-        // 3. Extra log (NIETS AANPASSEN IN FETCH!):
-        console.log("Mail wordt verstuurd naar:", data.email, "met wachtwoord:", wachtwoord);
-
-        // 4. Verstuur mail via Firebase Function
-        await fetch("https://us-central1-orthodoxeweg.cloudfunctions.net/sendTestMail", {
+        // 3. Verstuur mail via Firebase Function
+        fetch("https://us-central1-orthodoxeweg.cloudfunctions.net/sendTestMail", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             to: data.email,
             subject: "Welkom bij Orthodoxeweg!",
-            text: `Beste ${data.voornaam},
+            text: Beste ${data.voornaam},
 
 Uw registratie werd goedgekeurd.
 U kan inloggen met deze gegevens:
@@ -218,11 +215,11 @@ Wachtwoord: ${wachtwoord}
 Gelieve bij eerste login uw wachtwoord aan te passen.
 
 Met vriendelijke groeten,
-Orthodoxeweg`
+Orthodoxeweg
           })
         });
 
-        // 5. Verwijder registratie
+        // 4. Verwijder registratie
         await regRef.delete();
         alert("Registratie goedgekeurd, toegevoegd aan ledenlijst én mail verzonden!");
         laadAanvragen();
