@@ -178,27 +178,29 @@
       const parochieId = await parochieIdPromise;
       if (!parochieId) return alert("Fout: parochie niet gevonden.");
       const regRef = db.collection("parochies").doc(parochieId).collection("registraties").doc(id);
-      regRef.get().then(async doc => {
-        if (!doc.exists) return alert("Registratie niet gevonden!");
-        const data = doc.data();
+      const doc = await regRef.get();
+      if (!doc.exists) return alert("Registratie niet gevonden!");
+      const data = doc.data();
 
-        // 1. Genereer wachtwoord
-        const wachtwoord = genereerWachtwoord();
+      // 1. Genereer wachtwoord
+      const wachtwoord = genereerWachtwoord();
 
-        // 2. Voeg toe aan leden (met wachtwoord)
-        await db.collection("parochies").doc(parochieId).collection("leden").add({
-          voornaam: data.voornaam,
-          achternaam: data.achternaam,
-          doopnaam: data.doopnaam,
-          email: data.email,
-          geboortedatum: data.geboortedatum,
-          loginKeuze: data.loginKeuze,
-          wachtwoord: wachtwoord,
-          status: "actief"
-        });
+      // 2. Voeg toe aan leden (met wachtwoord)
+      await db.collection("parochies").doc(parochieId).collection("leden").add({
+        voornaam: data.voornaam,
+        achternaam: data.achternaam,
+        doopnaam: data.doopnaam,
+        email: data.email,
+        geboortedatum: data.geboortedatum,
+        loginKeuze: data.loginKeuze,
+        wachtwoord: wachtwoord,
+        status: "actief"
+      });
 
-        // 3. Verstuur mail via Firebase Function
-        await fetch("https://us-central1-orthodoxeweg.cloudfunctions.net/sendTestMail", {
+      // 3. Verstuur mail via Firebase Function
+      let mailOk = false;
+      try {
+        const response = await fetch("https://us-central1-orthodoxeweg.cloudfunctions.net/sendTestMail", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -218,12 +220,21 @@ Met vriendelijke groeten,
 Orthodoxeweg`
           })
         });
+        mailOk = response.ok;
+      } catch (e) {
+        mailOk = false;
+      }
 
-        // 4. Verwijder registratie
-        await regRef.delete();
+      // 4. Verwijder registratie
+      await regRef.delete();
+
+      // 5. Meld succes of fout
+      if (mailOk) {
         alert("Registratie goedgekeurd, toegevoegd aan ledenlijst én mail verzonden!");
-        laadAanvragen();
-      });
+      } else {
+        alert("Registratie goedgekeurd, toegevoegd aan ledenlijst, MAAR mail is NIET verzonden!");
+      }
+      laadAanvragen();
     }
 
     // Weigeren: verwijdert registratie
@@ -231,10 +242,9 @@ Orthodoxeweg`
       const parochieId = await parochieIdPromise;
       if (!parochieId) return alert("Fout: parochie niet gevonden.");
       const regRef = db.collection("parochies").doc(parochieId).collection("registraties").doc(id);
-      regRef.delete().then(() => {
-        alert("Registratie geweigerd en verwijderd.");
-        laadAanvragen();
-      });
+      await regRef.delete();
+      alert("Registratie geweigerd en verwijderd.");
+      laadAanvragen();
     }
 
     // FUNCTIES GLOBAL MAKEN VOOR KNOPPEN
