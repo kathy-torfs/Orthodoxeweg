@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Orthodoxeweg - Dagkalender</title>
-  <link rel="icon" href="images/kruis.png">
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
     body {
       background-color: #f5e9b8;
@@ -238,9 +238,9 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <script>
-    // Toegangscontrole volwassenen
+    // Volwassenenbescherming
     if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "volwassene") {
-      window.location.href = "../index.html";
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     }
     // Firebase config
     const firebaseConfig = {
@@ -261,7 +261,9 @@
     <div id="welkom-tekst"></div>
     <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
   </div>
+
   <nav class="menu">
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html">🏠 Home</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/gebeden.html">🙏 Gebeden</a>
@@ -269,6 +271,7 @@
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html">🧰 Mijn profiel</a>
   </nav>
+
   <div class="taalkeuze">
     <button id="btn-vlaams" class="selected">🇧🇪 Vlaams</button>
     <button id="btn-engels">🇬🇧 English</button>
@@ -279,10 +282,8 @@
       <!-- Hoekje links voor 'vorige dag' -->
       <button class="hoek-linksonder" id="vorigeDag" title="Vorige dag">&lt;</button>
       <!-- PAGINA LINKS: Heilige van de dag -->
-      <div class="pagina links" id="boek-links">
-        <div id="heilige-inhoud">
-          <div style="color:#a6a5a4;text-align:center;">Bezig met laden...</div>
-        </div>
+      <div class="pagina links" id="heilige-inhoud">
+        <div style="color:#a6a5a4;text-align:center;">Bezig met laden...</div>
       </div>
       <!-- PAGINA RECHTS: Dagkalender -->
       <div class="pagina rechts" id="boek-rechts">
@@ -296,156 +297,151 @@
     </div>
   </div>
   <script>
-   // Begroeting + parochie
-const welkomTekst = document.getElementById("welkom-tekst");
-const uur = new Date().getHours();
-let moment = "goeiedag";
+    // Begroeting + parochie
+    const welkomTekst = document.getElementById("welkom-tekst");
+    const uur = new Date().getHours();
+    let moment = "goeiedag";
+    if (uur >= 5 && uur <= 10) moment = "goeiemorgend";
+    else if (uur >= 11 && uur <= 13) moment = "goeiemiddag";
+    else if (uur >= 17 && uur <= 22) moment = "goeienavond";
+    else if (uur > 22 || uur < 5) moment = "goedenacht";
+    const parochie = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
+    welkomTekst.textContent = `${moment}, u bent ingelogd in: ${parochie}`;
 
-if (uur >= 5 && uur <= 10) moment = "goeiemorgend";
-else if (uur >= 11 && uur <= 13) moment = "goeiemiddag";
-else if (uur >= 17 && uur <= 22) moment = "goeienavond";
-else if (uur > 22 || uur < 5) moment = "goedenacht";
-else moment = "goeiedag";
+    document.getElementById("uitlogKnop").onclick = () => {
+      localStorage.clear();
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    };
 
-const parochie = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
-welkomTekst.textContent = `${moment}, ik wens u een gezegende dag. U bent ingelogd in: ${parochie}`;
+    // Boeklogica
+    let huidigeTaal = "vlaams";
+    let actieveDatum = new Date();
 
-document.getElementById("uitlogKnop").onclick = () => {
-  localStorage.removeItem("modus");
-  localStorage.removeItem("ingelogdeParochie");
-  window.location.href = "../index.html";
-};
-
-// BOEK LOGICA -- 100% GASTENMODUS (gelijk aan priestermodus)
-let huidigeTaal = "vlaams";
-let actieveDatum = new Date();
-
-document.getElementById("vorigeDag").onclick = function() {
-  actieveDatum.setDate(actieveDatum.getDate() - 1);
-  laadAlles();
-}
-document.getElementById("volgendeDag").onclick = function() {
-  actieveDatum.setDate(actieveDatum.getDate() + 1);
-  laadAlles();
-}
-document.getElementById("btn-vlaams").onclick = function() { huidigeTaal = "vlaams"; setTaal(); }
-document.getElementById("btn-engels").onclick = function() { huidigeTaal = "engels"; setTaal(); }
-document.getElementById("btn-grieks").onclick = function() { huidigeTaal = "grieks"; setTaal(); }
-
-function setTaal() {
-  document.querySelectorAll('.taalkeuze button').forEach(btn => btn.classList.remove('selected'));
-  document.getElementById("btn-vlaams").classList.toggle('selected', huidigeTaal === "vlaams");
-  document.getElementById("btn-engels").classList.toggle('selected', huidigeTaal === "engels");
-  document.getElementById("btn-grieks").classList.toggle('selected', huidigeTaal === "grieks");
-  laadAlles();
-}
-
-function pad(n) { return n < 10 ? '0' + n : n; }
-
-function laadAlles() {
-  // Kalenderformaat voor rechts (yyyy-mm-dd)
-  const jaar = actieveDatum.getFullYear();
-  const maand = pad(actieveDatum.getMonth() + 1);
-  const dag = pad(actieveDatum.getDate());
-  const kalenderId = `${jaar}${maand}${dag}`;
-  const feestdag = `${dag}-${maand}`;
-
-  // LINKS: Heilige van de dag
-  const heiligeContainer = document.getElementById('heilige-inhoud');
-  heiligeContainer.innerHTML = '<div style="color:#a6a5a4;text-align:center;">Bezig met laden...</div>';
-  db.collection("heiligen").where("feestdag", "==", feestdag).get().then(snapshot => {
-    if (snapshot.empty) {
-      heiligeContainer.innerHTML = `
-        <div style="color:#b8b7b4;text-align:center;margin-top:22px;font-size:1.15em">
-          <br>Geen heilige van de dag gevonden.<br>
-          <div style="font-size:4em;text-align:center;margin-top:16px;">✝️</div>
-        </div>`;
-      return;
+    document.getElementById("vorigeDag").onclick = function() {
+      actieveDatum.setDate(actieveDatum.getDate() - 1);
+      laadAlles();
     }
-    // Random heilige als er meerdere zijn
-    const docs = snapshot.docs;
-    const data = docs[Math.floor(Math.random() * docs.length)].data();
-    let naam = "";
-    let levensverhaal = "";
-    let fotoUrl = data.icoon || data.foto_url || "https://upload.wikimedia.org/wikipedia/commons/1/12/Orthodox_Cross.svg";
-    if (huidigeTaal === "engels") {
-      naam = data.naam_en || "";
-      levensverhaal = data.levensverhaal_en || "";
-    } else if (huidigeTaal === "grieks") {
-      naam = data.naam_el || "";
-      levensverhaal = data.levensverhaal_el || "";
-    } else {
-      naam = data.naam_nl || data.naam || data.id || "Heilige";
-      levensverhaal = data.levensverhaal_nl || data.levensverhaal_volwassenen || "";
+    document.getElementById("volgendeDag").onclick = function() {
+      actieveDatum.setDate(actieveDatum.getDate() + 1);
+      laadAlles();
     }
-    if (!naam) naam = "Nog geen vertaling beschikbaar.";
-    if (!levensverhaal) levensverhaal = "Nog geen vertaling beschikbaar.";
-    heiligeContainer.innerHTML = `
-      <div class="heilige-naam">${naam}</div>
-      <img src="${fotoUrl}" class="heilige-foto" alt="Heilige icoon">
-      <div class="heilige-levensverhaal">${levensverhaal}</div>
-    `;
-  });
+    document.getElementById("btn-vlaams").onclick = function() { huidigeTaal = "vlaams"; setTaal(); }
+    document.getElementById("btn-engels").onclick = function() { huidigeTaal = "engels"; setTaal(); }
+    document.getElementById("btn-grieks").onclick = function() { huidigeTaal = "grieks"; setTaal(); }
 
-  // RECHTS: Dagkalender
-  const kalenderContainer = document.getElementById('dagkalender-inhoud');
-  const tipBlok = document.getElementById('dagkalender-tip');
-  kalenderContainer.innerHTML = '<div style="color:#a6a5a4;text-align:center;">Bezig met laden...</div>';
-  tipBlok.innerHTML = "";
-  db.collection("kalender2025").doc(kalenderId).get().then(doc => {
-    if (!doc.exists) {
-      kalenderContainer.innerHTML = '<div style="color:#b8b7b4;text-align:center;margin-top:60px;font-size:1.1em">Geen kalenderinfo gevonden.</div>';
+    function setTaal() {
+      document.querySelectorAll('.taalkeuze button').forEach(btn => btn.classList.remove('selected'));
+      document.getElementById("btn-vlaams").classList.toggle('selected', huidigeTaal === "vlaams");
+      document.getElementById("btn-engels").classList.toggle('selected', huidigeTaal === "engels");
+      document.getElementById("btn-grieks").classList.toggle('selected', huidigeTaal === "grieks");
+      laadAlles();
+    }
+
+    function pad(n) { return n < 10 ? '0' + n : n; }
+
+    function laadAlles() {
+      // Kalenderformaat voor rechts (yyyy-mm-dd)
+      const jaar = actieveDatum.getFullYear();
+      const maand = pad(actieveDatum.getMonth() + 1);
+      const dag = pad(actieveDatum.getDate());
+      const kalenderId = `${jaar}${maand}${dag}`;
+      const feestdag = `${dag}-${maand}`;
+
+      // LINKS: Heilige van de dag
+      const heiligeContainer = document.getElementById('heilige-inhoud');
+      heiligeContainer.innerHTML = '<div style="color:#a6a5a4;text-align:center;">Bezig met laden...</div>';
+      db.collection("heiligen").where("feestdag", "==", feestdag).get().then(snapshot => {
+        if (snapshot.empty) {
+          heiligeContainer.innerHTML = `
+            <div style="color:#b8b7b4;text-align:center;margin-top:22px;font-size:1.15em">
+              <br>Geen heilige van de dag gevonden.<br>
+              <div style="font-size:4em;text-align:center;margin-top:16px;">✝️</div>
+            </div>`;
+          return;
+        }
+        const docs = snapshot.docs;
+        const data = docs[Math.floor(Math.random() * docs.length)].data();
+        let naam = "";
+        let levensverhaal = "";
+        let fotoUrl = data.icoon || data.foto_url || "https://upload.wikimedia.org/wikipedia/commons/1/12/Orthodox_Cross.svg";
+        if (huidigeTaal === "engels") {
+          naam = data.naam_en || "";
+          levensverhaal = data.levensverhaal_en || "";
+        } else if (huidigeTaal === "grieks") {
+          naam = data.naam_el || "";
+          levensverhaal = data.levensverhaal_el || "";
+        } else {
+          naam = data.naam_nl || data.naam || data.id || "Heilige";
+          levensverhaal = data.levensverhaal_nl || data.levensverhaal_volwassenen || "";
+        }
+        if (!naam) naam = "Nog geen vertaling beschikbaar.";
+        if (!levensverhaal) levensverhaal = "Nog geen vertaling beschikbaar.";
+        heiligeContainer.innerHTML = `
+          <div class="heilige-naam">${naam}</div>
+          <img src="${fotoUrl}" class="heilige-foto" alt="Heilige icoon">
+          <div class="heilige-levensverhaal">${levensverhaal}</div>
+        `;
+      });
+
+      // RECHTS: Dagkalender
+      const kalenderContainer = document.getElementById('dagkalender-inhoud');
+      const tipBlok = document.getElementById('dagkalender-tip');
+      kalenderContainer.innerHTML = '<div style="color:#a6a5a4;text-align:center;">Bezig met laden...</div>';
       tipBlok.innerHTML = "";
-      return;
-    }
-    const data = doc.data();
-    let vasten = data[`Vastenregel NL`] || "";
-    let vastenSymb = data["Symbool"] || "";
-    if (huidigeTaal === "engels") vasten = data[`Vastenregel EN`] || (vasten ? "Fasting Free" : "");
-    if (huidigeTaal === "grieks") vasten = data[`Vastenregel EL`] || (vasten ? "Νηστεία ελεύθερη" : "");
-    if (!vasten) {
-      if (huidigeTaal === "vlaams") vasten = "Vastenvrij";
-      else if (huidigeTaal === "engels") vasten = "Fasting Free";
-      else if (huidigeTaal === "grieks") vasten = "Νηστεία ελεύθερη";
-    }
-    let vastenRegelBlok = `<span>${vasten}</span>`;
-    if (vastenSymb) vastenRegelBlok += `<span class="vastenregel-symbool">${vastenSymb}</span>`;
-    let datumTekst = `${dag}-${maand}-${jaar}`;
-    let heiligen = "";
-    if (huidigeTaal === "vlaams")      heiligen = data[`Heiligen NL`] || "";
-    else if (huidigeTaal === "engels") heiligen = data[`Heiligen EN`] || "No translation available yet.";
-    else if (huidigeTaal === "grieks") heiligen = data[`Heiligen EL`] || "Δεν υπάρχει ακόμη μετάφραση.";
-    let epistel = "", evangelie = "";
-    if (huidigeTaal === "vlaams") {
-      epistel = data[`Epistel Ref NL`] || "Nog geen vertaling beschikbaar.";
-      evangelie = data[`Evangelie Ref NL`] || "Nog geen vertaling beschikbaar.";
-    } else if (huidigeTaal === "engels") {
-      epistel = data[`Epistel Ref EN`] || "No translation available yet.";
-      evangelie = data[`Evangelie Ref EN`] || "No translation available yet.";
-    } else if (huidigeTaal === "grieks") {
-      epistel = data[`Epistel Ref EL`] || "Δεν υπάρχει ακόμη μετάφραση.";
-      evangelie = data[`Evangelie Ref EL`] || "Δεν υπάρχει ακόμη μετάφραση.";
-    }
-    let epistelLabel = "Apostellezing", evangelieLabel = "Evangelielezing";
-    if (huidigeTaal === "engels")   { epistelLabel = "Epistle Reading"; evangelieLabel = "Gospel Reading"; }
-    if (huidigeTaal === "grieks")   { epistelLabel = "Απόστολος"; evangelieLabel = "Ευαγγέλιο"; }
-    let tip = "";
-    if (huidigeTaal === "vlaams")      tip = data[`Tip/Wens NL`] || "";
-    else if (huidigeTaal === "engels") tip = data[`Tip/Wens EN`] || "";
-    else if (huidigeTaal === "grieks") tip = data[`Tip/Wens EL`] || "";
+      db.collection("kalender2025").doc(kalenderId).get().then(doc => {
+        if (!doc.exists) {
+          kalenderContainer.innerHTML = '<div style="color:#b8b7b4;text-align:center;margin-top:60px;font-size:1.1em">Geen kalenderinfo gevonden.</div>';
+          tipBlok.innerHTML = "";
+          return;
+        }
+        const data = doc.data();
+        let vasten = data[`Vastenregel NL`] || "";
+        let vastenSymb = data["Symbool"] || "";
+        if (huidigeTaal === "engels") vasten = data[`Vastenregel EN`] || (vasten ? "Fasting Free" : "");
+        if (huidigeTaal === "grieks") vasten = data[`Vastenregel EL`] || (vasten ? "Νηστεία ελεύθερη" : "");
+        if (!vasten) {
+          if (huidigeTaal === "vlaams") vasten = "Vastenvrij";
+          else if (huidigeTaal === "engels") vasten = "Fasting Free";
+          else if (huidigeTaal === "grieks") vasten = "Νηστεία ελεύθερη";
+        }
+        let vastenRegelBlok = `<span>${vasten}</span>`;
+        if (vastenSymb) vastenRegelBlok += `<span class="vastenregel-symbool">${vastenSymb}</span>`;
+        let datumTekst = `${dag}-${maand}-${jaar}`;
+        let heiligen = "";
+        if (huidigeTaal === "vlaams")      heiligen = data[`Heiligen NL`] || "";
+        else if (huidigeTaal === "engels") heiligen = data[`Heiligen EN`] || "No translation available yet.";
+        else if (huidigeTaal === "grieks") heiligen = data[`Heiligen EL`] || "Δεν υπάρχει ακόμη μετάφραση.";
+        let epistel = "", evangelie = "";
+        if (huidigeTaal === "vlaams") {
+          epistel = data[`Epistel Ref NL`] || "Nog geen vertaling beschikbaar.";
+          evangelie = data[`Evangelie Ref NL`] || "Nog geen vertaling beschikbaar.";
+        } else if (huidigeTaal === "engels") {
+          epistel = data[`Epistel Ref EN`] || "No translation available yet.";
+          evangelie = data[`Evangelie Ref EN`] || "No translation available yet.";
+        } else if (huidigeTaal === "grieks") {
+          epistel = data[`Epistel Ref EL`] || "Δεν υπάρχει ακόμη μετάφραση.";
+          evangelie = data[`Evangelie Ref EL`] || "Δεν υπάρχει ακόμη μετάφραση.";
+        }
+        let epistelLabel = "Apostellezing", evangelieLabel = "Evangelielezing";
+        if (huidigeTaal === "engels")   { epistelLabel = "Epistle Reading"; evangelieLabel = "Gospel Reading"; }
+        if (huidigeTaal === "grieks")   { epistelLabel = "Απόστολος"; evangelieLabel = "Ευαγγέλιο"; }
+        let tip = "";
+        if (huidigeTaal === "vlaams")      tip = data[`Tip/Wens NL`] || "";
+        else if (huidigeTaal === "engels") tip = data[`Tip/Wens EN`] || "";
+        else if (huidigeTaal === "grieks") tip = data[`Tip/Wens EL`] || "";
 
-    kalenderContainer.innerHTML = `
-      <div class="dagkalender-datum">${datumTekst}</div>
-      <div class="vastenregel-regel">${vastenRegelBlok}</div>
-      <div class="heiligenrij">${heiligen}</div>
-      <div class="lezingblok"><b>${epistelLabel}:</b> ${epistel}</div>
-      <div class="lezingblok"><b>${evangelieLabel}:</b> ${evangelie}</div>
-    `;
-    tipBlok.innerHTML = tip;
-  });
-}
-// Initieel laden
-laadAlles();
+        kalenderContainer.innerHTML = `
+          <div class="dagkalender-datum">${datumTekst}</div>
+          <div class="vastenregel-regel">${vastenRegelBlok}</div>
+          <div class="heiligenrij">${heiligen}</div>
+          <div class="lezingblok"><b>${epistelLabel}:</b> ${epistel}</div>
+          <div class="lezingblok"><b>${evangelieLabel}:</b> ${evangelie}</div>
+        `;
+        tipBlok.innerHTML = tip;
+      });
+    }
+    // Initieel laden
+    laadAlles();
   </script>
 </body>
 </html>
