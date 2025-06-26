@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gebed – detail</title>
+  <style>
+    body {
+      font-family: Georgia, serif;
+      background-color: #fffdf6;
+      color: #3e2f1c;
+      margin: 0;
+      text-align: center;
+    }
+    header {
+      background-color: #5e3907;
+      color: white;
+      padding: 20px;
+    }
+    nav.menu {
+      background-color: #fff1cd;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 15px;
+      border-bottom: 2px solid #c4a85d;
+    }
+    nav.menu a {
+      text-decoration: none;
+      background-color: #ffeeba;
+      padding: 10px 16px;
+      border-radius: 8px;
+      color: #5e3907;
+      font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      transition: 0.3s;
+    }
+    nav.menu a:hover {
+      background-color: #ffeda2;
+    }
+    main {
+      max-width: 700px;
+      margin: 40px auto 0 auto;
+      padding: 20px 16px 50px 16px;
+      background: #fffbe6;
+      border-radius: 16px;
+      box-shadow: 0 2px 14px #ead7aa33;
+    }
+    h2 {
+      color: #4e2710;
+      margin-top: 10px;
+      margin-bottom: 26px;
+      font-size: 1.7em;
+      font-family: Georgia, serif;
+    }
+    .terug {
+      margin: 24px 0 20px 0;
+      display: inline-block;
+      background: #fff1cd;
+      color: #664c24;
+      border-radius: 9px;
+      border: none;
+      padding: 11px 25px;
+      font-size: 1.07em;
+      font-family: inherit;
+      text-decoration: none;
+      font-weight: bold;
+      transition: background 0.19s;
+      cursor: pointer;
+    }
+    .terug:hover { background: #ffeda2; }
+    .pdf-link {
+      display: block;
+      margin: 35px auto 0 auto;
+      width: fit-content;
+      padding: 12px 24px;
+      background: #deb757;
+      color: #fff;
+      font-weight: bold;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 1.11em;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.10);
+      transition: background 0.2s;
+    }
+    .pdf-link:hover { background: #c49d3c; }
+    .foutmelding {
+      background: #fff4e1;
+      border-radius: 12px;
+      color: #c72619;
+      font-weight: bold;
+      padding: 18px 8px;
+      margin-top: 28px;
+      font-size: 1.12em;
+    }
+    .gebed-tekst {
+      text-align: left;
+      font-size: 1.12em;
+      color: #422a16;
+      line-height: 1.7;
+      margin-bottom: 10px;
+      margin-top: 0;
+      background: #fffcf7;
+      border-radius: 7px;
+      padding: 20px 18px;
+      box-shadow: 0 1px 4px #efdba77a inset;
+      white-space: pre-line;
+      min-height: 30px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Gebed – detail</h1>
+  </header>
+
+   <nav class="menu">
+   <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html">🏠 Home</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/gebeden.html">🙏 Gebeden</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html">🧰 Mijn profiel</a>
+</nav>
+
+  <main>
+    <a class="terug" href="gebeden.html">← Terug naar alle gebeden</a>
+    <div id="content"></div>
+    <a class="pdf-link" href="https://orthodoxekerkhasselt.com/wp-content/uploads/2024/11/liturgische-teksten-het-klein-orthodox-gebedenboekje-v7.5-nld.pdf" target="_blank">
+      📖 Volledig Gebedenboekje (PDF)
+    </a>
+  </main>
+
+  <!-- FIREBASE -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:2e02833fa0d4d8903ceedb"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Haal gebed-ID uit de URL
+    function getGebedId() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('id');
+    }
+
+    // Slim ophalen uit gebeden_vw OF gebeden
+    function laadGebed() {
+      const gebedId = getGebedId();
+      const contentDiv = document.getElementById('content');
+      if (!gebedId) {
+        contentDiv.innerHTML = `
+          <div class="foutmelding">Er is geen geldig gebeds-ID opgegeven.</div>
+        `;
+        return;
+      }
+      // Eerst zoeken in 'gebeden_vw'
+      db.collection('gebeden_vw').doc(gebedId).get().then(doc => {
+        if (doc.exists) {
+          toonGebed(doc.data(), gebedId);
+        } else {
+          // Niet gevonden? Dan in 'gebeden'
+          db.collection('gebeden').doc(gebedId).get().then(doc2 => {
+            if (doc2.exists) {
+              toonGebed(doc2.data(), gebedId);
+            } else {
+              contentDiv.innerHTML = `
+                <div class="foutmelding">Gebed niet gevonden.<br>Controleer of de link correct is.</div>
+              `;
+            }
+          }).catch(fout);
+        }
+      }).catch(fout);
+
+      function toonGebed(data, fallbackId) {
+        const titel = data.titel || fallbackId;
+        let tekst = data.volledige_tekst || data.tekst || "";
+        let html = tekst;
+        if (!html) html = "<i>Geen tekst gevonden voor dit gebed.</i>";
+        else if (!html.startsWith('<')) html = tekst.replace(/\n/g, "<br>");
+        contentDiv.innerHTML = `
+          <h2>${titel}</h2>
+          <div class="gebed-tekst">${html}</div>
+        `;
+      }
+      function fout(err) {
+        contentDiv.innerHTML = `<div class="foutmelding">Fout bij ophalen gebed.<br>${err.message}</div>`;
+        console.error(err);
+      }
+    }
+
+    laadGebed();
+  </script>
+</body>
+</html>
