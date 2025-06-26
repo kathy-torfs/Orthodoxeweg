@@ -23,6 +23,21 @@
     .popup input, .popup select { display: block; margin: 12px auto; padding: 12px; width: 96%; font-size: 1rem; border-radius: 6px; border: 1px solid #bbb; box-sizing: border-box; max-width: 99vw; }
     .popup button { padding: 12px 30px; font-size: 1.05rem; background: var(--bruin-donker); color: var(--wit); border: none; border-radius: 8px; margin-top: 8px; cursor: pointer; }
     .popup .sluiten { position: absolute; top: 8px; right: 16px; background: none; color: #c00; border: none; font-size: 1.5rem; cursor: pointer; font-weight: bold; }
+    .hoofdletter-waarschuwing {
+      color: #bb4400;
+      background: #fffbe7;
+      border: 1px solid #e9bd6d;
+      border-radius: 8px;
+      padding: 10px 16px;
+      margin: 6px 0 0 0;
+      text-align: left;
+      font-size: 0.99em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 1px 4px #e8c26d44;
+      }
+    .hoofdletter-waarschuwing i { font-size: 1.5em; margin-right: 4px;}
   </style>
 </head>
 <body>
@@ -43,6 +58,10 @@
   <div id="loginPopup" class="popup">
     <button class="sluiten" onclick="closeAllPopups()">&times;</button>
     <h2>Inloggen</h2>
+    <div class="hoofdletter-waarschuwing" id="hoofdletterPopup" style="display: flex;">
+      <i>⚠️</i>
+      <span><b>Let op:</b> Gebruikersnaam <u>en</u> wachtwoord zijn <b>hoofdlettergevoelig</b>!</span>
+    </div>
     <select id="loginParochie"></select>
     <input type="text" id="loginNaam" placeholder="Gebruikersnaam" />
     <input type="password" id="loginWachtwoord" placeholder="Wachtwoord" />
@@ -152,6 +171,12 @@
   const loginKeuze = document.getElementById("loginNaam").value.trim();
   const wachtwoord = document.getElementById("loginWachtwoord").value;
 
+  // Extra waarschuwing voor hoofdlettergevoeligheid
+  if (!sessionStorage.getItem("hoofdletterWarned")) {
+    alert("Let op: Gebruikersnaam en wachtwoord zijn hoofdlettergevoelig!");
+    sessionStorage.setItem("hoofdletterWarned", "1");
+  }
+
   // 2. Zoek in parochies/{parochieId}/leden
   db.collection("parochies")
     .doc(parochieId)
@@ -197,6 +222,10 @@
     function openPopup(id) {
       document.getElementById("overlay").style.display = "block";
       document.getElementById(id).style.display = "block";
+      if(id === 'loginPopup'){
+        // Toon waarschuwing telkens popup opent (kan weg als je liever enkel 1x alert doet)
+        document.getElementById('hoofdletterPopup').style.display = 'flex';
+      }
     }
     function closeAllPopups() {
       document.getElementById("overlay").style.display = "none";
@@ -209,4 +238,3 @@
   </script>
 </body>
 </html>
-
