@@ -144,22 +144,39 @@
         });
     });
 
-    function login() {
-      const par = document.getElementById("loginParochie").value;
-      const naam = document.getElementById("loginNaam").value.trim();
-      const ww = document.getElementById("loginWachtwoord").value;
-      db.collection("gebruikers")
-        .where("parochie", "==", par)
-        .where("gebruikersnaam", "==", naam)
-        .where("wachtwoord", "==", ww)
-        .get()
-        .then(snapshot => {
-          if (!snapshot.empty) {
-            localStorage.setItem("modus", "volwassene");
-            window.location.href = "volwassenemodus/startpagina.html";
-          } else alert("Onjuiste gegevens.");
-        });
-    }
+   function login() {
+  // 1. Haal de parochieId uit het geselecteerde option
+  const parochieSelect = document.getElementById("loginParochie");
+  const parochieId = parochieSelect.selectedOptions[0].getAttribute("data-id");
+  const parochieNaam = parochieSelect.value;
+  const loginKeuze = document.getElementById("loginNaam").value.trim();
+  const wachtwoord = document.getElementById("loginWachtwoord").value;
+
+  // 2. Zoek in parochies/{parochieId}/leden
+  db.collection("parochies")
+    .doc(parochieId)
+    .collection("leden")
+    .where("loginKeuze", "==", loginKeuze)
+    .where("wachtwoord", "==", wachtwoord)
+    .limit(1)
+    .get()
+    .then(snapshot => {
+      if (!snapshot.empty) {
+        // Succes: zet localStorage en redirect
+        localStorage.setItem("modus", "volwassene");
+        localStorage.setItem("ingelogdeParochie", parochieNaam);
+        localStorage.setItem("ingelogdeParochieId", parochieId);
+        localStorage.setItem("loginKeuze", loginKeuze);
+        window.location.href = "volwassenemodus/startpagina.html";
+      } else {
+        alert("Onjuiste gebruikersnaam of wachtwoord.");
+      }
+    })
+    .catch(err => {
+      alert("Fout bij inloggen: " + err.message);
+    });
+}
+
 
     function priesterLogin() {
       const par = document.getElementById("priesterParochie").value;
