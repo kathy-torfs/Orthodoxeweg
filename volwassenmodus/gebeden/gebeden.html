@@ -184,15 +184,15 @@
     <h1>Kies een Gebed</h1>
   </header>
 
- <nav class="menu">
-   <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html">🏠 Home</a>
-   <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
-   <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
-   <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/gebeden.html">🙏 Gebeden</a>
-   <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
-   <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
-   <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html">🧰 Mijn profiel</a>
- </nav>
+  <nav class="menu">
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html">🏠 Home</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/gebeden.html">🙏 Gebeden</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html">🧰 Mijn profiel</a>
+  </nav>
 
   <div id="parochieLabel" style="background:#f8f0d4;color:#7a5f35;padding:10px 0 8px 0;text-align:center;font-weight:bold;letter-spacing:1px;font-size:1.07em;box-shadow:0 2px 8px #cbb96d44;"></div>
 
@@ -205,7 +205,6 @@
     <a class="pdf-link" href="https://orthodoxekerkhasselt.com/wp-content/uploads/2024/11/liturgische-teksten-het-klein-orthodox-gebedenboekje-v7.5-nld.pdf" target="_blank">
       📖 Volledig Gebedenboekje (PDF)
     </a>
-
     <!-- Accordion voor andere gebeden -->
     <div class="accordion" id="accordion">
       <button class="accordion-button" onclick="toggleAccordion()">▼ Andere gebeden weergeven</button>
@@ -219,11 +218,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script>
-    // Functie om accenten en hoofdletters te negeren bij vergelijken
-    function normaliseer(str) {
-      return str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim() : "";
-    }
-
     // Parochienaam ophalen uit localStorage (uit login-systeem)
     let parochieNaam = localStorage.getItem("ingelogdeParochie");
 
@@ -264,7 +258,7 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
-    // Koppeling: hoofdknoppen linken naar de juiste gebed-id (uit collectie gebeden)
+    // Koppeling: hoofdknoppen linken naar de juiste gebed-id
     function setHoofdKnop(knopId, gebedId) {
       document.getElementById(knopId).onclick = function() {
         window.location.href = "gebed.html?id=" + encodeURIComponent(gebedId);
@@ -275,7 +269,7 @@
     setHoofdKnop("tafelKnop", "tafelgebeden");
     setHoofdKnop("geloofKnop", "geloofsbelijdenis");
 
-    // Dynamisch groeperen op basis van titels (let op accenten/hoofdletters)
+    // Dynamisch groeperen OP BASIS VAN ID
     function laadGebeden() {
       const container = document.getElementById("accordion-content");
       container.innerHTML = "<div>Laden...</div>";
@@ -288,7 +282,7 @@
           return;
         }
 
-        // Indeling van groepen
+        // Indeling: gebruik ID's!
         const groepen = {
           "Maaltijdgebeden": [
             "Na het avondmaal","Na het middagmaal","Na het ontbijt",
@@ -313,46 +307,43 @@
           "Andere": []
         };
 
-        // Mapping: genormaliseerde titel -> doc (id & echte titel)
-        const docsByTitel = {};
+        // Map: id -> doc (toon titel voor gebruiker)
+        const docsById = {};
         snapshot.docs.forEach(doc => {
-          const titel = doc.data().titel || doc.id;
-          docsByTitel[normaliseer(titel)] = { id: doc.id, titel: titel };
+          docsById[doc.id.trim()] = { id: doc.id, titel: doc.data().titel || doc.id };
         });
 
-        // Bepalen welke titels al zijn toegevoegd
+        // Al geplaatst?
         const reedsToegewezen = new Set();
 
-        // Groepeer en toon per groep
+        // Per groep tonen
         for (const [groep, lijst] of Object.entries(groepen)) {
           let toegevoegd = false;
-          lijst.forEach(titel => {
-            const key = normaliseer(titel);
-            if (docsByTitel[key]) {
+          lijst.forEach(id => {
+            const key = id.trim();
+            if (docsById[key]) {
               if (!toegevoegd) {
                 container.innerHTML += `<div class="accordion-section">${groep}</div>`;
                 toegevoegd = true;
               }
-              container.innerHTML += `<a href="gebed.html?id=${encodeURIComponent(docsByTitel[key].id)}">${docsByTitel[key].titel}</a>`;
+              container.innerHTML += `<a href="gebed.html?id=${encodeURIComponent(docsById[key].id)}">${docsById[key].titel}</a>`;
               reedsToegewezen.add(key);
             }
           });
         }
-        // Voeg alle overige gebeden toe onder "Andere"
+        // Alle overige onder 'Andere'
         let andereToegevoegd = false;
         snapshot.docs.forEach(doc => {
-          const titel = doc.data().titel || doc.id;
-          const normTitel = normaliseer(titel);
-          // Vermijd hoofdknoppen en reeds toegewezen
+          const id = doc.id.trim();
           if (
-            !reedsToegewezen.has(normTitel) &&
-            !["ochtendgebed","avondgebed","tafelgebeden","geloofsbelijdenis"].includes(doc.id.toLowerCase())
+            !reedsToegewezen.has(id) &&
+            !["ochtendgebed","avondgebed","tafelgebeden","geloofsbelijdenis"].includes(id.toLowerCase())
           ) {
             if (!andereToegevoegd) {
               container.innerHTML += `<div class="accordion-section">Andere</div>`;
               andereToegevoegd = true;
             }
-            container.innerHTML += `<a href="gebed.html?id=${encodeURIComponent(doc.id)}">${titel}</a>`;
+            container.innerHTML += `<a href="gebed.html?id=${encodeURIComponent(doc.id)}">${doc.data().titel || doc.id}</a>`;
           }
         });
 
