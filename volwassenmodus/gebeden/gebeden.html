@@ -186,12 +186,12 @@
 
  <nav class="menu">
    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html">🏠 Home</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/gebeden.html">🙏 Gebeden</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html">🧰 Mijn profiel</a>
+   <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
+   <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
+   <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/gebeden.html">🙏 Gebeden</a>
+   <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
+   <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
+   <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html">🧰 Mijn profiel</a>
 </nav>
 
   <div id="parochieLabel" style="background:#f8f0d4;color:#7a5f35;padding:10px 0 8px 0;text-align:center;font-weight:bold;letter-spacing:1px;font-size:1.07em;box-shadow:0 2px 8px #cbb96d44;"></div>
@@ -221,7 +221,6 @@
   <script>
     // Parochienaam ophalen uit localStorage (uit login-systeem)
     let parochieNaam = localStorage.getItem("ingelogdeParochie");
-    let parochieId   = localStorage.getItem("ingelogdeParochieId"); // Bijv. voor Firestore filter
 
     // Vul statusbalk & label
     if (parochieNaam) {
@@ -239,7 +238,6 @@
     document.getElementById("uitlogKnop").onclick = function() {
       localStorage.removeItem("ingelogdeParochie");
       localStorage.removeItem("ingelogdeParochieId");
-      // Je kan hier meer login-data wissen indien je die toevoegt
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     };
 
@@ -261,7 +259,7 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
-    // Koppeling: hoofdknoppen linken naar de juiste gebed-id (uit collectie gebeden_vw)
+    // Koppeling: hoofdknoppen linken naar de juiste gebed-id (uit collectie gebeden)
     function setHoofdKnop(knopId, gebedId) {
       document.getElementById(knopId).onclick = function() {
         window.location.href = "gebed.html?id=" + encodeURIComponent(gebedId);
@@ -272,82 +270,95 @@
     setHoofdKnop("tafelKnop", "tafelgebeden");
     setHoofdKnop("geloofKnop", "geloofsbelijdenis");
 
-    // Dynamisch groeperen op basis van titels
+    // Categorieën zoals jij het wil, met correcte namen
+    const groepen = {
+      "Maaltijdgebeden": [
+        "Na het avondmaal",
+        "Na het middagmaal",
+        "Na het ontbijt",
+        "Voor het avondmaal",
+        "Voor het middagmaal",
+        "Voor het ontbijt"
+      ],
+      "Gebeden voor bescherming & intentie": [
+        "Gebed bij het verlaten van het huis",
+        "Gebed voor de vrede",
+        "Gebed voor vrede",
+        "Gebed voor je parochie",
+        "Gebed voor de priester",
+        "Gebed voor de kinderen",
+        "Gebed voor de ouders",
+        "Gebed voor broers en zussen"
+      ],
+      "Gebeden voor moeilijke tijden": [
+        "Gebed bij verdriet",
+        "Gebed bij ziekte",
+        "Gebed voor een zieke",
+        "Gebed om vergeving",
+        "Gebed voor de zielenrust van overledenen"
+      ],
+      "Gebeden tot heiligen": [
+        "Gebed tot Christus",
+        "Gebed tot de Moeder Gods",
+        "Gebed tot de heilige Geest",
+        "Gebed tot de heilige beschermengel",
+        "Gebed tot je beschermengel"
+      ],
+      "Gebeden bij kaarsjes": [
+        "Gebed bij het aansteken van een kaars",
+        "Gebed bij het aansteken van een kaarsje"
+      ],
+      "Andere": [
+        "Gebed voor de start van de dagtaak"
+      ]
+    };
+
+    // Gebeden uit Firestore halen en netjes groeperen
     function laadGebeden() {
       const container = document.getElementById("accordion-content");
       container.innerHTML = "<div>Laden...</div>";
-
-      if (!parochieId) {
-        container.innerHTML = "<div>Niet ingelogd of geen parochie gevonden.</div>";
-        return;
-      }
 
       db.collection("gebeden")
         .get().then(snapshot => {
         container.innerHTML = "";
 
-        if (snapshot.empty) {
-          container.innerHTML = "<div>Geen overige gebeden gevonden voor deze parochie.</div>";
-          return;
-        }
-
-        // Indeling (let op hoofd/kleine letters in Firestore)
-        const groepen = {
-          "Maaltijdgebeden": [
-            "Na het avondmaal","Na het middagmaal","Na het ontbijt",
-            "Voor het avondmaal","Voor het middagmaal","Voor het ontbijt"
-          ],
-          "Gebeden voor bescherming & intentie": [
-            "Gebed bij het verlaten van het huis","Gebed voor de vrede","Gebed voor vrede",
-            "Gebed voor je parochie","Gebed voor de priester","Gebed voor de kinderen",
-            "Gebed voor de ouders","Gebed voor broers en zussen"
-          ],
-          "Gebeden voor moeilijke tijden": [
-            "Gebed bij verdriet","Gebed bij ziekte","Gebed voor een zieke","Gebed om vergeving",
-            "Gebed voor de zielenrust van overledenen"
-          ],
-          "Gebeden tot heiligen": [
-            "Gebed tot Christus","Gebed tot de Moeder Gods","Gebed tot de heilige Geest",
-            "Gebed tot de heilige beschermengel","Gebed tot je beschermengel"
-          ],
-          "Gebeden bij kaarsjes": [
-            "Gebed bij het aansteken van een kaars","Gebed bij het aansteken van een kaarsje"
-          ],
-          "Andere": []
-        };
-
-        // Gebeden die nog niet geplaatst zijn, komen onder 'Andere'
-        const reedsToegewezen = new Set();
-        Object.values(groepen).forEach(arr => arr.forEach(t => reedsToegewezen.add(t)));
-
-        // Map {titel -> doc.id}
+        // Map: {titel in kleine letters -> {id, echte titel}}
         const docsByTitel = {};
         snapshot.docs.forEach(doc => {
-          const titel = doc.data().titel || doc.id;
-          docsByTitel[titel.trim()] = doc.id;
+          const titel = (doc.data().titel || doc.id).trim();
+          docsByTitel[titel.toLowerCase()] = { id: doc.id, titel: titel };
         });
 
-        // Groepeer en toon in accordion
+        // Toon de groepen netjes
+        let reedsToegewezen = new Set();
+
         for (const [groep, lijst] of Object.entries(groepen)) {
           let toegevoegd = false;
           lijst.forEach(titel => {
-            if (docsByTitel[titel.trim()]) {
+            if (docsByTitel[titel.toLowerCase()]) {
               if (!toegevoegd) {
                 container.innerHTML += `<div class="accordion-section">${groep}</div>`;
                 toegevoegd = true;
               }
-              container.innerHTML += `<a href="gebed.html?id=${encodeURIComponent(docsByTitel[titel.trim()])}">${titel}</a>`;
+              container.innerHTML += `<a href="gebed.html?id=${encodeURIComponent(docsByTitel[titel.toLowerCase()].id)}">${docsByTitel[titel.toLowerCase()].titel}</a>`;
+              reedsToegewezen.add(titel.toLowerCase());
             }
           });
         }
-        // Voeg alle overige gebeden toe onder "Andere"
+
+        // Alles wat niet in een groep zit EN geen hoofdknop is:
         snapshot.docs.forEach(doc => {
-          const titel = doc.data().titel || doc.id;
-          if (!reedsToegewezen.has(titel.trim()) &&
-              !["Ochtendgebed","Avondgebed","Tafelgebeden","Geloofsbelijdenis"].includes(titel.trim())) {
-            // Vermijd hoofdknoppen
-            container.innerHTML += `<div class="accordion-section">Andere</div>
-              <a href="gebed.html?id=${encodeURIComponent(doc.id)}">${titel}</a>`;
+          const titel = (doc.data().titel || doc.id).trim();
+          const lcTitel = titel.toLowerCase();
+          if (
+            !reedsToegewezen.has(lcTitel) &&
+            !["ochtendgebed","avondgebed","tafelgebeden","geloofsbelijdenis"].includes(lcTitel)
+          ) {
+            // Voeg "Andere" sectie alleen als eerste keer toe
+            if (!container.innerHTML.includes("accordion-section\">Andere")) {
+              container.innerHTML += `<div class="accordion-section">Andere</div>`;
+            }
+            container.innerHTML += `<a href="gebed.html?id=${encodeURIComponent(doc.id)}">${titel}</a>`;
           }
         });
 
