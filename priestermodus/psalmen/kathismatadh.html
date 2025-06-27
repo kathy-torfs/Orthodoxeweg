@@ -3,203 +3,110 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Orthodoxeweg – Kathismata Den Haag (priestermodus)</title>
+  <title>Kathismata van Den Haag – Priestermodus</title>
   <style>
-    body {
-      background-color: #f5e9b8;
-      color: #6f4e1a;
-      font-family: Arial, sans-serif;
-      margin: 0; padding: 0;
-    }
-    nav.menu {
-      background-color: #7a5f35;
-      padding: 10px 15px;
+    body { background-color: #f5e9b8; color: #6f4e1a; font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    .statusbar {
+      background: #7a5f35;
+      color: #fff;
+      padding: 10px 24px;
+      text-align: left;
+      font-size: 1.07em;
       display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      justify-content: center;
-    }
-    nav.menu a {
-      color: #f5e9b8;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 16px;
-      padding: 6px 12px;
-      border-radius: 8px;
-      transition: background-color 0.3s;
-    }
-    nav.menu a:hover {
-      background-color: #5d4726;
-      text-decoration: underline;
-    }
-    main {
-      max-width: 860px;
-      margin: 30px auto 60px auto;
-      padding: 0 15px;
-    }
-    h1 {
-      font-size: 28px;
-      margin-bottom: 20px;
-      text-align: center;
-      font-weight: bold;
-      text-decoration: underline;
-    }
-    .inleiding {
-      font-size: 1.15em;
-      margin-bottom: 1.5em;
-      text-align: center;
-      color: #74633e;
-    }
-    .boek-knop {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 32px;
-    }
-    .boek-knop a {
-      display: flex;
+      justify-content: space-between;
       align-items: center;
-      background: #ffe17a;
-      border-radius: 15px;
-      padding: 18px 32px 18px 28px;
-      font-size: 1.15em;
-      color: #725000;
-      font-weight: bold;
-      text-decoration: none;
-      box-shadow: 0 4px 12px #e7cb6835;
-      gap: 16px;
-      transition: background 0.15s, box-shadow 0.15s;
     }
-    .boek-knop a:hover, .boek-knop a:focus {
-      background: #ffefa6;
-      color: #4b3212;
-      box-shadow: 0 8px 22px #e7cb6860;
-    }
-    .boekicoon {
-      font-size: 2.5em;
-      margin-right: 10px;
-    }
-    .boektitel {
-      font-size: 1.2em;
-      font-weight: 700;
-    }
-    .kathisma-list {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px 30px;
-      margin-bottom: 40px;
-    }
-    .kathisma-link {
-      display: block;
-      background: #e5dab2;
-      border-radius: 12px;
-      padding: 14px 20px;
-      box-shadow: 0 1px 4px #8d785533;
-      margin-bottom: 4px;
-      text-decoration: none;
-      color: #705411;
-      font-weight: bold;
-      transition: background 0.15s;
-    }
-    .kathisma-link:hover, .kathisma-link:focus {
-      background: #f5efcf;
-      color: #4b3212;
-    }
-    .kathisma-link span {
-      display: block;
-      font-size: 0.95em;
-      font-weight: normal;
-      color: #85714e;
-      margin-top: 2px;
-    }
+    nav.menu { background-color: #7a5f35; padding: 10px 15px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+    nav.menu a { color: #f5e9b8; text-decoration: none; font-weight: 600; font-size: 16px; padding: 6px 12px; border-radius: 8px; transition: background-color 0.3s; }
+    nav.menu a:hover { background-color: #5d4726; text-decoration: underline; }
+    main { max-width: 860px; margin: 30px auto 60px auto; padding: 0 15px; }
+    h1 { font-size: 28px; margin-bottom: 20px; text-align: center; font-weight: bold; text-decoration: underline; }
+    .inleiding { font-size: 1.15em; margin-bottom: 1.5em; text-align: center; color: #74633e; }
+    .kathisma-list { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 30px; margin-bottom: 40px; }
+    .kathisma-link { display: block; background: #e5dab2; border-radius: 12px; padding: 14px 20px; box-shadow: 0 1px 4px #8d785533; margin-bottom: 4px; text-decoration: none; color: #705411; font-weight: bold; transition: background 0.15s; }
+    .kathisma-link:hover, .kathisma-link:focus { background: #f5efcf; color: #4b3212; }
+    .kathisma-link span { display: block; font-size: 0.95em; font-weight: normal; color: #85714e; margin-top: 2px; }
     @media (max-width: 650px) {
       .kathisma-list { grid-template-columns: 1fr; }
       main { padding: 0 4px; }
-      .boek-knop a { font-size: 1em; padding: 14px 8px 14px 12px; }
-      .boekicoon { font-size: 2em; }
     }
   </style>
-  <!-- Firebase App (core SDK) -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-
-<!-- PRIETER-MENU -->
-<nav class="menu">
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/parochie.html">🛐 Mijn parochie</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/psalmen/psalmen.html">📜 Psalmen</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/gebeden.html">🙏 Gebeden</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/catechese/catechese.html">📖 Catechese</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/layout.html">🧰 Bewerk parochie</a>
-</nav>
-
-<main>
-  <h1>Kathismata van het Psalmenboek Den Haag</h1>
-  <div class="inleiding">
-    Hieronder vind je het overzicht van de 20 Kathismata volgens de indeling van het Psalmenboek van Den Haag.<br>
-    Klik op een Kathisma om naar de bijbehorende psalmen te gaan.
+  <div class="statusbar">
+    <span>U bent ingelogd in: <span id="parochieNaam">...</span></span>
   </div>
-  <div class="boek-knop">
-    <a href="kathismataDH.html" title="Alle Kathismata van Den Haag">
-      <span class="boekicoon">📖</span>
-      <span class="boektitel">Alle Kathismata van Den Haag</span>
-    </a>
-  </div>
-  <div class="kathisma-list" id="kathismaList">
-    <!-- Automatisch gevuld -->
-  </div>
-</main>
+  <nav class="menu">
+    <a href="../startpagina.html">🏠 Home</a>
+    <a href="psalmen.html">📜 Psalmen</a>
+    <a href="../gebeden/gebeden.html">🙏 Gebeden</a>
+    <a href="../gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
+    <a href="../catechese/catechese.html">📖 Catechese</a>
+    <a href="../layout.html">🧰 Bewerk parochie</a>
+  </nav>
 
-<script>
-  // Firebase-configuratie zoals zichtbaar op jouw screenshot
-  const firebaseConfig = {
-    apiKey: "AIzaSyBPrQ6YGQ6wL2fEn55bgw6RS5HTMGF71fA",
-    authDomain: "orthodoxeweg.firebaseapp.com",
-    projectId: "orthodoxeweg",
-    storageBucket: "orthodoxeweg.appspot.com",
-    messagingSenderId: "326418056220",
-    appId: "1:326418056220:web:9ab3510ccf88550c2eac2b"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+  <main>
+    <h1>Kathismata van Den Haag</h1>
+    <div class="inleiding">
+      Hieronder vind je het overzicht van de 20 Kathismata volgens de indeling van het Psalmenboek van Den Haag.<br>
+      Klik op een Kathisma om naar de bijbehorende psalmen te gaan.
+    </div>
+    <div class="kathisma-list" id="kathisma-list">
+      <!-- Hier komt de lijst uit Firestore -->
+    </div>
+  </main>
+  <script>
+    // Parochie uit localStorage
+    let parochieNaam = localStorage.getItem("ingelogdeParochie");
+    document.getElementById("parochieNaam").textContent = parochieNaam || "[niet ingelogd]";
 
-  async function laadKathismata() {
-    const kathismaListDiv = document.getElementById('kathismaList');
-    kathismaListDiv.innerHTML = "<p style='grid-column:1/-1;color:#9a8c69;'>Laden...</p>";
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:2e02833fa0d4d8903ceedb"
+    };
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const db = firebase.firestore();
 
-    // Haal 20 kathismata-documenten op (kathisma1, kathisma2, ...)
-    const kathismata = [];
-    for(let i=1;i<=20;i++) kathismata.push(`kathisma${i}`);
+    // De juiste kathismata-documentnamen op volgorde
+    const kathismaDocs = [
+      "kathisma1", "kathisma2", "kathisma3", "kathisma4", "kathisma5",
+      "kathisma6", "kathisma7", "kathisma8", "kathisma9", "kathisma10",
+      "kathisma11", "kathisma12", "kathisma13", "kathisma14", "kathisma15",
+      "kathisma16", "kathisma17", "kathisma18", "kathisma19", "kathisma20"
+    ];
 
-    const promises = kathismata.map(async (naam, idx) => {
-      const doc = await db.collection('kathismata_dh').doc(naam).get();
-      if (doc.exists) {
-        const data = doc.data();
-        // Toon: Kathisma X (Psalmen y–z)
-        let psalmen = data.psalmen;
-        let psalmBereik = "";
-        if (Array.isArray(psalmen) && psalmen.length > 0) {
-          // Zoek altijd eerste en laatste nummer op basis van titel "Psalm N"
-          let eerste = psalmen[0].titel.match(/\d+/) ? psalmen[0].titel.match(/\d+/)[0] : "";
-          let laatste = psalmen[psalmen.length-1].titel.match(/\d+/) ? psalmen[psalmen.length-1].titel.match(/\d+/)[0] : "";
-          psalmBereik = (eerste === laatste) ? `Psalm ${eerste}` : `Psalmen ${eerste}–${laatste}`;
+    // Per kathisma ophalen en tonen
+    async function toonKathismata() {
+      const lijst = document.getElementById('kathisma-list');
+      lijst.innerHTML = '';
+      for (let i = 0; i < kathismaDocs.length; i++) {
+        const nr = i + 1;
+        // Document ophalen (enkel titel tonen!)
+        const docRef = db.collection("kathismata_dh").doc(kathismaDocs[i]);
+        const doc = await docRef.get();
+        let psalmenLabel = '';
+        if (doc.exists) {
+          // Hulp: bepaal bereik uit eerste en laatste psalm-titel
+          const data = doc.data();
+          let psalmen = data.psalmen || [];
+          let eerste = (psalmen[0] && psalmen[0].titel) ? psalmen[0].titel : '';
+          let laatste = (psalmen[psalmen.length - 1] && psalmen[psalmen.length - 1].titel) ? psalmen[psalmen.length - 1].titel : '';
+          psalmenLabel = eerste && laatste ? `<span>${eerste.replace('Psalm ', '')}–${laatste.replace('Psalm ', '')}</span>` : '';
         }
-        return `
-          <a class="kathisma-link" href="kathisma${idx+1}dh.html">
-            Kathisma ${idx+1}
-            <span>${psalmBereik}</span>
-          </a>
+        lijst.innerHTML += `
+          <a class="kathisma-link" href="kathismadh.html?nr=${nr}">Kathisma ${nr} ${psalmenLabel}</a>
         `;
       }
-      return '';
-    });
+    }
 
-    const html = (await Promise.all(promises)).join("");
-    kathismaListDiv.innerHTML = html;
-  }
-  laadKathismata();
-</script>
-
+    toonKathismata();
+  </script>
 </body>
 </html>
