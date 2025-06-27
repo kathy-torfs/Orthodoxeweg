@@ -7,47 +7,50 @@
   <style>
     html, body {
       margin: 0; padding: 0;
-      background-color: black;
+      background-color: #322d18; /* Uit de ster-afbeelding gepakt */
       height: 100%; overflow: hidden;
       font-family: Georgia, serif;
       color: white;
     }
     #photeinos {
       position: absolute;
-      top: 50%; left: 50%;
-      width: 12px;
+      top: 38%; left: 50%;
+      width: 48vw;
+      min-width: 260px;
+      max-width: 420px;
+      transform: translate(-50%, -50%) scale(0.4);
       opacity: 0.8;
-      transform: translate(-50%, -50%) scale(1);
-      transition: transform 3s cubic-bezier(0.5,1.5,0.3,1), opacity 1.8s;
+      transition: transform 5s cubic-bezier(0.5,1.5,0.3,1), opacity 3s;
       z-index: 1;
+      box-shadow: 0 0 30px #0008;
     }
     .tekstblok {
       position: absolute;
-      bottom: 110px;
+      bottom: 120px;
       left: 50%;
       transform: translateX(-50%);
-      width: 340px;
-      padding: 18px;
-      background: rgba(255, 251, 232, 0.95);
-      color: #222;
-      border-radius: 14px;
-      font-size: 1.12em;
+      width: 350px;
+      padding: 20px 18px 18px 18px;
+      background: rgba(255, 251, 232, 0.96);
+      color: #322d18;
+      border-radius: 16px;
+      font-size: 1.15em;
       text-align: center;
       display: none;
-      box-shadow: 0 0 14px rgba(0,0,0,0.55);
+      box-shadow: 0 0 18px rgba(0,0,0,0.4);
       z-index: 2;
     }
     .verderknop {
-      margin-top: 14px;
-      padding: 10px 28px;
+      margin-top: 16px;
+      padding: 12px 30px;
       background-color: #6b4c1e;
       color: white;
       border: none;
       border-radius: 10px;
       font-size: 1.08em;
       cursor: pointer;
-      opacity: 0.97;
       transition: background 0.2s;
+      box-shadow: 0 2px 7px #322d18bb;
     }
     .verderknop:hover {
       background-color: #8d6837;
@@ -56,50 +59,33 @@
 </head>
 <body>
 
-  <!-- Photeinos begint als stip -->
+  <!-- Photeinos groter in beeld -->
   <img id="photeinos" src="photeinos_scene_donker.png" alt="Photeinos in het donker" />
 
-  <!-- Tekstblok verschijnt na animatie -->
+  <!-- Tekstblok met correcte HTML -->
   <div class="tekstblok" id="tekstblok">
-    <span id="typewriter"></span>
-    <br>
-    <button class="verderknop" style="display:none" id="verderknop">
+    <p><strong>Hallo, ik ben Photeinos.</strong></p>
+    <p>Dat betekent ‘brenger van het Licht’.<br>
+    Ik ben mijn Licht verloren...<br>
+    Wil jij mij helpen om het Licht terug te vinden?</p>
+    <button class="verderknop" onclick="window.location.href='pagina2.html'">
       Ja, ik help je!
     </button>
   </div>
 
   <script>
-    // Animatie: Photeinos wordt groot, wordt iets helderder
+    // 1) Langzamer inzoomen
     setTimeout(() => {
-      document.getElementById("photeinos").style.transform = "translate(-50%, -50%) scale(18)";
+      document.getElementById("photeinos")
+              .style.transform = "translate(-50%, -50%) scale(1)";
       document.getElementById("photeinos").style.opacity = "1";
-    }, 800);
+    }, 1200);
 
-    // Na inzoomen tekstblok tonen + typewriter effect
+    // 2) Tekstblok nog later tonen (bijv. na 5,5 sec)
     setTimeout(() => {
       const blok = document.getElementById("tekstblok");
       blok.style.display = "block";
-
-      const tekst = "<strong>Hallo, ik ben Photeinos.</strong><br>Dat betekent 'brenger van het Licht'.<br>Ik ben mijn licht verloren...<br>Wil jij mij helpen om het Licht terug te vinden?";
-      let i = 0;
-      let writer = document.getElementById("typewriter");
-
-      function typeWriter() {
-        if (i < tekst.length) {
-          writer.innerHTML += tekst.charAt(i);
-          i++;
-          setTimeout(typeWriter, tekst.charAt(i-1) === '<' ? 0 : 26); // sneller bij html
-        } else {
-          document.getElementById("verderknop").style.display = "inline-block";
-        }
-      }
-      typeWriter();
-    }, 3500);
-
-    // Knop functionaliteit
-    document.getElementById('verderknop').onclick = function() {
-      window.location.href = 'pagina2.html';
-    };
+    }, 6500);
   </script>
 </body>
 </html>
