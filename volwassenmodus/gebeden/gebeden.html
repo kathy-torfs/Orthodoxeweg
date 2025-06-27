@@ -192,7 +192,7 @@
    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html">🧰 Mijn profiel</a>
-</nav>
+ </nav>
 
   <div id="parochieLabel" style="background:#f8f0d4;color:#7a5f35;padding:10px 0 8px 0;text-align:center;font-weight:bold;letter-spacing:1px;font-size:1.07em;box-shadow:0 2px 8px #cbb96d44;"></div>
 
@@ -219,6 +219,11 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script>
+    // Functie om accenten en hoofdletters te negeren bij vergelijken
+    function normaliseer(str) {
+      return str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim() : "";
+    }
+
     // Parochienaam ophalen uit localStorage (uit login-systeem)
     let parochieNaam = localStorage.getItem("ingelogdeParochie");
 
@@ -270,93 +275,82 @@
     setHoofdKnop("tafelKnop", "tafelgebeden");
     setHoofdKnop("geloofKnop", "geloofsbelijdenis");
 
-    // Categorieën zoals jij het wil, met correcte namen
-    const groepen = {
-      "Maaltijdgebeden": [
-        "Na het avondmaal",
-        "Na het middagmaal",
-        "Na het ontbijt",
-        "Voor het avondmaal",
-        "Voor het middagmaal",
-        "Voor het ontbijt"
-      ],
-      "Gebeden voor bescherming & intentie": [
-        "Gebed bij het verlaten van het huis",
-        "Gebed voor de vrede",
-        "Gebed voor vrede",
-        "Gebed voor je parochie",
-        "Gebed voor de priester",
-        "Gebed voor de kinderen",
-        "Gebed voor de ouders",
-        "Gebed voor broers en zussen"
-      ],
-      "Gebeden voor moeilijke tijden": [
-        "Gebed bij verdriet",
-        "Gebed bij ziekte",
-        "Gebed voor een zieke",
-        "Gebed om vergeving",
-        "Gebed voor de zielenrust van overledenen"
-      ],
-      "Gebeden tot heiligen": [
-        "Gebed tot Christus",
-        "Gebed tot de Moeder Gods",
-        "Gebed tot de heilige Geest",
-        "Gebed tot de heilige beschermengel",
-        "Gebed tot je beschermengel"
-      ],
-      "Gebeden bij kaarsjes": [
-        "Gebed bij het aansteken van een kaars",
-        "Gebed bij het aansteken van een kaarsje"
-      ],
-      "Andere": [
-        "Gebed voor de start van de dagtaak"
-      ]
-    };
-
-    // Gebeden uit Firestore halen en netjes groeperen
+    // Dynamisch groeperen op basis van titels (let op accenten/hoofdletters)
     function laadGebeden() {
       const container = document.getElementById("accordion-content");
       container.innerHTML = "<div>Laden...</div>";
 
-      db.collection("gebeden")
-        .get().then(snapshot => {
+      db.collection("gebeden").get().then(snapshot => {
         container.innerHTML = "";
 
-        // Map: {titel in kleine letters -> {id, echte titel}}
+        if (snapshot.empty) {
+          container.innerHTML = "<div>Geen overige gebeden gevonden.</div>";
+          return;
+        }
+
+        // Indeling van groepen
+        const groepen = {
+          "Maaltijdgebeden": [
+            "Na het avondmaal","Na het middagmaal","Na het ontbijt",
+            "Voor het avondmaal","Voor het middagmaal","Voor het ontbijt"
+          ],
+          "Gebeden voor bescherming & intentie": [
+            "Gebed bij het verlaten van het huis","Gebed voor de vrede","Gebed voor vrede",
+            "Gebed voor je parochie","Gebed voor de priester","Gebed voor de kinderen",
+            "Gebed voor de ouders","Gebed voor broers en zussen"
+          ],
+          "Gebeden voor moeilijke tijden": [
+            "Gebed bij verdriet","Gebed bij ziekte","Gebed voor een zieke","Gebed om vergeving",
+            "Gebed voor de zielenrust van overledenen"
+          ],
+          "Gebeden tot heiligen": [
+            "Gebed tot Christus","Gebed tot de Moeder Gods","Gebed tot de heilige Geest",
+            "Gebed tot de heilige beschermengel","Gebed tot je beschermengel"
+          ],
+          "Gebeden bij kaarsjes": [
+            "Gebed bij het aansteken van een kaars","Gebed bij het aansteken van een kaarsje"
+          ],
+          "Andere": []
+        };
+
+        // Mapping: genormaliseerde titel -> doc (id & echte titel)
         const docsByTitel = {};
         snapshot.docs.forEach(doc => {
-          const titel = (doc.data().titel || doc.id).trim();
-          docsByTitel[titel.toLowerCase()] = { id: doc.id, titel: titel };
+          const titel = doc.data().titel || doc.id;
+          docsByTitel[normaliseer(titel)] = { id: doc.id, titel: titel };
         });
 
-        // Toon de groepen netjes
-        let reedsToegewezen = new Set();
+        // Bepalen welke titels al zijn toegevoegd
+        const reedsToegewezen = new Set();
 
+        // Groepeer en toon per groep
         for (const [groep, lijst] of Object.entries(groepen)) {
           let toegevoegd = false;
           lijst.forEach(titel => {
-            if (docsByTitel[titel.toLowerCase()]) {
+            const key = normaliseer(titel);
+            if (docsByTitel[key]) {
               if (!toegevoegd) {
                 container.innerHTML += `<div class="accordion-section">${groep}</div>`;
                 toegevoegd = true;
               }
-              container.innerHTML += `<a href="gebed.html?id=${encodeURIComponent(docsByTitel[titel.toLowerCase()].id)}">${docsByTitel[titel.toLowerCase()].titel}</a>`;
-              reedsToegewezen.add(titel.toLowerCase());
+              container.innerHTML += `<a href="gebed.html?id=${encodeURIComponent(docsByTitel[key].id)}">${docsByTitel[key].titel}</a>`;
+              reedsToegewezen.add(key);
             }
           });
         }
-
-        // Alles wat niet in een groep zit EN geen hoofdknop is:
+        // Voeg alle overige gebeden toe onder "Andere"
+        let andereToegevoegd = false;
         snapshot.docs.forEach(doc => {
-          const titel = (doc.data().titel || doc.id).trim();
-          const lcTitel = titel.toLowerCase();
+          const titel = doc.data().titel || doc.id;
+          const normTitel = normaliseer(titel);
+          // Vermijd hoofdknoppen en reeds toegewezen
           if (
-            !reedsToegewezen.has(lcTitel) &&
-            !["ochtendgebed","avondgebed","tafelgebeden","geloofsbelijdenis"].includes(lcTitel)
+            !reedsToegewezen.has(normTitel) &&
+            !["ochtendgebed","avondgebed","tafelgebeden","geloofsbelijdenis"].includes(doc.id.toLowerCase())
           ) {
-            // Voeg "Andere" sectie alleen als eerste keer toe
-            if (!container.innerHTML.includes("accordion-section\">Andere")) {
+            if (!andereToegevoegd) {
               container.innerHTML += `<div class="accordion-section">Andere</div>`;
+              andereToegevoegd = true;
             }
             container.innerHTML += `<a href="gebed.html?id=${encodeURIComponent(doc.id)}">${titel}</a>`;
           }
