@@ -1,14 +1,14 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Orthodoxeweg – Psalmenoverzicht</title>
+  <title>Orthodoxeweg – Psalmen (Priestermodus)</title>
   <style>
     body {
       background-color: #f5e9b8;
       color: #6f4e1a;
-      font-family: Arial, serif;
+      font-family: Arial, sans-serif;
       margin: 0; padding: 0;
     }
     .statusbar {
@@ -20,21 +20,21 @@
       justify-content: space-between;
       align-items: center;
     }
-    .uitlog-link {
+    .uitlog-link, #uitlogKnop {
       color: #fff;
-      background: #9a2617;
-      padding: 6px 16px;
+      background: #bd2e23;
+      padding: 6px 18px;
       border-radius: 8px;
       font-size: 1em;
       text-decoration: none;
       font-weight: bold;
-      margin-left: 20px;
+      margin-left: 30px;
       cursor: pointer;
       border: none;
       outline: none;
       transition: background 0.18s;
     }
-    .uitlog-link:hover { background: #bd2e23; }
+    .uitlog-link:hover, #uitlogKnop:hover { background: #b92a1f; }
     nav.menu {
       background-color: #7a5f35;
       padding: 10px 15px;
@@ -57,121 +57,131 @@
       text-decoration: underline;
     }
     main {
-      max-width: 820px;
-      margin: 32px auto 60px auto;
+      max-width: 860px;
+      margin: 30px auto 60px auto;
       padding: 0 15px;
     }
     h1 {
-      text-align: center;
-      font-size: 2em;
-      font-weight: bold;
+      font-size: 28px;
       margin-bottom: 20px;
-      color: #674f23;
-      letter-spacing: 1px;
-      text-shadow: 0 2px 8px #fff8;
-    }
-    ul.kathismalijst {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-    li.kathisma-item {
-      margin: 10px 0;
-      padding: 0;
-    }
-    a.kathisma-link {
-      display: block;
-      background: #fffef8;
-      border: 1.5px solid #d4bb82;
-      border-radius: 8px;
-      color: #6f4e1a;
-      padding: 18px 18px 16px 22px;
-      font-size: 1.11em;
+      text-align: center;
       font-weight: bold;
-      letter-spacing: 0.2px;
-      box-shadow: 0 4px 8px #e4cda0a1;
+      text-decoration: underline;
+    }
+    .psalm-intro {
+      background: #fffbe8;
+      border-radius: 16px;
+      padding: 24px 24px 20px 24px;
+      margin-bottom: 36px;
+      box-shadow: 0 2px 10px #dac79e44;
+      font-size: 19px;
+      line-height: 1.5;
+    }
+    .psalm-knoppen {
+      display: flex;
+      gap: 32px;
+      justify-content: center;
+      margin: 40px 0 0 0;
+      flex-wrap: wrap;
+    }
+    .psalm-knop {
+      background-color: #7a5f35;
+      color: #f5e9b8;
+      font-size: 20px;
+      font-weight: bold;
+      border: none;
+      border-radius: 14px;
+      padding: 26px 40px;
+      box-shadow: 0 4px 16px #dac79e44;
       text-decoration: none;
-      transition: background 0.18s, box-shadow 0.21s;
-      position: relative;
+      cursor: pointer;
+      transition: background 0.3s, box-shadow 0.3s;
+      margin-bottom: 18px;
+      min-width: 220px;
+      text-align: center;
     }
-    a.kathisma-link:hover {
-      background: #f9eed5;
-      box-shadow: 0 8px 20px #cdb77f40;
-      border-color: #be9e53;
+    .psalm-knop:hover {
+      background-color: #5d4726;
+      box-shadow: 0 2px 12px #dac79e77;
     }
-    .kathisma-label { font-size: 1.15em; }
-    .psalmrange { font-size: 0.97em; font-weight: normal; color: #a4894e; margin-left: 18px; }
-    @media (max-width: 700px) {
-      main { padding: 0 2vw; }
-      a.kathisma-link { font-size: 1em; }
+    footer {
+      max-width: 860px;
+      margin: 30px auto 40px auto;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+    footer a {
+      background-color: #7a5f35;
+      color: #f5e9b8;
+      padding: 10px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 16px;
+      box-shadow: 0 4px 4px rgb(0 0 0 / 0.25);
+    }
+    footer a:hover {
+      background-color: #5d4726;
     }
   </style>
 </head>
 <body>
-  <!-- PRIETERSTATUSBALK -->
-  <div class="statusbar">
-    <span>U bent ingelogd in: <span id="parochieNaam">...</span></span>
-    <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
+
+<!-- STATUSBALK EN UITLOGGEN -->
+<div class="statusbar">
+  <span id="welkom-tekst"></span>
+  <button id="uitlogKnop">🚪 Uitloggen</button>
+</div>
+
+<!-- PRIESTERMODUS MENUBALK -->
+<nav class="menu">
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/parochie.html">🛐 Mijn parochie</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/psalmen/psalmen.html">📜 Psalmen</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/gebeden.html">🙏 Gebeden</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/catechese/catechese.html">📖 Catechese</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/layout.html">🧰 Bewerk parochie</a>
+</nav>
+
+<main>
+  <h1>Psalmen</h1>
+  <div class="psalm-intro">
+    <p>
+      De psalmen zijn het gebedenboek van de Kerk en het hart van elke orthodoxe liturgie. Eeuwenlang hebben gelovigen troost, berouw, hoop en lof in deze gezongen gebeden gevonden.<br><br>
+      <b>Kies hieronder welke vertaling je wilt raadplegen:</b>
+    </p>
   </div>
-  <!-- MENUBALK -->
-  <nav class="menu">
-    <a href="https://orthodoxeweg.be/index.html">🏠 Home</a>
-    <a href="https://orthodoxeweg.be/priestermodus/psalmen/psalmen.html">📜 Psalmen</a>
-    <a href="https://orthodoxeweg.be/priestermodus/catechese/catechese.html">📖 Catechese</a>
-    <a href="https://orthodoxeweg.be/priestermodus/gebeden/gebeden.html">🙏 Gebeden</a>
-    <a href="https://orthodoxeweg.be/priestermodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
-    <a href="https://orthodoxeweg.be/priestermodus/heiligen/heiligen.html">🌟 Heiligen</a>
-    <a href="https://orthodoxeweg.be/priestermodus/menu/recepten.html">🍽️ Recepten</a>
-  </nav>
-  <main>
-    <h1>Psalmen – Kathismata-overzicht</h1>
-    <ul class="kathismalijst" id="kathismalijst"></ul>
-  </main>
-  <script>
-    // Priesterbalk
-    let parochieNaam = localStorage.getItem("ingelogdeParochie");
-    document.getElementById("parochieNaam").textContent = parochieNaam ? parochieNaam : "–";
-    document.getElementById("uitlogKnop").onclick = function() {
-      localStorage.removeItem("ingelogdeParochie");
-      window.location.href = "https://orthodoxeweg.be/index.html";
-    };
+  <div class="psalm-knoppen">
+    <a class="psalm-knop" href="kathismata.html">
+      Vlaams Orthodoxe psalmenboek<br><small>Vertaald door Orthodoxe Weg</small>
+    </a>
+    <a class="psalm-knop" href="kathismatadh.html">
+      Psalmenboek Den Haag<br><small>Officiële Nederlandse vertaling</small>
+    </a>
+  </div>
+</main>
 
-    // Kathisma-structuur (altijd vaste 20)
-    const kathismata = [
-      {nr: 1, psalmen: "1–8"},
-      {nr: 2, psalmen: "9–16"},
-      {nr: 3, psalmen: "17–23"},
-      {nr: 4, psalmen: "24–31"},
-      {nr: 5, psalmen: "32–36"},
-      {nr: 6, psalmen: "37–45"},
-      {nr: 7, psalmen: "46–54"},
-      {nr: 8, psalmen: "55–63"},
-      {nr: 9, psalmen: "64–69"},
-      {nr: 10, psalmen: "70–76"},
-      {nr: 11, psalmen: "77–83"},
-      {nr: 12, psalmen: "84–90"},
-      {nr: 13, psalmen: "91–97"},
-      {nr: 14, psalmen: "98–104"},
-      {nr: 15, psalmen: "105–108"},
-      {nr: 16, psalmen: "109–117"},
-      {nr: 17, psalmen: "118"},
-      {nr: 18, psalmen: "119–133"},
-      {nr: 19, psalmen: "134–142"},
-      {nr: 20, psalmen: "143–150"}
-    ];
+<script>
+// BEGROETING + PAROCHIE
+const welkomTekst = document.getElementById("welkom-tekst");
+const uur = new Date().getHours();
+let moment = "goeiedag";
+if (uur >= 5 && uur <= 10) moment = "goeiemorgend";
+else if (uur >= 11 && uur <= 13) moment = "goeiemiddag";
+else if (uur >= 17 && uur <= 22) moment = "goeienavond";
+else if (uur > 22 || uur < 5) moment = "goedenacht";
 
-    // Toon als lijst
-    let ul = document.getElementById("kathismalijst");
-    kathismata.forEach(k => {
-      ul.innerHTML += `
-        <li class="kathisma-item">
-          <a class="kathisma-link" href="kathisma.html?nr=${k.nr}">
-            <span class="kathisma-label">Kathisma ${k.nr}</span>
-            <span class="psalmrange">(Psalmen ${k.psalmen})</span>
-          </a>
-        </li>
-      `;
-    });
-  </script>
+const parochie = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
+welkomTekst.textContent = `${moment} vader, ik wens u een gezegende dag. U bent ingelogd in: ${parochie}`;
+
+// UITLOGKNOP
+document.getElementById("uitlogKnop").onclick = () => {
+  localStorage.removeItem("modus");
+  localStorage.removeItem("ingelogdeParochie");
+  window.location.href = "https://orthodoxeweg.be/index.html";
+};
+</script>
+
 </body>
 </html>
