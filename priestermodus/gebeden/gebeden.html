@@ -205,7 +205,6 @@
     <a class="pdf-link" href="https://orthodoxekerkhasselt.com/wp-content/uploads/2024/11/liturgische-teksten-het-klein-orthodox-gebedenboekje-v7.5-nld.pdf" target="_blank">
       📖 Volledig Gebedenboekje (PDF)
     </a>
-
     <!-- Accordion voor andere gebeden -->
     <div class="accordion" id="accordion">
       <button class="accordion-button" onclick="toggleAccordion()">▼ Andere gebeden weergeven</button>
@@ -221,7 +220,6 @@
   <script>
     // Parochienaam ophalen uit localStorage (uit login-systeem)
     let parochieNaam = localStorage.getItem("ingelogdeParochie");
-    let parochieId   = localStorage.getItem("ingelogdeParochieId"); // Bijv. voor Firestore filter
 
     // Vul statusbalk & label
     if (parochieNaam) {
@@ -239,7 +237,6 @@
     document.getElementById("uitlogKnop").onclick = function() {
       localStorage.removeItem("ingelogdeParochie");
       localStorage.removeItem("ingelogdeParochieId");
-      // Je kan hier meer login-data wissen indien je die toevoegt
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     };
 
@@ -261,7 +258,7 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
-    // Koppeling: hoofdknoppen linken naar de juiste gebed-id (uit collectie gebeden_vw)
+    // Koppeling: hoofdknoppen linken naar de juiste gebed-id
     function setHoofdKnop(knopId, gebedId) {
       document.getElementById(knopId).onclick = function() {
         window.location.href = "gebed.html?id=" + encodeURIComponent(gebedId);
@@ -272,27 +269,20 @@
     setHoofdKnop("tafelKnop", "tafelgebeden");
     setHoofdKnop("geloofKnop", "geloofsbelijdenis");
 
-    // Dynamisch groeperen op basis van titels
+    // Dynamisch groeperen OP BASIS VAN ID
     function laadGebeden() {
       const container = document.getElementById("accordion-content");
       container.innerHTML = "<div>Laden...</div>";
 
-      if (!parochieId) {
-        container.innerHTML = "<div>Niet ingelogd of geen parochie gevonden.</div>";
-        return;
-      }
-
-      db.collection("gebeden")
-        .where("parochieId", "==", parochieId)
-        .get().then(snapshot => {
+      db.collection("gebeden").get().then(snapshot => {
         container.innerHTML = "";
 
         if (snapshot.empty) {
-          container.innerHTML = "<div>Geen overige gebeden gevonden voor deze parochie.</div>";
+          container.innerHTML = "<div>Geen overige gebeden gevonden.</div>";
           return;
         }
 
-        // Indeling (let op hoofd/kleine letters in Firestore)
+        // Indeling: gebruik ID's!
         const groepen = {
           "Maaltijdgebeden": [
             "Na het avondmaal","Na het middagmaal","Na het ontbijt",
@@ -317,38 +307,43 @@
           "Andere": []
         };
 
-        // Gebeden die nog niet geplaatst zijn, komen onder 'Andere'
-        const reedsToegewezen = new Set();
-        Object.values(groepen).forEach(arr => arr.forEach(t => reedsToegewezen.add(t)));
-
-        // Map {titel -> doc.id}
-        const docsByTitel = {};
+        // Map: id -> doc (toon titel voor gebruiker)
+        const docsById = {};
         snapshot.docs.forEach(doc => {
-          const titel = doc.data().titel || doc.id;
-          docsByTitel[titel.trim()] = doc.id;
+          docsById[doc.id.trim()] = { id: doc.id, titel: doc.data().titel || doc.id };
         });
 
-        // Groepeer en toon in accordion
+        // Al geplaatst?
+        const reedsToegewezen = new Set();
+
+        // Per groep tonen
         for (const [groep, lijst] of Object.entries(groepen)) {
           let toegevoegd = false;
-          lijst.forEach(titel => {
-            if (docsByTitel[titel.trim()]) {
+          lijst.forEach(id => {
+            const key = id.trim();
+            if (docsById[key]) {
               if (!toegevoegd) {
                 container.innerHTML += `<div class="accordion-section">${groep}</div>`;
                 toegevoegd = true;
               }
-              container.innerHTML += `<a href="gebed.html?id=${encodeURIComponent(docsByTitel[titel.trim()])}">${titel}</a>`;
+              container.innerHTML += `<a href="gebed.html?id=${encodeURIComponent(docsById[key].id)}">${docsById[key].titel}</a>`;
+              reedsToegewezen.add(key);
             }
           });
         }
-        // Voeg alle overige gebeden toe onder "Andere"
+        // Alle overige onder 'Andere'
+        let andereToegevoegd = false;
         snapshot.docs.forEach(doc => {
-          const titel = doc.data().titel || doc.id;
-          if (!reedsToegewezen.has(titel.trim()) &&
-              !["Ochtendgebed","Avondgebed","Tafelgebeden","Geloofsbelijdenis"].includes(titel.trim())) {
-            // Vermijd hoofdknoppen
-            container.innerHTML += `<div class="accordion-section">Andere</div>
-              <a href="gebed.html?id=${encodeURIComponent(doc.id)}">${titel}</a>`;
+          const id = doc.id.trim();
+          if (
+            !reedsToegewezen.has(id) &&
+            !["ochtendgebed","avondgebed","tafelgebeden","geloofsbelijdenis"].includes(id.toLowerCase())
+          ) {
+            if (!andereToegevoegd) {
+              container.innerHTML += `<div class="accordion-section">Andere</div>`;
+              andereToegevoegd = true;
+            }
+            container.innerHTML += `<a href="gebed.html?id=${encodeURIComponent(doc.id)}">${doc.data().titel || doc.id}</a>`;
           }
         });
 
