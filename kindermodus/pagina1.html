@@ -7,62 +7,39 @@
   <style>
     html, body {
       margin: 0; padding: 0;
-      background-color: #252b20;
-      height: 100vh; width: 100vw;
+      background-color: #18160f; /* Donkerbruin-zwart, bij je afbeelding */
+      height: 100%; overflow: hidden;
       font-family: Georgia, serif;
       color: white;
-      overflow: hidden;
     }
     #photeinos {
       position: absolute;
-      left: 50%; top: 56%;
-      width: 33vw; min-width: 220px; max-width: 480px;
-      transform: translate(-50%, -50%);
+      top: 50%; left: 50%;
+      width: 18px;
+      transform: translate(-50%, -50%) scale(1);
+      transition: transform 4.5s cubic-bezier(0.7,0,0.3,1);
       z-index: 1;
-      filter: drop-shadow(0 0 36px #bda85c88);
-      background: transparent;
-      /* Zorg dat het element zich als afbeelding gedraagt */
-      border: none;
-      outline: none;
-      pointer-events: none;
+      opacity: 1;
+      box-shadow: 0 0 32px #000a;
     }
-    .tekstballon {
+    .tekstblok {
       position: absolute;
-      left: 59%; top: 22%;
-      transform: translate(-10%, 0);
-      width: 370px;
-      background: rgba(235, 225, 192, 0.97);
-      color: #322d18;
-      border-radius: 23px;
-      font-size: 1.14em;
-      box-shadow: 0 0 18px rgba(0,0,0,0.32);
-      z-index: 2;
-      padding: 26px 22px 18px 22px;
-      text-align: left;
-      display: block;
-    }
-    .tekstballon::after {
-      content: '';
-      position: absolute;
-      left: 18px;
-      top: 99%;
-      width: 0; height: 0;
-      border-left: 19px solid transparent;
-      border-right: 10px solid transparent;
-      border-top: 23px solid rgba(235,225,192,0.97);
-      filter: drop-shadow(0 2px 4px #322d18bb);
-    }
-    .antwoordblok {
-      position: absolute;
+      bottom: 100px;
       left: 50%;
-      top: 81%;
-      transform: translate(-50%, 0);
-      z-index: 3;
-      display: block;
+      transform: translateX(-50%);
+      width: 350px;
+      padding: 22px 18px 18px 18px;
+      background: rgba(235, 225, 192, 0.93);
+      color: #322d18;
+      border-radius: 15px;
+      font-size: 1.13em;
       text-align: center;
+      display: none;
+      box-shadow: 0 0 18px rgba(0,0,0,0.42);
+      z-index: 2;
     }
     .verderknop {
-      margin-top: 8px;
+      margin-top: 15px;
       padding: 11px 28px;
       background-color: #6b4c1e;
       color: white;
@@ -72,7 +49,6 @@
       cursor: pointer;
       transition: background 0.2s;
       box-shadow: 0 2px 8px #322d18bb;
-      display: inline-block;
     }
     .verderknop:hover {
       background-color: #8d6837;
@@ -81,29 +57,31 @@
 </head>
 <body>
 
-  <!-- Bewegende Photeinos-video -->
-  <video id="photeinos" 
-         src="photeinos_groenbg_noteevid_boven.mp4"
-         autoplay 
-         loop 
-         muted 
-         playsinline 
-         style="background: transparent;">
-  </video>
+  <!-- Photeinos begint als stip -->
+  <img id="photeinos" src="photeinos_scene_donker.png" alt="Photeinos in het donker" />
 
-  <!-- Spreekballon -->
-  <div class="tekstballon" id="tekstballon">
-    <strong>Hallo, ik ben Photeinos.</strong><br>
-    Dat betekent 'Lichtgevend'.<br><br>
-    Maar, ik ben het Licht verloren...<br>
-    Wil jij mij helpen om het Licht terug te vinden?
-  </div>
-
-  <div class="antwoordblok" id="antwoordblok">
+  <!-- Tekstblok met jouw tekst -->
+  <div class="tekstblok" id="tekstblok">
+    <p><strong>Hallo, ik ben Photeinos.</strong></p>
+    <p>Dat betekent 'Lichtgevend'.</p>
+    <p>Maar, ik ben het Licht verloren...<br>
+    Wil jij mij helpen om het Licht terug te vinden?</p>
     <button class="verderknop" onclick="window.location.href='pagina2.html'">
       Ja, ik help je!
     </button>
   </div>
 
+  <script>
+    // Eerst wachten, daarna inzoomen
+    setTimeout(() => {
+      document.getElementById("photeinos")
+              .style.transform = "translate(-50%, -50%) scale(19)";
+    }, 900);
+
+    // Tekstblok pas tonen als het inzoomen klaar is
+    setTimeout(() => {
+      document.getElementById("tekstblok").style.display = "block";
+    }, 5100);
+  </script>
 </body>
 </html>
