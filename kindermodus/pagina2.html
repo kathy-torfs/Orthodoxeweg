@@ -6,67 +6,91 @@
   <title>Photeinos – Pagina 2</title>
   <style>
     html, body {
-      margin: 0;
-      padding: 0;
-      background: #1e2131;
-      height: 100%;
-      font-family: Georgia, serif;
+      margin: 0; padding: 0;
+      width: 100vw; height: 100vh;
       overflow: hidden;
+      background: #31291b;
+      font-family: Georgia, serif;
     }
-    .centerimg {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -56%);
-      width: 530px;
-      max-width: 90vw;
-      z-index: 2;
-      filter: drop-shadow(0 0 36px #fffbe8c5);
+    body {
+      position: relative;
+      width: 100vw; height: 100vh;
     }
-    .tekstblok {
+    .bg-beeld {
       position: absolute;
-      bottom: 80px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 350px;
-      padding: 22px;
-      background: #fffbe8f2;
-      color: #222;
-      border-radius: 15px;
-      font-size: 1.15em;
-      text-align: center;
-      box-shadow: 0 0 18px #554e1f60;
+      width: 100vw; height: 100vh;
+      left: 0; top: 0;
+      object-fit: cover;
+      z-index: 1;
+      user-select: none;
+      pointer-events: none;
+    }
+    .ballon-photeinos {
+      position: absolute;
+      left: 57vw; top: 18vh;
+      width: 340px; max-width: 82vw;
+      background: rgba(245,232,182,0.97);
+      color: #322d18;
+      border-radius: 22px;
+      font-size: 1.17em;
+      box-shadow: 0 0 16px rgba(0,0,0,0.26);
+      padding: 20px 22px 17px 22px;
+      text-align: left;
       z-index: 3;
-      animation: fadein 1.4s;
+      animation: fadeInBallon 1s;
     }
-    @keyframes fadein {
-      from { opacity: 0; }
-      to   { opacity: 1; }
+    .ballon-photeinos::after {
+      content: '';
+      position: absolute;
+      left: 44px;
+      top: 99%;
+      width: 0; height: 0;
+      border-left: 18px solid transparent;
+      border-right: 10px solid transparent;
+      border-top: 23px solid rgba(245,232,182,0.97);
+      filter: drop-shadow(0 1.5px 4px #bba86b88);
     }
-    .verderknop {
-      margin-top: 18px;
-      padding: 11px 24px;
-      font-size: 1em;
-      background-color: #6b4c1e;
-      color: white;
-      border: none;
-      border-radius: 11px;
+    .deurknop {
+      position: absolute;
+      left: 29vw; top: 7vh;
+      width: 42vw; height: 51vh;
       cursor: pointer;
+      z-index: 4;
+      background: rgba(255,255,255,0); /* onzichtbaar */
+      border: none;
+      outline: none;
+      /* debug: border: 2px solid red; */
     }
-    .verderknop:hover {
-      background-color: #917237;
+    .deurknop:active {
+      background: rgba(205,176,36,0.09);
+    }
+    @media (max-width: 600px) {
+      .ballon-photeinos { font-size: 1em; width: 92vw; left: 4vw; top: 8vh; }
+      .deurknop { left: 14vw; width: 72vw; height: 46vh; }
+    }
+    @keyframes fadeInBallon {
+      from { opacity: 0; transform: scale(0.8);}
+      to { opacity: 1; transform: scale(1);}
     }
   </style>
 </head>
 <body>
 
-  <img src="photeinos_kind_kerkdeur.png" class="centerimg" alt="Photeinos en kind voor de kerkdeuren" />
-  <div class="tekstblok">
-    <p><strong>Dankjewel!</strong><br>
-    Nu zijn we samen. <br>
-    Zullen we naar binnen gaan?</p>
-    <button class="verderknop" onclick="window.location.href='pagina3.html'">Ja, open de deuren!</button>
+  <!-- Volledige achtergrond -->
+  <img src="photeinos_kind_kerkdeur.png" alt="Photeinos en kind aan de kerkdeur"
+       class="bg-beeld" draggable="false" />
+
+  <!-- Spreekballon van Photeinos -->
+  <div class="ballon-photeinos">
+    Laten we samen naar binnen gaan!
   </div>
+
+  <!-- Onzichtbare knop over de deuren -->
+  <button class="deurknop"
+    aria-label="Open de deur en ga naar binnen"
+    onclick="window.location.href='pagina3.html'">
+    <!-- Niets hierbinnen, puur voor klik -->
+  </button>
 
 </body>
 </html>
