@@ -7,39 +7,53 @@
   <style>
     html, body {
       margin: 0; padding: 0;
-      background-color: #18160f; /* Donkerbruin-zwart, bij je afbeelding */
+      background-color: #18160f;
       height: 100%; overflow: hidden;
       font-family: Georgia, serif;
       color: white;
     }
     #photeinos {
       position: absolute;
-      top: 50%; left: 50%;
-      width: 18px;
-      transform: translate(-50%, -50%) scale(1);
-      transition: transform 4.5s cubic-bezier(0.7,0,0.3,1);
+      top: 55%; left: 48%;
+      width: 34vw; /* nu een stuk groter */
+      min-width: 340px;
+      max-width: 510px;
+      transform: translate(-50%, -50%) scale(0.3);
+      opacity: 0.7;
+      transition: transform 6s cubic-bezier(0.7,0,0.3,1), opacity 6s;
       z-index: 1;
-      opacity: 1;
-      box-shadow: 0 0 32px #000a;
+      box-shadow: 0 0 36px #000b;
     }
-    .tekstblok {
+    .tekstballon {
       position: absolute;
-      bottom: 100px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 350px;
-      padding: 22px 18px 18px 18px;
-      background: rgba(235, 225, 192, 0.93);
+      left: 59%; /* iets rechts van het midden */
+      top: 25%;
+      transform: translate(-10%, 0);
+      width: 370px;
+      background: rgba(235, 225, 192, 0.97);
       color: #322d18;
-      border-radius: 15px;
-      font-size: 1.13em;
-      text-align: center;
-      display: none;
-      box-shadow: 0 0 18px rgba(0,0,0,0.42);
+      border-radius: 23px;
+      font-size: 1.14em;
+      box-shadow: 0 0 18px rgba(0,0,0,0.32);
       z-index: 2;
+      padding: 26px 22px 18px 22px;
+      text-align: left;
+      display: none;
+    }
+    /* Spreekballon-pijltje */
+    .tekstballon::after {
+      content: '';
+      position: absolute;
+      left: 18px;
+      top: 99%;
+      width: 0; height: 0;
+      border-left: 19px solid transparent;
+      border-right: 10px solid transparent;
+      border-top: 23px solid rgba(235,225,192,0.97);
+      filter: drop-shadow(0 2px 4px #322d18bb);
     }
     .verderknop {
-      margin-top: 15px;
+      margin-top: 17px;
       padding: 11px 28px;
       background-color: #6b4c1e;
       color: white;
@@ -49,6 +63,7 @@
       cursor: pointer;
       transition: background 0.2s;
       box-shadow: 0 2px 8px #322d18bb;
+      display: block;
     }
     .verderknop:hover {
       background-color: #8d6837;
@@ -57,31 +72,32 @@
 </head>
 <body>
 
-  <!-- Photeinos begint als stip -->
+  <!-- Photeinos: veel groter nu -->
   <img id="photeinos" src="photeinos_scene_donker.png" alt="Photeinos in het donker" />
 
-  <!-- Tekstblok met jouw tekst -->
-  <div class="tekstblok" id="tekstblok">
-    <p><strong>Hallo, ik ben Photeinos.</strong></p>
-    <p>Dat betekent 'Lichtgevend'.</p>
-    <p>Maar, ik ben het Licht verloren...<br>
-    Wil jij mij helpen om het Licht terug te vinden?</p>
+  <!-- Tekstblok als spreekballon -->
+  <div class="tekstballon" id="tekstballon">
+    <strong>Hallo, ik ben Photeinos.</strong><br>
+    Dat betekent 'Lichtgevend'.<br>
+    <br>
+    Maar, ik ben het Licht verloren...<br>
+    Wil jij mij helpen om het Licht terug te vinden?
     <button class="verderknop" onclick="window.location.href='pagina2.html'">
       Ja, ik help je!
     </button>
   </div>
 
   <script>
-    // Eerst wachten, daarna inzoomen
+    // Fade-in nog trager en groter
     setTimeout(() => {
       document.getElementById("photeinos")
-              .style.transform = "translate(-50%, -50%) scale(19)";
-    }, 900);
+              .style.transform = "translate(-50%, -50%) scale(1.16)";
+      document.getElementById("photeinos").style.opacity = "1";
+    }, 1000);
 
-    // Tekstblok pas tonen als het inzoomen klaar is
     setTimeout(() => {
-      document.getElementById("tekstblok").style.display = "block";
-    }, 5100);
+      document.getElementById("tekstballon").style.display = "block";
+    }, 7000);
   </script>
 </body>
 </html>
