@@ -7,14 +7,15 @@
   <style>
     html, body {
       margin: 0; padding: 0;
-      background-color: #18160f; /* Donkerbruin-zwart, bij je afbeelding */
-      height: 100%; overflow: hidden;
+      background-color: #18160f;
+      height: 100%;
+      overflow: hidden;
       font-family: Georgia, serif;
       color: white;
     }
     #photeinos {
       position: absolute;
-      top: 50%; left: 50%;
+      top: 54%; left: 49%;
       width: 18px;
       transform: translate(-50%, -50%) scale(1);
       transition: transform 4.5s cubic-bezier(0.7,0,0.3,1);
@@ -22,66 +23,120 @@
       opacity: 1;
       box-shadow: 0 0 32px #000a;
     }
-    .tekstblok {
+    .ballon-photeinos {
       position: absolute;
-      bottom: 100px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 350px;
-      padding: 22px 18px 18px 18px;
-      background: rgba(235, 225, 192, 0.93);
+      left: 57%; top: 29%;
+      min-width: 220px;
+      max-width: 340px;
+      background: rgba(235, 225, 192, 0.97);
       color: #322d18;
-      border-radius: 15px;
-      font-size: 1.13em;
+      border-radius: 22px;
+      font-size: 1.16em;
+      box-shadow: 0 0 18px rgba(0,0,0,0.28);
+      padding: 20px 20px 18px 23px;
+      text-align: left;
+      display: none;
+      z-index: 3;
+      animation: fadeInBallon 0.7s;
+    }
+    .ballon-photeinos::after {
+      content: '';
+      position: absolute;
+      left: 36px;
+      top: 97%;
+      width: 0; height: 0;
+      border-left: 16px solid transparent;
+      border-right: 11px solid transparent;
+      border-top: 23px solid rgba(235,225,192,0.97);
+      filter: drop-shadow(0 2px 4px #322d18aa);
+    }
+    .antwoordballon {
+      position: absolute;
+      left: 50%; bottom: 5.5%;
+      transform: translateX(-50%);
+      min-width: 180px;
+      max-width: 360px;
+      background: rgba(255,255,255,0.97);
+      color: #5b3f13;
+      border-radius: 24px 24px 12px 32px;
+      box-shadow: 0 0 16px rgba(0,0,0,0.15);
+      font-size: 1.1em;
       text-align: center;
       display: none;
-      box-shadow: 0 0 18px rgba(0,0,0,0.42);
-      z-index: 2;
+      z-index: 5;
+      padding: 18px 18px 22px 18px;
+      animation: fadeInBallon 0.7s;
+    }
+    .antwoordballon::after {
+      content: '';
+      position: absolute;
+      left: 54%;
+      bottom: -22px;
+      width: 0; height: 0;
+      border-left: 18px solid transparent;
+      border-right: 10px solid transparent;
+      border-top: 21px solid rgba(255,255,255,0.97);
+      filter: drop-shadow(0 1px 2px #5b3f1390);
     }
     .verderknop {
-      margin-top: 15px;
-      padding: 11px 28px;
+      margin-top: 4px;
+      padding: 10px 26px;
       background-color: #6b4c1e;
       color: white;
       border: none;
       border-radius: 10px;
-      font-size: 1.05em;
+      font-size: 1.09em;
       cursor: pointer;
       transition: background 0.2s;
       box-shadow: 0 2px 8px #322d18bb;
+      font-family: Georgia, serif;
+      letter-spacing: 0.01em;
     }
     .verderknop:hover {
       background-color: #8d6837;
+    }
+    @keyframes fadeInBallon {
+      from { opacity: 0; transform: scale(0.85);}
+      to { opacity: 1; transform: scale(1);}
     }
   </style>
 </head>
 <body>
 
-  <!-- Photeinos begint als stip -->
+  <!-- Photeinos -->
   <img id="photeinos" src="photeinos_scene_donker.png" alt="Photeinos in het donker" />
 
-  <!-- Tekstblok met jouw tekst -->
-  <div class="tekstblok" id="tekstblok">
-    <p><strong>Hallo, ik ben Photeinos.</strong></p>
-    <p>Dat betekent 'Lichtgevend'.</p>
-    <p>Maar, ik ben het Licht verloren...<br>
-    Wil jij mij helpen om het Licht terug te vinden?</p>
+  <!-- Spreekballon van Photeinos -->
+  <div class="ballon-photeinos" id="ballonPhoteinos">
+    <strong>Hallo, ik ben Photeinos.</strong><br>
+    Dat betekent ‘Lichtgevend’.<br>
+    Maar ik ben het Licht verloren...<br>
+    Wil jij mij helpen om het Licht terug te vinden?
+  </div>
+
+  <!-- Antwoordballon van het kind -->
+  <div class="antwoordballon" id="antwoordBallon">
     <button class="verderknop" onclick="window.location.href='pagina2.html'">
       Ja, ik help je!
     </button>
   </div>
 
   <script>
-    // Eerst wachten, daarna inzoomen
+    // 1) Eerst: Photeinos wordt groter (inzoomen)
     setTimeout(() => {
       document.getElementById("photeinos")
-              .style.transform = "translate(-50%, -50%) scale(19)";
+              .style.transform = "translate(-50%, -50%) scale(18)";
     }, 900);
 
-    // Tekstblok pas tonen als het inzoomen klaar is
+    // 2) Als het inzoomen klaar is, spreekballon tonen
     setTimeout(() => {
-      document.getElementById("tekstblok").style.display = "block";
+      document.getElementById("ballonPhoteinos").style.display = "block";
     }, 5100);
+
+    // 3) Antwoordballon van het kind: verschijnt 2 seconden later
+    setTimeout(() => {
+      document.getElementById("antwoordBallon").style.display = "block";
+    }, 7100);
   </script>
 </body>
 </html>
