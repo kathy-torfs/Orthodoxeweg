@@ -6,16 +6,7 @@
   <title>Kathismata van Den Haag – Priestermodus</title>
   <style>
     body { background-color: #f5e9b8; color: #6f4e1a; font-family: Arial, sans-serif; margin: 0; padding: 0; }
-    .statusbar {
-      background: #7a5f35;
-      color: #fff;
-      padding: 10px 24px;
-      text-align: left;
-      font-size: 1.07em;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+    .statusbar { background: #7a5f35; color: #fff; padding: 10px 24px; text-align: left; font-size: 1.07em; display: flex; justify-content: space-between; align-items: center; }
     nav.menu { background-color: #7a5f35; padding: 10px 15px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
     nav.menu a { color: #f5e9b8; text-decoration: none; font-weight: 600; font-size: 16px; padding: 6px 12px; border-radius: 8px; transition: background-color 0.3s; }
     nav.menu a:hover { background-color: #5d4726; text-decoration: underline; }
@@ -53,9 +44,7 @@
       Hieronder vind je het overzicht van de 20 Kathismata volgens de indeling van het Psalmenboek van Den Haag.<br>
       Klik op een Kathisma om naar de bijbehorende psalmen te gaan.
     </div>
-    <div class="kathisma-list" id="kathisma-list">
-      <!-- Hier komt de lijst uit Firestore -->
-    </div>
+    <div class="kathisma-list" id="kathisma-list"></div>
   </main>
   <script>
     // Parochie uit localStorage
@@ -74,38 +63,35 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
-    // De juiste kathismata-documentnamen op volgorde
-    const kathismaDocs = [
-      "kathisma1", "kathisma2", "kathisma3", "kathisma4", "kathisma5",
-      "kathisma6", "kathisma7", "kathisma8", "kathisma9", "kathisma10",
-      "kathisma11", "kathisma12", "kathisma13", "kathisma14", "kathisma15",
-      "kathisma16", "kathisma17", "kathisma18", "kathisma19", "kathisma20"
-    ];
-
-    // Per kathisma ophalen en tonen
     async function toonKathismata() {
       const lijst = document.getElementById('kathisma-list');
       lijst.innerHTML = '';
-      for (let i = 0; i < kathismaDocs.length; i++) {
-        const nr = i + 1;
-        // Document ophalen (enkel titel tonen!)
-        const docRef = db.collection("kathismata_dh").doc(kathismaDocs[i]);
+      for (let i = 1; i <= 20; i++) {
+        const docId = `kathisma_${i}`;
+        const docRef = db.collection("kathismata_dh").doc(docId);
         const doc = await docRef.get();
         let psalmenLabel = '';
         if (doc.exists) {
-          // Hulp: bepaal bereik uit eerste en laatste psalm-titel
+          // Haal eerste en laatste psalmnummer uit stases
           const data = doc.data();
-          let psalmen = data.psalmen || [];
-          let eerste = (psalmen[0] && psalmen[0].titel) ? psalmen[0].titel : '';
-          let laatste = (psalmen[psalmen.length - 1] && psalmen[psalmen.length - 1].titel) ? psalmen[psalmen.length - 1].titel : '';
-          psalmenLabel = eerste && laatste ? `<span>${eerste.replace('Psalm ', '')}–${laatste.replace('Psalm ', '')}</span>` : '';
+          let allePsalmNrs = [];
+          (data.stases || []).forEach(stasis => {
+            allePsalmNrs.push(...Object.keys(stasis.psalms).map(nr => nr));
+          });
+          // Sorteer numeriek (werkt ook met Psalm 118:1-72 etc)
+          allePsalmNrs.sort((a, b) => {
+            const parseNr = x => parseInt(x.split(':')[0]);
+            return parseNr(a) - parseNr(b);
+          });
+          const eerste = allePsalmNrs[0];
+          const laatste = allePsalmNrs[allePsalmNrs.length - 1];
+          psalmenLabel = eerste && laatste ? `<span>Psalmen ${eerste}–${laatste}</span>` : '';
         }
         lijst.innerHTML += `
-          <a class="kathisma-link" href="kathismadh.html?nr=${nr}">Kathisma ${nr} ${psalmenLabel}</a>
+          <a class="kathisma-link" href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/psalmen/kathismadh.html?nr=${i}">Kathisma ${i} ${psalmenLabel}</a>
         `;
       }
     }
-
     toonKathismata();
   </script>
 </body>
