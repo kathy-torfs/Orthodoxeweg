@@ -12,10 +12,14 @@
     nav.menu a:hover { background-color: #5d4726; text-decoration: underline; }
     main { max-width: 860px; margin: 30px auto 60px auto; padding: 0 15px; }
     h1 { font-size: 28px; margin-bottom: 16px; text-align: center; font-weight: bold; text-decoration: underline; }
-    .psalm-navi { text-align: center; margin-bottom: 22px; }
+    .stasis-navi, .psalm-navi { text-align: center; margin-bottom: 22px; }
+    .stasis-navi a { margin: 0 8px; color: #8e6a2a; font-weight: bold; text-decoration: none; padding: 4px 12px; border-radius: 7px; background: #f9eac1; transition: background 0.2s; }
+    .stasis-navi a:hover { background: #fff9e5; text-decoration: underline; }
     .psalm-navi a { margin: 0 3px; color: #7a5f35; font-weight: bold; text-decoration: none; }
     .psalm-navi a:hover { text-decoration: underline; }
     .kathisma-blok { background: #fff8e1; border-radius: 12px; padding: 20px 22px; box-shadow: 0 1px 7px #bba96b32; margin-bottom: 30px; }
+    .stasis-blok { margin-bottom: 38px; }
+    .stasis-titel { font-size: 22px; color: #705411; font-weight: bold; margin-bottom: 8px; text-align:left; margin-top: 20px; text-decoration: underline dotted; }
     .psalm { margin-bottom: 22px; }
     .psalm h2 { font-size: 20px; color: #705411; margin: 0 0 4px 0; font-weight: bold; text-decoration: none; }
     .psalm-tekst { margin-left: 16px; font-size: 1.08em; line-height: 1.55; white-space: pre-line; }
@@ -48,8 +52,8 @@
     Deze tekst wijkt soms af van de standaard LXX.
   </div>
   <h1 id="kathismaTitel">Kathisma van Den Haag</h1>
-  <div class="psalm-navi" id="psalmNavi"></div>
-  <div class="kathisma-blok" id="psalmBlok"></div>
+  <div class="stasis-navi" id="stasisNavi"></div>
+  <div class="kathisma-blok" id="kathismaBlok"></div>
   <div class="error" id="foutmelding" style="display:none;"></div>
 </main>
 
@@ -59,10 +63,8 @@
 </footer>
 
 <script>
-  // Parochie uit localStorage
   document.getElementById("parochieNaam").textContent = localStorage.getItem("ingelogdeParochie") || "[niet ingelogd]";
 
-  // Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
     authDomain: "orthodoxeweg.firebaseapp.com",
@@ -74,23 +76,19 @@
   if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
   const db = firebase.firestore();
 
-  // Helper: nummer uit URL
   function getKathismaNr() {
     let url = new URL(window.location.href);
     let nr = parseInt(url.searchParams.get("nr"));
-    if (isNaN(nr) || nr < 1 || nr > 20) return 1; // fallback: Kathisma 1
+    if (isNaN(nr) || nr < 1 || nr > 20) return 1;
     return nr;
   }
 
-  // Navigatie
   function updateNavigatie(nr) {
-    // vorige/volgende logica
     const overzichtBtn = document.getElementById("overzichtBtn");
     const volgendeBtn = document.getElementById("volgendeBtn");
     overzichtBtn.href = "https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/psalmen/kathismatadh.html";
     volgendeBtn.href = nr < 20 ? `https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/psalmen/kathismadh.html?nr=${nr+1}` : "#";
     volgendeBtn.style.visibility = nr === 20 ? "hidden" : "";
-    // Vorige toevoegen als eerste
     let footer = document.querySelector('footer.navi');
     let vorige = document.getElementById('vorigeBtn');
     if (!vorige) {
@@ -105,7 +103,6 @@
     vorige.style.visibility = nr === 1 ? "hidden" : "";
   }
 
-  // Laad juiste kathisma
   async function laadKathisma() {
     const nr = getKathismaNr();
     updateNavigatie(nr);
@@ -116,34 +113,42 @@
       const data = doc.data();
       document.getElementById("kathismaTitel").textContent = `Kathisma ${nr} – Kathisma van Den Haag`;
 
-      // Psalm-navigatie bovenaan (verzamelt alle psalmnummers uit alle stases)
-      let navi = '';
-      let psalmBlokken = '';
-      data.stases.forEach(stasis => {
-        Object.entries(stasis.psalms).forEach(([psalmNr, tekst]) => {
-          navi += `<a href="#psalm${psalmNr}">Psalm ${psalmNr}</a>`;
-        });
+      // Stasis navigatie bovenaan (Spring naar elke stasis)
+      let stasisNavi = "";
+      data.stases.forEach((stasisObj, idx) => {
+        stasisNavi += `<a href="#stasis${idx+1}">Stasis ${idx+1}</a>`;
       });
-      document.getElementById("psalmNavi").innerHTML = navi;
+      document.getElementById("stasisNavi").innerHTML = stasisNavi;
 
-      // Psalmen-blok: alles op volgorde, alle stases achter elkaar
-      data.stases.forEach(stasis => {
-        Object.entries(stasis.psalms).forEach(([psalmNr, tekst]) => {
-          psalmBlokken += `
-            <div class="psalm" id="psalm${psalmNr}">
-              <h2>Psalm ${psalmNr}</h2>
+      // Kathisma blok: toon per stasis de psalmen
+      let blok = '';
+      data.stases.forEach((stasisObj, idx) => {
+        blok += `<div class="stasis-blok" id="stasis${idx+1}">
+            <div class="stasis-titel">Stasis ${idx+1}</div>
+            <div class="psalm-navi">`;
+        // Binnen stasis: klikbare psalmnummers
+        Object.keys(stasisObj.psalms).forEach(psnr => {
+          blok += `<a href="#psalm${psnr}">Psalm ${psnr}</a>`;
+        });
+        blok += `</div>`;
+        // Psalmen zelf
+        Object.entries(stasisObj.psalms).forEach(([psnr, tekst]) => {
+          blok += `
+            <div class="psalm" id="psalm${psnr}">
+              <h2>Psalm ${psnr}</h2>
               <div class="psalm-tekst">${tekst.replace(/\n/g,"<br>")}</div>
             </div>
           `;
         });
+        blok += `</div>`;
       });
-      document.getElementById("psalmBlok").innerHTML = psalmBlokken;
+      document.getElementById("kathismaBlok").innerHTML = blok;
       document.getElementById("foutmelding").style.display = "none";
     } catch(e) {
       document.getElementById("foutmelding").textContent = "Kon kathisma niet laden. Probeer opnieuw.";
       document.getElementById("foutmelding").style.display = "";
-      document.getElementById("psalmBlok").innerHTML = "";
-      document.getElementById("psalmNavi").innerHTML = "";
+      document.getElementById("kathismaBlok").innerHTML = "";
+      document.getElementById("stasisNavi").innerHTML = "";
     }
   }
   laadKathisma();
