@@ -47,16 +47,14 @@
     <b>Let op:</b> Dit is de <b>Kathisma van Den Haag</b>, <br>voor gebruik in parochie, gebed en studie.<br>
     Deze tekst wijkt soms af van de standaard LXX.
   </div>
-
   <h1 id="kathismaTitel">Kathisma van Den Haag</h1>
-
   <div class="psalm-navi" id="psalmNavi"></div>
   <div class="kathisma-blok" id="psalmBlok"></div>
   <div class="error" id="foutmelding" style="display:none;"></div>
 </main>
 
 <footer class="navi">
-  <a href="kathismatadh.html" id="overzichtBtn">Alle Kathismata</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/psalmen/kathismatadh.html" id="overzichtBtn">Alle Kathismata</a>
   <a href="#" id="volgendeBtn">Volgende →</a>
 </footer>
 
@@ -64,7 +62,7 @@
   // Parochie uit localStorage
   document.getElementById("parochieNaam").textContent = localStorage.getItem("ingelogdeParochie") || "[niet ingelogd]";
 
-  // Firebase config (die van catechese)
+  // Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
     authDomain: "orthodoxeweg.firebaseapp.com",
@@ -76,7 +74,7 @@
   if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
   const db = firebase.firestore();
 
-  // Helper: nr uit URL
+  // Helper: nummer uit URL
   function getKathismaNr() {
     let url = new URL(window.location.href);
     let nr = parseInt(url.searchParams.get("nr"));
@@ -86,56 +84,60 @@
 
   // Navigatie
   function updateNavigatie(nr) {
-    // Vorige/volgende logica
-    const vorigeBtn = document.createElement('a');
-    vorigeBtn.textContent = "← Vorige";
-    vorigeBtn.href = nr > 1 ? `kathismadh.html?nr=${nr-1}` : "#";
-    if (nr === 1) vorigeBtn.style.visibility = "hidden";
+    // vorige/volgende logica
+    const overzichtBtn = document.getElementById("overzichtBtn");
     const volgendeBtn = document.getElementById("volgendeBtn");
-    volgendeBtn.href = nr < 20 ? `kathismadh.html?nr=${nr+1}` : "#";
+    overzichtBtn.href = "https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/psalmen/kathismatadh.html";
+    volgendeBtn.href = nr < 20 ? `https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/psalmen/kathismadh.html?nr=${nr+1}` : "#";
     volgendeBtn.style.visibility = nr === 20 ? "hidden" : "";
-    // Voeg vorige toe als eerste
-    const footer = document.querySelector('footer.navi');
-    if (!footer.querySelector('a:first-child[title="vorige"]')) {
-      footer.insertBefore(vorigeBtn, footer.firstChild);
-      vorigeBtn.title = "vorige";
+    // Vorige toevoegen als eerste
+    let footer = document.querySelector('footer.navi');
+    let vorige = document.getElementById('vorigeBtn');
+    if (!vorige) {
+      vorige = document.createElement('a');
+      vorige.id = 'vorigeBtn';
+      vorige.textContent = "← Vorige";
+      vorige.style.minWidth = "120px";
+      vorige.style.textAlign = "center";
+      footer.insertBefore(vorige, overzichtBtn);
     }
+    vorige.href = nr > 1 ? `https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/psalmen/kathismadh.html?nr=${nr-1}` : "#";
+    vorige.style.visibility = nr === 1 ? "hidden" : "";
   }
 
   // Laad juiste kathisma
   async function laadKathisma() {
     const nr = getKathismaNr();
     updateNavigatie(nr);
-    // Documentnaam in Firestore
-    const docId = "kathisma" + nr;
+    const docId = "kathisma_" + nr;
     try {
       let doc = await db.collection("kathismata_dh").doc(docId).get();
       if (!doc.exists) throw new Error("Niet gevonden.");
       const data = doc.data();
-      // Titel aanpassen
       document.getElementById("kathismaTitel").textContent = `Kathisma ${nr} – Kathisma van Den Haag`;
 
-      // Psalmnavi (bovenaan)
+      // Psalm-navigatie bovenaan (verzamelt alle psalmnummers uit alle stases)
       let navi = '';
-      data.psalmen.forEach((psalm, i) => {
-        const psalmnr = psalm.titel.match(/\d+/) ? psalm.titel.match(/\d+/)[0] : (i+1);
-        navi += `<a href="#psalm${psalmnr}">${psalm.titel}</a>`;
+      let psalmBlokken = '';
+      data.stases.forEach(stasis => {
+        Object.entries(stasis.psalms).forEach(([psalmNr, tekst]) => {
+          navi += `<a href="#psalm${psalmNr}">Psalm ${psalmNr}</a>`;
+        });
       });
       document.getElementById("psalmNavi").innerHTML = navi;
 
-      // Psalmen tonen in volgorde (let op: géén 0-1 offset)
-      let blok = '';
-      data.psalmen.forEach((psalm, i) => {
-        const psalmnr = psalm.titel.match(/\d+/) ? psalm.titel.match(/\d+/)[0] : (i+1);
-        blok += `
-          <div class="psalm" id="psalm${psalmnr}">
-            <h2>${psalm.titel}</h2>
-            <div class="psalm-tekst">${psalm.tekst.replace(/\n/g,"<br>")}</div>
-          </div>
-        `;
+      // Psalmen-blok: alles op volgorde, alle stases achter elkaar
+      data.stases.forEach(stasis => {
+        Object.entries(stasis.psalms).forEach(([psalmNr, tekst]) => {
+          psalmBlokken += `
+            <div class="psalm" id="psalm${psalmNr}">
+              <h2>Psalm ${psalmNr}</h2>
+              <div class="psalm-tekst">${tekst.replace(/\n/g,"<br>")}</div>
+            </div>
+          `;
+        });
       });
-      document.getElementById("psalmBlok").innerHTML = blok;
-
+      document.getElementById("psalmBlok").innerHTML = psalmBlokken;
       document.getElementById("foutmelding").style.display = "none";
     } catch(e) {
       document.getElementById("foutmelding").textContent = "Kon kathisma niet laden. Probeer opnieuw.";
