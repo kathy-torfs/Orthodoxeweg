@@ -3,104 +3,179 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Horologion-widget</title>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <title>Horologion Widget</title>
   <style>
     body {
-      font-family: Georgia, serif;
-      background: #fffaf5;
-      color: #4a2c2a;
-      padding: 2em;
-      max-width: 600px;
-      margin: auto;
+      margin: 0;
+      padding: 0;
+      background: #434343;
+      min-height: 100vh;
+      font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
     }
-    h1 {
+    .widget-bg {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: #434343 url('https://orthodoxeweg.be/images/moeder%20gods.jpg') no-repeat center center;
+      background-size: 420px auto;
+      opacity: 0.12;
+      filter: blur(0.5px);
+      z-index: 1;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .widget-content {
+      position: relative;
+      z-index: 2;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    .widget-header {
+      width: 100vw;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      font-size: 1.07em;
+      color: #f5f5f5;
+      padding: 10px 20px 0 20px;
+      box-sizing: border-box;
+      opacity: 0.93;
+      font-family: inherit;
+    }
+    .centerbox {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1 1 auto;
+      width: 100%;
+      margin-top: 64px;
+    }
+    .datum {
+      font-size: 2em;
+      color: #fff;
+      margin-bottom: 0.13em;
+      font-weight: 400;
+      letter-spacing: 0.02em;
       text-align: center;
+      text-shadow: 0 2px 8px #0003;
     }
     .tijd {
-      font-size: 1.4em;
-      margin-bottom: 1em;
+      font-size: 3.4em;
+      color: #fff;
+      font-weight: 500;
+      margin-bottom: 1.2em;
       text-align: center;
+      text-shadow: 0 3px 12px #0006;
+      letter-spacing: 0.03em;
     }
-    .gebed, .vastenregel {
-      margin: 1em 0;
-      padding: 1em;
-      border-left: 5px solid #a04545;
-      background: #fff8f4;
-      border-radius: 8px;
+    .melding {
+      color: #fffd;
+      background: #aa2222bb;
+      padding: 0.6em 1.4em;
+      margin: 2em auto;
+      border-radius: 7px;
+      font-size: 1em;
+      max-width: 320px;
+      text-align: center;
+      box-shadow: 0 2px 10px #0006;
+      display: none;
     }
-    .symbool {
-      font-size: 2em;
-      display: inline-block;
-      margin-right: 10px;
+    @media (max-width: 500px) {
+      .datum { font-size: 1.16em; }
+      .tijd { font-size: 2.2em; }
+      .widget-bg { background-size: 70vw auto; }
+      .centerbox { margin-top: 38px; }
     }
   </style>
 </head>
 <body>
-  <h1>Horologion</h1>
-  <div class="tijd" id="tijd">⏳ Tijd wordt geladen...</div>
-  <div class="gebed" id="gebed">🙏 Gebed wordt opgehaald...</div>
-  <div class="vastenregel"><span class="symbool" id="symbool">⏳</span> <span id="vasten">Vastenregel wordt opgehaald...</span></div>
-
+  <div class="widget-bg"></div>
+  <div class="widget-content">
+    <div class="widget-header">
+      <span id="zonsopgang">zonsopgang ...</span>
+      <span id="temperatuur">...</span>
+    </div>
+    <div class="centerbox">
+      <div class="datum" id="datum">1 jul 2025</div>
+      <div class="tijd" id="tijd">17:26</div>
+      <div class="melding" id="melding"></div>
+    </div>
+  </div>
   <script>
-    const tijdElement = document.getElementById("tijd");
-    const gebedElement = document.getElementById("gebed");
-    const vastenElement = document.getElementById("vasten");
-    const symboolElement = document.getElementById("symbool");
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
-      authDomain: "orthodoxeweg.firebaseapp.com",
-      projectId: "orthodoxeweg",
-      storageBucket: "orthodoxeweg.firebasestorage.app",
-      messagingSenderId: "408582263618",
-      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb",
-      measurementId: "G-C942F2NYQV"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    function bepaalGebedsmoment(uur) {
-      if (uur >= 8 && uur < 11) return "derde_uur";
-      if (uur >= 11 && uur < 14) return "zesde_uur";
-      if (uur >= 14 && uur < 17) return "negende_uur";
-      if (uur >= 17 && uur < 20) return "vespers";
-      if (uur >= 20 && uur < 23) return "complet";
-      return "nacht";
-    }
-
+    // Datum en tijd updaten
     function updateWidget() {
       const nu = new Date();
-      const datum = nu.toISOString().slice(0,10).replace(/-/g, "");
-      tijdElement.textContent = nu.toLocaleTimeString();
+      const maand = ["jan", "feb", "mrt", "apr", "mei", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];
+      document.getElementById('datum').textContent = `${nu.getDate()} ${maand[nu.getMonth()]} ${nu.getFullYear()}`;
+      let hh = nu.getHours().toString().padStart(2, "0");
+      let mm = nu.getMinutes().toString().padStart(2, "0");
+      document.getElementById('tijd').textContent = `${hh}:${mm}`;
+    }
+    setInterval(updateWidget, 1000);
+    updateWidget();
 
-      const uur = nu.getHours();
-      const moment = bepaalGebedsmoment(uur);
+    // Open-Meteo API ophalen
+    async function updateWeather(lat, lon) {
+      try {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=sunrise&timezone=Europe%2FBerlin`;
+        const response = await fetch(url);
+        const data = await response.json();
 
-      db.collection("gebeden_uren").doc(moment).get().then(doc => {
-        if (doc.exists) {
-          gebedElement.textContent = doc.data().tekst_NL;
+        // Temperatuur
+        if (data.current_weather && data.current_weather.temperature !== undefined) {
+          document.getElementById('temperatuur').textContent = `${Math.round(data.current_weather.temperature)}°C`;
         } else {
-          gebedElement.textContent = "Geen gebed gevonden.";
+          document.getElementById('temperatuur').textContent = '...';
         }
-      });
 
-      db.collection("kalender2025").doc(String(datum)).get().then(doc => {
-        if (doc.exists) {
-          const data = doc.data();
-          vastenElement.textContent = data["Vastenregel NL"] || "Geen vastenregel.";
-          symboolElement.textContent = data["Symbool"] || "✝️";
+        // Zonsopgang
+        if (data.daily && data.daily.sunrise && data.daily.sunrise.length > 0) {
+          const sunriseISO = data.daily.sunrise[0];
+          const sunriseDate = new Date(sunriseISO);
+          const hh = sunriseDate.getHours().toString().padStart(2, '0');
+          const mm = sunriseDate.getMinutes().toString().padStart(2, '0');
+          document.getElementById('zonsopgang').textContent = `zonsopgang ${hh}:${mm}`;
         } else {
-          vastenElement.textContent = "Geen gegevens.";
-          symboolElement.textContent = "🙏";
+          document.getElementById('zonsopgang').textContent = 'zonsopgang ...';
         }
-      });
+      } catch (e) {
+        document.getElementById('temperatuur').textContent = '...';
+        document.getElementById('zonsopgang').textContent = 'zonsopgang ...';
+      }
     }
 
-    setInterval(updateWidget, 10000);
-    updateWidget();
+    function toonMelding(msg) {
+      const m = document.getElementById('melding');
+      m.textContent = msg;
+      m.style.display = 'block';
+    }
+
+    function initWeather() {
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            updateWeather(pos.coords.latitude, pos.coords.longitude);
+            setInterval(() => updateWeather(pos.coords.latitude, pos.coords.longitude), 10 * 60 * 1000);
+          },
+          (err) => {
+            // Indien geweigerd of fout: standaard op Brussel & melding
+            toonMelding("Locatie niet gedeeld. Standaardlocatie Brussel wordt gebruikt.");
+            updateWeather(50.85, 4.35);
+            setInterval(() => updateWeather(50.85, 4.35), 10 * 60 * 1000);
+          },
+          { enableHighAccuracy: false, timeout: 7000, maximumAge: 360000 }
+        );
+      } else {
+        toonMelding("Deze browser ondersteunt geen locatiebepaling. Standaardlocatie Brussel wordt gebruikt.");
+        updateWeather(50.85, 4.35);
+        setInterval(() => updateWeather(50.85, 4.35), 10 * 60 * 1000);
+      }
+    }
+
+    initWeather();
   </script>
 </body>
 </html>
