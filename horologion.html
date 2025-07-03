@@ -284,11 +284,13 @@
         } else {
           document.getElementById('zonsopgang').textContent = 'zonsopgang ...';
           zonsopgangMinuten = null;
+          updateHorologionEnVastenregel(); // fallback naar "nacht"
         }
       } catch (e) {
         document.getElementById('temperatuur').textContent = '...';
         document.getElementById('zonsopgang').textContent = 'zonsopgang ...';
         zonsopgangMinuten = null;
+        updateHorologionEnVastenregel(); // fallback naar "nacht"
       }
     }
 
@@ -402,19 +404,4 @@
       db.collection("kalender2025").doc(String(datum)).get().then(doc => {
         let tekst = "";
         if (doc.exists) {
-          tekst = zoekVastenregel(doc, geselecteerdeTaal);
-        }
-        if (!tekst || tekst.trim() === "") {
-          tekst = getVastenvrijTekst(geselecteerdeTaal);
-        }
-        const vastenElem = document.getElementById('vastenregel');
-        vastenElem.textContent = tekst;
-      }).catch(() => {
-        const vastenElem = document.getElementById('vastenregel');
-        vastenElem.textContent = getVastenvrijTekst(geselecteerdeTaal);
-      });
-    }
-    setInterval(updateHorologionEnVastenregel, 60000);
-  </script>
-</body>
-</html>
+          tekst = zoekVastenregel(doc,
