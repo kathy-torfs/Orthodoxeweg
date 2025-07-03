@@ -251,6 +251,18 @@
       updateHorologionEnVastenregel();
     });
 
+    // document-id mapping voor de gebedsmomenten
+    const momentDocIds = {
+      "eerste_uur": "0",
+      "derde_uur": "1",
+      "zesde_uur": "2",
+      "negende_uur": "3",
+      "vespers": "4",
+      "complet": "5",
+      "middernacht": "6",
+      "nacht": "7"
+    };
+
     function updateWidget() {
       const nu = new Date();
       const maand = ["jan", "feb", "mrt", "apr", "mei", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];
@@ -363,34 +375,21 @@
       return "";
     }
 
-    function zoekHorologion(doc, taal) {
-      const prioriteiten = {
-        "DE": ["DE", "VL", "EN"],
-        "FR": ["FR", "EN", "VL"],
-        "GR": ["GR", "EN", "VL"],
-        "AR": ["AR", "EN", "VL"],
-        "RU": ["RU", "UA", "EN", "VL"],
-        "UA": ["UA", "RU", "EN", "VL"],
-        "EN": ["EN", "VL"],
-        "VL": ["VL", "EN"]
-      };
-      const lijst = prioriteiten[taal] || ["VL", "EN"];
-      for (let key of lijst) {
-        if (doc.data()[key]) return doc.data()[key];
-      }
-      return "";
-    }
-
     function updateHorologionEnVastenregel() {
       const nu = new Date();
       const datum = nu.toISOString().slice(0,10).replace(/-/g, "");
       const moment = bepaalGebedsmomentMetZonsopgang();
+      const docId = momentDocIds[moment] || "0"; // default naar eerste_uur
 
       // Gebed (horologion)
-      db.collection("gebeden_uren").doc(moment).get().then(doc => {
+      db.collection("gebeden_uren").doc(docId).get().then(doc => {
         let tekst = "";
         if (doc.exists) {
-          tekst = zoekHorologion(doc, geselecteerdeTaal);
+          tekst = doc.data()[geselecteerdeTaal];
+          // fallback op VL, EN
+          if (!tekst) {
+            tekst = doc.data()["VL"] || doc.data()["EN"] || "";
+          }
         }
         document.getElementById('horologion').textContent =
           tekst && tekst.trim() !== "" ? tekst : "Geen horologion gevonden voor dit uur.";
@@ -411,10 +410,4 @@
         vastenElem.textContent = tekst;
       }).catch(() => {
         const vastenElem = document.getElementById('vastenregel');
-        vastenElem.textContent = getVastenvrijTekst(geselecteerdeTaal);
-      });
-    }
-    setInterval(updateHorologionEnVastenregel, 60000);
-  </script>
-</body>
-</html>
+        vastenElem.textContent = getVastenvrijTek
