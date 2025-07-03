@@ -1,306 +1,420 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Orthodoxeweg</title>
-  <link rel="icon" href="images/kruis.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Horologion - Orthodoxeweg</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
   <style>
-    :root { --oker: #f9e7b1; --bruin: #6d3a17; --bruin-donker: #4e2710; --priesterpaars: #8722aa; --wit: #fff; }
-    html, body { margin: 0; padding: 0; box-sizing: border-box; background: var(--oker); font-family: Arial, sans-serif; min-height: 100vh; width: 100%; overflow-x: hidden; }
-    .topbar { background: var(--bruin); color: var(--wit); width: 100vw; height: 64px; display: flex; align-items: center; justify-content: flex-end; box-shadow: 0 2px 8px #0002; position: relative; z-index: 10; }
-    .priesterknop { background: var(--priesterpaars); color: var(--wit); border: none; border-radius: 20px; padding: 12px 30px; font-size: 16px; font-weight: bold; margin-right: 40px; cursor: pointer; transition: background 0.2s;}
-    .priesterknop:hover { background: #b04eff;}
-    .maincontent { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: calc(100vh - 64px); padding-top: 40px; padding-bottom: 40px; width: 100%; box-sizing: border-box; }
-    .kruis { width: 360px; max-width: 90vw; margin: 0 0 40px 0; display: block; }
-    h1 { font-size: 2.3rem; margin: 0 0 10px 0; font-weight: bold; color: var(--bruin-donker); letter-spacing: 1px; text-align: center; }
-    h2 { margin: 0 0 40px 0; font-weight: normal; font-size: 1.35rem; color: #654321; text-align: center; }
-    .knoppenrij { display: flex; gap: 30px; margin-top: 10px; margin-bottom: 50px; justify-content: center; width: 100%; max-width: 600px; flex-wrap: wrap; }
-    .knop { background: var(--bruin-donker); color: var(--wit); border: none; border-radius: 12px; padding: 18px 36px; font-size: 1.15rem; font-weight: bold; box-shadow: 0 4px 16px #0002; cursor: pointer; transition: background 0.15s, box-shadow 0.15s; flex: 1; max-width: 200px; min-width: 120px; }
-    .knop:hover { background: #825029; box-shadow: 0 6px 24px #0003; }
-    #overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 1000; }
-    .popup { display: none; position: fixed; top: 14%; left: 50%; transform: translateX(-50%); background: #fff; padding: 26px 20px 16px 20px; border: 2px solid #654321; border-radius: 14px; z-index: 1001; min-width: 310px; max-width: 95vw; box-sizing: border-box; box-shadow: 0 10px 32px #0003; }
-    .popup input, .popup select { display: block; margin: 12px auto; padding: 12px; width: 96%; font-size: 1rem; border-radius: 6px; border: 1px solid #bbb; box-sizing: border-box; max-width: 99vw; }
-    .popup button { padding: 12px 30px; font-size: 1.05rem; background: var(--bruin-donker); color: var(--wit); border: none; border-radius: 8px; margin-top: 8px; cursor: pointer; }
-    .popup .sluiten { position: absolute; top: 8px; right: 16px; background: none; color: #c00; border: none; font-size: 1.5rem; cursor: pointer; font-weight: bold; }
-    .hoofdletter-waarschuwing {
-      color: #bb4400;
-      background: #fffbe7;
-      border: 1px solid #e9bd6d;
-      border-radius: 8px;
-      padding: 10px 16px;
-      margin: 6px 0 0 0;
-      text-align: left;
-      font-size: 0.99em;
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      width: 100vw;
+      height: 100vh;
+      min-height: 100vh;
+      min-width: 100vw;
+      overflow: hidden;
       display: flex;
       align-items: center;
-      gap: 8px;
-      box-shadow: 0 1px 4px #e8c26d44;
-      }
-    .hoofdletter-waarschuwing i { font-size: 1.5em; margin-right: 4px;}
-    /* HOROLOGION ICOON RECHTSBOVEN */
-    .horologion-hoek {
+      justify-content: center;
+      background: #222;
+    }
+    .img-container {
+      position: relative;
+      width: 98vw;
+      height: 96vh;
+      max-width: 700px;
+      max-height: 94vh;
+      aspect-ratio: 4/5;
+      overflow: hidden;
+      border-radius: 16px;
+      box-shadow: 0 0 48px #000a;
+      background: #444;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .img-container img {
       position: absolute;
-      top: 68px; /* net onder menubalk (64px) + 4px marge */
-      right: 32px;
-      z-index: 20;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .horologion-hoek a {
-      text-decoration: none;
-      color: #5a3617;
-      background: rgba(255,255,255,0.88);
-      border-radius: 14px;
-      box-shadow: 0 2px 14px #0002;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 13px 18px 11px 18px;
-      font-size: 1.01em;
-      font-weight: bold;
-      transition: background 0.13s, box-shadow 0.13s;
-      border: 1.5px solid #ead29b;
-    }
-    .horologion-hoek a:hover {
-      background: #fff6df;
-      box-shadow: 0 6px 22px #dcbe8a77;
-    }
-    .horologion-icoon {
-      width: 64px;
-      height: 64px;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
       object-fit: cover;
+      z-index: 1;
+      filter: brightness(0.98) blur(0px);
+    }
+    .overlay {
+      position: absolute;
+      z-index: 2;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: stretch;
+      color: #fff;
+      text-shadow: 0 3px 12px #000b;
+      font-family: 'Segoe UI', Georgia, serif;
+      pointer-events: none;
+    }
+    .bovenrij {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: flex-start;
+      width: 98%;
+      margin: 0 auto;
+      margin-top: 1.5em;
+      padding: 0 2%;
+      font-size: 1.07em;
+      font-weight: 500;
+      pointer-events: none;
+    }
+    .bovenrij span {
+      background: rgba(35,35,35,0.33);
+      border-radius: 8px;
+      padding: 0.28em 0.7em;
+      min-width: 80px;
+      text-align: center;
+      pointer-events: none;
+    }
+    .bovenrij .datum {
+      font-size: 1.14em;
+      font-weight: 500;
+      padding-left: 1.1em;
+      padding-right: 1.1em;
+      letter-spacing: 0.04em;
+      background: rgba(38,38,38,0.47);
+    }
+    .taal-select-wrap {
+      position: absolute;
+      left: 1.6em;
+      bottom: 1.3em;
+      z-index: 3;
+      background: rgba(40,40,40,0.54);
+      border-radius: 8px;
+      padding: 0.22em 0.75em 0.22em 0.45em;
+      pointer-events: auto;
+      box-shadow: 0 2px 12px #0007;
+      font-size: 1.08em;
+      opacity: 0.96;
+      display: flex;
+      align-items: center;
+      gap: 0.4em;
+      transition: opacity 0.18s;
+    }
+    .taal-select-wrap label {
+      font-size: 1em;
+      color: #ffdba2;
+      margin-right: 0.3em;
+      padding-right: 0.1em;
+      letter-spacing: 0.04em;
+    }
+    .taal-select-wrap select {
+      font-size: 1em;
+      border: none;
+      background: rgba(60,60,60,0.31);
+      color: #fff;
+      border-radius: 4px;
+      padding: 0.18em 0.3em;
+      outline: none;
+      margin: 0;
+      transition: background 0.14s;
+    }
+    .tijd {
+      margin: 0.45em auto 0.5em auto;
+      width: 88%;
+      font-size: 2.55em;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-align: center;
+      background: rgba(35,35,35,0.30);
+      border-radius: 12px;
+      box-shadow: 0 1px 8px #0005;
+      padding: 0.13em 0.13em;
+      pointer-events: none;
+    }
+    .horologion-midden {
+      width: 88%;
+      margin-left: auto;
+      margin-right: auto;
+      margin-top: 5em;
+      margin-bottom: 1.9em;
+      background: rgba(35,35,35,0.45);
       border-radius: 10px;
-      box-shadow: 0 1px 7px #ca994d77;
-      margin-bottom: 6px;
-      border: 1.5px solid #ead29b;
+      box-shadow: 0 2px 12px #0007;
+      padding: 1.0em 0.7em 1.1em 0.7em;
+      font-size: 1.1em;
+      text-align: center;
+      min-height: 3em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: auto;
     }
-    .horologion-hoek span {
-      margin-top: 2px;
-      font-size: 1.01em;
-      color: #7d522b;
-      letter-spacing: 0.01em;
+    .onder {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      margin-bottom: 1.2em;
+      pointer-events: none;
     }
-    @media (max-width: 600px) {
-      .horologion-hoek {
-        right: 10px;
-        top: 70px;
-      }
-      .horologion-icoon {
-        width: 46px;
-        height: 46px;
-      }
-      .horologion-hoek span {
-        font-size: 0.93em;
+    .vastenregel {
+      background: rgba(40,40,40,0.42);
+      border-radius: 10px;
+      box-shadow: 0 1px 9px #0005;
+      padding: 0.75em 1.1em;
+      font-size: 1.04em;
+      font-weight: 500;
+      text-align: center;
+      margin-bottom: 0.3em;
+      max-width: 92%;
+      color: #ffecb3;
+      pointer-events: auto;
+    }
+    @media (max-width: 520px) {
+      .img-container { max-width: 98vw; max-height: 96vh;}
+      .bovenrij { font-size: 0.93em; margin-top: 0.6em;}
+      .bovenrij .datum { font-size: 1em;}
+      .tijd { font-size: 1.12em; }
+      .horologion-midden { font-size: 0.99em; padding: 0.7em 0.2em 0.9em 0.2em;}
+      .vastenregel { font-size: 0.91em; }
+      .taal-select-wrap {
+        left: 0.5em;
+        bottom: 0.5em;
+        font-size: 0.97em;
       }
     }
   </style>
 </head>
 <body>
-  <div class="topbar">
-    <button class="priesterknop" onclick="openPopup('priesterPopup')">Priesters</button>
-  </div>
-
-  <!-- HOROLOGION-ICOON RECHTSBOVEN -->
-  <div class="horologion-hoek">
-    <a href="horologion.html" title="Open het Horologion">
-      <img src="https://orthodoxeweg.be/images/moeder%20gods.jpg" alt="Moeder Gods" class="horologion-icoon"/>
-      <span>Horologion</span>
-    </a>
-  </div>
-
-  <div class="maincontent">
-    <img class="kruis" src="images/kruis.png" alt="Kruis" />
-    <h1>Welkom bij Orthodoxeweg</h1>
-    <h2>de weg naar het Orthodoxe leven</h2>
-    <div class="knoppenrij">
-      <button class="knop" onclick="openPopup('loginPopup')">Inloggen</button>
-      <button class="knop" onclick="openPopup('registratiePopup')">Registreren</button>
-      <button class="knop" onclick="gastenmodus()">Gastenmodus</button>
+  <div class="img-container">
+    <img src="https://orthodoxeweg.be/images/moeder%20gods.jpg" alt="Moeder Gods icoon" />
+    <div class="overlay">
+      <div class="bovenrij">
+        <span id="zonsopgang">zonsopgang ...</span>
+        <span class="datum" id="datum">1 jul 2025</span>
+        <span id="temperatuur">...</span>
+      </div>
+      <div class="tijd" id="tijd">17:58</div>
+      <div class="horologion-midden" id="horologion">
+        <!-- Gebedstekst wordt hier geladen -->
+      </div>
+      <div class="onder">
+        <div class="vastenregel" id="vastenregel">
+          <!-- Vastenregel komt hier -->
+        </div>
+      </div>
+      <div class="taal-select-wrap">
+        <label for="taalkeuze">Taal:</label>
+        <select id="taalkeuze">
+          <option value="VL">Vlaams</option>
+          <option value="FR">Frans</option>
+          <option value="DE">Duits</option>
+          <option value="EN">Engels</option>
+          <option value="GR">Grieks</option>
+          <option value="AR">Arabisch</option>
+          <option value="RU">Russisch</option>
+          <option value="UA">Oekraïens</option>
+        </select>
+      </div>
     </div>
   </div>
-  <div id="overlay" onclick="closeAllPopups()"></div>
-  <div id="loginPopup" class="popup">
-    <button class="sluiten" onclick="closeAllPopups()">&times;</button>
-    <h2>Inloggen</h2>
-    <div class="hoofdletter-waarschuwing" id="hoofdletterPopup" style="display: flex;">
-      <i>⚠️</i>
-      <span><b>Let op:</b> Gebruikersnaam <u>en</u> wachtwoord zijn <b>hoofdlettergevoelig</b>!</span>
-    </div>
-    <select id="loginParochie"></select>
-    <input type="text" id="loginNaam" placeholder="Gebruikersnaam" />
-    <input type="password" id="loginWachtwoord" placeholder="Wachtwoord" />
-    <button onclick="login()">Inloggen</button>
-  </div>
-  <div id="registratiePopup" class="popup">
-    <button class="sluiten" onclick="closeAllPopups()">&times;</button>
-    <h2>Registreren</h2>
-    <form id="registratieForm">
-      <input type="text" id="voornaam" placeholder="Voornaam" required />
-      <input type="text" id="achternaam" placeholder="Achternaam" required />
-      <input type="text" id="doopnaam" placeholder="Doopnaam" required />
-      <input type="email" id="email" placeholder="E-mail" required />
-      <select id="parochieSelect" required></select>
-      <input type="date" id="geboortedatum" placeholder="Geboortedatum" required />
-      <input type="text" id="loginKeuze" placeholder="Kies uw loginnaam" required />
-      <button type="submit">Verzenden</button>
-    </form>
-  </div>
-  <div id="priesterPopup" class="popup">
-    <button class="sluiten" onclick="closeAllPopups()">&times;</button>
-    <h2>Priesterlogin</h2>
-    <select id="priesterParochie"></select>
-    <input type="password" id="priesterWachtwoord" placeholder="Wachtwoord" />
-    <button onclick="priesterLogin()">Inloggen</button>
-  </div>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script>
+    // --- FIREBASE CONFIG ---
     const firebaseConfig = {
-      apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain: "orthodoxeweg.firebaseapp.com",
       projectId: "orthodoxeweg",
-      storageBucket: "orthodoxeweg.appspot.com",
+      storageBucket: "orthodoxeweg.firebasestorage.app",
       messagingSenderId: "408582263618",
-      appId: "1:408582263618:web:2e02833fa0d4d8903ceedb"
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb",
+      measurementId: "G-C942F2NYQV"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Parochies laden in alle relevante dropdowns mét data-id attribuut!
-    function laadParochies() {
-      db.collection("parochies").get().then(snapshot => {
-        ["parochieSelect", "priesterParochie", "loginParochie"].forEach(id => {
-          const el = document.getElementById(id);
-          if (el) el.innerHTML = "";
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            const optie = document.createElement("option");
-            optie.value = data.naam;
-            optie.textContent = `${data.naam} — ${data.gemeente} (${data.postcode})`;
-            optie.setAttribute("data-id", doc.id); // <-- belangrijk!
-            if (el) el.appendChild(optie);
-          });
-        });
+    let geselecteerdeTaal = "VL";
+    let zonsopgangMinuten = null;
+
+    document.getElementById('taalkeuze').addEventListener('change', function() {
+      geselecteerdeTaal = this.value;
+      updateHorologionEnVastenregel();
+    });
+
+    function updateWidget() {
+      const nu = new Date();
+      const maand = ["jan", "feb", "mrt", "apr", "mei", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];
+      document.getElementById('datum').textContent = `${nu.getDate()} ${maand[nu.getMonth()]} ${nu.getFullYear()}`;
+      let hh = nu.getHours().toString().padStart(2, "0");
+      let mm = nu.getMinutes().toString().padStart(2, "0");
+      document.getElementById('tijd').textContent = `${hh}:${mm}`;
+    }
+    setInterval(updateWidget, 1000);
+    updateWidget();
+
+    async function updateWeather(lat, lon) {
+      try {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=sunrise&timezone=Europe%2FBerlin`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.current_weather && data.current_weather.temperature !== undefined) {
+          document.getElementById('temperatuur').textContent = `${Math.round(data.current_weather.temperature)}°C`;
+        } else {
+          document.getElementById('temperatuur').textContent = '...';
+        }
+        if (data.daily && data.daily.sunrise && data.daily.sunrise.length > 0) {
+          const sunriseISO = data.daily.sunrise[0];
+          const sunriseDate = new Date(sunriseISO);
+          const hh = sunriseDate.getHours().toString().padStart(2, '0');
+          const mm = sunriseDate.getMinutes().toString().padStart(2, '0');
+          document.getElementById('zonsopgang').textContent = `zonsopgang ${hh}:${mm}`;
+          zonsopgangMinuten = sunriseDate.getHours() * 60 + sunriseDate.getMinutes();
+          updateHorologionEnVastenregel();
+        } else {
+          document.getElementById('zonsopgang').textContent = 'zonsopgang ...';
+          zonsopgangMinuten = null;
+        }
+      } catch (e) {
+        document.getElementById('temperatuur').textContent = '...';
+        document.getElementById('zonsopgang').textContent = 'zonsopgang ...';
+        zonsopgangMinuten = null;
+      }
+    }
+
+    function initWeather() {
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            updateWeather(pos.coords.latitude, pos.coords.longitude);
+            setInterval(() => updateWeather(pos.coords.latitude, pos.coords.longitude), 10 * 60 * 1000);
+          },
+          (err) => {
+            updateWeather(50.85, 4.35); // fallback Brussel
+            setInterval(() => updateWeather(50.85, 4.35), 10 * 60 * 1000);
+          },
+          { enableHighAccuracy: false, timeout: 7000, maximumAge: 360000 }
+        );
+      } else {
+        updateWeather(50.85, 4.35);
+        setInterval(() => updateWeather(50.85, 4.35), 10 * 60 * 1000);
+      }
+    }
+    initWeather();
+
+    function bepaalGebedsmomentMetZonsopgang() {
+      if (zonsopgangMinuten === null) return "nacht";
+      const nu = new Date();
+      const nuMinuten = nu.getHours() * 60 + nu.getMinutes();
+      const momenten = [
+        { naam: "eerste_uur", offset: 0 },
+        { naam: "derde_uur", offset: 180 },
+        { naam: "zesde_uur", offset: 360 },
+        { naam: "negende_uur", offset: 540 },
+        { naam: "vespers", offset: 720 },
+        { naam: "complet", offset: 1020 }
+      ];
+      for (let i = momenten.length - 1; i >= 0; i--) {
+        if (nuMinuten >= zonsopgangMinuten + momenten[i].offset) {
+          return momenten[i].naam;
+        }
+      }
+      return "nacht";
+    }
+
+    function getVastenvrijTekst(taal) {
+      switch (taal) {
+        case "EN": return "No fasting";
+        case "FR": return "Jour sans jeûne";
+        case "DE": return "Fastenfrei";
+        case "GR": return "Ἀπολυτή. Ἀργία.";
+        case "AR": return "يوم بدون صوم";
+        case "RU": return "Поста нет";
+        case "UA": return "Без посту";
+        default:   return "Vastenvrij";
+      }
+    }
+
+    function zoekVastenregel(doc, taal) {
+      const prioriteiten = {
+        "DE": ["Vastenregel DE", "Vastenregel VL", "Vastenregel EN"],
+        "FR": ["Vastenregel FR", "Vastenregel EN", "Vastenregel VL"],
+        "GR": ["Vastenregel GR", "Vastenregel EN", "Vastenregel VL"],
+        "AR": ["Vastenregel AR", "Vastenregel EN", "Vastenregel VL"],
+        "RU": ["Vastenregel RU", "Vastenregel UA", "Vastenregel EN", "Vastenregel VL"],
+        "UA": ["Vastenregel UA", "Vastenregel RU", "Vastenregel EN", "Vastenregel VL"],
+        "EN": ["Vastenregel EN", "Vastenregel VL"],
+        "VL": ["Vastenregel VL", "Vastenregel EN"]
+      };
+      const lijst = prioriteiten[taal] || ["Vastenregel VL", "Vastenregel EN"];
+      for (let key of lijst) {
+        if (doc.data()[key]) return doc.data()[key];
+      }
+      return "";
+    }
+
+    function zoekHorologion(doc, taal) {
+      const prioriteiten = {
+        "DE": ["DE", "VL", "EN"],
+        "FR": ["FR", "EN", "VL"],
+        "GR": ["GR", "EN", "VL"],
+        "AR": ["AR", "EN", "VL"],
+        "RU": ["RU", "UA", "EN", "VL"],
+        "UA": ["UA", "RU", "EN", "VL"],
+        "EN": ["EN", "VL"],
+        "VL": ["VL", "EN"]
+      };
+      const lijst = prioriteiten[taal] || ["VL", "EN"];
+      for (let key of lijst) {
+        if (doc.data()[key]) return doc.data()[key];
+      }
+      return "";
+    }
+
+    function updateHorologionEnVastenregel() {
+      const nu = new Date();
+      const datum = nu.toISOString().slice(0,10).replace(/-/g, "");
+      const moment = bepaalGebedsmomentMetZonsopgang();
+
+      // Gebed (horologion)
+      db.collection("gebeden_uren").doc(moment).get().then(doc => {
+        let tekst = "";
+        if (doc.exists) {
+          tekst = zoekHorologion(doc, geselecteerdeTaal);
+        }
+        document.getElementById('horologion').textContent =
+          tekst && tekst.trim() !== "" ? tekst : "Geen horologion gevonden voor dit uur.";
+      }).catch(() => {
+        document.getElementById('horologion').textContent = "Geen horologion gevonden.";
+      });
+
+      // Vastenregel (meertalig + fallback)
+      db.collection("kalender2025").doc(String(datum)).get().then(doc => {
+        let tekst = "";
+        if (doc.exists) {
+          tekst = zoekVastenregel(doc, geselecteerdeTaal);
+        }
+        if (!tekst || tekst.trim() === "") {
+          tekst = getVastenvrijTekst(geselecteerdeTaal);
+        }
+        const vastenElem = document.getElementById('vastenregel');
+        vastenElem.textContent = tekst;
+      }).catch(() => {
+        const vastenElem = document.getElementById('vastenregel');
+        vastenElem.textContent = getVastenvrijTekst(geselecteerdeTaal);
       });
     }
-    window.addEventListener('DOMContentLoaded', laadParochies);
-
-    // Registratie verzendt naar de juiste subcollection onder parochie MET check op unieke loginnaam
-    document.getElementById("registratieForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-      const data = {
-        voornaam: document.getElementById("voornaam").value,
-        achternaam: document.getElementById("achternaam").value,
-        doopnaam: document.getElementById("doopnaam").value,
-        email: document.getElementById("email").value,
-        parochie: document.getElementById("parochieSelect").value,
-        geboortedatum: document.getElementById("geboortedatum").value,
-        loginKeuze: document.getElementById("loginKeuze").value,
-        status: "in afwachting"
-      };
-      // Haal het Firestore document-id uit het geselecteerde option
-      const parochieId = document.getElementById("parochieSelect").selectedOptions[0].getAttribute("data-id");
-      const loginKeuze = data.loginKeuze;
-
-      // 1. Eerst checken of de loginKeuze al bestaat bij REGISTRATIES van deze parochie
-      db.collection("parochies").doc(parochieId).collection("registraties")
-        .where("loginKeuze", "==", loginKeuze)
-        .get().then(snapshot => {
-          if (!snapshot.empty) {
-            alert("Deze loginnaam is al in gebruik voor deze parochie.");
-            return;
-          }
-          // 2. Nu checken of deze loginKeuze al bestaat in LEDEN van deze parochie
-          db.collection("parochies").doc(parochieId).collection("leden")
-            .where("loginKeuze", "==", loginKeuze)
-            .get().then(snapshot2 => {
-              if (!snapshot2.empty) {
-                alert("Deze loginnaam is al in gebruik voor deze parochie.");
-                return;
-              }
-              // 3. Zo niet, dan mag hij toegevoegd worden
-              db.collection("parochies").doc(parochieId).collection("registraties").add(data).then(() => {
-                closeAllPopups();
-                alert("Registratie verzonden. Je ontvangt een e-mail na goedkeuring.");
-              });
-            });
-        });
-    });
-
-   function login() {
-  // 1. Haal de parochieId uit het geselecteerde option
-  const parochieSelect = document.getElementById("loginParochie");
-  const parochieId = parochieSelect.selectedOptions[0].getAttribute("data-id");
-  const parochieNaam = parochieSelect.value;
-  const loginKeuze = document.getElementById("loginNaam").value.trim();
-  const wachtwoord = document.getElementById("loginWachtwoord").value;
-
-  // Extra waarschuwing voor hoofdlettergevoeligheid
-  if (!sessionStorage.getItem("hoofdletterWarned")) {
-    alert("Let op: Gebruikersnaam en wachtwoord zijn hoofdlettergevoelig!");
-    sessionStorage.setItem("hoofdletterWarned", "1");
-  }
-
-  // 2. Zoek in parochies/{parochieId}/leden
-  db.collection("parochies")
-    .doc(parochieId)
-    .collection("leden")
-    .where("loginKeuze", "==", loginKeuze)
-    .where("wachtwoord", "==", wachtwoord)
-    .limit(1)
-    .get()
-    .then(snapshot => {
-      if (!snapshot.empty) {
-        // Succes: zet localStorage en redirect
-        localStorage.setItem("modus", "volwassene");
-        localStorage.setItem("ingelogdeParochie", parochieNaam);
-        localStorage.setItem("ingelogdeParochieId", parochieId);
-        localStorage.setItem("loginKeuze", loginKeuze);
-        window.location.href = "volwassenmodus/startpagina.html";
-      } else {
-        alert("Onjuiste gebruikersnaam of wachtwoord.");
-      }
-    })
-    .catch(err => {
-      alert("Fout bij inloggen: " + err.message);
-    });
-}
-
-
-    function priesterLogin() {
-      const par = document.getElementById("priesterParochie").value;
-      const ww = document.getElementById("priesterWachtwoord").value;
-      db.collection("parochies")
-        .where("naam", "==", par)
-        .where("postcode", "==", ww)
-        .get()
-        .then(snapshot => {
-          if (!snapshot.empty) {
-            localStorage.setItem("modus", "priester");
-            localStorage.setItem("ingelogdeParochie", par);
-            window.location.href = "priestermodus/startpagina.html";
-          } else alert("Onjuiste gegevens.");
-        });
-    }
-
-    function openPopup(id) {
-      document.getElementById("overlay").style.display = "block";
-      document.getElementById(id).style.display = "block";
-      if(id === 'loginPopup'){
-        // Toon waarschuwing telkens popup opent (kan weg als je liever enkel 1x alert doet)
-        document.getElementById('hoofdletterPopup').style.display = 'flex';
-      }
-    }
-    function closeAllPopups() {
-      document.getElementById("overlay").style.display = "none";
-      document.querySelectorAll(".popup").forEach(p => p.style.display = "none");
-    }
-    function gastenmodus() {
-      localStorage.setItem("modus", "gast");
-      window.location.href = "gastenmodus/startpagina.html";
-    }
+    setInterval(updateHorologionEnVastenregel, 60000);
   </script>
 </body>
 </html>
