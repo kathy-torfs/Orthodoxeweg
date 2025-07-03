@@ -7,17 +7,186 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
   <style>
-    /* ...de CSS uit jouw voorbeeld blijft exact hetzelfde! ... */
-    /* (knip voor overzicht, je mag jouw CSS gewoon laten staan) */
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      width: 100vw;
+      height: 100vh;
+      min-height: 100vh;
+      min-width: 100vw;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #222;
+    }
+    .img-container {
+      position: relative;
+      width: 98vw;
+      height: 96vh;
+      max-width: 700px;
+      max-height: 94vh;
+      aspect-ratio: 4/5;
+      overflow: hidden;
+      border-radius: 16px;
+      box-shadow: 0 0 48px #000a;
+      background: #444;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .img-container img {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 1;
+      filter: brightness(0.98) blur(0px);
+    }
+    .overlay {
+      position: absolute;
+      z-index: 2;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: stretch;
+      color: #fff;
+      text-shadow: 0 3px 12px #000b;
+      font-family: 'Segoe UI', Georgia, serif;
+      pointer-events: none;
+    }
+    .bovenrij {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: flex-start;
+      width: 98%;
+      margin: 0 auto;
+      margin-top: 1.5em;
+      padding: 0 2%;
+      font-size: 1.07em;
+      font-weight: 500;
+      pointer-events: none;
+    }
+    .bovenrij span {
+      background: rgba(35,35,35,0.33);
+      border-radius: 8px;
+      padding: 0.28em 0.7em;
+      min-width: 80px;
+      text-align: center;
+      pointer-events: none;
+    }
+    .bovenrij .datum {
+      font-size: 1.14em;
+      font-weight: 500;
+      padding-left: 1.1em;
+      padding-right: 1.1em;
+      letter-spacing: 0.04em;
+      background: rgba(38,38,38,0.47);
+    }
+    .tijd {
+      margin: 0.45em auto 0.5em auto;
+      width: 88%;
+      font-size: 2.55em;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-align: center;
+      background: rgba(35,35,35,0.30);
+      border-radius: 12px;
+      box-shadow: 0 1px 8px #0005;
+      padding: 0.13em 0.13em;
+      pointer-events: none;
+    }
+    .horologion-midden {
+      width: 88%;
+      margin-left: auto;
+      margin-right: auto;
+      margin-top: 5em;
+      margin-bottom: 1.9em;
+      background: rgba(35,35,35,0.45);
+      border-radius: 10px;
+      box-shadow: 0 2px 12px #0007;
+      padding: 1.0em 0.7em 1.1em 0.7em;
+      font-size: 1.1em;
+      text-align: center;
+      min-height: 3em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: auto;
+      word-break: break-word;
+      overflow-y: auto;
+      max-height: 28vh;
+    }
+    .onder {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      margin-bottom: 1.2em;
+      pointer-events: none;
+    }
+    .vastenregel {
+      background: rgba(40,40,40,0.42);
+      border-radius: 10px;
+      box-shadow: 0 1px 9px #0005;
+      padding: 0.75em 1.1em;
+      font-size: 1.04em;
+      font-weight: 500;
+      text-align: center;
+      margin-bottom: 0.3em;
+      max-width: 92%;
+      color: #ffecb3;
+      pointer-events: auto;
+      display: none;
+    }
+    .vastenregel.zichtbaar {
+      display: block !important;
+    }
+    .taal-keuze-wrapper {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      pointer-events: auto;
+      text-align: center;
+    }
+    .taal-keuze-wrapper select {
+      font-size:1em;
+      padding: 0.22em 0.8em;
+      border-radius:8px;
+      background:#332;
+      color:#ffe;
+      border:none;
+      box-shadow: 0 1px 6px #0007;
+    }
+    @media (max-width: 520px) {
+      .img-container { max-width: 98vw; max-height: 96vh;}
+      .bovenrij { font-size: 0.93em; margin-top: 0.6em;}
+      .bovenrij .datum { font-size: 1em;}
+      .tijd { font-size: 1.12em; }
+      .horologion-midden { font-size: 0.99em; padding: 0.7em 0.2em 0.9em 0.2em;}
+      .vastenregel { font-size: 0.91em; }
+    }
   </style>
 </head>
 <body>
   <div class="img-container">
     <img src="https://orthodoxeweg.be/images/moeder%20gods.jpg" alt="Moeder Gods icoon" />
     <div class="overlay">
-      <!-- TAALMENU -->
-      <div style="position:absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index:10;">
-        <select id="taalkeuze" style="font-size:1em; padding: 0.22em 0.8em; border-radius:8px; background:#332; color:#ffe; border:none; box-shadow: 0 1px 6px #0007;">
+      <div class="taal-keuze-wrapper">
+        <select id="taalkeuze">
           <option value="VL">Vlaams</option>
           <option value="FR">Frans</option>
           <option value="DE">Duits</option>
@@ -59,7 +228,6 @@
     let zonsopgangMinuten = null;
     let geselecteerdeTaal = localStorage.getItem("horologion_taal") || "VL";
 
-    // Laad geselecteerde taal uit localStorage (zodat hij onthouden wordt)
     document.getElementById('taalkeuze').value = geselecteerdeTaal;
 
     document.getElementById('taalkeuze').addEventListener('change', function() {
@@ -68,7 +236,6 @@
       updateHorologionEnVastenregel();
     });
 
-    // Datum/tijd updaten
     function updateWidget() {
       const nu = new Date();
       const maand = ["jan", "feb", "mrt", "apr", "mei", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];
@@ -135,7 +302,6 @@
     }
     initWeather();
 
-    // Gebedsmoment bepalen op basis van zonsopgang
     function bepaalGebedsmomentMetZonsopgang() {
       if (zonsopgangMinuten === null) return "nacht";
       const nu = new Date();
@@ -157,43 +323,45 @@
       return "nacht";
     }
 
-    // HOROLOGION en VASTENREGEL uit Firestore (nu meertalig)
+    // Meertalige horologion én vastenregel, met juiste fallback (nooit "Vastenvrij", leeg indien niets)
     function updateHorologionEnVastenregel() {
       const nu = new Date();
       const datum = nu.toISOString().slice(0,10).replace(/-/g, "");
       const moment = bepaalGebedsmomentMetZonsopgang();
 
-      // HOROLOGION (meertalig!)
+      // HOROLOGION (meertalig)
       db.collection("gebeden_uren").doc(moment).get().then(doc => {
         if (doc.exists) {
           const data = doc.data();
-          // Gebruik de gekozen taal, of fallback Vlaams
-          document.getElementById('horologion').textContent = data[geselecteerdeTaal] || data["VL"] || "Geen horologion voor dit uur.";
+          document.getElementById('horologion').textContent = data[geselecteerdeTaal] || data["VL"] || "";
         } else {
-          document.getElementById('horologion').textContent = "Geen horologion voor dit uur.";
+          document.getElementById('horologion').textContent = "";
         }
       }).catch(() => {
-        document.getElementById('horologion').textContent = "Geen horologion gevonden.";
+        document.getElementById('horologion').textContent = "";
       });
 
-      // VASTENREGEL (meertalig, als in Firestore aanwezig)
-      const veldnaamVasten = {
-        "VL": "Vastenregel NL",
-        "EN": "Vastenregel EN",
-        "FR": "Vastenregel FR",
-        "DE": "Vastenregel DE",
-        "GR": "Vastenregel GR",
-        "AR": "Vastenregel AR"
-      }[geselecteerdeTaal] || "Vastenregel NL";
-
+      // VASTENREGEL met fallback (geen tekst indien niet aanwezig)
       db.collection("kalender2025").doc(String(datum)).get().then(doc => {
-        if (doc.exists && doc.data()[veldnaamVasten]) {
-          document.getElementById('vastenregel').textContent = doc.data()[veldnaamVasten];
+        let tekst = "";
+        if (doc.exists) {
+          if (geselecteerdeTaal === "DE") {
+            tekst = doc.data()["Vastenregel DE"] || doc.data()["Vastenregel VL"] || "";
+          } else {
+            tekst = doc.data()["Vastenregel " + geselecteerdeTaal] || doc.data()["Vastenregel EN"] || "";
+          }
+        }
+        const vastenElem = document.getElementById('vastenregel');
+        vastenElem.textContent = tekst;
+        // Vakje enkel tonen als er tekst is
+        if (tekst && tekst.trim().length > 0) {
+          vastenElem.classList.add("zichtbaar");
         } else {
-          document.getElementById('vastenregel').textContent = "Vastenvrij";
+          vastenElem.classList.remove("zichtbaar");
         }
       }).catch(() => {
-        document.getElementById('vastenregel').textContent = "Vastenvrij";
+        document.getElementById('vastenregel').textContent = "";
+        document.getElementById('vastenregel').classList.remove("zichtbaar");
       });
     }
 
