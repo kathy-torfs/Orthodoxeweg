@@ -7,47 +7,75 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
   <style>
-    html, body {height: 100%;margin: 0;padding: 0;}
+    html, body {
+      height: 100%; margin: 0; padding: 0;
+    }
     body {
-      width: 100vw; height: 100vh; min-height: 100vh; min-width: 100vw; overflow: hidden;
-      display: flex; align-items: center; justify-content: center; background: #222;
+      width: 100vw; height: 100vh;
+      min-height: 100vh; min-width: 100vw;
+      overflow: hidden; display: flex; align-items: center; justify-content: center;
+      background: #222;
     }
     .img-container {
-      position: relative; width: 98vw; height: 96vh; max-width: 700px; max-height: 94vh;
-      aspect-ratio: 4/5; overflow: hidden; border-radius: 16px; box-shadow: 0 0 48px #000a;
-      background: #444; display: flex; align-items: center; justify-content: center;
+      position: relative;
+      width: 98vw; height: 96vh; max-width: 700px; max-height: 94vh; aspect-ratio: 4/5;
+      overflow: hidden; border-radius: 16px; box-shadow: 0 0 48px #000a; background: #444;
+      display: flex; align-items: center; justify-content: center;
     }
     .img-container img {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1;
-      filter: brightness(0.98) blur(0px);
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      object-fit: cover; z-index: 1; filter: brightness(0.98);
     }
     .overlay {
       position: absolute; z-index: 2; top: 0; left: 0; width: 100%; height: 100%;
       display: flex; flex-direction: column; justify-content: flex-start; align-items: stretch;
-      color: #fff; text-shadow: 0 3px 12px #000b; font-family: 'Segoe UI', Georgia, serif; pointer-events: none;
+      color: #fff; text-shadow: 0 3px 12px #000b;
+      font-family: 'Segoe UI', Georgia, serif; pointer-events: none;
     }
-    .bovenrij { display: flex; flex-direction: row; justify-content: space-between; align-items: flex-start;
-      width: 98%; margin: 0 auto; margin-top: 1.5em; padding: 0 2%; font-size: 1.07em; font-weight: 500; pointer-events: none; }
-    .bovenrij span { background: rgba(35,35,35,0.33); border-radius: 8px; padding: 0.28em 0.7em; min-width: 80px; text-align: center; pointer-events: none;}
-    .bovenrij .datum { font-size: 1.14em; font-weight: 500; padding-left: 1.1em; padding-right: 1.1em; letter-spacing: 0.04em; background: rgba(38,38,38,0.47);}
-    .taal-select-wrap {
-      position: absolute; left: 1.6em; bottom: 1.3em; z-index: 3; background: rgba(40,40,40,0.54); border-radius: 8px;
-      padding: 0.22em 0.75em 0.22em 0.45em; pointer-events: auto; box-shadow: 0 2px 12px #0007; font-size: 1.08em; opacity: 0.96;
-      display: flex; align-items: center; gap: 0.4em; transition: opacity 0.18s;
+    .bovenrij {
+      display: flex; flex-direction: row; justify-content: space-between; align-items: flex-start;
+      width: 98%; margin: 0 auto; margin-top: 1.5em; padding: 0 2%;
+      font-size: 1.07em; font-weight: 500; pointer-events: none;
     }
-    .taal-select-wrap label { font-size: 1em; color: #ffdba2; margin-right: 0.3em; padding-right: 0.1em; letter-spacing: 0.04em;}
-    .taal-select-wrap select { font-size: 1em; border: none; background: rgba(60,60,60,0.31); color: #fff; border-radius: 4px; padding: 0.18em 0.3em; outline: none; margin: 0; transition: background 0.14s;}
+    .bovenrij span {
+      background: rgba(35,35,35,0.33); border-radius: 8px; padding: 0.28em 0.7em;
+      min-width: 80px; text-align: center; pointer-events: none;
+    }
+    .bovenrij .datum {
+      font-size: 1.14em; font-weight: 500; padding-left: 1.1em; padding-right: 1.1em;
+      letter-spacing: 0.04em; background: rgba(38,38,38,0.47);
+    }
     .tijd {
-      margin: 0.45em auto 0.5em auto; width: 88%; font-size: 2.55em; font-weight: 700; letter-spacing: 0.06em; text-align: center;
-      background: rgba(35,35,35,0.30); border-radius: 12px; box-shadow: 0 1px 8px #0005; padding: 0.13em 0.13em; pointer-events: none;
+      margin: 0.45em auto 0.5em auto; width: 88%;
+      font-size: 2.55em; font-weight: 700; letter-spacing: 0.06em; text-align: center;
+      background: rgba(35,35,35,0.30); border-radius: 12px; box-shadow: 0 1px 8px #0005;
+      padding: 0.13em 0.13em; pointer-events: none;
     }
     .horologion-midden {
-      width: 88%; margin-left: auto; margin-right: auto; margin-top: 5em; margin-bottom: 1.9em; background: rgba(35,35,35,0.45);
-      border-radius: 10px; box-shadow: 0 2px 12px #0007; padding: 1.0em 0.7em 1.1em 0.7em; font-size: 1.1em; text-align: center;
-      min-height: 3em; display: flex; align-items: center; justify-content: center; pointer-events: auto;
+      width: 88%; margin-left: auto; margin-right: auto; margin-top: 5em; margin-bottom: 1.9em;
+      background: rgba(35,35,35,0.45); border-radius: 10px; box-shadow: 0 2px 12px #0007;
+      padding: 1.0em 0.7em 1.1em 0.7em; font-size: 1.1em; text-align: center; min-height: 3em;
+      display: flex; align-items: center; justify-content: center; pointer-events: auto;
     }
-    .onder { position: absolute; bottom: 0; left: 0; width: 100%; display: flex; justify-content: center; align-items: flex-end; margin-bottom: 1.2em; pointer-events: none; }
-    .vastenregel { background: rgba(40,40,40,0.42); border-radius: 10px; box-shadow: 0 1px 9px #0005; padding: 0.75em 1.1em; font-size: 1.04em; font-weight: 500; text-align: center; margin-bottom: 0.3em; max-width: 92%; color: #ffecb3; pointer-events: auto;}
+    .onder {
+      position: absolute; bottom: 0; left: 0; width: 100%;
+      display: flex; justify-content: center; align-items: flex-end; margin-bottom: 1.2em; pointer-events: none;
+    }
+    .vastenregel {
+      background: rgba(40,40,40,0.42); border-radius: 10px; box-shadow: 0 1px 9px #0005;
+      padding: 0.75em 1.1em; font-size: 1.04em; font-weight: 500; text-align: center;
+      margin-bottom: 0.3em; max-width: 92%; color: #ffecb3; pointer-events: auto;
+    }
+    .taal-select-wrap {
+      position: absolute; left: 1.6em; bottom: 1.3em; z-index: 3;
+      background: rgba(40,40,40,0.54); border-radius: 8px; padding: 0.22em 0.75em 0.22em 0.45em;
+      pointer-events: auto; box-shadow: 0 2px 12px #0007; font-size: 1.08em; opacity: 0.96;
+      display: flex; align-items: center; gap: 0.4em; transition: opacity 0.18s;
+    }
+    .taal-select-wrap label { font-size: 1em; color: #ffdba2; margin-right: 0.3em; padding-right: 0.1em; letter-spacing: 0.04em; }
+    .taal-select-wrap select { font-size: 1em; border: none; background: rgba(60,60,60,0.31); color: #fff;
+      border-radius: 4px; padding: 0.18em 0.3em; outline: none; margin: 0; transition: background 0.14s;
+    }
     @media (max-width: 520px) {
       .img-container { max-width: 98vw; max-height: 96vh;}
       .bovenrij { font-size: 0.93em; margin-top: 0.6em;}
@@ -55,7 +83,7 @@
       .tijd { font-size: 1.12em; }
       .horologion-midden { font-size: 0.99em; padding: 0.7em 0.2em 0.9em 0.2em;}
       .vastenregel { font-size: 0.91em; }
-      .taal-select-wrap { left: 0.5em; bottom: 0.5em; font-size: 0.97em;}
+      .taal-select-wrap { left: 0.5em; bottom: 0.5em; font-size: 0.97em; }
     }
   </style>
 </head>
@@ -69,13 +97,9 @@
         <span id="temperatuur">...</span>
       </div>
       <div class="tijd" id="tijd">17:58</div>
-      <div class="horologion-midden" id="horologion">
-        <!-- Gebedstekst wordt hier geladen -->
-      </div>
+      <div class="horologion-midden" id="horologion"></div>
       <div class="onder">
-        <div class="vastenregel" id="vastenregel">
-          <!-- Vastenregel komt hier -->
-        </div>
+        <div class="vastenregel" id="vastenregel"></div>
       </div>
       <div class="taal-select-wrap">
         <label for="taalkeuze">Taal:</label>
@@ -175,99 +199,78 @@
     }
     initWeather();
 
+    // Belangrijk: uren-indexering (0 = eerste_uur, 1 = derde_uur, ...)
     function bepaalGebedsmomentMetZonsopgang() {
-      if (zonsopgangMinuten === null) return "nacht";
+      if (zonsopgangMinuten === null) return -1; // buiten uren
       const nu = new Date();
       const nuMinuten = nu.getHours() * 60 + nu.getMinutes();
+      // 0 = eerste_uur, 1 = derde_uur, 2 = zesde_uur, 3 = negende_uur, 4 = vespers, 5 = complet
       const momenten = [
-        { naam: "eerste_uur", offset: 0 },
-        { naam: "derde_uur", offset: 180 },
-        { naam: "zesde_uur", offset: 360 },
-        { naam: "negende_uur", offset: 540 },
-        { naam: "vespers", offset: 720 },
-        { naam: "complet", offset: 1020 }
+        { index: 0, offset: 0 },    // eerste_uur
+        { index: 1, offset: 180 },  // derde_uur
+        { index: 2, offset: 360 },  // zesde_uur
+        { index: 3, offset: 540 },  // negende_uur
+        { index: 4, offset: 720 },  // vespers
+        { index: 5, offset: 1020 }  // complet
       ];
       for (let i = momenten.length - 1; i >= 0; i--) {
         if (nuMinuten >= zonsopgangMinuten + momenten[i].offset) {
-          return momenten[i].naam;
+          return momenten[i].index;
         }
       }
-      return "nacht";
+      return -1;
+    }
+
+    // Fallback Jezusgebed / Moeder Gods gebed per uur afwisselend
+    function getFallbackGebed(taal) {
+      const uur = new Date().getHours();
+      if (uur % 2 === 0) {
+        switch (taal) {
+          case "VL": case "NL":
+            return "Heer Jezus Christus, ontferm U over mij.";
+          case "EN":
+            return "Lord Jesus Christ, have mercy on me.";
+          case "FR":
+            return "Seigneur Jésus-Christ, aie pitié de moi.";
+          case "DE":
+            return "Herr Jesus Christus, erbarme Dich meiner.";
+          case "GR":
+            return "Κύριε Ἰησοῦ Χριστέ, ἐλέησόν με.";
+          case "AR":
+            return "يا رب يسوع المسيح، ارحمني.";
+          case "RU":
+            return "Господи Иисусе Христе, помилуй мя.";
+          case "UA":
+            return "Господи Ісусе Христе, помилуй мене.";
+          default:
+            return "Heer Jezus Christus, ontferm U over mij.";
+        }
+      } else {
+        switch (taal) {
+          case "VL": case "NL":
+            return "Tot U, Moeder van God, nemen wij onze toevlucht.<br>Verwerp onze gebeden niet in tegenspoed, maar verlos ons altijd van gevaren, U alleen reine, gezegende.";
+          case "EN":
+            return "To you, O Theotokos, we your servants flee.<br>Do not turn from our prayers in adversity, but deliver us from harm, O only pure and blessed one.";
+          case "FR":
+            return "Sous ta protection nous cherchons refuge, Sainte Mère de Dieu.<br>Ne rejette pas nos prières dans la difficulté, mais délivre-nous de tout danger, Vierge glorieuse et bénie.";
+          case "DE":
+            return "Unter deinen Schutz und Schirm fliehen wir, heilige Gottesgebärerin.<br>Unsere Bitten verschmähe nicht in unserer Not, sondern erlöse uns immer aus allen Gefahren, du allein reine, allein gesegnete.";
+          case "GR":
+            return "Τὴν ἡμετέραν καταφυγὴν ἔχομεν, Θεοτόκε.<br>Τὰς ἱκεσίας μὴ παρίδῃς ἐν περιστάσει, ἀλλὰ κινδύνων λύτρωσαι ἡμᾶς, μόνη ἁγνὴ, μόνη εὐλογημένη.";
+          case "AR":
+            return "تحت حمايتك نلجأ يا والدة الإله. لا تهمل طلباتنا عند الضيق، لكن نجنا من كل خطر، يا طاهرة ومباركة وحدك.";
+          case "RU":
+            return "Под твою милость прибегаем, Богородица Дево.<br>Молитв наших не презри в скорбях, но от бед избави нас, едина чистая и благословенная.";
+          case "UA":
+            return "Під Твою милість прибігаємо, Богородице Діво.<br>Молитв наших не відкинь у скорботах, але від бід спаси нас, єдина чиста і благословенна.";
+          default:
+            return "Tot U, Moeder van God, nemen wij onze toevlucht.<br>Verwerp onze gebeden niet in tegenspoed, maar verlos ons altijd van gevaren, U alleen reine, gezegende.";
+        }
+      }
     }
 
     function getVastenvrijTekst(taal) {
       switch (taal) {
         case "EN": return "No fasting";
         case "FR": return "Jour sans jeûne";
-        case "DE": return "Fastenfrei";
-        case "GR": return "Ἀπολυτή. Ἀργία.";
-        case "AR": return "يوم بدون صوم";
-        case "RU": return "Поста нет";
-        case "UA": return "Без посту";
-        default:   return "Vastenvrij";
-      }
-    }
-
-    function zoekVastenregel(doc, taal) {
-      const prioriteiten = {
-        "DE": ["Vastenregel DE", "Vastenregel VL", "Vastenregel EN"],
-        "FR": ["Vastenregel FR", "Vastenregel EN", "Vastenregel VL"],
-        "GR": ["Vastenregel GR", "Vastenregel EN", "Vastenregel VL"],
-        "AR": ["Vastenregel AR", "Vastenregel EN", "Vastenregel VL"],
-        "RU": ["Vastenregel RU", "Vastenregel UA", "Vastenregel EN", "Vastenregel VL"],
-        "UA": ["Vastenregel UA", "Vastenregel RU", "Vastenregel EN", "Vastenregel VL"],
-        "EN": ["Vastenregel EN", "Vastenregel VL"],
-        "VL": ["Vastenregel VL", "Vastenregel EN"]
-      };
-      const lijst = prioriteiten[taal] || ["Vastenregel VL", "Vastenregel EN"];
-      for (let key of lijst) {
-        if (doc.data()[key]) return doc.data()[key];
-      }
-      return "";
-    }
-
-    function zoekHorologion(doc, taal) {
-      const prioriteiten = {
-        "DE": ["DE", "VL", "EN"],
-        "FR": ["FR", "EN", "VL"],
-        "GR": ["GR", "EN", "VL"],
-        "AR": ["AR", "EN", "VL"],
-        "RU": ["RU", "UA", "EN", "VL"],
-        "UA": ["UA", "RU", "EN", "VL"],
-        "EN": ["EN", "VL"],
-        "VL": ["VL", "EN"]
-      };
-      const lijst = prioriteiten[taal] || ["VL", "EN"];
-      for (let key of lijst) {
-        if (doc.data()[key]) return doc.data()[key];
-      }
-      return "";
-    }
-
-    // Fallback: Jezusgebed OF Gebed tot Moeder Gods, wisselend per uur
-    function getFallbackGebed(taal) {
-      const uur = new Date().getHours();
-      if (uur % 2 === 0) {
-        switch (taal) {
-          case "VL": case "NL": return "Heer Jezus Christus, ontferm U over mij.";
-          case "EN": return "Lord Jesus Christ, have mercy on me.";
-          case "FR": return "Seigneur Jésus-Christ, aie pitié de moi.";
-          case "DE": return "Herr Jesus Christus, erbarme Dich meiner.";
-          case "GR": return "Κύριε Ἰησοῦ Χριστέ, ἐλέησόν με.";
-          case "AR": return "يا رب يسوع المسيح، ارحمني.";
-          case "RU": return "Господи Иисусе Христе, помилуй мя.";
-          case "UA": return "Господи Ісусе Христе, помилуй мене.";
-          default: return "Heer Jezus Christus, ontferm U over mij.";
-        }
-      } else {
-        switch (taal) {
-          case "VL": case "NL":
-            return "Tot U, Moeder van God, nemen wij onze toevlucht.<br>Verwerp onze gebeden niet in onze nood, maar red ons uit alle gevaren, Gij enige reine, enige gezegende.";
-          case "EN":
-            return "To you, O Birthgiver of God, we flee for refuge.<br>Do not reject our prayers in our need, but deliver us from all dangers, O only pure, only blessed one.";
-          case "FR":
-            return "Vers Toi, Mère de Dieu, nous avons recours.<br>Ne rejette pas nos prières dans la détresse, mais délivre-nous de tout danger, Toi la seule pure, la seule bénie.";
-          case "DE":
-            return "Zu Dir, Gottesgebärerin, fliehen wir.<br>Verwirf nicht unser Gebet in unserer Not, sondern erlöse uns aus allen Gefahren, Du einzig Reine, einzig Gesegnete.";
-          case "GR":
-            return "Τῇ Ὑπερμάχῳ Στρατηγῷ τὰ
+        case "DE
