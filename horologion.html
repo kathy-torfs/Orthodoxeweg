@@ -13,7 +13,7 @@
     }
     body {
       width: 100vw; height: 100vh; min-height: 100vh; max-height: 100vh;
-      overflow: auto; /* <-- zo mag er gescrold worden als het te krap wordt */
+      overflow: auto;
       display: flex; align-items: center; justify-content: center;
       background: #222;
     }
@@ -33,12 +33,12 @@
       filter: brightness(0.98) blur(0px);
     }
     .overlay {
-      position: relative; /* geen absolute! */
+      position: relative;
       z-index: 2;
       width: 100%; height: 100%;
       display: flex;
       flex-direction: column;
-      justify-content: space-between; /* verdeelt alles mooi */
+      justify-content: space-between;
       align-items: stretch;
       color: #fff; text-shadow: 0 3px 12px #000b;
       font-family: 'Segoe UI', Georgia, serif;
@@ -126,7 +126,7 @@
         </div>
       </div>
       <div class="taal-select-wrap">
-        <label for="taalkeuze">Taal:</label>
+        <label for="taalkeuze"><span id="taallabel">Taal:</span></label>
         <select id="taalkeuze">
           <option value="VL">Vlaams</option>
           <option value="FR">Frans</option>
@@ -141,6 +141,30 @@
     </div>
   </div>
   <script>
+    // --- VERTALINGEN ---
+    const vertalingen = {
+      "zonsopgang": {
+        "VL": "zonsopgang",
+        "EN": "sunrise",
+        "FR": "lever du soleil",
+        "DE": "Sonnenaufgang",
+        "GR": "ανατολή ηλίου",
+        "AR": "شروق الشمس",
+        "RU": "восход солнца",
+        "UA": "схід сонця"
+      },
+      "taal": {
+        "VL": "Taal:",
+        "EN": "Language:",
+        "FR": "Langue:",
+        "DE": "Sprache:",
+        "GR": "Γλώσσα:",
+        "AR": "اللغة:",
+        "RU": "Язык:",
+        "UA": "Мова:"
+      }
+    };
+
     // --- FIREBASE CONFIG ---
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
@@ -169,7 +193,6 @@
       "UA": "Радуйся, Богородице Діво, Маріє, Благодатна, Господь з Тобою. Благословенна Ти між жінками і благословен плід лона Твого, бо Ти породила Спасителя душ наших. Захисти нас, своїх слуг, під святим Твоїм покровом, бо після Бога до Тебе вдаємося. Ти істинна Заступниця, Богородице, безперестанно молишся за душі наші."
     };
 
-    // Jezusgebed (meertalig)
     const jezusGebed = {
       "VL": "Heer Jezus Christus, Zoon van God, ontferm U over mij.",
       "EN": "Lord Jesus Christ, Son of God, have mercy on me.",
@@ -183,7 +206,27 @@
 
     document.getElementById('taalkeuze').addEventListener('change', function() {
       geselecteerdeTaal = this.value;
+      // Update "Taal:"
+      document.getElementById('taallabel').textContent =
+        vertalingen["taal"][geselecteerdeTaal] || vertalingen["taal"]["VL"];
+      // Update zonsopgang label indien die er al staat:
+      updateZonsopgangLabel();
       updateHorologionEnVastenregel();
+    });
+
+    // Functie om het label "zonsopgang" te updaten bij taalwissel
+    function updateZonsopgangLabel() {
+      const zonsopgangElem = document.getElementById('zonsopgang');
+      const currentText = zonsopgangElem.textContent;
+      const tijdMatch = currentText.match(/\d{2}:\d{2}/) || ["..."];
+      zonsopgangElem.textContent =
+        `${vertalingen["zonsopgang"][geselecteerdeTaal] || vertalingen["zonsopgang"]["VL"]} ${tijdMatch[0]}`;
+    }
+
+    // Set taal label bij eerste load
+    document.addEventListener("DOMContentLoaded", function() {
+      document.getElementById('taallabel').textContent =
+        vertalingen["taal"][geselecteerdeTaal] || vertalingen["taal"]["VL"];
     });
 
     function updateWidget() {
@@ -213,16 +256,19 @@
           const sunriseDate = new Date(sunriseISO);
           const hh = sunriseDate.getHours().toString().padStart(2, '0');
           const mm = sunriseDate.getMinutes().toString().padStart(2, '0');
-          document.getElementById('zonsopgang').textContent = `zonsopgang ${hh}:${mm}`;
+          document.getElementById('zonsopgang').textContent =
+            `${vertalingen["zonsopgang"][geselecteerdeTaal] || vertalingen["zonsopgang"]["VL"]} ${hh}:${mm}`;
           zonsopgangMinuten = sunriseDate.getHours() * 60 + sunriseDate.getMinutes();
           updateHorologionEnVastenregel();
         } else {
-          document.getElementById('zonsopgang').textContent = 'zonsopgang ...';
+          document.getElementById('zonsopgang').textContent =
+            `${vertalingen["zonsopgang"][geselecteerdeTaal] || vertalingen["zonsopgang"]["VL"]} ...`;
           zonsopgangMinuten = null;
         }
       } catch (e) {
         document.getElementById('temperatuur').textContent = '...';
-        document.getElementById('zonsopgang').textContent = 'zonsopgang ...';
+        document.getElementById('zonsopgang').textContent =
+          `${vertalingen["zonsopgang"][geselecteerdeTaal] || vertalingen["zonsopgang"]["VL"]} ...`;
         zonsopgangMinuten = null;
       }
     }
@@ -235,7 +281,7 @@
             setInterval(() => updateWeather(pos.coords.latitude, pos.coords.longitude), 10 * 60 * 1000);
           },
           (err) => {
-            updateWeather(50.85, 4.35); // fallback Brussel
+            updateWeather(50.85, 4.35);
             setInterval(() => updateWeather(50.85, 4.35), 10 * 60 * 1000);
           },
           { enableHighAccuracy: false, timeout: 7000, maximumAge: 360000 }
