@@ -153,6 +153,16 @@
         "RU": "восход солнца",
         "UA": "схід сонця"
       },
+      "zonsondergang": {
+        "VL": "zonsondergang",
+        "EN": "sunset",
+        "FR": "coucher du soleil",
+        "DE": "Sonnenuntergang",
+        "GR": "δύση ηλίου",
+        "AR": "غروب الشمس",
+        "RU": "закат",
+        "UA": "захід сонця"
+      },
       "taal": {
         "VL": "Taal:",
         "EN": "Language:",
@@ -180,8 +190,8 @@
 
     let geselecteerdeTaal = "VL";
     let zonsopgangMinuten = null;
+    let zonsondergangMinuten = null;
 
-    // Gebed tot de Moeder Gods (meertalig, langere versie)
     const moederGodGebed = {
       "VL": "Verheug U, Moeder Gods en Maagd, Maria vol van genade, de Heer is met U. Gij zijt de gezegende onder de vrouwen en gezegend is de vrucht van uw schoot, want Gij hebt de Verlosser der zielen gebaard. Bescherm ons, uw dienaren, onder uw heilige omhulling, want tot U nemen wij onze toevlucht na God. Gij zijt werkelijk de ware Voorspreekster, o Moeder Gods, onophoudelijk smekende voor onze zielen.",
       "EN": "Rejoice, O Mother of God and Virgin, Mary full of grace, the Lord is with you. Blessed are you among women, and blessed is the fruit of your womb, for you have borne the Savior of our souls. Shelter us, your servants, under your holy protection, for after God we take refuge in you. You are truly the true Intercessor, O Mother of God, unceasingly pleading for our souls.",
@@ -206,15 +216,13 @@
 
     document.getElementById('taalkeuze').addEventListener('change', function() {
       geselecteerdeTaal = this.value;
-      // Update "Taal:"
       document.getElementById('taallabel').textContent =
         vertalingen["taal"][geselecteerdeTaal] || vertalingen["taal"]["VL"];
-      // Update zonsopgang label indien die er al staat:
       updateZonsopgangLabel();
+      updateZonsondergangLabel();
       updateHorologionEnVastenregel();
     });
 
-    // Functie om het label "zonsopgang" te updaten bij taalwissel
     function updateZonsopgangLabel() {
       const zonsopgangElem = document.getElementById('zonsopgang');
       const currentText = zonsopgangElem.textContent;
@@ -222,8 +230,15 @@
       zonsopgangElem.textContent =
         `${vertalingen["zonsopgang"][geselecteerdeTaal] || vertalingen["zonsopgang"]["VL"]} ${tijdMatch[0]}`;
     }
+    function updateZonsondergangLabel() {
+      const elem = document.getElementById('zonsondergang');
+      if (!elem) return;
+      const currentText = elem.textContent;
+      const tijdMatch = currentText.match(/\d{2}:\d{2}/) || ["..."];
+      elem.textContent =
+        `${vertalingen["zonsondergang"][geselecteerdeTaal] || vertalingen["zonsondergang"]["VL"]} ${tijdMatch[0]}`;
+    }
 
-    // Set taal label bij eerste load
     document.addEventListener("DOMContentLoaded", function() {
       document.getElementById('taallabel').textContent =
         vertalingen["taal"][geselecteerdeTaal] || vertalingen["taal"]["VL"];
@@ -242,7 +257,7 @@
 
     async function updateWeather(lat, lon) {
       try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=sunrise&timezone=Europe%2FBerlin`;
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=sunrise,sunset&timezone=Europe%2FBerlin`;
         const response = await fetch(url);
         const data = await response.json();
 
@@ -251,25 +266,50 @@
         } else {
           document.getElementById('temperatuur').textContent = '...';
         }
-        if (data.daily && data.daily.sunrise && data.daily.sunrise.length > 0) {
+
+        // Zonsopgang en zonsondergang laden
+        if (data.daily && data.daily.sunrise && data.daily.sunset) {
           const sunriseISO = data.daily.sunrise[0];
+          const sunsetISO = data.daily.sunset[0];
           const sunriseDate = new Date(sunriseISO);
-          const hh = sunriseDate.getHours().toString().padStart(2, '0');
-          const mm = sunriseDate.getMinutes().toString().padStart(2, '0');
+          const sunsetDate = new Date(sunsetISO);
+
+          const sh = sunriseDate.getHours().toString().padStart(2, '0');
+          const sm = sunriseDate.getMinutes().toString().padStart(2, '0');
+          const eh = sunsetDate.getHours().toString().padStart(2, '0');
+          const em = sunsetDate.getMinutes().toString().padStart(2, '0');
+
           document.getElementById('zonsopgang').textContent =
-            `${vertalingen["zonsopgang"][geselecteerdeTaal] || vertalingen["zonsopgang"]["VL"]} ${hh}:${mm}`;
+            `${vertalingen["zonsopgang"][geselecteerdeTaal] || vertalingen["zonsopgang"]["VL"]} ${sh}:${sm}`;
+
+          // Voeg zonsondergang toe als je wilt weergeven:
+          let zonsondergangElem = document.getElementById('zonsondergang');
+          if (!zonsondergangElem) {
+            // Voeg dynamisch toe indien gewenst
+            const bovenrij = document.querySelector('.bovenrij');
+            zonsondergangElem = document.createElement('span');
+            zonsondergangElem.id = 'zonsondergang';
+            bovenrij.appendChild(zonsondergangElem);
+          }
+          zonsondergangElem.textContent =
+            `${vertalingen["zonsondergang"][geselecteerdeTaal] || vertalingen["zonsondergang"]["VL"]} ${eh}:${em}`;
+
           zonsopgangMinuten = sunriseDate.getHours() * 60 + sunriseDate.getMinutes();
+          zonsondergangMinuten = sunsetDate.getHours() * 60 + sunsetDate.getMinutes();
+
           updateHorologionEnVastenregel();
         } else {
           document.getElementById('zonsopgang').textContent =
             `${vertalingen["zonsopgang"][geselecteerdeTaal] || vertalingen["zonsopgang"]["VL"]} ...`;
           zonsopgangMinuten = null;
+          zonsondergangMinuten = null;
         }
       } catch (e) {
         document.getElementById('temperatuur').textContent = '...';
         document.getElementById('zonsopgang').textContent =
           `${vertalingen["zonsopgang"][geselecteerdeTaal] || vertalingen["zonsopgang"]["VL"]} ...`;
         zonsopgangMinuten = null;
+        zonsondergangMinuten = null;
       }
     }
 
@@ -293,24 +333,27 @@
     }
     initWeather();
 
-    function bepaalGebedsmomentMetZonsopgang() {
-      if (zonsopgangMinuten === null) return "nacht";
+    function bepaalGebedsmomentMetZon() {
       const nu = new Date();
       const nuMinuten = nu.getHours() * 60 + nu.getMinutes();
-      const momenten = [
-        { naam: "eerste_uur", offset: 0 },
-        { naam: "derde_uur", offset: 180 },
-        { naam: "zesde_uur", offset: 360 },
-        { naam: "negende_uur", offset: 540 },
-        { naam: "vespers", offset: 720 },
-        { naam: "complet", offset: 1020 }
-      ];
-      for (let i = momenten.length - 1; i >= 0; i--) {
-        if (nuMinuten >= zonsopgangMinuten + momenten[i].offset) {
-          return momenten[i].naam;
-        }
-      }
-      return "nacht";
+
+      if (zonsopgangMinuten === null || zonsondergangMinuten === null)
+        return "complet"; // fallback: complet
+
+      // Voor zonsopgang = complet/nacht
+      if (nuMinuten < zonsopgangMinuten) return "complet";
+      // Eerste uur: zonsopgang tot +3u
+      if (nuMinuten < zonsopgangMinuten + 180) return "eerste_uur";
+      // Derde uur: zonsopgang+3u tot +6u
+      if (nuMinuten < zonsopgangMinuten + 360) return "derde_uur";
+      // Zesde uur: zonsopgang+6u tot +9u
+      if (nuMinuten < zonsopgangMinuten + 540) return "zesde_uur";
+      // Negende uur: zonsopgang+9u tot zonsondergang
+      if (nuMinuten < zonsondergangMinuten) return "negende_uur";
+      // Vespers: zonsondergang tot 2u na zonsondergang (of tot middernacht)
+      if (nuMinuten < zonsondergangMinuten + 120) return "vespers";
+      // Complet: na vespers tot zonsopgang
+      return "complet";
     }
 
     function getVastenvrijTekst(taal) {
@@ -365,7 +408,7 @@
     function updateHorologionEnVastenregel() {
       const nu = new Date();
       const datum = nu.toISOString().slice(0,10).replace(/-/g, "");
-      const moment = bepaalGebedsmomentMetZonsopgang();
+      const moment = bepaalGebedsmomentMetZon();
       const uur = nu.getHours();
 
       // Gebed (horologion)
@@ -413,7 +456,9 @@
         vastenElem.textContent = getVastenvrijTekst(geselecteerdeTaal);
       });
     }
+
     setInterval(updateHorologionEnVastenregel, 60000);
+    updateHorologionEnVastenregel();
   </script>
 </body>
 </html>
