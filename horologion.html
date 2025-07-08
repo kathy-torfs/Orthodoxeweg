@@ -412,24 +412,24 @@
       const uur = nu.getHours();
 
       // Gebed (horologion)
-      db.collection("gebeden_uren").doc(moment).get().then(doc => {
-        let tekst = "";
-        if (doc.exists) {
-          tekst = zoekHorologion(doc, geselecteerdeTaal);
-        }
-        if (tekst && tekst.trim() !== "") {
-          document.getElementById('horologion').textContent = tekst;
-        } else {
-          // Fallback: afwisselend Maria/Jezusgebed
-          if (uur % 2 === 0) {
-            document.getElementById('horologion').textContent =
-              moederGodGebed[geselecteerdeTaal] || moederGodGebed["VL"];
-          } else {
-            document.getElementById('horologion').textContent =
-              jezusGebed[geselecteerdeTaal] || jezusGebed["VL"];
-          }
-        }
-      }).catch(() => {
+// Gebed (horologion)
+db.collection("gebeden_uren").doc("0").get().then(doc => {
+  let tekst = "";
+  if (doc.exists) {
+    tekst = zoekHorologion(doc, geselecteerdeTaal);
+  }
+  if (tekst && tekst.trim() !== "") {
+    document.getElementById('horologion').textContent = tekst;
+  } else {
+    if (uur % 2 === 0) {
+      document.getElementById('horologion').textContent =
+        moederGodGebed[geselecteerdeTaal] || moederGodGebed["VL"];
+    } else {
+      document.getElementById('horologion').textContent =
+        jezusGebed[geselecteerdeTaal] || jezusGebed["VL"];
+    }
+  }
+}).catch(() => {
         const uur = (new Date()).getHours();
         if (uur % 2 === 0) {
           document.getElementById('horologion').textContent =
