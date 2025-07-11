@@ -7,64 +7,39 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
   <style>
-    html, body {
-      height: 100%; margin: 0; padding: 0; box-sizing: border-box;
-      width: 100vw; min-width: 100vw; max-width: 100vw;
-    }
+    html, body { height: 100%; margin: 0; padding: 0; box-sizing: border-box; width: 100vw; min-width: 100vw; max-width: 100vw;}
     body {
       width: 100vw; height: 100vh; min-height: 100vh; max-height: 100vh;
-      overflow: auto;
-      display: flex; align-items: center; justify-content: center;
-      background: #222;
+      overflow: auto; display: flex; align-items: center; justify-content: center; background: #222;
     }
     .img-container {
-      position: relative;
-      width: 98vw; max-width: 700px;
-      aspect-ratio: 4/5;
-      height: auto; max-height: 98vh; min-height: 320px;
-      box-sizing: border-box;
-      border-radius: 16px;
-      box-shadow: 0 0 48px #000a;
-      background: #444;
+      position: relative; width: 98vw; max-width: 700px; aspect-ratio: 4/5;
+      height: auto; max-height: 98vh; min-height: 320px; box-sizing: border-box;
+      border-radius: 16px; box-shadow: 0 0 48px #000a; background: #444;
       display: flex; align-items: center; justify-content: center;
     }
-    .img-container img {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1;
-      filter: brightness(0.98) blur(0px);
-    }
+    .img-container img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; filter: brightness(0.98) blur(0px);}
     .overlay {
-      position: relative;
-      z-index: 2;
-      width: 100%; height: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      align-items: stretch;
-      color: #fff; text-shadow: 0 3px 12px #000b;
-      font-family: 'Segoe UI', Georgia, serif;
-      pointer-events: none;
-      box-sizing: border-box;
-      padding: 0 0.5em;
+      position: relative; z-index: 2; width: 100%; height: 100%;
+      display: flex; flex-direction: column; justify-content: space-between; align-items: stretch;
+      color: #fff; text-shadow: 0 3px 12px #000b; font-family: 'Segoe UI', Georgia, serif;
+      pointer-events: none; box-sizing: border-box; padding: 0 0.5em;
     }
     .bovenrij {
-      display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start;
-      width: 100%; margin-top: 1em; font-size: 1.07em; font-weight: 500; pointer-events: none;
-      gap: 0.1em;
+      display: flex; flex-direction: row; justify-content: space-between; align-items: flex-start;
+      width: 100%; margin-top: 1em; font-size: 1.07em; font-weight: 500; pointer-events: none; gap: 0.2em;
     }
-    .bovenrij .datum {
-      align-self: center;
-      font-size: 1.14em; font-weight: 500; padding: 0.18em 1.1em; letter-spacing: 0.04em; background: rgba(38,38,38,0.47); border-radius: 7px;
-      margin-bottom: 0.15em;
+    .links-kolom {
+      display: flex; flex-direction: column; align-items: flex-start; gap: 0.1em; min-width: 110px;
     }
-    .bovenrij .temp-rechts {
-      align-self: flex-end;
-      margin-top: -2.7em;
-      margin-right: 0.12em;
-      background: rgba(35,35,35,0.33); border-radius: 8px; padding: 0.28em 0.7em; min-width: 80px; text-align: center; pointer-events: none;
+    .rechts-kolom {
+      min-width: 90px; text-align: right;
     }
     .bovenrij span {
-      background: rgba(35,35,35,0.33); border-radius: 8px; padding: 0.28em 0.7em; min-width: 110px; text-align: left; pointer-events: none;
-      margin-bottom: 0.15em;
+      background: rgba(35,35,35,0.33); border-radius: 8px; padding: 0.28em 0.7em; min-width: 80px; text-align: center; pointer-events: none;
+    }
+    .bovenrij .datum {
+      font-size: 1.14em; font-weight: 500; padding-left: 1.1em; padding-right: 1.1em; letter-spacing: 0.04em; background: rgba(38,38,38,0.47);
     }
     .tijd {
       margin: 1.2em auto 0.8em auto; width: 88%; font-size: 2.2em; font-weight: 700;
@@ -75,8 +50,7 @@
       width: 92%; margin: 0 auto; background: rgba(35,35,35,0.45); border-radius: 10px; box-shadow: 0 2px 12px #0007;
       padding: 1.0em 0.7em 1.1em 0.7em; font-size: 1.09em; text-align: center; min-height: 2.2em;
       display: flex; align-items: center; justify-content: center; pointer-events: auto;
-      flex-direction: column;
-      gap: 1.1em;
+      flex-direction: column; gap: 0.5em;
     }
     .onder {
       width: 100%; display: flex; flex-direction: column; align-items: center; gap: 0.5em;
@@ -88,11 +62,9 @@
       color: #ffecb3; pointer-events: auto; max-width: 97vw; word-break: break-word;
     }
     .taal-select-wrap {
-      align-self: flex-end;
-      background: rgba(40,40,40,0.54);
-      border-radius: 8px; padding: 0.22em 0.75em 0.22em 0.45em; pointer-events: auto; box-shadow: 0 2px 12px #0007;
-      font-size: 1.08em; opacity: 0.96; display: flex; align-items: center; gap: 0.4em; transition: opacity 0.18s;
-      margin-bottom: 0.7em;
+      align-self: flex-end; background: rgba(40,40,40,0.54); border-radius: 8px; padding: 0.22em 0.75em 0.22em 0.45em;
+      pointer-events: auto; box-shadow: 0 2px 12px #0007; font-size: 1.08em; opacity: 0.96;
+      display: flex; align-items: center; gap: 0.4em; transition: opacity 0.18s; margin-bottom: 0.7em;
     }
     .taal-select-wrap label { font-size: 1em; color: #ffdba2; margin-right: 0.3em; padding-right: 0.1em; letter-spacing: 0.04em; }
     .taal-select-wrap select {
@@ -123,10 +95,14 @@
     <img src="images/moeder_gods.jpg" alt="Moeder Gods icoon" />
     <div class="overlay">
       <div class="bovenrij">
-        <span id="zonsopgang">zonsopgang ...</span>
-        <span id="zonsondergang">zonsondergang ...</span>
+        <div class="links-kolom">
+          <span id="zonsopgang">zonsopgang ...</span>
+          <span id="zonsondergang">zonsondergang ...</span>
+        </div>
         <span class="datum" id="datum">1 jul 2025</span>
-        <span class="temp-rechts" id="temperatuur">...</span>
+        <div class="rechts-kolom">
+          <span id="temperatuur">...</span>
+        </div>
       </div>
       <div class="tijd" id="tijd">17:58</div>
       <div class="horologion-midden" id="horologion">
@@ -152,19 +128,39 @@
       </div>
     </div>
   </div>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 <script>
 const vertalingen = {
   "zonsopgang": {
-    "VL": "zonsopgang", "EN": "sunrise", "FR": "lever du soleil", "DE": "Sonnenaufgang", "GR": "ανατολή ηλίου",
-    "AR": "شروق الشمس", "RU": "восход солнца", "UA": "схід сонця"
+    "VL": "zonsopgang",
+    "EN": "sunrise",
+    "FR": "lever du soleil",
+    "DE": "Sonnenaufgang",
+    "GR": "ανατολή ηλίου",
+    "AR": "شروق الشمس",
+    "RU": "восход солнца",
+    "UA": "схід сонця"
   },
   "zonsondergang": {
-    "VL": "zonsondergang", "EN": "sunset", "FR": "coucher du soleil", "DE": "Sonnenuntergang", "GR": "δύση ηλίου",
-    "AR": "غروب الشمس", "RU": "закат", "UA": "захід сонця"
+    "VL": "zonsondergang",
+    "EN": "sunset",
+    "FR": "coucher du soleil",
+    "DE": "Sonnenuntergang",
+    "GR": "δύση ηλίου",
+    "AR": "غروب الشمس",
+    "RU": "закат",
+    "UA": "захід сонця"
   },
   "taal": {
-    "VL": "Taal:", "EN": "Language:", "FR": "Langue:", "DE": "Sprache:", "GR": "Γλώσσα:",
-    "AR": "اللغة:", "RU": "Язык:", "UA": "Мова:"
+    "VL": "Taal:",
+    "EN": "Language:",
+    "FR": "Langue:",
+    "DE": "Sprache:",
+    "GR": "Γλώσσα:",
+    "AR": "اللغة:",
+    "RU": "Язык:",
+    "UA": "Мова:"
   }
 };
 
@@ -189,6 +185,7 @@ const jezusGebed = {
   "RU": "Господи Иисусе Христе, Сыне Божий, помилуй мя.",
   "UA": "Господи Ісусе Христе, Сину Божий, помилуй мене."
 };
+
 const firebaseConfig = {
   apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
   authDomain: "orthodoxeweg.firebaseapp.com",
@@ -205,13 +202,13 @@ let geselecteerdeTaal = "VL";
 let zonsopgangMinuten = null;
 let zonsondergangMinuten = null;
 
-// --- Gebruikersinteractie
 document.getElementById('taalkeuze').addEventListener('change', function() {
   geselecteerdeTaal = this.value;
   document.getElementById('taallabel').textContent = vertalingen["taal"][geselecteerdeTaal] || vertalingen["taal"]["VL"];
   updateZonsLabels();
   updateHorologionEnVastenregel();
 });
+
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById('taallabel').textContent = vertalingen["taal"][geselecteerdeTaal] || vertalingen["taal"]["VL"];
 });
@@ -253,6 +250,7 @@ async function updateWeather(lat, lon) {
     document.getElementById('temperatuur').textContent = '...';
   }
 }
+
 function initWeather() {
   if ('geolocation' in navigator) {
     navigator.geolocation.getCurrentPosition(
@@ -274,49 +272,39 @@ function updateZonsLabels(){
   document.getElementById('zonsondergang').textContent = `${vertalingen["zonsondergang"][geselecteerdeTaal]} ${zs[0]}`;
 }
 
-function bepaalGebedsmoment(){ 
+function bepaalGebedsmoment(){
   const nu = new Date();
   const nuMin = nu.getHours()*60 + nu.getMinutes();
-  if(zonsopgangMinuten==null||zonsondergangMinuten==null) return 6; // fallback middernacht
-  if(nuMin < zonsopgangMinuten) return 6; // middernacht
-  if(nuMin < zonsopgangMinuten+180) return 0; // eerste uur (tot +3u)
-  if(nuMin < zonsopgangMinuten+360) return 1; // derde uur (tot +6u)
-  if(nuMin < zonsopgangMinuten+540) return 2; // zesde uur (tot +9u)
-  if(nuMin < zonsondergangMinuten) return 3;   // negende uur (tot zonsondergang)
-  if(nuMin < zonsondergangMinuten+60) return 4; // vespers (tot 1u na zonsondergang)
-  return 5; // complet (rest van de avond/nacht)
+  if(zonsopgangMinuten==null||zonsondergangMinuten==null) return 6;
+  if(nuMin < zonsopgangMinuten) return 6;
+  if(nuMin < zonsopgangMinuten+180) return 0;
+  if(nuMin < zonsopgangMinuten+360) return 1;
+  if(nuMin < zonsopgangMinuten+540) return 2;
+  if(nuMin < zonsondergangMinuten) return 3;
+  if(nuMin < zonsondergangMinuten+60) return 4;
+  return 5;
 }
 
-function zoekTekst(doc, lijst) {
-  for(let key of lijst) if(doc.data()[key]) return doc.data()[key];
-  return "";
+function bepaalKortGebedMoment(){
+  // Bepaalt of het het uur NA het gebedsuur is (kort gebed tonen)
+  const nu = new Date();
+  const nuMin = nu.getHours()*60 + nu.getMinutes();
+  if(zonsopgangMinuten==null||zonsondergangMinuten==null) return false;
+  if(nuMin < zonsopgangMinuten) return false;
+  if(nuMin < zonsopgangMinuten+180) return (nuMin >= zonsopgangMinuten+60);
+  if(nuMin < zonsopgangMinuten+360) return (nuMin >= zonsopgangMinuten+180);
+  if(nuMin < zonsopgangMinuten+540) return (nuMin >= zonsopgangMinuten+360);
+  if(nuMin < zonsondergangMinuten) return (nuMin >= zonsopgangMinuten+540);
+  if(nuMin < zonsondergangMinuten+60) return (nuMin >= zonsondergangMinuten);
+  return (nuMin >= zonsondergangMinuten+60);
 }
+
+function zoekTekst(doc,lijst){ for(let key of lijst) if(doc.data()[key]) return doc.data()[key]; return ""; }
 
 function updateHorologionEnVastenregel(){
   const datum = (new Date()).toISOString().slice(0,10).replace(/-/g,"");
   const moment = bepaalGebedsmoment();
-  const nu = new Date();
-  const nuMin = nu.getHours()*60 + nu.getMinutes();
-
-  // logica: lang gebed tonen tijdens het juiste uur, 1 uur na begin, daarna kort + fallback
-  let volgendeMoment = 0;
-  if(moment===6) volgendeMoment = zonsopgangMinuten;
-  else if(moment===0) volgendeMoment = zonsopgangMinuten+180;
-  else if(moment===1) volgendeMoment = zonsopgangMinuten+360;
-  else if(moment===2) volgendeMoment = zonsopgangMinuten+540;
-  else if(moment===3) volgendeMoment = zonsondergangMinuten;
-  else if(moment===4) volgendeMoment = zonsondergangMinuten+60;
-  else volgendeMoment = 24*60; // laatste blok
-
-  let beginMoment = 0;
-  if(moment===6) beginMoment = 0;
-  else if(moment===0) beginMoment = zonsopgangMinuten;
-  else if(moment===1) beginMoment = zonsopgangMinuten+180;
-  else if(moment===2) beginMoment = zonsopgangMinuten+360;
-  else if(moment===3) beginMoment = zonsopgangMinuten+540;
-  else if(moment===4) beginMoment = zonsondergangMinuten;
-  else beginMoment = zonsondergangMinuten+60;
-
+  const uur = new Date().getHours();
   db.collection("gebeden_uren").doc(String(moment)).get().then(doc=>{
     let tekst="";
     if(doc.exists){
@@ -324,18 +312,35 @@ function updateHorologionEnVastenregel(){
         "RU":["RU","UA","EN","VL"],"UA":["UA","RU","EN","VL"],"EN":["EN","VL"],"VL":["VL","EN"]};
       tekst=zoekTekst(doc,prio[geselecteerdeTaal]||["VL","EN"]);
     }
+    let horoDiv = document.getElementById('horologion');
+    horoDiv.innerHTML = "";
 
-    // Toon lang gebed in het juiste uur (tijdsblok van 1u vanaf beginMoment)
-    if(tekst && tekst.trim()!=="" && (nuMin-beginMoment)<60 && (nuMin-beginMoment)>=0){
-      document.getElementById('horologion').innerHTML = `<div>${tekst}</div>`;
-    }else{
-      let kort = doc.exists ? zoekTekst(doc, Object.keys(doc.data()).filter(k=>k.includes("_KORT"))) : "";
-      let fallback = nu.getHours()%2===0 ? moederGodGebed[geselecteerdeTaal]: jezusGebed[geselecteerdeTaal];
-      if(kort){
-        document.getElementById('horologion').innerHTML = `<div>${kort}</div><div>${fallback}</div>`;
-      }else{
-        document.getElementById('horologion').innerHTML = `<div>${fallback}</div>`;
+    if(tekst && tekst.trim()!==""){
+      // Toon lang gebed op het juiste uur (tijdens het eerste uur van het blok)
+      const nu = new Date();
+      const nuMin = nu.getHours()*60 + nu.getMinutes();
+      let blokStart=0,blokEinde=0;
+      if(moment===0){ blokStart=zonsopgangMinuten; blokEinde=blokStart+60; }
+      else if(moment===1){ blokStart=zonsopgangMinuten+180; blokEinde=blokStart+60; }
+      else if(moment===2){ blokStart=zonsopgangMinuten+360; blokEinde=blokStart+60; }
+      else if(moment===3){ blokStart=zonsopgangMinuten+540; blokEinde=blokStart+60; }
+      else if(moment===4){ blokStart=zonsondergangMinuten; blokEinde=blokStart+60; }
+      else if(moment===5){ blokStart=zonsondergangMinuten+60; blokEinde=blokStart+60; }
+      else if(moment===6){ blokStart=0; blokEinde=zonsopgangMinuten; }
+      if(nuMin>=blokStart && nuMin<blokEinde){
+        horoDiv.innerHTML = `<div>${tekst}</div>`;
+      } else {
+        // Toon kort gebed + Jezus/Maria
+        let kort = doc.exists?zoekTekst(doc,Object.keys(doc.data()).filter(k=>k.endsWith("_KORT") && k.startsWith(geselecteerdeTaal))):"";
+        if(!kort) kort = doc.exists?zoekTekst(doc,Object.keys(doc.data()).filter(k=>k.includes("_KORT"))):"";
+        let fallback = uur%2===0 ? moederGodGebed[geselecteerdeTaal]: jezusGebed[geselecteerdeTaal];
+        horoDiv.innerHTML = `<div>${kort||fallback}</div><div>${fallback}</div>`;
       }
+    }else{
+      let kort = doc.exists?zoekTekst(doc,Object.keys(doc.data()).filter(k=>k.endsWith("_KORT") && k.startsWith(geselecteerdeTaal))):"";
+      if(!kort) kort = doc.exists?zoekTekst(doc,Object.keys(doc.data()).filter(k=>k.includes("_KORT"))):"";
+      let fallback = uur%2===0 ? moederGodGebed[geselecteerdeTaal]: jezusGebed[geselecteerdeTaal];
+      horoDiv.innerHTML = `<div>${kort||fallback}</div><div>${fallback}</div>`;
     }
   });
 
@@ -359,6 +364,3 @@ function getVastenvrijTekst(taal){
   return {"EN":"No fasting","FR":"Jour sans jeûne","DE":"Fastenfrei","GR":"Ἀπολυτή. Ἀργία.","AR":"يوم بدون صوم","RU":"Поста нет","UA":"Без посту","VL":"Vastenvrij"}[taal]||"Vastenvrij";
 }
 </script>
-</body>
-</html>
-
