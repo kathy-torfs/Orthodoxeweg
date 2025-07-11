@@ -7,103 +7,55 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
   <style>
-    html, body {
-      height: 100%; margin: 0; padding: 0; box-sizing: border-box;
-      width: 100vw; min-width: 100vw; max-width: 100vw;
-    }
-    body {
-      width: 100vw; height: 100vh; min-height: 100vh; max-height: 100vh;
-      overflow: auto;
-      display: flex; align-items: center; justify-content: center;
-      background: #222;
-    }
+    html, body { height:100%; margin:0; padding:0; box-sizing:border-box; width:100vw; }
+    body { display:flex; align-items:center; justify-content:center; background:#222; overflow:auto; }
     .img-container {
-      position: relative;
-      width: 98vw; max-width: 700px;
-      aspect-ratio: 4/5;
-      height: auto; max-height: 98vh; min-height: 320px;
-      box-sizing: border-box;
-      border-radius: 16px;
-      box-shadow: 0 0 48px #000a;
-      background: #444;
-      display: flex; align-items: center; justify-content: center;
+      position:relative; width:98vw; max-width:700px; aspect-ratio:4/5;
+      border-radius:16px; box-shadow:0 0 48px #000a; background:#444;
+      display:flex; align-items:center; justify-content:center;
     }
     .img-container img {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1;
-      filter: brightness(0.98) blur(0px);
+      position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; z-index:1;
+      filter:brightness(0.98);
     }
     .overlay {
-      position: relative;
-      z-index: 2;
-      width: 100%; height: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      align-items: stretch;
-      color: #fff; text-shadow: 0 3px 12px #000b;
-      font-family: 'Segoe UI', Georgia, serif;
-      pointer-events: none;
-      box-sizing: border-box;
-      padding: 0 0.5em;
+      position:relative; z-index:2; width:100%; height:100%;
+      display:flex; flex-direction:column; justify-content:space-between;
+      color:#fff; text-shadow:0 3px 12px #000b; font-family:'Segoe UI',Georgia,serif;
+      pointer-events:none; padding:0 0.5em;
     }
     .bovenrij {
-      display: flex; flex-direction: row; justify-content: space-between; align-items: flex-start;
-      width: 100%; margin-top: 1em; font-size: 1.07em; font-weight: 500; pointer-events: none;
-      gap: 0.2em;
+      display:flex; justify-content:space-between; margin-top:1em; font-size:1.07em; font-weight:500;
     }
     .bovenrij span {
-      background: rgba(35,35,35,0.33); border-radius: 8px; padding: 0.28em 0.7em; min-width: 80px; text-align: center; pointer-events: none;
+      background:rgba(35,35,35,0.33); border-radius:8px; padding:0.28em 0.7em; min-width:80px; text-align:center;
     }
     .bovenrij .datum {
-      font-size: 1.14em; font-weight: 500; padding-left: 1.1em; padding-right: 1.1em; letter-spacing: 0.04em; background: rgba(38,38,38,0.47);
+      font-size:1.14em; font-weight:500; padding:0 1.1em; letter-spacing:0.04em; background:rgba(38,38,38,0.47);
     }
     .tijd {
-      margin: 1.2em auto 0.8em auto; width: 88%; font-size: 2.2em; font-weight: 700;
-      letter-spacing: 0.06em; text-align: center; background: rgba(35,35,35,0.30);
-      border-radius: 12px; box-shadow: 0 1px 8px #0005; padding: 0.13em 0.13em; pointer-events: none;
+      margin:1.2em auto 0.8em auto; width:88%; font-size:2.2em; font-weight:700; letter-spacing:0.06em;
+      text-align:center; background:rgba(35,35,35,0.30); border-radius:12px; box-shadow:0 1px 8px #0005; padding:0.13em;
     }
     .horologion-midden {
-      width: 92%; margin: 0 auto; background: rgba(35,35,35,0.45); border-radius: 10px; box-shadow: 0 2px 12px #0007;
-      padding: 1.0em 0.7em 1.1em 0.7em; font-size: 1.09em; text-align: center; min-height: 2.2em;
-      display: flex; align-items: center; justify-content: center; pointer-events: auto;
+      width:92%; margin:0 auto; background:rgba(35,35,35,0.45); border-radius:10px; box-shadow:0 2px 12px #0007;
+      padding:1em 0.7em 1.1em 0.7em; font-size:1.09em; text-align:center; min-height:2.2em;
     }
     .onder {
-      width: 100%; display: flex; flex-direction: column; align-items: center; gap: 0.5em;
-      pointer-events: none; margin-bottom: 0.7em;
+      width:100%; display:flex; flex-direction:column; align-items:center; gap:0.5em; margin-bottom:0.7em;
     }
     .vastenregel {
-      background: rgba(40,40,40,0.42); border-radius: 10px; box-shadow: 0 1px 9px #0005;
-      padding: 0.65em 1em; font-size: 1.02em; font-weight: 500; text-align: center;
-      color: #ffecb3; pointer-events: auto; max-width: 97vw; word-break: break-word;
+      background:rgba(40,40,40,0.42); border-radius:10px; box-shadow:0 1px 9px #0005;
+      padding:0.65em 1em; font-size:1.02em; font-weight:500; text-align:center; color:#ffecb3;
     }
     .taal-select-wrap {
-      align-self: flex-end;
-      background: rgba(40,40,40,0.54);
-      border-radius: 8px; padding: 0.22em 0.75em 0.22em 0.45em; pointer-events: auto; box-shadow: 0 2px 12px #0007;
-      font-size: 1.08em; opacity: 0.96; display: flex; align-items: center; gap: 0.4em; transition: opacity 0.18s;
-      margin-bottom: 0.7em;
+      align-self:flex-end; background:rgba(40,40,40,0.54); border-radius:8px;
+      padding:0.22em 0.75em 0.22em 0.45em; box-shadow:0 2px 12px #0007; font-size:1.08em;
+      display:flex; align-items:center; gap:0.4em; margin-bottom:0.7em;
     }
-    .taal-select-wrap label { font-size: 1em; color: #ffdba2; margin-right: 0.3em; padding-right: 0.1em; letter-spacing: 0.04em; }
     .taal-select-wrap select {
-      font-size: 1em; border: none; background: rgba(60,60,60,0.31); color: #fff;
-      border-radius: 4px; padding: 0.18em 0.3em; outline: none; margin: 0; transition: background 0.14s;
-    }
-    @media (max-width: 650px) {
-      .img-container { max-width: 100vw; }
-      .bovenrij { font-size: 0.94em; margin-top: 0.6em; }
-      .bovenrij .datum { font-size: 1em;}
-      .tijd { font-size: 1.06em; }
-      .horologion-midden { font-size: 0.99em; padding: 0.7em 0.2em 0.9em 0.2em;}
-      .vastenregel { font-size: 0.91em; }
-      .taal-select-wrap { font-size: 0.97em; }
-    }
-    @media (max-width: 430px) {
-      .bovenrij { font-size: 0.86em; }
-      .bovenrij span { min-width: 58px; }
-      .tijd { font-size: 0.95em; }
-      .horologion-midden { font-size: 0.91em; }
-      .vastenregel { font-size: 0.83em; padding: 0.45em 0.4em;}
-      .taal-select-wrap { font-size: 0.89em; }
+      font-size:1em; border:none; background:rgba(60,60,60,0.31); color:#fff;
+      border-radius:4px; padding:0.18em 0.3em; outline:none;
     }
   </style>
 </head>
@@ -113,352 +65,114 @@
     <div class="overlay">
       <div class="bovenrij">
         <span id="zonsopgang">zonsopgang ...</span>
-        <span class="datum" id="datum">1 jul 2025</span>
+        <span class="datum" id="datum"></span>
         <span id="temperatuur">...</span>
       </div>
-      <div class="tijd" id="tijd">17:58</div>
-      <div class="horologion-midden" id="horologion">
-        <!-- Gebedstekst wordt hier geladen -->
-      </div>
-      <div class="onder">
-        <div class="vastenregel" id="vastenregel">
-          <!-- Vastenregel komt hier -->
-        </div>
-      </div>
+      <div class="tijd" id="tijd"></div>
+      <div class="horologion-midden" id="horologion"></div>
+      <div class="onder"><div class="vastenregel" id="vastenregel"></div></div>
       <div class="taal-select-wrap">
-        <label for="taalkeuze"><span id="taallabel">Taal:</span></label>
+        <label for="taalkeuze" id="taallabel">Taal:</label>
         <select id="taalkeuze">
-          <option value="VL">Vlaams</option>
-          <option value="FR">Frans</option>
-          <option value="DE">Duits</option>
-          <option value="EN">Engels</option>
-          <option value="GR">Grieks</option>
-          <option value="AR">Arabisch</option>
-          <option value="RU">Russisch</option>
-          <option value="UA">Oekraïens</option>
+          <option value="VL">Vlaams</option><option value="FR">Frans</option><option value="DE">Duits</option>
+          <option value="EN">Engels</option><option value="GR">Grieks</option><option value="AR">Arabisch</option>
+          <option value="RU">Russisch</option><option value="UA">Oekraïens</option>
         </select>
       </div>
     </div>
   </div>
-  <script>
-    // --- VERTALINGEN ---
-    const vertalingen = {
-      "zonsopgang": {
-        "VL": "zonsopgang",
-        "EN": "sunrise",
-        "FR": "lever du soleil",
-        "DE": "Sonnenaufgang",
-        "GR": "ανατολή ηλίου",
-        "AR": "شروق الشمس",
-        "RU": "восход солнца",
-        "UA": "схід сонця"
-      },
-      "zonsondergang": {
-        "VL": "zonsondergang",
-        "EN": "sunset",
-        "FR": "coucher du soleil",
-        "DE": "Sonnenuntergang",
-        "GR": "δύση ηλίου",
-        "AR": "غروب الشمس",
-        "RU": "закат",
-        "UA": "захід сонця"
-      },
-      "taal": {
-        "VL": "Taal:",
-        "EN": "Language:",
-        "FR": "Langue:",
-        "DE": "Sprache:",
-        "GR": "Γλώσσα:",
-        "AR": "اللغة:",
-        "RU": "Язык:",
-        "UA": "Мова:"
-      }
-    };
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+  authDomain: "orthodoxeweg.firebaseapp.com",
+  projectId: "orthodoxeweg"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-    // --- FIREBASE CONFIG ---
-    const firebaseConfig = {
-      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
-      authDomain: "orthodoxeweg.firebaseapp.com",
-      projectId: "orthodoxeweg",
-      storageBucket: "orthodoxeweg.firebasestorage.app",
-      messagingSenderId: "408582263618",
-      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb",
-      measurementId: "G-C942F2NYQV"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+let geselecteerdeTaal = "VL";
+document.getElementById('taalkeuze').addEventListener('change', function(){
+  geselecteerdeTaal = this.value;
+  updateLabels();
+  updateHorologionEnVastenregel();
+});
+function updateLabels(){
+  document.getElementById('taallabel').textContent = {
+    "VL":"Taal:", "EN":"Language:", "FR":"Langue:", "DE":"Sprache:",
+    "GR":"Γλώσσα:", "AR":"اللغة:", "RU":"Язык:", "UA":"Мова:"
+  }[geselecteerdeTaal]||"Taal:";
+}
+updateLabels();
 
-    let geselecteerdeTaal = "VL";
-    let zonsopgangMinuten = null;
-    let zonsondergangMinuten = null;
+function bepaalMoment(){
+  const nu = new Date();
+  const min = nu.getHours()*60 + nu.getMinutes();
+  const sunrise = 420; // voorbeeld 07:00
+  const sunset = 1260; // voorbeeld 21:00
+  if(min<sunrise) return "complet";
+  if(min<sunrise+180) return "eerste_uur";
+  if(min<sunrise+360) return "derde_uur";
+  if(min<sunrise+540) return "zesde_uur";
+  if(min<sunset) return "negende_uur";
+  if(min<sunset+120) return "vespers";
+  if(min>=0) return "middernacht";
+  return "complet";
+}
 
-    const moederGodGebed = {
-      "VL": "Verheug U, Moeder Gods en Maagd, Maria vol van genade, de Heer is met U. Gij zijt de gezegende onder de vrouwen en gezegend is de vrucht van uw schoot, want Gij hebt de Verlosser der zielen gebaard. Bescherm ons, uw dienaren, onder uw heilige omhulling, want tot U nemen wij onze toevlucht na God. Gij zijt werkelijk de ware Voorspreekster, o Moeder Gods, onophoudelijk smekende voor onze zielen.",
-      "EN": "Rejoice, O Mother of God and Virgin, Mary full of grace, the Lord is with you. Blessed are you among women, and blessed is the fruit of your womb, for you have borne the Savior of our souls. Shelter us, your servants, under your holy protection, for after God we take refuge in you. You are truly the true Intercessor, O Mother of God, unceasingly pleading for our souls.",
-      "FR": "Réjouis-toi, Mère de Dieu et Vierge, Marie pleine de grâce, le Seigneur est avec toi. Tu es bénie entre les femmes, et béni est le fruit de ton sein, car tu as enfanté le Sauveur de nos âmes. Protège-nous, tes serviteurs, sous ta sainte protection, car après Dieu, nous cherchons refuge auprès de toi. Tu es vraiment la véritable Intercesseur, ô Mère de Dieu, intercédant sans cesse pour nos âmes.",
-      "DE": "Freue dich, Gottesgebärerin und Jungfrau, Maria voll der Gnade, der Herr ist mit dir. Gesegnet bist du unter den Frauen und gesegnet ist die Frucht deines Leibes, denn du hast den Erlöser unserer Seelen geboren. Beschütze uns, deine Diener, unter deinem heiligen Schutzmantel, denn nach Gott nehmen wir Zuflucht zu dir. Du bist wahrhaftig die wahre Fürsprecherin, o Gottesgebärerin, die unaufhörlich für unsere Seelen bittet.",
-      "GR": "Χαῖρε Θεοτόκε Παρθένε, Μαρία, κεχαριτωμένη, ὁ Κύριος μετὰ σοῦ. Εὐλογημένη σὺ ἐν γυναιξί, καὶ εὐλογημένος ὁ καρπὸς τῆς κοιλίας σου, ὅτι Σωτῆρα ἔτεκες τῶν ψυχῶν ἡμῶν. Σκέπασον ἡμᾶς, τοὺς δούλους σου, ὑπὸ τὴν ἁγίαν σου σκέπην· μετὰ τὸν Θεόν, εἰς σὲ καταφεύγομεν. Σὺ εἶ ὄντως ἡ ἀληθινὴ Προστάτις, Θεοτόκε, ἀκαταπαύστως πρεσβεύουσα ὑπὲρ τῶν ψυχῶν ἡμῶν.",
-      "AR": "افرحي يا والدة الإله البتول، يا مريم الممتلئة نعمة، الرب معك. مباركة أنتِ في النساء، ومباركة ثمرة بطنكِ لأنكِ ولدتِ مخلص نفوسنا. احمينا نحن عبيدك تحت ستر حمايتك المقدسة، لأنه بعد الله نلجأ إليك. أنت حقًا الشفيعة الحقيقية، يا والدة الإله، المتشفعة دائماً من أجل نفوسنا.",
-      "RU": "Радуйся, Богородице Дево, Мария, благодатная, Господь с Тобою. Благословенна Ты в женах и благословен плод чрева Твоего, ибо Ты родила Спасителя душ наших. Защити нас, рабов Твоих, под Твоим святым покровом, ибо после Бога к Тебе прибегаем. Ты истинная Ходатайца, Богородица, непрестанно молящаяся за души наши.",
-      "UA": "Радуйся, Богородице Діво, Маріє, Благодатна, Господь з Тобою. Благословенна Ти між жінками і благословен плід лона Твого, бо Ти породила Спасителя душ наших. Захисти нас, своїх слуг, під святим Твоїм покровом, бо після Бога до Тебе вдаємося. Ти істинна Заступниця, Богородице, безперестанно молишся за душі наші."
-    };
+function zoek(doc, taal){
+  const keys = {
+    "DE":["DE","VL","EN"],"FR":["FR","EN","VL"],"GR":["GR","EN","VL"],
+    "AR":["AR","EN","VL"],"RU":["RU","UA","EN","VL"],"UA":["UA","RU","EN","VL"],
+    "EN":["EN","VL"],"VL":["VL","EN"]
+  }[taal]||["VL","EN"];
+  for(const key of keys){ if(doc.data()[key]) return doc.data()[key]; }
+  return "";
+}
+const mapping = {
+  "eerste_uur":"0", "derde_uur":"1", "zesde_uur":"2",
+  "negende_uur":"3", "vespers":"4", "complet":"5", "middernacht":"6"
+};
 
-    const jezusGebed = {
-      "VL": "Heer Jezus Christus, Zoon van God, ontferm U over mij.",
-      "EN": "Lord Jesus Christ, Son of God, have mercy on me.",
-      "FR": "Seigneur Jésus-Christ, Fils de Dieu, aie pitié de moi.",
-      "DE": "Herr Jesus Christus, Sohn Gottes, erbarme Dich meiner.",
-      "GR": "Κύριε Ἰησοῦ Χριστέ, Υἱὲ τοῦ Θεοῦ, ἐλέησόν με τὸν ἁμαρτωλόν.",
-      "AR": "يا رب يسوع المسيح، ابن الله، ارحمني أنا الخاطئ.",
-      "RU": "Господи Иисусе Христе, Сыне Божий, помилуй мя.",
-      "UA": "Господи Ісусе Христе, Сину Божий, помилуй мене."
-    };
-
-    document.getElementById('taalkeuze').addEventListener('change', function() {
-      geselecteerdeTaal = this.value;
-      document.getElementById('taallabel').textContent =
-        vertalingen["taal"][geselecteerdeTaal] || vertalingen["taal"]["VL"];
-      updateZonsopgangLabel();
-      updateZonsondergangLabel();
-      updateHorologionEnVastenregel();
-    });
-
-    function updateZonsopgangLabel() {
-      const zonsopgangElem = document.getElementById('zonsopgang');
-      const currentText = zonsopgangElem.textContent;
-      const tijdMatch = currentText.match(/\d{2}:\d{2}/) || ["..."];
-      zonsopgangElem.textContent =
-        `${vertalingen["zonsopgang"][geselecteerdeTaal] || vertalingen["zonsopgang"]["VL"]} ${tijdMatch[0]}`;
+function updateHorologionEnVastenregel(){
+  const moment = bepaalMoment();
+  const docId = mapping[moment] || "5";
+  db.collection("gebeden_uren").doc(docId).get().then(doc=>{
+    let tekst = "";
+    if(doc.exists) tekst = zoek(doc,geselecteerdeTaal);
+    document.getElementById('horologion').textContent = tekst||(
+      (new Date().getHours()%2==0)?"Verheug U, Moeder Gods...":"Heer Jezus Christus, ontferm U..."
+    );
+  });
+  const datum = new Date().toISOString().slice(0,10).replace(/-/g,"");
+  db.collection("kalender2025").doc(datum).get().then(doc=>{
+    let t = "";
+    if(doc.exists){
+      const prio = {
+        "DE":["Vastenregel DE","Vastenregel NL","Vastenregel EN"],
+        "FR":["Vastenregel FR","Vastenregel EN","Vastenregel NL"],
+        "GR":["Vastenregel GR","Vastenregel EN","Vastenregel NL"],
+        "AR":["Vastenregel AR","Vastenregel EN","Vastenregel NL"],
+        "RU":["Vastenregel RU","Vastenregel UA","Vastenregel EN","Vastenregel NL"],
+        "UA":["Vastenregel UA","Vastenregel RU","Vastenregel EN","Vastenregel NL"],
+        "EN":["Vastenregel EN","Vastenregel NL"],"VL":["Vastenregel NL","Vastenregel EN"]
+      }[geselecteerdeTaal]||["Vastenregel NL","Vastenregel EN"];
+      for(let k of prio){if(doc.data()[k]){t=doc.data()[k];break;}}
     }
-    function updateZonsondergangLabel() {
-      const elem = document.getElementById('zonsondergang');
-      if (!elem) return;
-      const currentText = elem.textContent;
-      const tijdMatch = currentText.match(/\d{2}:\d{2}/) || ["..."];
-      elem.textContent =
-        `${vertalingen["zonsondergang"][geselecteerdeTaal] || vertalingen["zonsondergang"]["VL"]} ${tijdMatch[0]}`;
-    }
-
-    document.addEventListener("DOMContentLoaded", function() {
-      document.getElementById('taallabel').textContent =
-        vertalingen["taal"][geselecteerdeTaal] || vertalingen["taal"]["VL"];
-    });
-
-    function updateWidget() {
-      const nu = new Date();
-      const maand = ["jan", "feb", "mrt", "apr", "mei", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];
-      document.getElementById('datum').textContent = `${nu.getDate()} ${maand[nu.getMonth()]} ${nu.getFullYear()}`;
-      let hh = nu.getHours().toString().padStart(2, "0");
-      let mm = nu.getMinutes().toString().padStart(2, "0");
-      document.getElementById('tijd').textContent = `${hh}:${mm}`;
-    }
-    setInterval(updateWidget, 1000);
-    updateWidget();
-
-    async function updateWeather(lat, lon) {
-      try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=sunrise,sunset&timezone=Europe%2FBerlin`;
-        const response = await fetch(url);
-        const data = await response.json();
-
-        if (data.current_weather && data.current_weather.temperature !== undefined) {
-          document.getElementById('temperatuur').textContent = `${Math.round(data.current_weather.temperature)}°C`;
-        } else {
-          document.getElementById('temperatuur').textContent = '...';
-        }
-
-        // Zonsopgang en zonsondergang laden
-        if (data.daily && data.daily.sunrise && data.daily.sunset) {
-          const sunriseISO = data.daily.sunrise[0];
-          const sunsetISO = data.daily.sunset[0];
-          const sunriseDate = new Date(sunriseISO);
-          const sunsetDate = new Date(sunsetISO);
-
-          const sh = sunriseDate.getHours().toString().padStart(2, '0');
-          const sm = sunriseDate.getMinutes().toString().padStart(2, '0');
-          const eh = sunsetDate.getHours().toString().padStart(2, '0');
-          const em = sunsetDate.getMinutes().toString().padStart(2, '0');
-
-          document.getElementById('zonsopgang').textContent =
-            `${vertalingen["zonsopgang"][geselecteerdeTaal] || vertalingen["zonsopgang"]["VL"]} ${sh}:${sm}`;
-
-          // Voeg zonsondergang toe als je wilt weergeven:
-          let zonsondergangElem = document.getElementById('zonsondergang');
-          if (!zonsondergangElem) {
-            // Voeg dynamisch toe indien gewenst
-            const bovenrij = document.querySelector('.bovenrij');
-            zonsondergangElem = document.createElement('span');
-            zonsondergangElem.id = 'zonsondergang';
-            bovenrij.appendChild(zonsondergangElem);
-          }
-          zonsondergangElem.textContent =
-            `${vertalingen["zonsondergang"][geselecteerdeTaal] || vertalingen["zonsondergang"]["VL"]} ${eh}:${em}`;
-
-          zonsopgangMinuten = sunriseDate.getHours() * 60 + sunriseDate.getMinutes();
-          zonsondergangMinuten = sunsetDate.getHours() * 60 + sunsetDate.getMinutes();
-
-          updateHorologionEnVastenregel();
-        } else {
-          document.getElementById('zonsopgang').textContent =
-            `${vertalingen["zonsopgang"][geselecteerdeTaal] || vertalingen["zonsopgang"]["VL"]} ...`;
-          zonsopgangMinuten = null;
-          zonsondergangMinuten = null;
-        }
-      } catch (e) {
-        document.getElementById('temperatuur').textContent = '...';
-        document.getElementById('zonsopgang').textContent =
-          `${vertalingen["zonsopgang"][geselecteerdeTaal] || vertalingen["zonsopgang"]["VL"]} ...`;
-        zonsopgangMinuten = null;
-        zonsondergangMinuten = null;
-      }
-    }
-
-    function initWeather() {
-      if ('geolocation' in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            updateWeather(pos.coords.latitude, pos.coords.longitude);
-            setInterval(() => updateWeather(pos.coords.latitude, pos.coords.longitude), 10 * 60 * 1000);
-          },
-          (err) => {
-            updateWeather(50.85, 4.35);
-            setInterval(() => updateWeather(50.85, 4.35), 10 * 60 * 1000);
-          },
-          { enableHighAccuracy: false, timeout: 7000, maximumAge: 360000 }
-        );
-      } else {
-        updateWeather(50.85, 4.35);
-        setInterval(() => updateWeather(50.85, 4.35), 10 * 60 * 1000);
-      }
-    }
-    initWeather();
-
-    function bepaalGebedsmomentMetZon() {
-      const nu = new Date();
-      const nuMinuten = nu.getHours() * 60 + nu.getMinutes();
-
-      if (zonsopgangMinuten === null || zonsondergangMinuten === null)
-        return "complet"; // fallback: complet
-
-      // Voor zonsopgang = complet/nacht
-      if (nuMinuten < zonsopgangMinuten) return "complet";
-      // Eerste uur: zonsopgang tot +3u
-      if (nuMinuten < zonsopgangMinuten + 180) return "eerste_uur";
-      // Derde uur: zonsopgang+3u tot +6u
-      if (nuMinuten < zonsopgangMinuten + 360) return "derde_uur";
-      // Zesde uur: zonsopgang+6u tot +9u
-      if (nuMinuten < zonsopgangMinuten + 540) return "zesde_uur";
-      // Negende uur: zonsopgang+9u tot zonsondergang
-      if (nuMinuten < zonsondergangMinuten) return "negende_uur";
-      // Vespers: zonsondergang tot 2u na zonsondergang (of tot middernacht)
-      if (nuMinuten < zonsondergangMinuten + 120) return "vespers";
-      // Complet: na vespers tot zonsopgang
-      return "complet";
-    }
-
-    function getVastenvrijTekst(taal) {
-      switch (taal) {
-        case "EN": return "No fasting";
-        case "FR": return "Jour sans jeûne";
-        case "DE": return "Fastenfrei";
-        case "GR": return "Ἀπολυτή. Ἀργία.";
-        case "AR": return "يوم بدون صوم";
-        case "RU": return "Поста нет";
-        case "UA": return "Без посту";
-        default:   return "Vastenvrij";
-      }
-    }
-
-    function zoekVastenregel(doc, taal) {
-      const prioriteiten = {
-        "DE": ["Vastenregel DE", "Vastenregel NL", "Vastenregel EN"],
-        "FR": ["Vastenregel FR", "Vastenregel EN", "Vastenregel NL"],
-        "GR": ["Vastenregel GR", "Vastenregel EN", "Vastenregel NL"],
-        "AR": ["Vastenregel AR", "Vastenregel EN", "Vastenregel NL"],
-        "RU": ["Vastenregel RU", "Vastenregel UA", "Vastenregel EN", "Vastenregel NL"],
-        "UA": ["Vastenregel UA", "Vastenregel RU", "Vastenregel EN", "Vastenregel NL"],
-        "EN": ["Vastenregel EN", "Vastenregel NL"],
-        "VL": ["Vastenregel NL", "Vastenregel EN"]
-      };
-      const lijst = prioriteiten[taal] || ["Vastenregel NL", "Vastenregel EN"];
-      for (let key of lijst) {
-        if (doc.data()[key]) return doc.data()[key];
-      }
-      return "";
-    }
-
-    function zoekHorologion(doc, taal) {
-      const prioriteiten = {
-        "DE": ["DE", "VL", "EN"],
-        "FR": ["FR", "EN", "VL"],
-        "GR": ["GR", "EN", "VL"],
-        "AR": ["AR", "EN", "VL"],
-        "RU": ["RU", "UA", "EN", "VL"],
-        "UA": ["UA", "RU", "EN", "VL"],
-        "EN": ["EN", "VL"],
-        "VL": ["VL", "EN"]
-      };
-      const lijst = prioriteiten[taal] || ["VL", "EN"];
-      for (let key of lijst) {
-        if (doc.data()[key]) return doc.data()[key];
-      }
-      return "";
-    }
-
-    function updateHorologionEnVastenregel() {
-      const nu = new Date();
-      const datum = nu.toISOString().slice(0,10).replace(/-/g, "");
-      const moment = bepaalGebedsmomentMetZon();
-      const uur = nu.getHours();
-
-      // Gebed (horologion)
-// Gebed (horologion)
-db.collection("gebeden_uren").doc("0").get().then(doc => {
-  let tekst = "";
-  if (doc.exists) {
-    tekst = zoekHorologion(doc, geselecteerdeTaal);
-  }
-  if (tekst && tekst.trim() !== "") {
-    document.getElementById('horologion').textContent = tekst;
-  } else {
-    if (uur % 2 === 0) {
-      document.getElementById('horologion').textContent =
-        moederGodGebed[geselecteerdeTaal] || moederGodGebed["VL"];
-    } else {
-      document.getElementById('horologion').textContent =
-        jezusGebed[geselecteerdeTaal] || jezusGebed["VL"];
-    }
-  }
-}).catch(() => {
-        const uur = (new Date()).getHours();
-        if (uur % 2 === 0) {
-          document.getElementById('horologion').textContent =
-            moederGodGebed[geselecteerdeTaal] || moederGodGebed["VL"];
-        } else {
-          document.getElementById('horologion').textContent =
-            jezusGebed[geselecteerdeTaal] || jezusGebed["VL"];
-        }
-      });
-
-      // Vastenregel (meertalig + fallback)
-      db.collection("kalender2025").doc(String(datum)).get().then(doc => {
-        let tekst = "";
-        if (doc.exists) {
-          tekst = zoekVastenregel(doc, geselecteerdeTaal);
-        }
-        if (!tekst || tekst.trim() === "") {
-          tekst = getVastenvrijTekst(geselecteerdeTaal);
-        }
-        const vastenElem = document.getElementById('vastenregel');
-        vastenElem.textContent = tekst;
-      }).catch(() => {
-        const vastenElem = document.getElementById('vastenregel');
-        vastenElem.textContent = getVastenvrijTekst(geselecteerdeTaal);
-      });
-    }
-
-    setInterval(updateHorologionEnVastenregel, 60000);
-    updateHorologionEnVastenregel();
-  </script>
+    document.getElementById('vastenregel').textContent = t||{
+      "EN":"No fasting","FR":"Jour sans jeûne","DE":"Fastenfrei","GR":"Ἀπολυτή",
+      "AR":"يوم بدون صوم","RU":"Поста нет","UA":"Без посту","VL":"Vastenvrij"
+    }[geselecteerdeTaal]||"Vastenvrij";
+  });
+}
+setInterval(updateHorologionEnVastenregel,60000);
+updateHorologionEnVastenregel();
+function updateTijd(){
+  const n=new Date();
+  document.getElementById('datum').textContent=n.getDate()+"-"+(n.getMonth()+1)+"-"+n.getFullYear();
+  document.getElementById('tijd').textContent=n.getHours().toString().padStart(2,"0")+":"+
+    n.getMinutes().toString().padStart(2,"0");
+}
+setInterval(updateTijd,1000); updateTijd();
+</script>
 </body>
 </html>
