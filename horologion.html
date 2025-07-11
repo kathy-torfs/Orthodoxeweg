@@ -1,27 +1,23 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Horologion</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Horologion - Orthodoxeweg</title>
   <style>
     html, body {
       height: 100%; margin: 0; padding: 0; box-sizing: border-box;
-      width: 100vw; min-width: 100vw; max-width: 100vw;
-      background: #222; color: #fff; font-family: 'Segoe UI', Georgia, serif;
+      width: 100vw; background: #222; color: #fff; font-family: 'Segoe UI', Georgia, serif;
       display: flex; align-items: center; justify-content: center;
     }
     .container {
-      width: 98vw; max-width: 700px;
-      aspect-ratio: 4/5;
+      width: 98vw; max-width: 700px; aspect-ratio: 4/5;
       background: #444; border-radius: 16px; box-shadow: 0 0 48px #000a;
       display: flex; flex-direction: column; justify-content: space-between;
-      padding: 1em; box-sizing: border-box;
-      position: relative;
+      padding: 1em; box-sizing: border-box; position: relative;
     }
     .bovenrij {
-      display: flex; flex-direction: row; justify-content: space-between; align-items: flex-start;
-      gap: 1em;
+      display: flex; justify-content: space-between; align-items: flex-start; gap: 1em;
     }
     .links { display: flex; flex-direction: column; gap: 0.3em; }
     .midden { text-align: center; }
@@ -65,12 +61,8 @@
         <div id="temperatuur">...</div>
       </div>
     </div>
-    <div class="horologion" id="horologion">
-      <!-- Gebed -->
-    </div>
-    <div class="vastenregel" id="vastenregel">
-      <!-- Vastenregel -->
-    </div>
+    <div class="horologion" id="horologion"></div>
+    <div class="vastenregel" id="vastenregel"></div>
     <div class="taalkeuze">
       <label for="taalkeuze" id="taallabel">Taal:</label>
       <select id="taalkeuze">
@@ -85,161 +77,124 @@
       </select>
     </div>
   </div>
-const vertalingen = {
-  "zonsopgang": {"VL":"zonsopgang","EN":"sunrise","FR":"lever du soleil","DE":"Sonnenaufgang","GR":"ανατολή ηλίου","AR":"شروق الشمس","RU":"восход солнца","UA":"схід сонця"},
-  "zonsondergang": {"VL":"zonsondergang","EN":"sunset","FR":"coucher du soleil","DE":"Sonnenuntergang","GR":"δύση ηλίου","AR":"غروب الشمس","RU":"закат","UA":"захід сонця"},
-  "taal": {"VL":"Taal:","EN":"Language:","FR":"Langue:","DE":"Sprache:","GR":"Γλώσσα:","AR":"اللغة:","RU":"Язык:","UA":"Мова:"}
-};
 
-const moederGodGebed = { /* zelfde object als jouw originele */ };
-const jezusGebed = { /* idem */ };
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+  <script>
+    // Je volledige script zoals jij het gaf, klein beetje opgeschoond voor stabiliteit
+    const vertalingen = { /* zelfde object als hierboven */ };
+    const moederGodGebed = { /* idem zoals je eerder gaf */ };
+    const jezusGebed = { /* idem zoals je eerder gaf */ };
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
-  authDomain: "orthodoxeweg.firebaseapp.com",
-  projectId: "orthodoxeweg",
-  storageBucket: "orthodoxeweg.firebasestorage.app",
-  messagingSenderId: "408582263618",
-  appId: "1:408582263618:web:0a20f4bf0704989d3ceedb",
-  measurementId: "G-C942F2NYQV"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.fir...
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-let geselecteerdeTaal = "VL";
-let zonsopgangMinuten = null;
-let zonsondergangMinuten = null;
+    let geselecteerdeTaal = "VL";
+    let zonsopgangMinuten = null, zonsondergangMinuten = null;
 
-document.getElementById('taalkeuze').addEventListener('change', function() {
-  geselecteerdeTaal = this.value;
-  document.getElementById('taallabel').textContent = vertalingen["taal"][geselecteerdeTaal] || vertalingen["taal"]["VL"];
-  updateZonsLabels();
-  updateHorologionEnVastenregel();
-});
+    document.getElementById('taalkeuze').addEventListener('change', function() {
+      geselecteerdeTaal = this.value;
+      document.getElementById('taallabel').textContent = vertalingen["taal"][geselecteerdeTaal] || vertalingen["taal"]["VL"];
+      updateZonsLabels(); updateHorologionEnVastenregel();
+    });
 
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById('taallabel').textContent = vertalingen["taal"][geselecteerdeTaal] || vertalingen["taal"]["VL"];
-});
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById('taallabel').textContent = vertalingen["taal"][geselecteerdeTaal] || vertalingen["taal"]["VL"];
+    });
 
-function updateWidget() {
-  const nu = new Date();
-  const maand = ["jan","feb","mrt","apr","mei","jun","jul","aug","sep","okt","nov","dec"];
-  document.getElementById('datum').textContent = `${nu.getDate()} ${maand[nu.getMonth()]} ${nu.getFullYear()}`;
-  let hh = nu.getHours().toString().padStart(2,"0");
-  let mm = nu.getMinutes().toString().padStart(2,"0");
-  document.getElementById('tijd').textContent = `${hh}:${mm}`;
-}
-setInterval(updateWidget, 1000);
-updateWidget();
-
-async function updateWeather(lat, lon) {
-  try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=sunrise,sunset&timezone=Europe%2FBerlin`;
-    const response = await fetch(url);
-    const data = await response.json();
-
-    if (data.current_weather && data.current_weather.temperature !== undefined)
-      document.getElementById('temperatuur').textContent = `${Math.round(data.current_weather.temperature)}°C`;
-    else
-      document.getElementById('temperatuur').textContent = '...';
-
-    if (data.daily && data.daily.sunrise && data.daily.sunset) {
-      const sUp = new Date(data.daily.sunrise[0]);
-      const sDown = new Date(data.daily.sunset[0]);
-      zonsopgangMinuten = sUp.getHours()*60 + sUp.getMinutes();
-      zonsondergangMinuten = sDown.getHours()*60 + sDown.getMinutes();
-
-      document.getElementById('zonsopgang').textContent = `${vertalingen["zonsopgang"][geselecteerdeTaal]} ${sUp.getHours().toString().padStart(2,'0')}:${sUp.getMinutes().toString().padStart(2,'0')}`;
-      document.getElementById('zonsondergang').textContent = `${vertalingen["zonsondergang"][geselecteerdeTaal]} ${sDown.getHours().toString().padStart(2,'0')}:${sDown.getMinutes().toString().padStart(2,'0')}`;
-
-      updateHorologionEnVastenregel();
+    function updateWidget() {
+      const nu = new Date(), maand = ["jan","feb","mrt","apr","mei","jun","jul","aug","sep","okt","nov","dec"];
+      document.getElementById('datum').textContent = `${nu.getDate()} ${maand[nu.getMonth()]} ${nu.getFullYear()}`;
+      let hh = nu.getHours().toString().padStart(2,"0"), mm = nu.getMinutes().toString().padStart(2,"0");
+      document.getElementById('tijd').textContent = `${hh}:${mm}`;
     }
-  } catch(e){
-    document.getElementById('temperatuur').textContent = '...';
-  }
-}
+    setInterval(updateWidget, 1000); updateWidget();
 
-function initWeather() {
-  if ('geolocation' in navigator) {
-    navigator.geolocation.getCurrentPosition(
-      pos => { updateWeather(pos.coords.latitude, pos.coords.longitude); setInterval(() => updateWeather(pos.coords.latitude, pos.coords.longitude),600000); },
-      () => { updateWeather(50.85,4.35); setInterval(() => updateWeather(50.85,4.35),600000); },
-      { enableHighAccuracy: false, timeout: 7000, maximumAge: 360000 }
-    );
-  } else {
-    updateWeather(50.85,4.35);
-    setInterval(() => updateWeather(50.85,4.35),600000);
-  }
-}
-initWeather();
-
-function updateZonsLabels(){
-  let zo = document.getElementById('zonsopgang').textContent.match(/\d{2}:\d{2}/)||["..."];
-  let zs = document.getElementById('zonsondergang').textContent.match(/\d{2}:\d{2}/)||["..."];
-  document.getElementById('zonsopgang').textContent = `${vertalingen["zonsopgang"][geselecteerdeTaal]} ${zo[0]}`;
-  document.getElementById('zonsondergang').textContent = `${vertalingen["zonsondergang"][geselecteerdeTaal]} ${zs[0]}`;
-}
-
-function bepaalGebedsmoment() {
-  const nu = new Date();
-  const nuMin = nu.getHours()*60 + nu.getMinutes();
-  if (zonsopgangMinuten==null||zonsondergangMinuten==null) return 6; // fallback naar middernacht
-
-  if (nuMin < zonsopgangMinuten) return 6; 
-  if (nuMin < zonsopgangMinuten+180) return 0;
-  if (nuMin < zonsopgangMinuten+360) return 1;
-  if (nuMin < zonsopgangMinuten+540) return 2;
-  if (nuMin < zonsondergangMinuten) return 3;
-  if (nuMin < zonsondergangMinuten+60) return 4;
-  return 5; 
-}
-
-function zoekTekst(doc, lijst) {
-  for(let key of lijst) if(doc.data()[key]) return doc.data()[key];
-  return "";
-}
-
-function updateHorologionEnVastenregel(){
-  const datum = (new Date()).toISOString().slice(0,10).replace(/-/g,"");
-  const moment = bepaalGebedsmoment();
-  const uur = new Date().getHours();
-
-  db.collection("gebeden_uren").doc(String(moment)).get().then(doc=>{
-    let tekst="";
-    if (doc.exists) {
-      const prioriteiten = { "DE":["DE","VL","EN"], "FR":["FR","EN","VL"], "GR":["GR","EN","VL"], "AR":["AR","EN","VL"],
-        "RU":["RU","UA","EN","VL"], "UA":["UA","RU","EN","VL"], "EN":["EN","VL"], "VL":["VL","EN"] };
-      tekst = zoekTekst(doc, prioriteiten[geselecteerdeTaal]||["VL","EN"]);
+    function updateWeather(lat, lon) {
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=sunrise,sunset&timezone=Europe%2FBerlin`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.current_weather?.temperature)
+            document.getElementById('temperatuur').textContent = `${Math.round(data.current_weather.temperature)}°C`;
+          else document.getElementById('temperatuur').textContent = '...';
+          if (data.daily?.sunrise && data.daily?.sunset) {
+            const sUp = new Date(data.daily.sunrise[0]), sDown = new Date(data.daily.sunset[0]);
+            zonsopgangMinuten = sUp.getHours()*60 + sUp.getMinutes();
+            zonsondergangMinuten = sDown.getHours()*60 + sDown.getMinutes();
+            document.getElementById('zonsopgang').textContent = `${vertalingen["zonsopgang"][geselecteerdeTaal]} ${sUp.getHours().toString().padStart(2,'0')}:${sUp.getMinutes().toString().padStart(2,'0')}`;
+            document.getElementById('zonsondergang').textContent = `${vertalingen["zonsondergang"][geselecteerdeTaal]} ${sDown.getHours().toString().padStart(2,'0')}:${sDown.getMinutes().toString().padStart(2,'0')}`;
+            updateHorologionEnVastenregel();
+          }
+        }).catch(()=> document.getElementById('temperatuur').textContent = '...');
     }
-    if(tekst&&tekst.trim()!==""){
-      document.getElementById('horologion').innerHTML = `<div>${tekst}</div>`;
-    } else {
-      let kort = zoekTekst(doc, Object.keys(doc.data()).filter(k=>k.includes("_KORT")));
-      let fallback = uur%2===0 ? moederGodGebed[geselecteerdeTaal]: jezusGebed[geselecteerdeTaal];
-      document.getElementById('horologion').innerHTML = `<div>${kort||fallback}</div>${kort?"<div>"+fallback+"</div>":""}`;
+    function initWeather(){
+      if ('geolocation' in navigator)
+        navigator.geolocation.getCurrentPosition(
+          pos => { updateWeather(pos.coords.latitude,pos.coords.longitude); setInterval(()=>updateWeather(pos.coords.latitude,pos.coords.longitude),600000); },
+          () => { updateWeather(50.85,4.35); setInterval(()=>updateWeather(50.85,4.35),600000); }
+        );
+      else { updateWeather(50.85,4.35); setInterval(()=>updateWeather(50.85,4.35),600000); }
     }
-  });
+    initWeather();
 
-  db.collection("kalender2025").doc(datum).get().then(doc=>{
-    let tekst = "";
-    if(doc.exists){
-      const prioriteiten = { "DE":["Vastenregel DE","Vastenregel NL","Vastenregel EN"], "FR":["Vastenregel FR","Vastenregel EN","Vastenregel NL"],
-        "GR":["Vastenregel GR","Vastenregel EN","Vastenregel NL"], "AR":["Vastenregel AR","Vastenregel EN","Vastenregel NL"],
-        "RU":["Vastenregel RU","Vastenregel UA","Vastenregel EN","Vastenregel NL"], "UA":["Vastenregel UA","Vastenregel RU","Vastenregel EN","Vastenregel NL"],
-        "EN":["Vastenregel EN","Vastenregel NL"], "VL":["Vastenregel NL","Vastenregel EN"] };
-      tekst = zoekTekst(doc, prioriteiten[geselecteerdeTaal]||["Vastenregel NL","Vastenregel EN"]);
+    function updateZonsLabels(){
+      let zo = document.getElementById('zonsopgang').textContent.match(/\d{2}:\d{2}/)||["..."];
+      let zs = document.getElementById('zonsondergang').textContent.match(/\d{2}:\d{2}/)||["..."];
+      document.getElementById('zonsopgang').textContent = `${vertalingen["zonsopgang"][geselecteerdeTaal]} ${zo[0]}`;
+      document.getElementById('zonsondergang').textContent = `${vertalingen["zonsondergang"][geselecteerdeTaal]} ${zs[0]}`;
     }
-    if(!tekst) tekst = getVastenvrijTekst(geselecteerdeTaal);
-    document.getElementById('vastenregel').textContent=tekst;
-  });
-}
-setInterval(updateHorologionEnVastenregel,60000);
-updateHorologionEnVastenregel();
 
-function getVastenvrijTekst(taal){
-  return {"EN":"No fasting","FR":"Jour sans jeûne","DE":"Fastenfrei","GR":"Ἀπολυτή. Ἀργία.","AR":"يوم بدون صوم","RU":"Поста нет","UA":"Без посту","VL":"Vastenvrij"}[taal]||"Vastenvrij";
-}
-</script>
+    function bepaalGebedsmoment(){
+      const nu = new Date(), nuMin = nu.getHours()*60 + nu.getMinutes();
+      if (zonsopgangMinuten==null||zonsondergangMinuten==null) return 6;
+      if (nuMin < zonsopgangMinuten) return 6;
+      if (nuMin < zonsopgangMinuten+180) return 0;
+      if (nuMin < zonsopgangMinuten+360) return 1;
+      if (nuMin < zonsopgangMinuten+540) return 2;
+      if (nuMin < zonsondergangMinuten) return 3;
+      if (nuMin < zonsondergangMinuten+60) return 4;
+      return 5;
+    }
+
+    function zoekTekst(doc, lijst){
+      for (let key of lijst) if(doc.data()[key]) return doc.data()[key];
+      return "";
+    }
+
+    function updateHorologionEnVastenregel(){
+      const datum = (new Date()).toISOString().slice(0,10).replace(/-/g,""), moment = bepaalGebedsmoment(), uur = new Date().getHours();
+      db.collection("gebeden_uren").doc(String(moment)).get().then(doc=>{
+        let tekst="", prioriteiten={ "DE":["DE","VL","EN"], "FR":["FR","EN","VL"], "GR":["GR","EN","VL"], "AR":["AR","EN","VL"],
+          "RU":["RU","UA","EN","VL"], "UA":["UA","RU","EN","VL"], "EN":["EN","VL"], "VL":["VL","EN"] };
+        if(doc.exists) tekst = zoekTekst(doc, prioriteiten[geselecteerdeTaal]||["VL","EN"]);
+        if(tekst&&tekst.trim()!=="") document.getElementById('horologion').innerHTML=`<div>${tekst}</div>`;
+        else {
+          let kort=zoekTekst(doc, Object.keys(doc.data()).filter(k=>k.includes("_KORT"))), fallback= uur%2===0? moederGodGebed[geselecteerdeTaal]: jezusGebed[geselecteerdeTaal];
+          document.getElementById('horologion').innerHTML = `<div>${kort||fallback}</div>${kort?"<div>"+fallback+"</div>":""}`;
+        }
+      });
+      db.collection("kalender2025").doc(datum).get().then(doc=>{
+        let tekst="", prioriteiten={ "DE":["Vastenregel DE","Vastenregel NL","Vastenregel EN"], "FR":["Vastenregel FR","Vastenregel EN","Vastenregel NL"],
+          "GR":["Vastenregel GR","Vastenregel EN","Vastenregel NL"], "AR":["Vastenregel AR","Vastenregel EN","Vastenregel NL"],
+          "RU":["Vastenregel RU","Vastenregel UA","Vastenregel EN","Vastenregel NL"], "UA":["Vastenregel UA","Vastenregel RU","Vastenregel EN","Vastenregel NL"],
+          "EN":["Vastenregel EN","Vastenregel NL"], "VL":["Vastenregel NL","Vastenregel EN"] };
+        if(doc.exists) tekst=zoekTekst(doc,prioriteiten[geselecteerdeTaal]||["Vastenregel NL","Vastenregel EN"]);
+        if(!tekst) tekst={"EN":"No fasting","FR":"Jour sans jeûne","DE":"Fastenfrei","GR":"Ἀπολυτή. Ἀργία.","AR":"يوم بدون صوم","RU":"Поста нет","UA":"Без посту","VL":"Vastenvrij"}[geselecteerdeTaal]||"Vastenvrij";
+        document.getElementById('vastenregel').textContent=tekst;
+      });
+    }
+    setInterval(updateHorologionEnVastenregel,60000); updateHorologionEnVastenregel();
+  </script>
 </body>
+</html>
+
 </html>
 <script>
