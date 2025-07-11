@@ -1,86 +1,81 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Horologion - Orthodoxeweg</title>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-  <style>
-    html, body { height:100%; margin:0; padding:0; box-sizing:border-box; width:100vw; }
-    body { display:flex; align-items:center; justify-content:center; background:#222; overflow:auto; }
-    .img-container {
-      position:relative; width:98vw; max-width:700px; aspect-ratio:4/5;
-      border-radius:16px; box-shadow:0 0 48px #000a; background:#444;
-      display:flex; align-items:center; justify-content:center;
-    }
-    .img-container img {
-      position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; z-index:1;
-      filter:brightness(0.98);
-    }
-    .overlay {
-      position:relative; z-index:2; width:100%; height:100%;
-      display:flex; flex-direction:column; justify-content:space-between;
-      color:#fff; text-shadow:0 3px 12px #000b; font-family:'Segoe UI',Georgia,serif;
-      pointer-events:none; padding:0 0.5em;
-    }
-    .bovenrij {
-      display:flex; justify-content:space-between; margin-top:1em; font-size:1.07em; font-weight:500;
-    }
-    .bovenrij span {
-      background:rgba(35,35,35,0.33); border-radius:8px; padding:0.28em 0.7em; min-width:80px; text-align:center;
-    }
-    .bovenrij .datum {
-      font-size:1.14em; font-weight:500; padding:0 1.1em; letter-spacing:0.04em; background:rgba(38,38,38,0.47);
-    }
-    .tijd {
-      margin:1.2em auto 0.8em auto; width:88%; font-size:2.2em; font-weight:700; letter-spacing:0.06em;
-      text-align:center; background:rgba(35,35,35,0.30); border-radius:12px; box-shadow:0 1px 8px #0005; padding:0.13em;
-    }
-    .horologion-midden {
-      width:92%; margin:0 auto; background:rgba(35,35,35,0.45); border-radius:10px; box-shadow:0 2px 12px #0007;
-      padding:1em 0.7em 1.1em 0.7em; font-size:1.09em; text-align:center; min-height:2.2em;
-    }
-    .onder {
-      width:100%; display:flex; flex-direction:column; align-items:center; gap:0.5em; margin-bottom:0.7em;
-    }
-    .vastenregel {
-      background:rgba(40,40,40,0.42); border-radius:10px; box-shadow:0 1px 9px #0005;
-      padding:0.65em 1em; font-size:1.02em; font-weight:500; text-align:center; color:#ffecb3;
-    }
-    .taal-select-wrap {
-      align-self:flex-end; background:rgba(40,40,40,0.54); border-radius:8px;
-      padding:0.22em 0.75em 0.22em 0.45em; box-shadow:0 2px 12px #0007; font-size:1.08em;
-      display:flex; align-items:center; gap:0.4em; margin-bottom:0.7em;
-    }
-    .taal-select-wrap select {
-      font-size:1em; border:none; background:rgba(60,60,60,0.31); color:#fff;
-      border-radius:4px; padding:0.18em 0.3em; outline:none;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Horologion - Orthodoxeweg</title>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+<style>
+html, body { height:100%; margin:0; padding:0; box-sizing:border-box; width:100vw; min-width:100vw; max-width:100vw; }
+body { width:100vw; height:100vh; min-height:100vh; max-height:100vh; overflow:auto;
+  display:flex; align-items:center; justify-content:center; background:#222; }
+.img-container { position:relative; width:98vw; max-width:700px; aspect-ratio:4/5;
+  height:auto; max-height:98vh; min-height:320px; box-sizing:border-box;
+  border-radius:16px; box-shadow:0 0 48px #000a; background:#444;
+  display:flex; align-items:center; justify-content:center; }
+.img-container img { position:absolute; top:0; left:0; width:100%; height:100%;
+  object-fit:cover; z-index:1; filter:brightness(0.98) blur(0px); }
+.overlay { position:relative; z-index:2; width:100%; height:100%; display:flex;
+  flex-direction:column; justify-content:space-between; align-items:stretch;
+  color:#fff; text-shadow:0 3px 12px #000b; font-family:'Segoe UI',Georgia,serif;
+  pointer-events:none; box-sizing:border-box; padding:0 0.5em; }
+.bovenrij { display:flex; flex-direction:row; justify-content:space-between;
+  align-items:flex-start; width:100%; margin-top:1em; font-size:1.07em;
+  font-weight:500; gap:0.2em; }
+.bovenrij span { background:rgba(35,35,35,0.33); border-radius:8px;
+  padding:0.28em 0.7em; min-width:80px; text-align:center; }
+.bovenrij .datum { font-size:1.14em; font-weight:500; padding:0 1.1em;
+  letter-spacing:0.04em; background:rgba(38,38,38,0.47); }
+.tijd { margin:1.2em auto 0.8em auto; width:88%; font-size:2.2em; font-weight:700;
+  letter-spacing:0.06em; text-align:center; background:rgba(35,35,35,0.30);
+  border-radius:12px; box-shadow:0 1px 8px #0005; padding:0.13em; }
+.horologion-midden { width:92%; margin:0 auto; background:rgba(35,35,35,0.45);
+  border-radius:10px; box-shadow:0 2px 12px #0007; padding:1em 0.7em 1.1em 0.7em;
+  font-size:1.09em; text-align:center; min-height:2.2em; display:flex;
+  align-items:center; justify-content:center; pointer-events:auto; }
+.onder { width:100%; display:flex; flex-direction:column; align-items:center;
+  gap:0.5em; margin-bottom:0.7em; }
+.vastenregel { background:rgba(40,40,40,0.42); border-radius:10px;
+  box-shadow:0 1px 9px #0005; padding:0.65em 1em; font-size:1.02em;
+  font-weight:500; text-align:center; color:#ffecb3; max-width:97vw;
+  word-break:break-word; pointer-events:auto; }
+.taal-select-wrap { align-self:flex-end; background:rgba(40,40,40,0.54);
+  border-radius:8px; padding:0.22em 0.75em 0.22em 0.45em; box-shadow:0 2px 12px #0007;
+  font-size:1.08em; opacity:0.96; display:flex; align-items:center; gap:0.4em;
+  transition:opacity 0.18s; margin-bottom:0.7em; pointer-events:auto; }
+.taal-select-wrap label { font-size:1em; color:#ffdba2; margin-right:0.3em;
+  padding-right:0.1em; letter-spacing:0.04em; }
+.taal-select-wrap select { font-size:1em; border:none; background:rgba(60,60,60,0.31);
+  color:#fff; border-radius:4px; padding:0.18em 0.3em; outline:none; margin:0;
+  transition:background 0.14s; }
+</style>
 </head>
 <body>
-  <div class="img-container">
-    <img src="images/moeder_gods.jpg" alt="Moeder Gods icoon" />
-    <div class="overlay">
-      <div class="bovenrij">
-        <span id="zonsopgang">zonsopgang ...</span>
-        <span class="datum" id="datum"></span>
-        <span id="temperatuur">...</span>
-      </div>
-      <div class="tijd" id="tijd"></div>
-      <div class="horologion-midden" id="horologion"></div>
-      <div class="onder"><div class="vastenregel" id="vastenregel"></div></div>
-      <div class="taal-select-wrap">
-        <label for="taalkeuze" id="taallabel">Taal:</label>
-        <select id="taalkeuze">
-          <option value="VL">Vlaams</option><option value="FR">Frans</option><option value="DE">Duits</option>
-          <option value="EN">Engels</option><option value="GR">Grieks</option><option value="AR">Arabisch</option>
-          <option value="RU">Russisch</option><option value="UA">Oekraïens</option>
-        </select>
-      </div>
+<div class="img-container">
+  <img src="images/moeder_gods.jpg" alt="Moeder Gods icoon" />
+  <div class="overlay">
+    <div class="bovenrij">
+      <span id="zonsopgang">zonsopgang ...</span>
+      <span class="datum" id="datum">1 jul 2025</span>
+      <span id="temperatuur">...</span>
+    </div>
+    <div class="tijd" id="tijd">17:58</div>
+    <div class="horologion-midden" id="horologion"></div>
+    <div class="onder">
+      <div class="vastenregel" id="vastenregel"></div>
+    </div>
+    <div class="taal-select-wrap">
+      <label for="taalkeuze"><span id="taallabel">Taal:</span></label>
+      <select id="taalkeuze">
+        <option value="VL">Vlaams</option><option value="FR">Frans</option><option value="DE">Duits</option>
+        <option value="EN">Engels</option><option value="GR">Grieks</option>
+        <option value="AR">Arabisch</option><option value="RU">Russisch</option><option value="UA">Oekraïens</option>
+      </select>
     </div>
   </div>
+</div>
+
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
@@ -90,89 +85,95 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-let geselecteerdeTaal = "VL";
-document.getElementById('taalkeuze').addEventListener('change', function(){
-  geselecteerdeTaal = this.value;
-  updateLabels();
-  updateHorologionEnVastenregel();
-});
-function updateLabels(){
-  document.getElementById('taallabel').textContent = {
-    "VL":"Taal:", "EN":"Language:", "FR":"Langue:", "DE":"Sprache:",
-    "GR":"Γλώσσα:", "AR":"اللغة:", "RU":"Язык:", "UA":"Мова:"
-  }[geselecteerdeTaal]||"Taal:";
-}
-updateLabels();
-
-function bepaalMoment(){
-  const nu = new Date();
-  const min = nu.getHours()*60 + nu.getMinutes();
-  const sunrise = 420; // voorbeeld 07:00
-  const sunset = 1260; // voorbeeld 21:00
-  if(min<sunrise) return "complet";
-  if(min<sunrise+180) return "eerste_uur";
-  if(min<sunrise+360) return "derde_uur";
-  if(min<sunrise+540) return "zesde_uur";
-  if(min<sunset) return "negende_uur";
-  if(min<sunset+120) return "vespers";
-  if(min>=0) return "middernacht";
-  return "complet";
-}
-
-function zoek(doc, taal){
-  const keys = {
-    "DE":["DE","VL","EN"],"FR":["FR","EN","VL"],"GR":["GR","EN","VL"],
-    "AR":["AR","EN","VL"],"RU":["RU","UA","EN","VL"],"UA":["UA","RU","EN","VL"],
-    "EN":["EN","VL"],"VL":["VL","EN"]
-  }[taal]||["VL","EN"];
-  for(const key of keys){ if(doc.data()[key]) return doc.data()[key]; }
-  return "";
-}
-const mapping = {
-  "eerste_uur":"0", "derde_uur":"1", "zesde_uur":"2",
-  "negende_uur":"3", "vespers":"4", "complet":"5", "middernacht":"6"
+const vertalingen = {
+  zonsopgang:{VL:"zonsopgang",EN:"sunrise",FR:"lever du soleil",DE:"Sonnenaufgang",GR:"ανατολή ηλίου",AR:"شروق الشمس",RU:"восход солнца",UA:"схід сонця"},
+  zonsondergang:{VL:"zonsondergang",EN:"sunset",FR:"coucher du soleil",DE:"Sonnenuntergang",GR:"δύση ηλίου",AR:"غروب الشمس",RU:"закат",UA:"захід сонця"},
+  taal:{VL:"Taal:",EN:"Language:",FR:"Langue:",DE:"Sprache:",GR:"Γλώσσα:",AR:"اللغة:",RU:"Язык:",UA:"Мова:"}
 };
 
-function updateHorologionEnVastenregel(){
-  const moment = bepaalMoment();
-  const docId = mapping[moment] || "5";
-  db.collection("gebeden_uren").doc(docId).get().then(doc=>{
-    let tekst = "";
-    if(doc.exists) tekst = zoek(doc,geselecteerdeTaal);
-    document.getElementById('horologion').textContent = tekst||(
-      (new Date().getHours()%2==0)?"Verheug U, Moeder Gods...":"Heer Jezus Christus, ontferm U..."
-    );
-  });
-  const datum = new Date().toISOString().slice(0,10).replace(/-/g,"");
-  db.collection("kalender2025").doc(datum).get().then(doc=>{
-    let t = "";
-    if(doc.exists){
-      const prio = {
-        "DE":["Vastenregel DE","Vastenregel NL","Vastenregel EN"],
-        "FR":["Vastenregel FR","Vastenregel EN","Vastenregel NL"],
-        "GR":["Vastenregel GR","Vastenregel EN","Vastenregel NL"],
-        "AR":["Vastenregel AR","Vastenregel EN","Vastenregel NL"],
-        "RU":["Vastenregel RU","Vastenregel UA","Vastenregel EN","Vastenregel NL"],
-        "UA":["Vastenregel UA","Vastenregel RU","Vastenregel EN","Vastenregel NL"],
-        "EN":["Vastenregel EN","Vastenregel NL"],"VL":["Vastenregel NL","Vastenregel EN"]
-      }[geselecteerdeTaal]||["Vastenregel NL","Vastenregel EN"];
-      for(let k of prio){if(doc.data()[k]){t=doc.data()[k];break;}}
+let geselecteerdeTaal="VL", zonsopgangMinuten=null, zonsondergangMinuten=null;
+
+document.getElementById('taalkeuze').addEventListener('change',e=>{
+  geselecteerdeTaal = e.target.value;
+  document.getElementById('taallabel').textContent=vertalingen.taal[geselecteerdeTaal];
+  updateZonsopgangLabel(); updateZonsondergangLabel(); updateHorologionEnVastenregel();
+});
+
+function updateZonsopgangLabel(){
+  const e=document.getElementById('zonsopgang'), m=e.textContent.match(/\d{2}:\d{2}/)||["..."];
+  e.textContent=`${vertalingen.zonsopgang[geselecteerdeTaal]} ${m[0]}`;
+}
+function updateZonsondergangLabel(){
+  const e=document.getElementById('zonsondergang'); if(!e)return;
+  const m=e.textContent.match(/\d{2}:\d{2}/)||["..."];
+  e.textContent=`${vertalingen.zonsondergang[geselecteerdeTaal]} ${m[0]}`;
+}
+document.getElementById('taallabel').textContent=vertalingen.taal[geselecteerdeTaal];
+
+function updateWidget(){
+  const nu=new Date(), m=["jan","feb","mrt","apr","mei","jun","jul","aug","sep","okt","nov","dec"];
+  document.getElementById('datum').textContent=`${nu.getDate()} ${m[nu.getMonth()]} ${nu.getFullYear()}`;
+  let hh=nu.getHours().toString().padStart(2,"0"), mm=nu.getMinutes().toString().padStart(2,"0");
+  document.getElementById('tijd').textContent=`${hh}:${mm}`;
+}
+setInterval(updateWidget,1000); updateWidget();
+
+async function updateWeather(lat, lon){
+  try{
+    const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=sunrise,sunset&timezone=Europe%2FBerlin`,
+          res=await fetch(url), data=await res.json();
+    if(data.current_weather?.temperature !=null)
+      document.getElementById('temperatuur').textContent=`${Math.round(data.current_weather.temperature)}°C`;
+    if(data.daily?.sunrise && data.daily?.sunset){
+      const sr=new Date(data.daily.sunrise[0]), ss=new Date(data.daily.sunset[0]);
+      const sh=sr.getHours().toString().padStart(2,'0'), sm=sr.getMinutes().toString().padStart(2,'0');
+      const eh=ss.getHours().toString().padStart(2,'0'), em=ss.getMinutes().toString().padStart(2,'0');
+      document.getElementById('zonsopgang').textContent=`${vertalingen.zonsopgang[geselecteerdeTaal]} ${sh}:${sm}`;
+      let zs=document.getElementById('zonsondergang');
+      if(!zs){ zs=document.createElement('span'); zs.id='zonsondergang'; document.querySelector('.bovenrij').appendChild(zs); }
+      zs.textContent=`${vertalingen.zonsondergang[geselecteerdeTaal]} ${eh}:${em}`;
+      zonsopgangMinuten=sr.getHours()*60+sr.getMinutes();
+      zonsondergangMinuten=ss.getHours()*60+ss.getMinutes();
     }
-    document.getElementById('vastenregel').textContent = t||{
-      "EN":"No fasting","FR":"Jour sans jeûne","DE":"Fastenfrei","GR":"Ἀπολυτή",
-      "AR":"يوم بدون صوم","RU":"Поста нет","UA":"Без посту","VL":"Vastenvrij"
-    }[geselecteerdeTaal]||"Vastenvrij";
+  }catch{
+    document.getElementById('temperatuur').textContent='...';
+    document.getElementById('zonsopgang').textContent=`${vertalingen.zonsopgang[geselecteerdeTaal]} ...`;
+  }
+}
+function initWeather(){
+  if('geolocation' in navigator){
+    navigator.geolocation.getCurrentPosition(
+      p=>{ updateWeather(p.coords.latitude,p.coords.longitude); setInterval(()=>updateWeather(p.coords.latitude,p.coords.longitude),600000); },
+      ()=>{ updateWeather(50.85,4.35); setInterval(()=>updateWeather(50.85,4.35),600000);}
+    );
+  }else{ updateWeather(50.85,4.35); setInterval(()=>updateWeather(50.85,4.35),600000);}
+}
+initWeather();
+
+function bepaalGebedsmomentMetZon(){
+  const nu=new Date(), n=nu.getHours()*60+nu.getMinutes();
+  if(zonsopgangMinuten==null||zonsondergangMinuten==null) return "6";
+  if(n<zonsopgangMinuten) return "6";
+  if(n<zonsopgangMinuten+180) return "0";
+  if(n<zonsopgangMinuten+360) return "1";
+  if(n<zonsopgangMinuten+540) return "2";
+  if(n<zonsondergangMinuten) return "3";
+  if(n<zonsondergangMinuten+120) return "4";
+  return "6";
+}
+function updateHorologionEnVastenregel(){
+  const nu=new Date(), datum=nu.toISOString().slice(0,10).replace(/-/g,""), moment=bepaalGebedsmomentMetZon();
+  db.collection("gebeden_uren").doc(moment).get().then(doc=>{
+    let tekst=doc.exists?(doc.data()[geselecteerdeTaal]||doc.data().VL):"";
+    if(tekst&&tekst.trim()!=="") document.getElementById('horologion').textContent=tekst;
+    else document.getElementById('horologion').textContent="Gebed niet beschikbaar.";
+  });
+  db.collection("kalender2025").doc(datum).get().then(doc=>{
+    let tekst=doc.exists?(doc.data()["Vastenregel "+geselecteerdeTaal]||"Vastenvrij"):"Vastenvrij";
+    document.getElementById('vastenregel').textContent=tekst;
   });
 }
-setInterval(updateHorologionEnVastenregel,60000);
-updateHorologionEnVastenregel();
-function updateTijd(){
-  const n=new Date();
-  document.getElementById('datum').textContent=n.getDate()+"-"+(n.getMonth()+1)+"-"+n.getFullYear();
-  document.getElementById('tijd').textContent=n.getHours().toString().padStart(2,"0")+":"+
-    n.getMinutes().toString().padStart(2,"0");
-}
-setInterval(updateTijd,1000); updateTijd();
+setInterval(updateHorologionEnVastenregel,60000); updateHorologionEnVastenregel();
 </script>
 </body>
 </html>
