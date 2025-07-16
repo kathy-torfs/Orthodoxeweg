@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
@@ -118,7 +118,7 @@ function updateDatum() {
   const dag = nu.getDate();
   const maandNaam = maand[nu.getMonth()];
   const jaar = nu.getFullYear();
-  document.getElementById('datum').textContent = `${dag} ${maandNaam} ${jaar}`;
+  document.getElementById('datum').textContent = ${dag} ${maandNaam} ${jaar};
 }
 
 function updateWidget() {
@@ -128,7 +128,7 @@ function updateWidget() {
   const nu = new Date();
   let hh = nu.getHours().toString().padStart(2,"0");
   let mm = nu.getMinutes().toString().padStart(2,"0");
-  document.getElementById('tijd').textContent = `${hh}:${mm}`;
+  document.getElementById('tijd').textContent = ${hh}:${mm};
 }
 setInterval(updateWidget, 1000);
 updateWidget();
@@ -140,11 +140,11 @@ document.getElementById('taalkeuze').addEventListener('change', function() {
 
 async function updateWeather(lat, lon) {
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=sunrise,sunset&timezone=Europe%2FBerlin`;
+    const url = https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=sunrise,sunset&timezone=Europe%2FBerlin;
     const response = await fetch(url);
     const data = await response.json();
     if (data.current_weather && data.current_weather.temperature !== undefined)
-      document.getElementById('temperatuur').textContent = `${Math.round(data.current_weather.temperature)}°C`;
+      document.getElementById('temperatuur').textContent = ${Math.round(data.current_weather.temperature)}°C;
     else
       document.getElementById('temperatuur').textContent = '...';
 
@@ -153,7 +153,8 @@ async function updateWeather(lat, lon) {
       const sDown = new Date(data.daily.sunset[0]);
       zonsopgangMinuten = sUp.getHours()*60 + sUp.getMinutes();
       zonsondergangMinuten = sDown.getHours()*60 + sDown.getMinutes();
-      document.getElementById('zonsopgang').textContent = `${vertalingen["zonsopgang"][geselecteerdeTaal]} ${sUp.getHours().toString().padStart(2,'0')}:${sUp.getMinutes().toString().padStart(2,'0')}`;
+      document.getElementById('zonsopgang').textContent = ${vertalingen["zonsopgang"][geselecteerdeTaal]} ${sUp.getHours().toString().padStart(2,'0')}:${sUp.getMinutes().toString().padStart(2,'0')};
+      // Zonsondergang gewoon er onder tonen als extra blokje? Desgewenst extra rij toevoegen.
     }
   } catch(e){
     document.getElementById('temperatuur').textContent = '...';
@@ -175,61 +176,146 @@ initWeather();
 
 function updateZonsLabels(){
   let zo = document.getElementById('zonsopgang').textContent.match(/\d{2}:\d{2}/)||["..."];
-  document.getElementById('zonsopgang').textContent = `${vertalingen["zonsopgang"][geselecteerdeTaal]} ${zo[0]}`;
+  document.getElementById('zonsopgang').textContent = ${vertalingen["zonsopgang"][geselecteerdeTaal]} ${zo[0]};
 }
 
-// Tijdsindeling exact volgens je schema
+const uren = [
+  { key: "middernacht", label: "middernacht" },
+  { key: "eerste_uur", label: "eerste_uur" },
+  { key: "derde_uur", label: "derde_uur" },
+  { key: "zesde_uur", label: "zesde_uur" },
+  { key: "negende_uur", label: "negende_uur" },
+  { key: "vespers", label: "vespers" },
+  { key: "completen", label: "completen" }
+];
 function bepaalGebedsmoment() {
   const nu = new Date();
   const nuMin = nu.getHours() * 60 + nu.getMinutes();
   if (zonsopgangMinuten == null || zonsondergangMinuten == null) return { key: "completen" };
+
   const sunrise = zonsopgangMinuten;
   const sunset = zonsondergangMinuten;
+
+  // 00:00 - zonsopgang: complet
   if (nuMin < sunrise) return { key: "completen" };
+
+  // zonsopgang - zonsopgang+1u: eerste_uur
   if (nuMin < sunrise + 60) return { key: "eerste_uur" };
+  // zonsopgang+1u - zonsopgang+3u: eerste_uur_KORT
   if (nuMin < sunrise + 180) return { key: "eerste_uur_KORT" };
+  // zonsopgang+3u - zonsopgang+4u: derde_uur
   if (nuMin < sunrise + 240) return { key: "derde_uur" };
+  // zonsopgang+4u - zonsopgang+6u: derde_uur_KORT
   if (nuMin < sunrise + 360) return { key: "derde_uur_KORT" };
+  // zonsopgang+6u - zonsopgang+7u: zesde_uur
   if (nuMin < sunrise + 420) return { key: "zesde_uur" };
+  // zonsopgang+7u - zonsopgang+9u: zesde_uur_KORT
   if (nuMin < sunrise + 540) return { key: "zesde_uur_KORT" };
+  // zonsopgang+9u - zonsopgang+10u: negende_uur
   if (nuMin < sunrise + 600) return { key: "negende_uur" };
+  // zonsopgang+10u - zonsopgang+12u: negende_uur_KORT
   if (nuMin < sunrise + 720) return { key: "negende_uur_KORT" };
+
+  // Kerkelijk vespers: 18:00 - 19:00
   if (nuMin >= 18*60 && nuMin < 19*60) return { key: "vespers" };
+  // Kerkelijk vespers_KORT: 19:00 tot zonsondergang
   if (nuMin >= 19*60 && nuMin < sunset) return { key: "vespers_KORT" };
+
+  // Natuurlijke vespers bij zonsondergang!
+  // zonsondergang - zonsondergang+1u: vespers
   if (nuMin >= sunset && nuMin < sunset + 60) return { key: "vespers" };
-  if (nuMin >= sunset + 60 && nuMin < 24*60) return { key: "vespers_KORT" };
+  // zonsondergang+1u - 24:00: vespers_KORT
+  if (nuMin >= sunset + 60 && nuMin < 24 * 60) return { key: "vespers_KORT" };
+
+  // Fallback: complet
   return { key: "completen" };
 }
 
+function bepaalGebedFase() {
+  const nu = new Date();
+  const nuMin = nu.getHours()*60 + nu.getMinutes();
+  const moment = bepaalGebedsmoment();
+  const key = moment.key;
+
+  let startMin = 0;
+  if (zonsopgangMinuten == null || zonsondergangMinuten == null) return { moment, isEchtUur: false };
+
+  switch (key) {
+    case "completen":
+      startMin = 0;
+      break;
+    case "eerste_uur":
+      startMin = zonsopgangMinuten;
+      break;
+    case "eerste_uur_KORT":
+      startMin = zonsopgangMinuten + 60;
+      break;
+    case "derde_uur":
+      startMin = zonsopgangMinuten + 180;
+      break;
+    case "derde_uur_KORT":
+      startMin = zonsopgangMinuten + 240;
+      break;
+    case "zesde_uur":
+      startMin = zonsopgangMinuten + 360;
+      break;
+    case "zesde_uur_KORT":
+      startMin = zonsopgangMinuten + 420;
+      break;
+    case "negende_uur":
+      startMin = zonsopgangMinuten + 540;
+      break;
+    case "negende_uur_KORT":
+      startMin = zonsopgangMinuten + 600;
+      break;
+    case "vespers":
+      // Kan op 2 momenten starten!
+      if (nuMin >= 18*60 && nuMin < 19*60) {
+        startMin = 18*60;
+      } else {
+        startMin = zonsondergangMinuten;
+      }
+      break;
+    case "vespers_KORT":
+      // Kan op 2 momenten starten!
+      if (nuMin >= 19*60 && nuMin < zonsondergangMinuten) {
+        startMin = 19*60;
+      } else {
+        startMin = zonsondergangMinuten + 60;
+      }
+      break;
+    default:
+      startMin = 0;
+  }
+
+  // Nu bepalen: is het een ECHT uur (lang blok)? Alleen de "lang"-keys zijn écht!
+  const isEchtUur = !key.endsWith("_KORT");
+  return { moment, isEchtUur, startMin };
+}
+
+function zoekTekst(doc, lijst) {
+  for(let key of lijst) if(doc && doc[key]) return doc[key];
+  return "";
+}
 function updateHorologionEnVastenregel() {
   const datum = (new Date()).toISOString().slice(0,10).replace(/-/g,"");
-  const moment = bepaalGebedsmoment();
-  const momentKey = moment.key;
+  const fase = bepaalGebedFase();
+  const momentKey = fase.moment.key;
+  const isEchtUur = fase.isEchtUur;
   const uur = new Date().getHours();
-  db.collection("Horologion").doc(momentKey).get().then(docSnap => {
+  db.collection("Horologion").doc(momentKey).get().then(docSnap=>{
     let doc = docSnap.exists ? docSnap.data() : {};
+    let lang = zoekTekst(doc, [geselecteerdeTaal]);
+    let kort = zoekTekst(doc, [geselecteerdeTaal+"_KORT"]);
+    let fallback = uur%2===0 ? (moederGodGebed[geselecteerdeTaal] || moederGodGebed["VL"]) : (jezusGebed[geselecteerdeTaal] || jezusGebed["VL"]);
     let html = "";
-    // Volledig uur: alleen het lang gebed, foutmelding als niet gevonden
-    if (!momentKey.endsWith("_KORT")) {
-      let tekst = doc[geselecteerdeTaal];
-      if (tekst && tekst.trim() !== "") {
-        html = `<blockquote>${tekst}</blockquote>`;
-      } else {
-        html = `<blockquote style="color:red">[Fout: gebed niet gevonden voor dit uur in deze taal]</blockquote>`;
-        console.error("Geen gebed gevonden voor", momentKey, geselecteerdeTaal);
-      }
+    if(isEchtUur && lang && lang.trim()!==""){
+      html = <blockquote>${lang}</blockquote>;
     } else {
-      // KORT-blok: kort gebed + Maria/Jezus (afwisselend)
-      let kort = doc[geselecteerdeTaal + "_KORT"];
-      let fallback = uur % 2 === 0
-        ? (moederGodGebed[geselecteerdeTaal] || moederGodGebed["VL"])
-        : (jezusGebed[geselecteerdeTaal] || jezusGebed["VL"]);
-      if (kort && kort.trim() !== "") {
-        html = `<blockquote>${kort}</blockquote><blockquote>${fallback}</blockquote>`;
+      if(kort && kort.trim()!=="") {
+        html = <blockquote>${kort}</blockquote><blockquote>${fallback}</blockquote>;
       } else {
-        // mag niet gebeuren, fout!
-        html = `<blockquote style="color:red">[Fout: kort gebed niet gevonden]</blockquote><blockquote>${fallback}</blockquote>`;
-        console.error("Geen kort gebed gevonden voor", momentKey, geselecteerdeTaal);
+        html = <blockquote>${fallback}</blockquote>;
       }
     }
     document.getElementById('horologion').innerHTML = html;
@@ -253,10 +339,6 @@ function updateHorologionEnVastenregel() {
 setInterval(updateHorologionEnVastenregel,60000);
 updateHorologionEnVastenregel();
 
-function zoekTekst(doc, lijst) {
-  for(let key of lijst) if(doc && doc[key]) return doc[key];
-  return "";
-}
 function getVastenvrijTekst(taal){
   return {
     "EN":"No fasting","FR":"Jour sans jeûne","DE":"Fastenfrei","GR":"Ἀπολυτή. Ἀργία.","AR":"يوم بدون صوم","RU":"Поста нет","UA":"Без посту","VL":"Vastenvrij"
