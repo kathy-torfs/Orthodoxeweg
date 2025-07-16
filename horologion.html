@@ -1,3 +1,6 @@
+kan je hier het stuk uithalen dat de gebeden uit de firebase haalt?
+dan kunnen we dat stuk samen bekijken
+
 <!DOCTYPE html> 
 <html lang="nl">
 <head>
@@ -190,109 +193,35 @@ const uren = [
 ];
 function bepaalGebedsmoment() {
   const nu = new Date();
-  const nuMin = nu.getHours() * 60 + nu.getMinutes();
-  if (zonsopgangMinuten == null || zonsondergangMinuten == null) return { key: "completen" };
-
-  const sunrise = zonsopgangMinuten;
-  const sunset = zonsondergangMinuten;
-
-  // 00:00 - zonsopgang: complet
-  if (nuMin < sunrise) return { key: "completen" };
-
-  // zonsopgang - zonsopgang+1u: eerste_uur
-  if (nuMin < sunrise + 60) return { key: "eerste_uur" };
-  // zonsopgang+1u - zonsopgang+3u: eerste_uur_KORT
-  if (nuMin < sunrise + 180) return { key: "eerste_uur_KORT" };
-  // zonsopgang+3u - zonsopgang+4u: derde_uur
-  if (nuMin < sunrise + 240) return { key: "derde_uur" };
-  // zonsopgang+4u - zonsopgang+6u: derde_uur_KORT
-  if (nuMin < sunrise + 360) return { key: "derde_uur_KORT" };
-  // zonsopgang+6u - zonsopgang+7u: zesde_uur
-  if (nuMin < sunrise + 420) return { key: "zesde_uur" };
-  // zonsopgang+7u - zonsopgang+9u: zesde_uur_KORT
-  if (nuMin < sunrise + 540) return { key: "zesde_uur_KORT" };
-  // zonsopgang+9u - zonsopgang+10u: negende_uur
-  if (nuMin < sunrise + 600) return { key: "negende_uur" };
-  // zonsopgang+10u - zonsopgang+12u: negende_uur_KORT
-  if (nuMin < sunrise + 720) return { key: "negende_uur_KORT" };
-
-  // Kerkelijk vespers: 18:00 - 19:00
-  if (nuMin >= 18*60 && nuMin < 19*60) return { key: "vespers" };
-  // Kerkelijk vespers_KORT: 19:00 tot zonsondergang
-  if (nuMin >= 19*60 && nuMin < sunset) return { key: "vespers_KORT" };
-
-  // Natuurlijke vespers bij zonsondergang!
-  // zonsondergang - zonsondergang+1u: vespers
-  if (nuMin >= sunset && nuMin < sunset + 60) return { key: "vespers" };
-  // zonsondergang+1u - 24:00: vespers_KORT
-  if (nuMin >= sunset + 60 && nuMin < 24 * 60) return { key: "vespers_KORT" };
-
-  // Fallback: complet
-  return { key: "completen" };
+  const nuMin = nu.getHours()*60 + nu.getMinutes();
+  if (zonsopgangMinuten==null||zonsondergangMinuten==null) return {index: 0, key: "middernacht"};
+  if (nuMin < zonsopgangMinuten) return {index: 0, key: "middernacht"};
+  if (nuMin < zonsopgangMinuten+180) return {index: 1, key: "eerste_uur"};
+  if (nuMin < zonsopgangMinuten+360) return {index: 2, key: "derde_uur"};
+  if (nuMin < zonsopgangMinuten+540) return {index: 3, key: "zesde_uur"};
+  if (nuMin < zonsondergangMinuten) return {index: 4, key: "negende_uur"};
+  if (nuMin < zonsondergangMinuten+60) return {index: 5, key: "vespers"};
+  return {index: 6, key: "completen"};
 }
-
 function bepaalGebedFase() {
   const nu = new Date();
   const nuMin = nu.getHours()*60 + nu.getMinutes();
-  const moment = bepaalGebedsmoment();
-  const key = moment.key;
-
-  let startMin = 0;
-  if (zonsopgangMinuten == null || zonsondergangMinuten == null) return { moment, isEchtUur: false };
-
-  switch (key) {
-    case "completen":
-      startMin = 0;
-      break;
-    case "eerste_uur":
-      startMin = zonsopgangMinuten;
-      break;
-    case "eerste_uur_KORT":
-      startMin = zonsopgangMinuten + 60;
-      break;
-    case "derde_uur":
-      startMin = zonsopgangMinuten + 180;
-      break;
-    case "derde_uur_KORT":
-      startMin = zonsopgangMinuten + 240;
-      break;
-    case "zesde_uur":
-      startMin = zonsopgangMinuten + 360;
-      break;
-    case "zesde_uur_KORT":
-      startMin = zonsopgangMinuten + 420;
-      break;
-    case "negende_uur":
-      startMin = zonsopgangMinuten + 540;
-      break;
-    case "negende_uur_KORT":
-      startMin = zonsopgangMinuten + 600;
-      break;
-    case "vespers":
-      // Kan op 2 momenten starten!
-      if (nuMin >= 18*60 && nuMin < 19*60) {
-        startMin = 18*60;
-      } else {
-        startMin = zonsondergangMinuten;
-      }
-      break;
-    case "vespers_KORT":
-      // Kan op 2 momenten starten!
-      if (nuMin >= 19*60 && nuMin < zonsondergangMinuten) {
-        startMin = 19*60;
-      } else {
-        startMin = zonsondergangMinuten + 60;
-      }
-      break;
-    default:
-      startMin = 0;
+  let moment = bepaalGebedsmoment();
+  let startMin = (()=>{ // start van huidige uur
+    if(moment.index==0) return 0;
+    if(moment.index==1) return zonsopgangMinuten;
+    if(moment.index==2) return zonsopgangMinuten+180;
+    if(moment.index==3) return zonsopgangMinuten+360;
+    if(moment.index==4) return zonsopgangMinuten+540;
+    if(moment.index==5) return zonsondergangMinuten;
+    if(moment.index==6) return zonsondergangMinuten+60;
+    return 0;
+  })();
+  if(nuMin >= startMin && nuMin < startMin+60){
+    return {moment: moment, isEchtUur: true};
   }
-
-  // Nu bepalen: is het een ECHT uur (lang blok)? Alleen de "lang"-keys zijn écht!
-  const isEchtUur = !key.endsWith("_KORT");
-  return { moment, isEchtUur, startMin };
+  return {moment: moment, isEchtUur: false};
 }
-
 function zoekTekst(doc, lijst) {
   for(let key of lijst) if(doc && doc[key]) return doc[key];
   return "";
