@@ -178,6 +178,7 @@ function updateZonsLabels(){
   document.getElementById('zonsopgang').textContent = `${vertalingen["zonsopgang"][geselecteerdeTaal]} ${zo[0]}`;
 }
 
+// Tijdsindeling exact volgens je schema
 function bepaalGebedsmoment() {
   const nu = new Date();
   const nuMin = nu.getHours() * 60 + nu.getMinutes();
@@ -200,59 +201,35 @@ function bepaalGebedsmoment() {
   return { key: "completen" };
 }
 
-function bepaalGebedFase() {
-  const nu = new Date();
-  const nuMin = nu.getHours()*60 + nu.getMinutes();
-  let moment = bepaalGebedsmoment();
-  let momentKey = moment.key;
-  let startMin = (()=>{ // start van huidige uur
-    if(momentKey === "completen") return 0;
-    if(momentKey === "eerste_uur") return zonsopgangMinuten;
-    if(momentKey === "eerste_uur_KORT") return zonsopgangMinuten + 60;
-    if(momentKey === "derde_uur") return zonsopgangMinuten + 180;
-    if(momentKey === "derde_uur_KORT") return zonsopgangMinuten + 240;
-    if(momentKey === "zesde_uur") return zonsopgangMinuten + 360;
-    if(momentKey === "zesde_uur_KORT") return zonsopgangMinuten + 420;
-    if(momentKey === "negende_uur") return zonsopgangMinuten + 540;
-    if(momentKey === "negende_uur_KORT") return zonsopgangMinuten + 600;
-    if(momentKey === "vespers") {
-      if(nuMin >= 18*60 && nuMin < 19*60) return 18*60;
-      if(nuMin >= sunset && nuMin < sunset + 60) return sunset;
-    }
-    if(momentKey === "vespers_KORT") {
-      if(nuMin >= 19*60 && nuMin < sunset) return 19*60;
-      if(nuMin >= sunset + 60 && nuMin < 24*60) return sunset + 60;
-    }
-    return 0;
-  })();
-  if(nuMin >= startMin && nuMin < startMin+60){
-    return {moment: moment, isEchtUur: true};
-  }
-  return {moment: moment, isEchtUur: false};
-}
-function zoekTekst(doc, lijst) {
-  for(let key of lijst) if(doc && doc[key]) return doc[key];
-  return "";
-}
 function updateHorologionEnVastenregel() {
   const datum = (new Date()).toISOString().slice(0,10).replace(/-/g,"");
-  const fase = bepaalGebedFase();
-  const momentKey = fase.moment.key;
-  const isEchtUur = fase.isEchtUur;
+  const moment = bepaalGebedsmoment();
+  const momentKey = moment.key;
   const uur = new Date().getHours();
-  db.collection("Horologion").doc(momentKey).get().then(docSnap=>{
+  db.collection("Horologion").doc(momentKey).get().then(docSnap => {
     let doc = docSnap.exists ? docSnap.data() : {};
-    let lang = zoekTekst(doc, [geselecteerdeTaal]);
-    let kort = zoekTekst(doc, [geselecteerdeTaal+"_KORT"]);
-    let fallback = uur%2===0 ? (moederGodGebed[geselecteerdeTaal] || moederGodGebed["VL"]) : (jezusGebed[geselecteerdeTaal] || jezusGebed["VL"]);
     let html = "";
-    if(isEchtUur && lang && lang.trim()!==""){
-      html = `<blockquote>${lang}</blockquote>`;
+    // Volledig uur: alleen het lang gebed, foutmelding als niet gevonden
+    if (!momentKey.endsWith("_KORT")) {
+      let tekst = doc[geselecteerdeTaal];
+      if (tekst && tekst.trim() !== "") {
+        html = `<blockquote>${tekst}</blockquote>`;
+      } else {
+        html = `<blockquote style="color:red">[Fout: gebed niet gevonden voor dit uur in deze taal]</blockquote>`;
+        console.error("Geen gebed gevonden voor", momentKey, geselecteerdeTaal);
+      }
     } else {
-      if(kort && kort.trim()!=="") {
+      // KORT-blok: kort gebed + Maria/Jezus (afwisselend)
+      let kort = doc[geselecteerdeTaal + "_KORT"];
+      let fallback = uur % 2 === 0
+        ? (moederGodGebed[geselecteerdeTaal] || moederGodGebed["VL"])
+        : (jezusGebed[geselecteerdeTaal] || jezusGebed["VL"]);
+      if (kort && kort.trim() !== "") {
         html = `<blockquote>${kort}</blockquote><blockquote>${fallback}</blockquote>`;
       } else {
-        html = `<blockquote>${fallback}</blockquote>`;
+        // mag niet gebeuren, fout!
+        html = `<blockquote style="color:red">[Fout: kort gebed niet gevonden]</blockquote><blockquote>${fallback}</blockquote>`;
+        console.error("Geen kort gebed gevonden voor", momentKey, geselecteerdeTaal);
       }
     }
     document.getElementById('horologion').innerHTML = html;
@@ -276,6 +253,10 @@ function updateHorologionEnVastenregel() {
 setInterval(updateHorologionEnVastenregel,60000);
 updateHorologionEnVastenregel();
 
+function zoekTekst(doc, lijst) {
+  for(let key of lijst) if(doc && doc[key]) return doc[key];
+  return "";
+}
 function getVastenvrijTekst(taal){
   return {
     "EN":"No fasting","FR":"Jour sans jeûne","DE":"Fastenfrei","GR":"Ἀπολυτή. Ἀργία.","AR":"يوم بدون صوم","RU":"Поста нет","UA":"Без посту","VL":"Vastenvrij"
