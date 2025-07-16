@@ -63,6 +63,20 @@
     </div>
   </div>
 <script>
+const vertalingen = {
+  "zonsopgang": {"VL":"zonsopgang","EN":"sunrise","FR":"lever du soleil","DE":"Sonnenaufgang","GR":"ανατολή ηλίου","AR":"شروق الشمس","RU":"восход солнца","UA":"схід сонця"},
+  "zonsondergang": {"VL":"zonsondergang","EN":"sunset","FR":"coucher du soleil","DE":"Sonnenuntergang","GR":"δύση ηλίου","AR":"غروب الشمس","RU":"закат","UA":"захід сонця"},
+  "maanden": {
+    "VL":["januari","februari","maart","april","mei","juni","juli","augustus","september","oktober","november","december"],
+    "FR":["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"],
+    "DE":["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"],
+    "EN":["January","February","March","April","May","June","July","August","September","October","November","December"],
+    "GR":["Ιανουάριος","Φεβρουάριος","Μάρτιος","Απρίλιος","Μάιος","Ιούνιος","Ιούλιος","Αύγουστος","Σεπτέμβριος","Οκτώβριος","Νοέμβριος","Δεκέμβριος"],
+    "AR":["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"],
+    "RU":["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"],
+    "UA":["січень","лютий","березень","квітень","травень","червень","липень","серпень","вересень","жовтень","листопад","грудень"]
+  }
+};
 const moederGodGebed = {
   "VL": "Verheug U, Moeder Gods en Maagd, Maria vol van genade, de Heer is met U. Gij zijt de gezegende onder de vrouwen en gezegend is de vrucht van uw schoot, want Gij hebt de Verlosser der zielen gebaard. Bescherm ons, uw dienaren, onder uw heilige omhulling, want tot U nemen wij onze toevlucht na God. Gij zijt werkelijk de ware Voorspreekster, o Moeder Gods, onophoudelijk smekende voor onze zielen.",
   "EN": "Rejoice, O Mother of God and Virgin, Mary full of grace, the Lord is with you. Blessed are you among women, and blessed is the fruit of your womb, for you have borne the Savior of our souls. Shelter us, your servants, under your holy protection, for after God we take refuge in you. You are truly the true Intercessor, O Mother of God, unceasingly pleading for our souls.",
@@ -82,19 +96,6 @@ const jezusGebed = {
   "AR": "يا رب يسوع المسيح، ابن الله، ارحمني أنا الخاطئ.",
   "RU": "Господи Иисусе Христе, Сыне Божий, помилуй мя.",
   "UA": "Господи Ісусе Христе, Сину Божий, помилуй мене."
-};
-const vertalingen = {
-  "zonsopgang": {"VL":"zonsopgang","EN":"sunrise","FR":"lever du soleil","DE":"Sonnenaufgang","GR":"ανατολή ηλίου","AR":"شروق الشمس","RU":"восход солнца","UA":"схід сонця"},
-  "maanden": {
-    "VL":["januari","februari","maart","april","mei","juni","juli","augustus","september","oktober","november","december"],
-    "FR":["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"],
-    "DE":["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"],
-    "EN":["January","February","March","April","May","June","July","August","September","October","November","December"],
-    "GR":["Ιανουάριος","Φεβρουάριος","Μάρτιος","Απρίλιος","Μάιος","Ιούνιος","Ιούλιος","Αύγουστος","Σεπτέμβριος","Οκτώβριος","Νοέμβριος","Δεκέμβριος"],
-    "AR":["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"],
-    "RU":["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"],
-    "UA":["січень","лютий","березень","квітень","травень","червень","липень","серпень","вересень","жовтень","листопад","грудень"]
-  }
 };
 const firebaseConfig = {
   apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
@@ -181,20 +182,17 @@ function bepaalGebedsmoment() {
   const nu = new Date();
   const nuMin = nu.getHours() * 60 + nu.getMinutes();
   if (zonsopgangMinuten == null || zonsondergangMinuten == null) return { key: "completen" };
-
   const sunrise = zonsopgangMinuten;
   const sunset = zonsondergangMinuten;
-
   if (nuMin < sunrise) return { key: "completen" };
-  if (nuMin >= sunrise && nuMin < sunrise + 60) return { key: "eerste_uur" };
-  if (nuMin >= sunrise + 60 && nuMin < sunrise + 180) return { key: "eerste_uur_KORT" };
-  if (nuMin >= sunrise + 180 && nuMin < sunrise + 240) return { key: "derde_uur" };
-  if (nuMin >= sunrise + 240 && nuMin < sunrise + 360) return { key: "derde_uur_KORT" };
-  if (nuMin >= sunrise + 360 && nuMin < sunrise + 420) return { key: "zesde_uur" };
-  if (nuMin >= sunrise + 420 && nuMin < sunrise + 540) return { key: "zesde_uur_KORT" };
-  if (nuMin >= sunrise + 540 && nuMin < sunrise + 600) return { key: "negende_uur" };
-  if (nuMin >= sunrise + 600 && nuMin < sunrise + 720) return { key: "negende_uur_KORT" };
-
+  if (nuMin < sunrise + 60) return { key: "eerste_uur" };
+  if (nuMin < sunrise + 180) return { key: "eerste_uur_KORT" };
+  if (nuMin < sunrise + 240) return { key: "derde_uur" };
+  if (nuMin < sunrise + 360) return { key: "derde_uur_KORT" };
+  if (nuMin < sunrise + 420) return { key: "zesde_uur" };
+  if (nuMin < sunrise + 540) return { key: "zesde_uur_KORT" };
+  if (nuMin < sunrise + 600) return { key: "negende_uur" };
+  if (nuMin < sunrise + 720) return { key: "negende_uur_KORT" };
   if (nuMin >= 18*60 && nuMin < 19*60) return { key: "vespers" };
   if (nuMin >= 19*60 && nuMin < sunset) return { key: "vespers_KORT" };
   if (nuMin >= sunset && nuMin < sunset + 60) return { key: "vespers" };
@@ -202,53 +200,77 @@ function bepaalGebedsmoment() {
   return { key: "completen" };
 }
 
+function bepaalGebedFase() {
+  const nu = new Date();
+  const nuMin = nu.getHours()*60 + nu.getMinutes();
+  let moment = bepaalGebedsmoment();
+  let momentKey = moment.key;
+  let startMin = (()=>{ // start van huidige uur
+    if(momentKey === "completen") return 0;
+    if(momentKey === "eerste_uur") return zonsopgangMinuten;
+    if(momentKey === "eerste_uur_KORT") return zonsopgangMinuten + 60;
+    if(momentKey === "derde_uur") return zonsopgangMinuten + 180;
+    if(momentKey === "derde_uur_KORT") return zonsopgangMinuten + 240;
+    if(momentKey === "zesde_uur") return zonsopgangMinuten + 360;
+    if(momentKey === "zesde_uur_KORT") return zonsopgangMinuten + 420;
+    if(momentKey === "negende_uur") return zonsopgangMinuten + 540;
+    if(momentKey === "negende_uur_KORT") return zonsopgangMinuten + 600;
+    if(momentKey === "vespers") {
+      if(nuMin >= 18*60 && nuMin < 19*60) return 18*60;
+      if(nuMin >= sunset && nuMin < sunset + 60) return sunset;
+    }
+    if(momentKey === "vespers_KORT") {
+      if(nuMin >= 19*60 && nuMin < sunset) return 19*60;
+      if(nuMin >= sunset + 60 && nuMin < 24*60) return sunset + 60;
+    }
+    return 0;
+  })();
+  if(nuMin >= startMin && nuMin < startMin+60){
+    return {moment: moment, isEchtUur: true};
+  }
+  return {moment: moment, isEchtUur: false};
+}
+function zoekTekst(doc, lijst) {
+  for(let key of lijst) if(doc && doc[key]) return doc[key];
+  return "";
+}
 function updateHorologionEnVastenregel() {
   const datum = (new Date()).toISOString().slice(0,10).replace(/-/g,"");
-  const moment = bepaalGebedsmoment();
-  const momentKey = moment.key;
+  const fase = bepaalGebedFase();
+  const momentKey = fase.moment.key;
+  const isEchtUur = fase.isEchtUur;
   const uur = new Date().getHours();
-
-  db.collection("Horologion").doc(momentKey).get().then(docSnap => {
-    let doc = docSnap.exists ? docSnap.data() : null;
+  db.collection("Horologion").doc(momentKey).get().then(docSnap=>{
+    let doc = docSnap.exists ? docSnap.data() : {};
+    let lang = zoekTekst(doc, [geselecteerdeTaal]);
+    let kort = zoekTekst(doc, [geselecteerdeTaal+"_KORT"]);
+    let fallback = uur%2===0 ? (moederGodGebed[geselecteerdeTaal] || moederGodGebed["VL"]) : (jezusGebed[geselecteerdeTaal] || jezusGebed["VL"]);
     let html = "";
-    if (!doc) {
-      html = `<blockquote style="color:red;">FOUT: ontbrekend gebed in de database (${momentKey})</blockquote>`;
-    } else if (momentKey.endsWith('_KORT')) {
-      let kort = doc[geselecteerdeTaal+"_KORT"];
-      if (!kort || kort === null || !kort.trim()) {
-        html = `<blockquote style="color:red;">FOUT: ontbrekend gebed in de database (${momentKey} - ${geselecteerdeTaal}_KORT)</blockquote>`;
-      } else {
-        let fallback = uur%2 === 0
-          ? (moederGodGebed[geselecteerdeTaal] || moederGodGebed["VL"])
-          : (jezusGebed[geselecteerdeTaal] || jezusGebed["VL"]);
-        html = `<blockquote>${kort}</blockquote><blockquote>${fallback}</blockquote>`;
-      }
+    if(isEchtUur && lang && lang.trim()!==""){
+      html = `<blockquote>${lang}</blockquote>`;
     } else {
-      let lang = doc[geselecteerdeTaal];
-      if (!lang || lang === null || !lang.trim()) {
-        html = `<blockquote style="color:red;">FOUT: ontbrekend gebed in de database (${momentKey} - ${geselecteerdeTaal})</blockquote>`;
+      if(kort && kort.trim()!=="") {
+        html = `<blockquote>${kort}</blockquote><blockquote>${fallback}</blockquote>`;
       } else {
-        html = `<blockquote>${lang}</blockquote>`;
+        html = `<blockquote>${fallback}</blockquote>`;
       }
     }
     document.getElementById('horologion').innerHTML = html;
   });
 
-  // Vastenregel fallback: gekozen taal → EN → NL → vastenvrij
-  db.collection("kalender2025").doc(datum).get().then(doc => {
+  db.collection("kalender2025").doc(datum).get().then(doc=>{
     let tekst = "";
-    if (doc.exists) {
-      let d = doc.data();
-      if (d["Vastenregel" + geselecteerdeTaal] && d["Vastenregel" + geselecteerdeTaal] !== null && d["Vastenregel" + geselecteerdeTaal].trim() !== "") {
-        tekst = d["Vastenregel" + geselecteerdeTaal];
-      } else if (d["VastenregelEN"] && d["VastenregelEN"] !== null && d["VastenregelEN"].trim() !== "") {
-        tekst = d["VastenregelEN"];
-      } else if (d["VastenregelNL"] && d["VastenregelNL"] !== null && d["VastenregelNL"].trim() !== "") {
-        tekst = d["VastenregelNL"];
-      }
+    if(doc.exists){
+      const prio = {
+        "DE":["Vastenregel DE","Vastenregel NL","Vastenregel EN"], "FR":["Vastenregel FR","Vastenregel EN","Vastenregel NL"],
+        "GR":["Vastenregel GR","Vastenregel EN","Vastenregel NL"], "AR":["Vastenregel AR","Vastenregel EN","Vastenregel NL"],
+        "RU":["Vastenregel RU","Vastenregel UA","Vastenregel EN","Vastenregel NL"], "UA":["Vastenregel UA","Vastenregel RU","Vastenregel EN","Vastenregel NL"],
+        "EN":["Vastenregel EN","Vastenregel NL"], "VL":["Vastenregel NL","Vastenregel EN"]
+      };
+      tekst = zoekTekst(doc.data(), prio[geselecteerdeTaal]||["Vastenregel NL","Vastenregel EN"]);
     }
-    if (!tekst) tekst = getVastenvrijTekst(geselecteerdeTaal);
-    document.getElementById('vastenregel').textContent = tekst;
+    if(!tekst) tekst = getVastenvrijTekst(geselecteerdeTaal);
+    document.getElementById('vastenregel').textContent=tekst;
   });
 }
 setInterval(updateHorologionEnVastenregel,60000);
@@ -256,17 +278,9 @@ updateHorologionEnVastenregel();
 
 function getVastenvrijTekst(taal){
   return {
-    "EN":"No fasting",
-    "FR":"Jour sans jeûne",
-    "DE":"Fastenfrei",
-    "GR":"Ἀπολυτή. Ἀργία.",
-    "AR":"يوم بدون صوم",
-    "RU":"Поста нет",
-    "UA":"Без посту",
-    "VL":"Vastenvrij"
+    "EN":"No fasting","FR":"Jour sans jeûne","DE":"Fastenfrei","GR":"Ἀπολυτή. Ἀργία.","AR":"يوم بدون صوم","RU":"Поста нет","UA":"Без посту","VL":"Vastenvrij"
   }[taal]||"Vastenvrij";
 }
 </script>
 </body>
 </html>
-
