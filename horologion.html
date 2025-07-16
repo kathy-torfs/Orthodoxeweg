@@ -154,7 +154,6 @@ async function updateWeather(lat, lon) {
       zonsopgangMinuten = sUp.getHours()*60 + sUp.getMinutes();
       zonsondergangMinuten = sDown.getHours()*60 + sDown.getMinutes();
       document.getElementById('zonsopgang').textContent = `${vertalingen["zonsopgang"][geselecteerdeTaal]} ${sUp.getHours().toString().padStart(2,'0')}:${sUp.getMinutes().toString().padStart(2,'0')}`;
-      // Eventueel zonsondergang toevoegen als extra label
     }
   } catch(e){
     document.getElementById('temperatuur').textContent = '...';
@@ -179,7 +178,6 @@ function updateZonsLabels(){
   document.getElementById('zonsopgang').textContent = `${vertalingen["zonsopgang"][geselecteerdeTaal]} ${zo[0]}`;
 }
 
-// Belangrijk: volgens jouw blokken
 function bepaalGebedsmoment() {
   const nu = new Date();
   const nuMin = nu.getHours() * 60 + nu.getMinutes();
@@ -189,7 +187,6 @@ function bepaalGebedsmoment() {
   const sunset = zonsondergangMinuten;
 
   if (nuMin < sunrise) return { key: "completen" };
-
   if (nuMin >= sunrise && nuMin < sunrise + 60) return { key: "eerste_uur" };
   if (nuMin >= sunrise + 60 && nuMin < sunrise + 180) return { key: "eerste_uur_KORT" };
   if (nuMin >= sunrise + 180 && nuMin < sunrise + 240) return { key: "derde_uur" };
@@ -199,22 +196,11 @@ function bepaalGebedsmoment() {
   if (nuMin >= sunrise + 540 && nuMin < sunrise + 600) return { key: "negende_uur" };
   if (nuMin >= sunrise + 600 && nuMin < sunrise + 720) return { key: "negende_uur_KORT" };
 
-  // Vespers: 18:00 tot 19:00
   if (nuMin >= 18*60 && nuMin < 19*60) return { key: "vespers" };
-  // Vespers kort: 19:00 tot zonsondergang
   if (nuMin >= 19*60 && nuMin < sunset) return { key: "vespers_KORT" };
-
-  // Zonsondergang tot zonsondergang+1u
   if (nuMin >= sunset && nuMin < sunset + 60) return { key: "vespers" };
-  // Zonsondergang+1u tot 00:00
   if (nuMin >= sunset + 60 && nuMin < 24*60) return { key: "vespers_KORT" };
-
   return { key: "completen" };
-}
-
-function zoekTekst(doc, lijst) {
-  for(let key of lijst) if(doc && doc[key]) return doc[key];
-  return "";
 }
 
 function updateHorologionEnVastenregel() {
@@ -224,35 +210,43 @@ function updateHorologionEnVastenregel() {
   const uur = new Date().getHours();
 
   db.collection("Horologion").doc(momentKey).get().then(docSnap => {
-    let doc = docSnap.exists ? docSnap.data() : {};
-    let lang = zoekTekst(doc, [geselecteerdeTaal]);
-    let kort = zoekTekst(doc, [geselecteerdeTaal+"_KORT"]);
-    let fallback = uur%2 === 0
-      ? (moederGodGebed[geselecteerdeTaal] || moederGodGebed["VL"])
-      : (jezusGebed[geselecteerdeTaal] || jezusGebed["VL"]);
+    let doc = docSnap.exists ? docSnap.data() : null;
     let html = "";
-
-    // Als lang, dan enkel die tonen (1 blok), anders kort+fallback (2 blokken) of alleen fallback (1 blok)
-    if (lang && lang.trim() !== "") {
-      html = `<blockquote>${lang}</blockquote>`;
-    } else if (kort && kort.trim() !== "") {
-      html = `<blockquote>${kort}</blockquote><blockquote>${fallback}</blockquote>`;
+    if (!doc) {
+      html = `<blockquote style="color:red;">FOUT: ontbrekend gebed in de database (${momentKey})</blockquote>`;
+    } else if (momentKey.endsWith('_KORT')) {
+      let kort = doc[geselecteerdeTaal+"_KORT"];
+      if (!kort || !kort.trim()) {
+        html = `<blockquote style="color:red;">FOUT: ontbrekend gebed in de database (${momentKey} - ${geselecteerdeTaal}_KORT)</blockquote>`;
+      } else {
+        let fallback = uur%2 === 0
+          ? (moederGodGebed[geselecteerdeTaal] || moederGodGebed["VL"])
+          : (jezusGebed[geselecteerdeTaal] || jezusGebed["VL"]);
+        html = `<blockquote>${kort}</blockquote><blockquote>${fallback}</blockquote>`;
+      }
     } else {
-      html = `<blockquote>${fallback}</blockquote>`;
+      let lang = doc[geselecteerdeTaal];
+      if (!lang || !lang.trim()) {
+        html = `<blockquote style="color:red;">FOUT: ontbrekend gebed in de database (${momentKey} - ${geselecteerdeTaal})</blockquote>`;
+      } else {
+        html = `<blockquote>${lang}</blockquote>`;
+      }
     }
     document.getElementById('horologion').innerHTML = html;
   });
 
+  // Vastenregel fallback: gekozen taal → Engels → Nederlands → vastenvrij
   db.collection("kalender2025").doc(datum).get().then(doc => {
     let tekst = "";
     if (doc.exists) {
-      const prio = {
-        "DE":["Vastenregel DE","Vastenregel NL","Vastenregel EN"], "FR":["Vastenregel FR","Vastenregel EN","Vastenregel NL"],
-        "GR":["Vastenregel GR","Vastenregel EN","Vastenregel NL"], "AR":["Vastenregel AR","Vastenregel EN","Vastenregel NL"],
-        "RU":["Vastenregel RU","Vastenregel UA","Vastenregel EN","Vastenregel NL"], "UA":["Vastenregel UA","Vastenregel RU","Vastenregel EN","Vastenregel NL"],
-        "EN":["Vastenregel EN","Vastenregel NL"], "VL":["Vastenregel NL","Vastenregel EN"]
-      };
-      tekst = zoekTekst(doc.data(), prio[geselecteerdeTaal] || ["Vastenregel NL","Vastenregel EN"]);
+      let d = doc.data();
+      if (d["Vastenregel " + geselecteerdeTaal]) {
+        tekst = d["Vastenregel " + geselecteerdeTaal];
+      } else if (d["Vastenregel EN"]) {
+        tekst = d["Vastenregel EN"];
+      } else if (d["Vastenregel NL"]) {
+        tekst = d["Vastenregel NL"];
+      }
     }
     if (!tekst) tekst = getVastenvrijTekst(geselecteerdeTaal);
     document.getElementById('vastenregel').textContent = tekst;
@@ -263,7 +257,14 @@ updateHorologionEnVastenregel();
 
 function getVastenvrijTekst(taal){
   return {
-    "EN":"No fasting","FR":"Jour sans jeûne","DE":"Fastenfrei","GR":"Ἀπολυτή. Ἀργία.","AR":"يوم بدون صوم","RU":"Поста нет","UA":"Без посту","VL":"Vastenvrij"
+    "EN":"No fasting",
+    "FR":"Jour sans jeûne",
+    "DE":"Fastenfrei",
+    "GR":"Ἀπολυτή. Ἀργία.",
+    "AR":"يوم بدون صوم",
+    "RU":"Поста нет",
+    "UA":"Без посту",
+    "VL":"Vastenvrij"
   }[taal]||"Vastenvrij";
 }
 </script>
