@@ -63,20 +63,6 @@
     </div>
   </div>
 <script>
-const vertalingen = {
-  "zonsopgang": {"VL":"zonsopgang","EN":"sunrise","FR":"lever du soleil","DE":"Sonnenaufgang","GR":"ανατολή ηλίου","AR":"شروق الشمس","RU":"восход солнца","UA":"схід сонця"},
-  "zonsondergang": {"VL":"zonsondergang","EN":"sunset","FR":"coucher du soleil","DE":"Sonnenuntergang","GR":"δύση ηλίου","AR":"غروب الشمس","RU":"закат","UA":"захід сонця"},
-  "maanden": {
-    "VL":["januari","februari","maart","april","mei","juni","juli","augustus","september","oktober","november","december"],
-    "FR":["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"],
-    "DE":["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"],
-    "EN":["January","February","March","April","May","June","July","August","September","October","November","December"],
-    "GR":["Ιανουάριος","Φεβρουάριος","Μάρτιος","Απρίλιος","Μάιος","Ιούνιος","Ιούλιος","Αύγουστος","Σεπτέμβριος","Οκτώβριος","Νοέμβριος","Δεκέμβριος"],
-    "AR":["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"],
-    "RU":["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"],
-    "UA":["січень","лютий","березень","квітень","травень","червень","липень","серпень","вересень","жовтень","листопад","грудень"]
-  }
-};
 const moederGodGebed = {
   "VL": "Verheug U, Moeder Gods en Maagd, Maria vol van genade, de Heer is met U. Gij zijt de gezegende onder de vrouwen en gezegend is de vrucht van uw schoot, want Gij hebt de Verlosser der zielen gebaard. Bescherm ons, uw dienaren, onder uw heilige omhulling, want tot U nemen wij onze toevlucht na God. Gij zijt werkelijk de ware Voorspreekster, o Moeder Gods, onophoudelijk smekende voor onze zielen.",
   "EN": "Rejoice, O Mother of God and Virgin, Mary full of grace, the Lord is with you. Blessed are you among women, and blessed is the fruit of your womb, for you have borne the Savior of our souls. Shelter us, your servants, under your holy protection, for after God we take refuge in you. You are truly the true Intercessor, O Mother of God, unceasingly pleading for our souls.",
@@ -96,6 +82,19 @@ const jezusGebed = {
   "AR": "يا رب يسوع المسيح، ابن الله، ارحمني أنا الخاطئ.",
   "RU": "Господи Иисусе Христе, Сыне Божий, помилуй мя.",
   "UA": "Господи Ісусе Христе, Сину Божий, помилуй мене."
+};
+const vertalingen = {
+  "zonsopgang": {"VL":"zonsopgang","EN":"sunrise","FR":"lever du soleil","DE":"Sonnenaufgang","GR":"ανατολή ηλίου","AR":"شروق الشمس","RU":"восход солнца","UA":"схід сонця"},
+  "maanden": {
+    "VL":["januari","februari","maart","april","mei","juni","juli","augustus","september","oktober","november","december"],
+    "FR":["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"],
+    "DE":["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"],
+    "EN":["January","February","March","April","May","June","July","August","September","October","November","December"],
+    "GR":["Ιανουάριος","Φεβρουάριος","Μάρτιος","Απρίλιος","Μάιος","Ιούνιος","Ιούλιος","Αύγουστος","Σεπτέμβριος","Οκτώβριος","Νοέμβριος","Δεκέμβριος"],
+    "AR":["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"],
+    "RU":["Январь","Февраль","Март","Апрель","Май","Июнь","Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"],
+    "UA":["січень","лютий","березень","квітень","травень","червень","липень","серпень","вересень","жовтень","листопад","грудень"]
+  }
 };
 const firebaseConfig = {
   apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
@@ -216,7 +215,7 @@ function updateHorologionEnVastenregel() {
       html = `<blockquote style="color:red;">FOUT: ontbrekend gebed in de database (${momentKey})</blockquote>`;
     } else if (momentKey.endsWith('_KORT')) {
       let kort = doc[geselecteerdeTaal+"_KORT"];
-      if (!kort || !kort.trim()) {
+      if (!kort || kort === null || !kort.trim()) {
         html = `<blockquote style="color:red;">FOUT: ontbrekend gebed in de database (${momentKey} - ${geselecteerdeTaal}_KORT)</blockquote>`;
       } else {
         let fallback = uur%2 === 0
@@ -226,7 +225,7 @@ function updateHorologionEnVastenregel() {
       }
     } else {
       let lang = doc[geselecteerdeTaal];
-      if (!lang || !lang.trim()) {
+      if (!lang || lang === null || !lang.trim()) {
         html = `<blockquote style="color:red;">FOUT: ontbrekend gebed in de database (${momentKey} - ${geselecteerdeTaal})</blockquote>`;
       } else {
         html = `<blockquote>${lang}</blockquote>`;
@@ -235,17 +234,17 @@ function updateHorologionEnVastenregel() {
     document.getElementById('horologion').innerHTML = html;
   });
 
-  // Vastenregel fallback: gekozen taal → Engels → Nederlands → vastenvrij
+  // Vastenregel fallback: gekozen taal → EN → NL → vastenvrij
   db.collection("kalender2025").doc(datum).get().then(doc => {
     let tekst = "";
     if (doc.exists) {
       let d = doc.data();
-      if (d["Vastenregel " + geselecteerdeTaal]) {
-        tekst = d["Vastenregel " + geselecteerdeTaal];
-      } else if (d["Vastenregel EN"]) {
-        tekst = d["Vastenregel EN"];
-      } else if (d["Vastenregel NL"]) {
-        tekst = d["Vastenregel NL"];
+      if (d["Vastenregel" + geselecteerdeTaal] && d["Vastenregel" + geselecteerdeTaal] !== null && d["Vastenregel" + geselecteerdeTaal].trim() !== "") {
+        tekst = d["Vastenregel" + geselecteerdeTaal];
+      } else if (d["VastenregelEN"] && d["VastenregelEN"] !== null && d["VastenregelEN"].trim() !== "") {
+        tekst = d["VastenregelEN"];
+      } else if (d["VastenregelNL"] && d["VastenregelNL"] !== null && d["VastenregelNL"].trim() !== "") {
+        tekst = d["VastenregelNL"];
       }
     }
     if (!tekst) tekst = getVastenvrijTekst(geselecteerdeTaal);
@@ -270,3 +269,4 @@ function getVastenvrijTekst(taal){
 </script>
 </body>
 </html>
+
