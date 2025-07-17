@@ -279,9 +279,14 @@ function zoekTekst(doc, lijst) {
 function updateHorologionEnVastenregel() {
   const datum = (new Date()).toISOString().slice(0,10).replace(/-/g,"");
   const fase = bepaalGebedFase();
-  const momentKey = fase.moment.key;
+  let momentKey = fase.moment.key;
   const isEchtUur = fase.isEchtUur;
   const uur = new Date().getHours();
+
+  // *** Alleen vespers op speciaal tijdstip bepalen ***
+  let vespersKey = bepaalVespersKey();
+  if (vespersKey) momentKey = vespersKey;
+
   db.collection("Horologion").doc(momentKey).get().then(docSnap=>{
     let doc = docSnap.exists ? docSnap.data() : {};
     let lang = zoekTekst(doc, [geselecteerdeTaal]);
@@ -297,7 +302,7 @@ function updateHorologionEnVastenregel() {
         html = `<blockquote>${fallback}</blockquote>`;
       }
     }
-    document.getElementById('horologion').innerHTML = html;
+    document.getElementById('horologion').innerHTML = html
   });
 
   db.collection("kalender2025").doc(datum).get().then(doc=>{
@@ -322,7 +327,22 @@ function getVastenvrijTekst(taal){
   return {
     "EN":"No fasting","FR":"Jour sans jeûne","DE":"Fastenfrei","GR":"Ἀπολυτή. Ἀργία.","AR":"يوم بدون صوم","RU":"Поста нет","UA":"Без посту","VL":"Vastenvrij"
   }[taal]||"Vastenvrij";
+}function bepaalVespersKey() {
+  const nu = new Date();
+  const nuMin = nu.getHours()*60 + nu.getMinutes();
+
+  // Eerst vaste tijden 18u-19u ("vespers"), 19u-20u ("vespers_kort")
+  if (nuMin >= 18*60 && nuMin < 19*60) return "vespers";
+  if (nuMin >= 19*60 && nuMin < 20*60) return "vespers_kort";
+
+  // Daarna zonsondergang, indien bekend
+  if (zonsondergangMinuten != null) {
+    if (nuMin >= zonsondergangMinuten && nuMin < zonsondergangMinuten+60) return "vespers";
+    if (nuMin >= zonsondergangMinuten+60 && nuMin < zonsondergangMinuten+120) return "vespers_kort";
+  }
+  return null;
 }
+
 </script>
 </body>
 </html>
