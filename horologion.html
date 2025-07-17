@@ -207,70 +207,70 @@ function initWeather() {
 }
 initWeather();
 
-function updateZonsLabels(){
+function updateZonsLabels(){ 
   let zo = document.getElementById('zonsopgang').textContent.match(/\d{2}:\d{2}/)||["..."];
   document.getElementById('zonsopgang').textContent = `${vertalingen["zonsopgang"][geselecteerdeTaal]} ${zo[0]}`;
 }
 
-const vespersStart = Math.min(zonsondergangMinuten, 18*60); // het vroegste van beide
-
-const blokken = [
-  { key: "completen",       start: 0 },                             // 00:00
-  { key: "completen_kort",  start: zonsopgangMinuten },             // zonsopgang
-
-  { key: "eerste_uur",      start: zonsopgangMinuten },             // zonsopgang
-  { key: "eerste_uur_kort", start: zonsopgangMinuten + 60 },        // zonsopgang + 1u
-
-  { key: "derde_uur",       start: zonsopgangMinuten + 180 },       // zonsopgang + 3u
-  { key: "derde_uur_kort",  start: zonsopgangMinuten + 240 },       // zonsopgang + 4u
-
-  { key: "zesde_uur",       start: zonsopgangMinuten + 360 },       // zonsopgang + 6u
-  { key: "zesde_uur_kort",  start: zonsopgangMinuten + 420 },       // zonsopgang + 7u
-
-  { key: "negende_uur",     start: zonsopgangMinuten + 540 },       // zonsopgang + 9u
-  { key: "negende_uur_kort",start: zonsopgangMinuten + 600 },       // zonsopgang + 10u
-
-  { key: "vespers",         start: vespersStart },                  // 18:00 of zonsondergang (vroegste)
-  { key: "vespers_kort",    start: vespersStart + 60 },             // +1u
-
-  { key: "completen",       start: 24*60 }                          // 24:00 (volgende dag)
-];
-
+// Belangrijk: vespersStart dynamisch bepalen!
 function bepaalGebedsmoment() {
   const nu = new Date();
   const nuMin = nu.getHours()*60 + nu.getMinutes();
-  if (zonsopgangMinuten==null||zonsondergangMinuten==null) return {index: 0, key: "completen"};
-  if (nuMin < zonsopgangMinuten) return {index: 0, key: "completen"};
-  if (nuMin < zonsopgangMinuten+180) return {index: 1, key: "eerste_uur"};
-  if (nuMin < zonsopgangMinuten+360) return {index: 2, key: "derde_uur"};
-  if (nuMin < zonsopgangMinuten+540) return {index: 3, key: "zesde_uur"};
-  if (nuMin < zonsondergangMinuten) return {index: 4, key: "negende_uur"};
-  if (nuMin < zonsondergangMinuten+60) return {index: 5, key: "vespers"};
-  return {index: 6, key: "completen"};
+
+  // Vespers begint op het vroegste van zonsondergang of 18:00
+  const vespersStart = (zonsopgangMinuten != null && zonsondergangMinuten != null)
+    ? Math.min(zonsondergangMinuten, 18*60)
+    : 18*60;
+
+  if (zonsopgangMinuten == null || zonsondergangMinuten == null)
+    return { index: 0, key: "completen" };
+  if (nuMin < zonsopgangMinuten)
+    return { index: 0, key: "completen" };
+  if (nuMin < zonsopgangMinuten+180)
+    return { index: 1, key: "eerste_uur" };
+  if (nuMin < zonsopgangMinuten+360)
+    return { index: 2, key: "derde_uur" };
+  if (nuMin < zonsopgangMinuten+540)
+    return { index: 3, key: "zesde_uur" };
+  if (nuMin < vespersStart)
+    return { index: 4, key: "negende_uur" };
+  if (nuMin < vespersStart+60)
+    return { index: 5, key: "vespers" };
+  return { index: 6, key: "completen" };
 }
+
 function bepaalGebedFase() {
   const nu = new Date();
   const nuMin = nu.getHours()*60 + nu.getMinutes();
+
+  // Vespers start dynamisch bepalen!
+  const vespersStart = (zonsopgangMinuten != null && zonsondergangMinuten != null)
+    ? Math.min(zonsondergangMinuten, 18*60)
+    : 18*60;
+
   let moment = bepaalGebedsmoment();
-  let startMin = (()=>{
+  let startMin = (() => {
     if(moment.index==0) return 0;
     if(moment.index==1) return zonsopgangMinuten;
     if(moment.index==2) return zonsopgangMinuten+180;
     if(moment.index==3) return zonsopgangMinuten+360;
     if(moment.index==4) return zonsopgangMinuten+540;
-    if(moment.index==5) return zonsondergangMinuten;
-    if(moment.index==6) return zonsondergangMinuten+60;
+    if(moment.index==5) return vespersStart;
+    if(moment.index==6) return vespersStart+60;
     return 0;
   })();
+
   if(nuMin >= startMin && nuMin < startMin+60){
     return {moment: moment, isEchtUur: true};
   }
   return {moment: moment, isEchtUur: false};
 }
+
 function zoekTekst(doc, lijst) {
   for(let key of lijst) if(doc && doc[key]) return doc[key];
   return "";
 }
+
 function updateHorologionEnVastenregel() {
   const datum = (new Date()).toISOString().slice(0,10).replace(/-/g,"");
   const fase = bepaalGebedFase();
@@ -294,6 +294,22 @@ function updateHorologionEnVastenregel() {
     }
     document.getElementById('horologion').innerHTML = html;
   });
+
+  db.collection("kalender2025").doc(datum).get().then(doc=>{
+    let tekst = "";
+    if(doc.exists){
+      const prio = {
+        "DE":["Vastenregel DE","Vastenregel NL","Vastenregel EN"], "FR":["Vastenregel FR","Vastenregel EN","Vastenregel NL"],
+        "GR":["Vastenregel GR","Vastenregel EN","Vastenregel NL"], "AR":["Vastenregel AR","Vastenregel EN","Vastenregel NL"],
+        "RU":["Vastenregel RU","Vastenregel UA","Vastenregel EN","Vastenregel NL"], "UA":["Vastenregel UA","Vastenregel RU","Vastenregel EN","Vastenregel NL"],
+        "EN":["Vastenregel EN","Vastenregel NL"], "VL":["Vastenregel NL","Vastenregel EN"]
+      };
+      tekst = zoekTekst(doc.data(), prio[geselecteerdeTaal]||["Vastenregel NL","Vastenregel EN"]);
+    }
+    if(!tekst) tekst = getVastenvrijTekst(geselecteerdeTaal);
+    document.getElementById('vastenregel').textContent=tekst;
+  });
+}
 
   db.collection("kalender2025").doc(datum).get().then(doc=>{
     let tekst = "";
