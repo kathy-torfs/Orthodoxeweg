@@ -231,8 +231,10 @@ const blokken = [
   { key: "negende_uur",     start: zonsopgangMinuten + 540 },       // zonsopgang + 9u
   { key: "negende_uur_kort",start: zonsopgangMinuten + 600 },       // zonsopgang + 10u
 
-  { key: "vespers",         start: vespersStart },                  // 18:00 of zonsondergang (vroegste)
-  { key: "vespers_kort",    start: vespersStart + 60 },             // +1u
+ { key: "vespers",          start: vespers18 },              // 18:00
+  { key: "vespers_kort",     start: vespers18 + 60 },         // 19:00
+  { key: "vespers",          start: zonsondergangMinuten },   // zonsondergang
+  { key: "vespers_kort",     start: zonsondergangMinuten + 60 }, // zonsondergang +1u
 
   { key: "completen",       start: 24*60 }                          // 24:00 (volgende dag)
 ];
@@ -246,6 +248,7 @@ function bepaalGebedsmoment() {
   if (nuMin < zonsopgangMinuten+360) return {index: 2, key: "derde_uur"};
   if (nuMin < zonsopgangMinuten+540) return {index: 3, key: "zesde_uur"};
   if (nuMin < zonsondergangMinuten) return {index: 4, key: "negende_uur"};
+  if (nuMin < 19*60) return {index: 5, key: "vespers"};
   if (nuMin < zonsondergangMinuten+60) return {index: 5, key: "vespers"};
   return {index: 6, key: "completen"};
 }
@@ -260,6 +263,7 @@ function bepaalGebedFase() {
     if(moment.index==3) return zonsopgangMinuten+360;
     if(moment.index==4) return zonsopgangMinuten+540;
     if(moment.index==5) return zonsondergangMinuten;
+    if(moment.index==6) return 19*60;
     if(moment.index==6) return zonsondergangMinuten+60;
     return 0;
   })();
