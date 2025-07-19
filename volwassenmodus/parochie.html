@@ -266,5 +266,171 @@
           document.getElementById("zoekertjeFormFeedback").textContent = "Zoekertje geplaatst!";
           document.getElementById("zoekertjeTitel").value = "";
           document.getElementById("zoekertjeTekst").value = "";
-          laad
+          laadZoekertjes();
+          setTimeout(()=>{document.getElementById("zoekertjeFormFeedback").textContent="";},1500);
+        });
+    };
+    // Reageren op zoekertje
+    function reageerZoekertje(e, id) {
+      e.preventDefault();
+      const veld = document.getElementById(`reactieTekst-${id}`);
+      const tekst = veld.value.trim();
+      if (!tekst) return false;
+      const naam = localStorage.getItem("userNaam") || "anoniem";
+      const zoekertjeRef = db.collection("parishes").doc(parochieId).collection("zoekertjes").doc(id);
+      zoekertjeRef.get().then(doc => {
+        if (!doc.exists) return;
+        const data = doc.data();
+        let replies = Array.isArray(data.replies) ? data.replies : [];
+        replies.push({ naam, tekst });
+        zoekertjeRef.update({ replies }).then(() => {
+          veld.value = "";
+          laadZoekertjes();
+        });
+      });
+      return false;
+    }
 
+    // ------------------- ZANDTAFEL (mijn kaarsjes) ------------------
+    function laadKaarsjes() {
+      const lijst = document.getElementById("kaarsjesLijst");
+      lijst.innerHTML = "<em>Gebedsintenties laden...</em>";
+      db.collection("parishes").doc(parochieId).collection("intentions")
+        .where("userId", "==", userId)
+        .orderBy("createdAt", "desc")
+        .get()
+        .then(snapshot => {
+          if (snapshot.empty) { lijst.innerHTML = "<em>U heeft nog geen kaarsjes geplaatst.</em>"; return;}
+          lijst.innerHTML = "";
+          snapshot.forEach(doc => {
+            const d = doc.data();
+            const status = d.status || "nieuw";
+            let vlamKlasse = "vlam nieuw";
+            let kaarsKlasse = "kaars";
+            if (status === "gelezen") vlamKlasse = "vlam gelezen";
+            if (status === "beantwoord") { vlamKlasse = "vlam beantwoord"; kaarsKlasse += " beantwoord";}
+            let statusTekst = "Nieuw";
+            if (status === "gelezen") statusTekst = "In behandeling";
+            if (status === "beantwoord") statusTekst = "Beantwoord";
+            let html = `
+              <div class="kaarsje-item">
+                <div class="kaarsje-icon">
+                  <span class="${vlamKlasse}"></span>
+                  <span class="${kaarsKlasse}"></span>
+                </div>
+                <div style="flex:1">
+                  <div class="status-label"><strong>Status:</strong> ${statusTekst}</div>
+                  <div class="intentie-tekst">${d.text || "(geen tekst)"}</div>
+                  <div>
+                    ${d.answer ? `<div class="antwoord"><strong>Antwoord van de priester:</strong><br>${d.answer}</div>` : ""}
+                  </div>
+                </div>
+              </div>`;
+            lijst.innerHTML += html;
+          });
+        });
+    }
+    // Nieuw kaarsje plaatsen
+    document.getElementById("kaarsjeForm").onsubmit = function(e) {
+      e.preventDefault();
+      const tekst = document.getElementById("kaarsjeTekst").value.trim();
+      if (!tekst) return;
+      db.collection("parishes").doc(parochieId).collection("intentions")
+        .add({
+          userId: userId,
+          text: tekst,
+          createdAt: new Date(),
+          status: "nieuw"
+        }).then(() => {
+          document.getElementById("kaarsjeFormFeedback").textContent = "Kaarsje geplaatst!";
+          document.getElementById("kaarsjeTekst").value = "";
+          laadKaarsjes();
+          setTimeout(()=>{document.getElementById("kaarsjeFormFeedback").textContent="";},1200);
+        });
+    };
+
+    // ------------------- PRIKBORD PRIESTER (rechts) ------------------
+    function laadPrikbordPriester() {
+      const lijst = document.getElementById("prikbordPriesterLijst");
+      lijst.innerHTML = "<em>Prikbord laden...</em>";
+      db.collection("parishes").doc(parochieId).collection("prikbord_priester")
+        .orderBy("createdAt", "desc")
+        .get().then(snapshot => {
+          if (snapshot.empty) { lijst.innerHTML = "<em>Geen berichten gevonden.</em>"; return;}
+          lijst.innerHTML = "";
+          snapshot.forEach(doc => {
+            const d = doc.data();
+            let html = `
+              <div class="prikbord-item">
+                <div class="zoekertje-titel">${d.titel || ""}</div>
+                <div class="zoekertje-tekst">${d.tekst || ""}</div>
+                <div class="zoekertje-meta">Geplaatst op ${d.createdAt && d.createdAt.toDate ? d.createdAt.toDate().toLocaleDateString() : ""}</div>
+              </div>`;
+            lijst.innerHTML += html;
+          });
+        });
+    }
+
+    // --------------- DAGBOEK: login en entries (volledig privé, per e-mail) ---------------
+    let dagboekEmail = null;
+    function dagboekLogin() {
+      const emailVeld = document.getElementById("dagboekEmail");
+      const email = emailVeld.value.trim().toLowerCase();
+      if (!email.match(/^[^@]+@[^@]+\.[^@]+$/)) {
+        document.getElementById("dagboekLoginFeedback").textContent = "Geef een geldig e-mailadres op.";
+        return;
+      }
+      dagboekEmail = email;
+      document.getElementById("dagboekLoginFeedback").textContent = "Dagboek laden...";
+      document.getElementById("dagboekLoginBlok").style.display = "none";
+      document.getElementById("dagboekContent").style.display = "";
+      laadDagboekEntries();
+    }
+    function laadDagboekEntries() {
+      const lijst = document.getElementById("dagboekLijst");
+      lijst.innerHTML = "<em>Notities laden...</em>";
+      db.collection("dagboeken").doc(dagboekEmail).collection("entries")
+        .orderBy("datum", "desc")
+        .get().then(snapshot => {
+          if (snapshot.empty) { lijst.innerHTML = "<em>Nog geen notities in uw dagboek.</em>"; return;}
+          lijst.innerHTML = "";
+          snapshot.forEach(doc => {
+            const d = doc.data();
+            let html = `
+              <div class="dagboek-entry">
+                <div class="dagboek-entry-titel">${d.titel||"(geen titel)"}</div>
+                <div class="dagboek-entry-tekst">${d.tekst||""}</div>
+                <div class="dagboek-entry-meta">${d.datum && d.datum.toDate ? d.datum.toDate().toLocaleDateString() : ""}</div>
+              </div>`;
+            lijst.innerHTML += html;
+          });
+        });
+    }
+    // Notitie toevoegen aan dagboek
+    document.getElementById("dagboekForm").onsubmit = function(e) {
+      e.preventDefault();
+      const titel = document.getElementById("dagboekTitel").value.trim();
+      const tekst = document.getElementById("dagboekTekst").value.trim();
+      if (titel.length < 2 || tekst.length < 2) return;
+      db.collection("dagboeken").doc(dagboekEmail).collection("entries")
+        .add({
+          titel, tekst,
+          datum: new Date()
+        }).then(() => {
+          document.getElementById("dagboekFormFeedback").textContent = "Notitie toegevoegd!";
+          document.getElementById("dagboekTitel").value = "";
+          document.getElementById("dagboekTekst").value = "";
+          laadDagboekEntries();
+          setTimeout(()=>{document.getElementById("dagboekFormFeedback").textContent="";},1200);
+        });
+    };
+
+    // Automatisch alles laden
+    window.onload = function() {
+      laadZoekertjes();
+      laadKaarsjes();
+      laadPrikbordPriester();
+    };
+  </script>
+</body>
+</html>
