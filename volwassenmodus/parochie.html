@@ -242,7 +242,7 @@
     function laadZoekertjes() {
       const lijst = document.getElementById("zoekertjesLijst");
       lijst.innerHTML = "<em>Zoekertjes laden...</em>";
-      db.collection("parishes").doc(parochieId).collection("zoekertjes")
+      db.collection("parochies").doc(parochieId).collection("zoekertjes")
         .orderBy("createdAt", "desc")
         .get().then(snapshot => {
           if (snapshot.empty) { lijst.innerHTML = "<em>Geen zoekertjes gevonden.</em>"; return;}
@@ -275,7 +275,7 @@
       const titel = document.getElementById("zoekertjeTitel").value.trim();
       const tekst = document.getElementById("zoekertjeTekst").value.trim();
       if (titel.length < 2 || tekst.length < 2) return;
-      db.collection("parishes").doc(parochieId).collection("zoekertjes")
+      db.collection("parochies").doc(parochieId).collection("zoekertjes")
         .add({
           titel, tekst,
           userId: userId,
@@ -296,7 +296,7 @@
       const tekst = veld.value.trim();
       if (!tekst) return false;
       const naam = localStorage.getItem("userNaam") || "anoniem";
-      const zoekertjeRef = db.collection("parishes").doc(parochieId).collection("zoekertjes").doc(id);
+      const zoekertjeRef = db.collection("parochies").doc(parochieId).collection("zoekertjes").doc(id);
       zoekertjeRef.get().then(doc => {
         if (!doc.exists) return;
         const data = doc.data();
@@ -327,7 +327,7 @@
       if (voorWie) data.voorWie = voorWie;
       if (categorie) data.categorie = categorie;
 
-      db.collection("parishes").doc(parochieId).collection("kaarsjes")
+      db.collection("parochies").doc(parochieId).collection("kaarsjes")
         .add(data).then(() => {
           document.getElementById("kaarsjeFormFeedback").textContent = "Kaarsje geplaatst!";
           document.getElementById("kaarsjeTekst").value = "";
@@ -340,7 +340,7 @@
     function laadKaarsjes() {
       const lijst = document.getElementById("kaarsjesLijst");
       lijst.innerHTML = "<em>Gebedsintenties laden...</em>";
-      db.collection("parishes").doc(parochieId).collection("kaarsjes")
+      db.collection("parochies").doc(parochieId).collection("kaarsjes")
         .where("userId", "==", userId)
         .orderBy("createdAt", "desc")
         .get()
@@ -380,7 +380,7 @@
     function laadPrikbordPriester() {
       const lijst = document.getElementById("prikbordPriesterLijst");
       lijst.innerHTML = "<em>Prikbord laden...</em>";
-      db.collection("parishes").doc(parochieId).collection("prikbord_priester")
+      db.collection("parochies").doc(parochieId).collection("prikbord_priester")
         .orderBy("createdAt", "desc")
         .get().then(snapshot => {
           if (snapshot.empty) { lijst.innerHTML = "<em>Geen berichten gevonden.</em>"; return;}
