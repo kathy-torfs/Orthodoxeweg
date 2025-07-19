@@ -88,32 +88,36 @@
           document.getElementById("loginFeedback").textContent = "Geen parochies gevonden.";
           return;
         }
-
-        let checks = [];
-        let found = false;
+        let promises = [];
+        let loginGelukt = false;
+        let lidGevonden = null;
+        let parochieIdGevonden = null;
 
         snapshot.forEach(parochieDoc => {
           const parochieIdTest = parochieDoc.id;
           const ledenRef = db.collection("parochies").doc(parochieIdTest).collection("leden");
-          checks.push(
+          promises.push(
             ledenRef.where("email", "==", dagboekEmail).limit(1).get().then(ledenSnap => {
-              if (!ledenSnap.empty && !found) {
+              if (!ledenSnap.empty) {
                 const lid = ledenSnap.docs[0].data();
                 if ((lid.wachtwoord || "") === wachtwoord) {
-                  found = true;
-                  userId = ledenSnap.docs[0].id;
-                  parochieId = parochieIdTest;
-                  document.getElementById("loginblok").style.display = "none";
-                  document.getElementById("boekContainer").style.display = "block";
-                  laadOpdrachten();
+                  loginGelukt = true;
+                  lidGevonden = ledenSnap.docs[0];
+                  parochieIdGevonden = parochieIdTest;
                 }
               }
             })
           );
         });
 
-        Promise.all(checks).then(()=>{
-          if (!found) {
+        Promise.all(promises).then(() => {
+          if (loginGelukt && lidGevonden) {
+            userId = lidGevonden.id;
+            parochieId = parochieIdGevonden;
+            document.getElementById("loginblok").style.display = "none";
+            document.getElementById("boekContainer").style.display = "block";
+            laadOpdrachten();
+          } else {
             document.getElementById("loginFeedback").textContent = "Geen lid gevonden met dit e-mailadres of fout wachtwoord.";
           }
         });
