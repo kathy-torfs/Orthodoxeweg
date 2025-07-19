@@ -2,17 +2,19 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>Bijbeldagboek</title>
+  <title>Bijbeldagboek – beveiligd</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { background: #faf5e1; font-family: 'Georgia', serif; margin:0; }
-    .boek-container {
-      max-width: 560px; margin: 60px auto; background: #fffdf7;
-      border-radius: 20px; box-shadow: 0 8px 48px #ccb65b25;
-      padding: 38px 28px 28px 28px;
-      position: relative;
-      min-height: 480px;
-    }
+    .loginblok { max-width:370px; margin:80px auto 30px auto; background:#fffef6; padding:2.5em 2.2em 1.4em 2.2em; border-radius:13px; box-shadow:0 2px 14px #dccfa725; }
+    .loginblok label { font-weight:bold; color:#8a641f;}
+    .loginblok input { width:98%; font-size:1em; margin-bottom:1.2em; border-radius:8px; border:1.2px solid #dbc592; padding:9px;}
+    .loginblok button { background:#7a5f35; color:#fff; padding:10px 28px; border-radius:10px; border:none; font-size:1.1em; cursor:pointer;}
+    .loginblok button:hover { background: #b09765;}
+    #loginFeedback { color:#b9311e; margin-top:7px; min-height:26px;}
+    .boek-container { display:none; max-width: 570px; margin: 30px auto 40px auto; background: #fffdf7;
+      border-radius: 18px; box-shadow: 0 8px 48px #ccb65b25;
+      padding: 38px 28px 28px 28px; position: relative; min-height: 480px;}
     h1 { text-align: center; color: #7a5f35; font-size: 2em; margin-bottom: 0.8em;}
     .hoofdstuk-titel { font-size:1.25em; font-weight:bold; color:#7a5f35; margin-bottom: 0.4em;}
     .hoofdstuk-uitleg { margin-bottom: 1.3em; font-size: 1.07em; color: #4d3c1d;}
@@ -28,7 +30,18 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <div class="boek-container">
+  <div class="loginblok" id="loginblok">
+    <form id="dagboekLoginForm">
+      <label for="dagboekEmail">E-mailadres</label><br>
+      <input type="email" id="dagboekEmail" required autocomplete="username"><br>
+      <label for="dagboekWachtwoord">Wachtwoord</label><br>
+      <input type="password" id="dagboekWachtwoord" required autocomplete="current-password"><br>
+      <button type="submit">Dagboek openen</button>
+      <div id="loginFeedback"></div>
+    </form>
+  </div>
+
+  <div class="boek-container" id="boekContainer">
     <h1>📖 Mijn bijbeldagboek</h1>
     <div class="hoofdstuk-titel" id="hoofdstukTitel"></div>
     <div class="hoofdstuk-uitleg" id="hoofdstukUitleg"></div>
@@ -57,13 +70,57 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
-    // --- Gebruikers-ID ophalen (vervang indien nodig!) ---
-    let userId = localStorage.getItem("userId") || "testuser123"; // << Vervang bij echte login!
-
-    // --- Opdrachten ophalen ---
+    // --- Bijbeldagboek beveiligd: eerst login ---
+    let userId = null;
+    let parochieId = null;
+    let dagboekEmail = null;
     let opdrachten = [];
     let index = 0;
+    let loginOk = false;
 
+    document.getElementById("dagboekLoginForm").onsubmit = function(e) {
+      e.preventDefault();
+      document.getElementById("loginFeedback").textContent = "";
+      dagboekEmail = document.getElementById("dagboekEmail").value.trim().toLowerCase();
+      const wachtwoord = document.getElementById("dagboekWachtwoord").value.trim();
+      let found = false;
+      db.collection("parochies").get().then(snapshot => {
+        if (snapshot.empty) {
+          document.getElementById("loginFeedback").textContent = "Geen parochies gevonden.";
+          return;
+        }
+        let checks = [];
+        snapshot.forEach(parochieDoc => {
+          const parochieIdTest = parochieDoc.id;
+          const ledenRef = db.collection("parochies").doc(parochieIdTest).collection("leden");
+          checks.push(
+            ledenRef.where("email", "==", dagboekEmail).limit(1).get().then(ledenSnap => {
+              if (!ledenSnap.empty && !found) {
+                found = true;
+                const lid = ledenSnap.docs[0].data();
+                userId = ledenSnap.docs[0].id;
+                parochieId = parochieIdTest;
+                if ((lid.wachtwoord || "") === wachtwoord) {
+                  document.getElementById("loginblok").style.display = "none";
+                  document.getElementById("boekContainer").style.display = "block";
+                  loginOk = true;
+                  laadOpdrachten();
+                } else {
+                  document.getElementById("loginFeedback").textContent = "Onjuist wachtwoord.";
+                }
+              }
+            })
+          );
+        });
+        Promise.all(checks).then(()=>{
+          if (!found) {
+            document.getElementById("loginFeedback").textContent = "Geen lid gevonden met dit e-mailadres.";
+          }
+        });
+      });
+    };
+
+    // --- Opdrachten ophalen ---
     function laadOpdrachten() {
       db.collection("bijbeldagboek_opdrachten").orderBy("datum", "asc").get()
       .then(snapshot => {
@@ -86,14 +143,13 @@
       document.getElementById("hoofdstukTitel").textContent = opdracht.titel || "Opdracht";
       document.getElementById("hoofdstukUitleg").innerHTML = opdracht.uitleg || "";
       document.getElementById("boeknr").textContent = `Opdracht ${i+1} van ${opdrachten.length}`;
-      // Reflectie ophalen
+      // Reflectie ophalen (altijd privé: userId!)
       db.collection("persoonlijk_dagboek").doc(userId)
         .collection("entries").doc(opdracht.id)
         .get().then(doc => {
           document.getElementById("reflectieTekst").value = doc.exists ? (doc.data().tekst || "") : "";
         });
       document.getElementById("reflectieFormFeedback").textContent = "";
-      // Knoppen updaten
       document.getElementById("vorigeBtn").disabled = (i === 0);
       document.getElementById("volgendeBtn").disabled = (i === opdrachten.length-1);
     }
@@ -124,9 +180,6 @@
           setTimeout(()=>{document.getElementById("reflectieFormFeedback").textContent="";},1200);
         });
     };
-
-    // --- Start ---
-    laadOpdrachten();
   </script>
 </body>
 </html>
