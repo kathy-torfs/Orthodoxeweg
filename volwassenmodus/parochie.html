@@ -105,17 +105,38 @@
     .status-label { font-size: 0.98em; margin-bottom: 0.3rem; color: #bba354;}
     .antwoord { background:#faf7e2; border-radius:7px; padding:7px 11px; color:#55440b; margin-bottom: 0.2rem;}
     .prikbord-item { background:#ece1c4; color:#57472b;}
-    .dagboekblok { margin:40px auto 30px auto; max-width:780px; background:#fffef9; border-radius:14px; box-shadow:0 4px 16px #cbb96d32; padding:2rem;}
-    .dagboek-entry { background:#f3e8d2; border-radius:9px; padding:1rem 1.1rem; margin-bottom:0.8rem; box-shadow:0 2px 6px #e7dbad22;}
-    .dagboek-entry-titel { font-weight:bold; color:#7a5f35; margin-bottom:0.4rem;}
-    .dagboek-entry-tekst { margin-bottom:0.4rem; }
-    .dagboek-entry-meta { font-size:0.96em; color:#ab8f3d; }
-    .dagboek-form input, .dagboek-form textarea { width:97%; border-radius:8px; border:1.2px solid #dbc592; padding:7px; margin-bottom:0.7rem;}
-    .dagboek-form button { background:#7a5f35; color:#fff; font-weight:bold; border:none; border-radius:8px; padding:7px 20px; margin-top:0.2rem; font-size:0.99em; cursor:pointer;}
-    .dagboek-form button:hover { background: #b09765;}
     @media (max-width:900px) {
       .dashboard-grid {grid-template-columns:1fr;}
       .dashboard-col {min-width:0; margin-bottom:2rem;}
+    }
+    .dagboekblok {
+      margin:50px auto 30px auto;
+      max-width:600px;
+      background:#fffef9;
+      border-radius:18px;
+      box-shadow:0 4px 16px #cbb96d32;
+      padding:2.3rem 1.7rem 1.7rem 1.7rem;
+      text-align:center;
+    }
+    .dagboekblok button {
+      font-size:1.2em;
+      padding:0.8em 2.4em;
+      border-radius:13px;
+      background:#7a5f35;
+      color:#fff;
+      border:none;
+      cursor:pointer;
+      box-shadow:0 2px 14px #bfa15e28;
+      margin-bottom: 0.6em;
+    }
+    .dagboekblok button:hover {
+      background: #b09765;
+    }
+    .dagboekblok .uitleg {
+      font-size:1.07em;
+      color:#967e3a;
+      margin-top:14px;
+      line-height:1.5;
     }
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -174,19 +195,18 @@
       <div id="prikbordPriesterLijst"></div>
     </div>
   </div>
-  <!-- Dagboekblok onderaan -->
+
+  <!-- Dagboekblok onderaan: ENKEL DE KNOP -->
   <div class="dagboekblok">
-    <div class="col-titel">Mijn persoonlijk dagboekje</div>
-    <div id="dagboekContent">
-      <form class="dagboek-form" id="dagboekForm">
-        <input id="dagboekTitel" type="text" maxlength="40" placeholder="Titel" required>
-        <textarea id="dagboekTekst" maxlength="600" placeholder="Uw notitie..." required></textarea>
-        <button type="submit">Toevoegen</button>
-        <div id="dagboekFormFeedback"></div>
-      </form>
-      <div id="dagboekLijst"></div>
+    <button onclick="window.location.href='bijbeldagboek.html';">
+      📖 Mijn Bijbeldagboek openen
+    </button>
+    <div class="uitleg">
+      Uw bijbeldagboek is 100% privé en alleen zichtbaar voor uzelf.<br>
+      Klik op het boek om uw opdrachten en reflecties te bekijken of noteren.
     </div>
   </div>
+
   <script>
     // --- Beveiliging + parochienaam tonen ---
     if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "volwassene") {
@@ -371,63 +391,11 @@
         });
     }
 
-    // --- Dagboek: automatisch via e-mail (uit profiel) ---
-    let dagboekEmail = localStorage.getItem("userEmail");
-    if (!dagboekEmail) {
-      db.collection("parishes").doc(parochieId).collection("leden").doc(userId)
-        .get()
-        .then(doc => {
-          if (doc.exists) {
-            dagboekEmail = doc.data().email.toLowerCase();
-            localStorage.setItem("userEmail", dagboekEmail);
-            laadDagboekEntries();
-          }
-        });
-    }
-    function laadDagboekEntries() {
-      const lijst = document.getElementById("dagboekLijst");
-      lijst.innerHTML = "<em>Notities laden...</em>";
-      db.collection("dagboeken").doc(dagboekEmail).collection("entries")
-        .orderBy("datum", "desc")
-        .get().then(snapshot => {
-          if (snapshot.empty) { lijst.innerHTML = "<em>Nog geen notities in uw dagboek.</em>"; return;}
-          lijst.innerHTML = "";
-          snapshot.forEach(doc => {
-            const d = doc.data();
-            let html = `
-              <div class="dagboek-entry">
-                <div class="dagboek-entry-titel">${d.titel||"(geen titel)"}</div>
-                <div class="dagboek-entry-tekst">${d.tekst||""}</div>
-                <div class="dagboek-entry-meta">${d.datum && d.datum.toDate ? d.datum.toDate().toLocaleDateString() : ""}</div>
-              </div>`;
-            lijst.innerHTML += html;
-          });
-        });
-    }
-    document.getElementById("dagboekForm").onsubmit = function(e) {
-      e.preventDefault();
-      const titel = document.getElementById("dagboekTitel").value.trim();
-      const tekst = document.getElementById("dagboekTekst").value.trim();
-      if (titel.length < 2 || tekst.length < 2) return;
-      db.collection("dagboeken").doc(dagboekEmail).collection("entries")
-        .add({
-          titel, tekst,
-          datum: new Date()
-        }).then(() => {
-          document.getElementById("dagboekFormFeedback").textContent = "Notitie toegevoegd!";
-          document.getElementById("dagboekTitel").value = "";
-          document.getElementById("dagboekTekst").value = "";
-          laadDagboekEntries();
-          setTimeout(()=>{document.getElementById("dagboekFormFeedback").textContent="";},1200);
-        });
-    };
-
     // --- Alles laden bij start ---
     window.onload = function() {
       laadZoekertjes();
       laadKaarsjes();
       laadPrikbordPriester();
-      if (dagboekEmail) laadDagboekEntries();
     };
   </script>
 </body>
