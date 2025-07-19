@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Gebedsintenties - Priestermodus</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial, sans-serif; margin:0; padding:0; background-color:#f8f5e9;}
+    nav.menu {
+      background-color: #7a5f35;
+      padding: 12px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      justify-content: center;
+    }
+    nav.menu a {
+      color: #f8f5e9;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 16px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      transition: background-color 0.3s;
+    }
+    nav.menu a:hover { background-color: #5e4724; }
+    header {
+      background-color: #e6d6b8;
+      padding: 2rem 1rem 0.7rem 1rem;
+      text-align: center;
+    }
+    h1 { margin:0; font-size:2rem; color:#5d4c2f;}
+    #parochieLabel {
+      background: #fcf6e2;
+      color: #7a5f35;
+      padding: 10px 0 8px 0;
+      text-align: center;
+      font-weight: bold;
+      letter-spacing: 1px;
+      font-size: 1.08em;
+      box-shadow: 0 2px 8px #cbb96d44;
+      margin-bottom: 10px;
+    }
+    .uitlog-link {
+      color: #fff;
+      background: #9a2617;
+      padding: 6px 16px;
+      border-radius: 8px;
+      font-size: 1em;
+      text-decoration: none;
+      font-weight: bold;
+      margin-top: 14px;
+      margin-bottom: 12px;
+      margin-left: 6px;
+      transition: background 0.18s;
+      cursor: pointer;
+      border: none;
+      outline: none;
+      float: right;
+    }
+    .container { max-width: 780px; margin: 30px auto 40px auto; background:#fffef9; border-radius:14px; box-shadow:0 4px 16px #cbb96d32; padding:2rem; }
+    .kaarsjes-lijst { display: flex; flex-direction: column; gap: 1.6rem;}
+    .kaarsje-item {
+      display: flex;
+      gap: 1.5rem;
+      align-items: flex-start;
+      background: #f7ecd8;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px #d7cbb1aa;
+      padding: 1.1rem 1.5rem;
+      position: relative;
+    }
+    .kaarsje-icon {
+      width: 50px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      user-select: none;
+    }
+    .kaarsje-emoji {
+      font-size: 2.6rem;
+      display: block;
+    }
+    .vlam {
+      display: block;
+      width: 18px; height: 22px;
+      margin: 0 auto 0.18rem auto;
+      border-radius: 50% 50% 60% 60%;
+      background: #fff;
+      box-shadow: 0 0 5px #ffd70044;
+    }
+    .vlam.nieuw { background: #fff; }
+    .vlam.gelezen { background: #ffd700; }  /* geel */
+    .vlam.beantwoord { background: #ffd700; }
+    .kaars.beantwoord { background: #fffdd0 !important; }  /* cremekleur */
+    .kaars { width:22px; height:36px; background: #fff; border-radius: 7px 7px 9px 9px; margin:0 auto; box-shadow: 0 1px 3px #cfcfcf33;}
+    .kaars.gelezen { background: #fff; }
+    .kaars.beantwoord { background: #fffdd0 !important; }
+    .intentie-tekst { color: #5d4c2f; font-size: 1.07rem; margin-bottom:0.6rem; }
+    .status-label { font-size: 0.98em; margin-bottom: 0.4rem; color: #bba354;}
+    .antwoorden-blok { margin-top:0.5rem; }
+    .antwoord { background:#faf7e2; border-radius:7px; padding:8px 12px; color:#55440b; margin-bottom: 0.3rem;}
+    .kaarsje-actions { display: flex; gap: 1rem;}
+    .kaarsje-actions button {
+      background: #7a5f35;
+      color: #fff;
+      padding: 6px 14px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.99em;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.18s;
+    }
+    .kaarsje-actions button:hover { background: #a98647;}
+    @media (max-width:700px){
+      .container {padding:0.7rem;}
+      .kaarsjes-lijst{gap:0.8rem;}
+      .kaarsje-item{flex-direction:column;align-items:stretch;}
+      .kaarsje-actions{flex-wrap:wrap;}
+    }
+  </style>
+  <!-- FIREBASE SCRIPTS: Vul je eigen Firebase gegevens in -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <header>
+    <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
+    <h1 id="welkom-tekst">Gebedsintenties in uw parochie</h1>
+    <div id="parochieLabel"></div>
+  </header>
+  <nav class="menu">
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/startpagina.html">🏠 Startpagina</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/parochie.html">🛐 Mijn parochie</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/psalmen/psalmen.html">📜 Psalmen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/gebeden.html">🙏 Gebeden</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/catechese/catechese.html">📖 Catechese</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/heiligen/heiligen.html">👼 Heiligen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/layout.html">🧰 Bewerk parochie</a>
+  </nav>
+  <div class="container">
+    <div class="kaarsjes-lijst" id="kaarsjesLijst">
+      <!-- Gebedsintenties komen hier dynamisch -->
+    </div>
+  </div>
+  <script>
+    // Beveiliging
+    if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "priester") {
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    }
+    let parochieNaam = localStorage.getItem("ingelogdeParochie");
+    document.getElementById("parochieLabel").textContent = `U bent ingelogd in de parochie van ${parochieNaam}`;
+
+    // Uitloggen
+    document.getElementById("uitlogKnop").onclick = function() {
+      localStorage.removeItem("ingelogdeParochie");
+      localStorage.removeItem("ingelogdeParochieId");
+      localStorage.removeItem("modus");
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    };
+
+    // VUL HIER JE EIGEN FIREBASE CONFIGURATIE IN:
+    const firebaseConfig = {
+      apiKey: "JOUW_API_KEY",
+      authDomain: "JOUW_PROJECT.firebaseapp.com",
+      projectId: "JOUW_PROJECT",
+      storageBucket: "JOUW_PROJECT.appspot.com",
+      messagingSenderId: "JOUW_ID",
+      appId: "JOUW_APP_ID"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Laad alle gebedsintenties uit Firestore voor de huidige parochie
+    function laadGebedsintenties() {
+      const lijst = document.getElementById("kaarsjesLijst");
+      lijst.innerHTML = "<em>Gebedsintenties worden geladen...</em>";
+      const parochieId = localStorage.getItem("ingelogdeParochieId");
+      db.collection("parishes")
+        .doc(parochieId)
+        .collection("intentions")
+        .orderBy("createdAt", "desc")
+        .get()
+        .then(snapshot => {
+          if (snapshot.empty) {
+            lijst.innerHTML = "<em>Geen gebedsintenties gevonden.</em>";
+            return;
+          }
+          lijst.innerHTML = "";
+          snapshot.forEach(doc => {
+            const d = doc.data();
+            const status = d.status || "nieuw";
+            let vlamKlasse = "vlam nieuw";
+            let kaarsKlasse = "kaars";
+            if (status === "gelezen") vlamKlasse = "vlam gelezen";
+            if (status === "beantwoord") { 
+              vlamKlasse = "vlam beantwoord";
+              kaarsKlasse += " beantwoord";
+            }
+            let statusTekst = "Nieuw";
+            if (status === "gelezen") statusTekst = "Gelezen";
+            if (status === "beantwoord") statusTekst = "Beantwoord";
+            let html = `
+              <div class="kaarsje-item">
+                <div class="kaarsje-icon">
+                  <span class="${vlamKlasse}"></span>
+                  <span class="${kaarsKlasse}"></span>
+                </div>
+                <div style="flex:1">
+                  <div class="status-label"><strong>Status:</strong> ${statusTekst}</div>
+                  <div class="intentie-tekst">${d.text || "(geen tekst)"}</div>
+                  <div class="antwoorden-blok" id="antwoord-${doc.id}">
+                    ${d.answer ? `<div class="antwoord"><strong>Uw antwoord:</strong><br>${d.answer}</div>` : ""}
+                  </div>
+                  <div class="kaarsje-actions">`;
+            if (status === "nieuw") {
+              html += `<button onclick="markeerGelezen('${doc.id}')">Markeer als gelezen</button>`;
+            }
+            if (status !== "beantwoord") {
+              html += `<button onclick="antwoordSturen('${doc.id}', '${d.text.replace(/'/g,"&apos;").replace(/"/g,"&quot;")}')">Antwoord sturen</button>`;
+            }
+            html += `</div></div></div>`;
+            lijst.innerHTML += html;
+          });
+        });
+    }
+
+    // Kaarsje als gelezen markeren
+    function markeerGelezen(id) {
+      const parochieId = localStorage.getItem("ingelogdeParochieId");
+      db.collection("parishes")
+        .doc(parochieId)
+        .collection("intentions")
+        .doc(id)
+        .update({ status: "gelezen", readByPriest: true })
+        .then(() => laadGebedsintenties());
+    }
+
+    // Antwoord sturen (popup)
+    function antwoordSturen(id, origineleTekst) {
+      const antwoord = prompt(`Antwoord op deze intentie:\n"${origineleTekst}"`);
+      if (antwoord && antwoord.trim() !== "") {
+        const parochieId = localStorage.getItem("ingelogdeParochieId");
+        db.collection("parishes")
+          .doc(parochieId)
+          .collection("intentions")
+          .doc(id)
+          .update({ status: "beantwoord", answer: antwoord, answeredAt: new Date() })
+          .then(() => laadGebedsintenties());
+      }
+    }
+
+    window.laagGebedsintenties = laadGebedsintenties;
+    window.markeerGelezen = markeerGelezen;
+    window.antwoordSturen = antwoordSturen;
+
+    // Automatisch laden bij openen
+    window.onload = laadGebedsintenties;
+  </script>
+</body>
+</html>
