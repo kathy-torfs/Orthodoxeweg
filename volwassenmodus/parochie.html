@@ -2,44 +2,56 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>Mijn Parochie</title>
+  <title>Mijn Parochie – volwassenmodus</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { font-family: Arial, sans-serif; margin:0; padding:0; background-color:#f8f5e9;}
+    body {
+      background-color: #f5e9b8;
+      color: #6f4e1a;
+      font-family: Arial, sans-serif;
+      margin: 0; padding: 0;
+    }
+    .statusbar {
+      background: #7a5f35;
+      color: #fff;
+      padding: 10px 24px;
+      text-align: left;
+      font-size: 1.07em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
     nav.menu {
       background-color: #7a5f35;
-      padding: 12px 20px;
+      padding: 10px 15px;
       display: flex;
       flex-wrap: wrap;
-      gap: 14px;
+      gap: 12px;
       justify-content: center;
     }
     nav.menu a {
-      color: #f8f5e9;
+      color: #f5e9b8;
       text-decoration: none;
-      font-weight: bold;
+      font-weight: 600;
       font-size: 16px;
-      padding: 6px 14px;
+      padding: 6px 12px;
       border-radius: 8px;
       transition: background-color 0.3s;
     }
-    nav.menu a:hover { background-color: #5e4724; }
-    header {
-      background-color: #e6d6b8;
-      padding: 2rem 1rem 0.7rem 1rem;
-      text-align: center;
+    nav.menu a:hover {
+      background-color: #5d4726;
+      text-decoration: underline;
     }
-    h1 { margin:0; font-size:2rem; color:#5d4c2f;}
     #parochieLabel {
-      background: #fcf6e2;
-      color: #7a5f35;
-      padding: 10px 0 8px 0;
+      color: #fff;
+      background: #b42c25;
+      border-radius: 8px;
+      padding: 12px;
+      margin: 20px auto 0 auto;
+      max-width: 400px;
+      font-size: 1.13em;
       text-align: center;
-      font-weight: bold;
-      letter-spacing: 1px;
-      font-size: 1.08em;
-      box-shadow: 0 2px 8px #cbb96d44;
-      margin-bottom: 10px;
+      box-shadow: 0 4px 16px #d98f5d26;
     }
     .uitlog-link {
       color: #fff;
@@ -49,9 +61,10 @@
       font-size: 1em;
       text-decoration: none;
       font-weight: bold;
-      margin-top: 14px;
-      margin-bottom: 12px;
-      margin-left: 6px;
+      margin-left: 14px;
+      margin-right: 14px;
+      margin-top: 0;
+      margin-bottom: 0;
       transition: background 0.18s;
       cursor: pointer;
       border: none;
@@ -110,10 +123,6 @@
     .prikbord-item { background:#ece1c4; color:#57472b;}
     /* Dagboekje */
     .dagboekblok { margin:40px auto 30px auto; max-width:780px; background:#fffef9; border-radius:14px; box-shadow:0 4px 16px #cbb96d32; padding:2rem;}
-    .dagboek-login { text-align:center; margin-bottom:1.7rem; }
-    .dagboek-login input { width:240px; font-size:1.07rem; border-radius:8px; border:1.2px solid #dbc592; padding:8px; margin-bottom:0.6rem;}
-    .dagboek-login button { background:#7a5f35; color:#fff; font-weight:bold; border:none; border-radius:8px; padding:7px 22px; margin-left:7px; font-size:1em; cursor:pointer;}
-    .dagboek-login button:hover { background: #b09765;}
     .dagboek-entry { background:#f3e8d2; border-radius:9px; padding:1rem 1.1rem; margin-bottom:0.8rem; box-shadow:0 2px 6px #e7dbad22;}
     .dagboek-entry-titel { font-weight:bold; color:#7a5f35; margin-bottom:0.4rem;}
     .dagboek-entry-tekst { margin-bottom:0.4rem; }
@@ -130,21 +139,21 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <header>
-    <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
-    <h1 id="welkom-tekst">Welkom in uw parochie</h1>
-    <div id="parochieLabel"></div>
-  </header>
+  <!-- STATUSBALK + MENUBALK -->
+  <div class="statusbar">
+    <span>U bent ingelogd in: <span id="parochieNaam">...</span></span>
+    <button class="uitlog-link" id="uitlogKnop">Uitloggen</button>
+  </div>
   <nav class="menu">
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html">🏠 Startpagina</a>
-    <a href="parochie.html">🛐 Mijn parochie</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html">🏠 Home</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/gebeden.html">🙏 Gebeden</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/heiligen/heiligen.html">👼 Heiligen</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/contact.html">🌐 Contact</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html">🧰 Mijn profiel</a>
   </nav>
+
   <div class="dashboard-grid">
     <!-- Zoekertjes links -->
     <div class="dashboard-col" id="prikbordLinks">
@@ -176,12 +185,7 @@
   <!-- Dagboekblok onderaan -->
   <div class="dagboekblok">
     <div class="col-titel">Mijn persoonlijk dagboekje</div>
-    <div class="dagboek-login" id="dagboekLoginBlok">
-      <input id="dagboekEmail" type="email" placeholder="E-mailadres voor uw dagboek" required>
-      <button onclick="dagboekLogin()">Open mijn dagboek</button>
-      <div id="dagboekLoginFeedback"></div>
-    </div>
-    <div id="dagboekContent" style="display:none;">
+    <div id="dagboekContent">
       <form class="dagboek-form" id="dagboekForm">
         <input id="dagboekTitel" type="text" maxlength="40" placeholder="Titel" required>
         <textarea id="dagboekTekst" maxlength="600" placeholder="Uw notitie..." required></textarea>
@@ -192,17 +196,16 @@
     </div>
   </div>
   <script>
-    // Beveiliging
+    // --- Beveiliging + parochienaam tonen ---
     if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "volwassene") {
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     }
-    let parochieNaam = localStorage.getItem("ingelogdeParochie");
-    document.getElementById("parochieLabel").textContent = `U bent ingelogd in de parochie van ${parochieNaam}`;
+    document.getElementById("parochieNaam").textContent = localStorage.getItem("ingelogdeParochie") || "[niet ingelogd]";
     document.getElementById("uitlogKnop").onclick = function() {
       localStorage.clear();
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     };
-    // FIREBASE INIT
+    // --- FIREBASE INIT ---
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -211,13 +214,12 @@
       messagingSenderId: "408582263618",
       appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
     };
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
-    // Helper
     const parochieId = localStorage.getItem("ingelogdeParochieId");
     const userId = localStorage.getItem("userId");
 
-    // ------------------- ZOEKERTJES (prikbord links) ------------------
+    // --- Zoekertjes (prikbord links) ---
     function laadZoekertjes() {
       const lijst = document.getElementById("zoekertjesLijst");
       lijst.innerHTML = "<em>Zoekertjes laden...</em>";
@@ -291,7 +293,7 @@
       return false;
     }
 
-    // ------------------- ZANDTAFEL (mijn kaarsjes) ------------------
+    // --- Zandtafel (mijn kaarsjes) ---
     function laadKaarsjes() {
       const lijst = document.getElementById("kaarsjesLijst");
       lijst.innerHTML = "<em>Gebedsintenties laden...</em>";
@@ -349,7 +351,7 @@
         });
     };
 
-    // ------------------- PRIKBORD PRIESTER (rechts) ------------------
+    // --- Prikbord priester (rechts) ---
     function laadPrikbordPriester() {
       const lijst = document.getElementById("prikbordPriesterLijst");
       lijst.innerHTML = "<em>Prikbord laden...</em>";
@@ -371,20 +373,19 @@
         });
     }
 
-    // --------------- DAGBOEK: login en entries (volledig privé, per e-mail) ---------------
-    let dagboekEmail = null;
-    function dagboekLogin() {
-      const emailVeld = document.getElementById("dagboekEmail");
-      const email = emailVeld.value.trim().toLowerCase();
-      if (!email.match(/^[^@]+@[^@]+\.[^@]+$/)) {
-        document.getElementById("dagboekLoginFeedback").textContent = "Geef een geldig e-mailadres op.";
-        return;
-      }
-      dagboekEmail = email;
-      document.getElementById("dagboekLoginFeedback").textContent = "Dagboek laden...";
-      document.getElementById("dagboekLoginBlok").style.display = "none";
-      document.getElementById("dagboekContent").style.display = "";
-      laadDagboekEntries();
+    // --- Dagboek: automatisch via e-mail (uit profiel) ---
+    let dagboekEmail = localStorage.getItem("userEmail");
+    if (!dagboekEmail) {
+      // Probeer uit leden-profiel te halen (als het daar nog niet staat)
+      db.collection("parishes").doc(parochieId).collection("leden").doc(userId)
+        .get()
+        .then(doc => {
+          if (doc.exists) {
+            dagboekEmail = doc.data().email.toLowerCase();
+            localStorage.setItem("userEmail", dagboekEmail);
+            laadDagboekEntries();
+          }
+        });
     }
     function laadDagboekEntries() {
       const lijst = document.getElementById("dagboekLijst");
@@ -425,11 +426,12 @@
         });
     };
 
-    // Automatisch alles laden
+    // --- Alles laden bij start ---
     window.onload = function() {
       laadZoekertjes();
       laadKaarsjes();
       laadPrikbordPriester();
+      if (dagboekEmail) laadDagboekEntries();
     };
   </script>
 </body>
