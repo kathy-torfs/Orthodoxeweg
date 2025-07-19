@@ -76,45 +76,45 @@
     let dagboekEmail = null;
     let opdrachten = [];
     let index = 0;
-    let loginOk = false;
 
     document.getElementById("dagboekLoginForm").onsubmit = function(e) {
       e.preventDefault();
       document.getElementById("loginFeedback").textContent = "";
       dagboekEmail = document.getElementById("dagboekEmail").value.trim().toLowerCase();
       const wachtwoord = document.getElementById("dagboekWachtwoord").value.trim();
-      let found = false;
+
       db.collection("parochies").get().then(snapshot => {
         if (snapshot.empty) {
           document.getElementById("loginFeedback").textContent = "Geen parochies gevonden.";
           return;
         }
+
         let checks = [];
+        let found = false;
+
         snapshot.forEach(parochieDoc => {
           const parochieIdTest = parochieDoc.id;
           const ledenRef = db.collection("parochies").doc(parochieIdTest).collection("leden");
           checks.push(
             ledenRef.where("email", "==", dagboekEmail).limit(1).get().then(ledenSnap => {
               if (!ledenSnap.empty && !found) {
-                found = true;
                 const lid = ledenSnap.docs[0].data();
-                userId = ledenSnap.docs[0].id;
-                parochieId = parochieIdTest;
                 if ((lid.wachtwoord || "") === wachtwoord) {
+                  found = true;
+                  userId = ledenSnap.docs[0].id;
+                  parochieId = parochieIdTest;
                   document.getElementById("loginblok").style.display = "none";
                   document.getElementById("boekContainer").style.display = "block";
-                  loginOk = true;
                   laadOpdrachten();
-                } else {
-                  document.getElementById("loginFeedback").textContent = "Onjuist wachtwoord.";
                 }
               }
             })
           );
         });
+
         Promise.all(checks).then(()=>{
           if (!found) {
-            document.getElementById("loginFeedback").textContent = "Geen lid gevonden met dit e-mailadres.";
+            document.getElementById("loginFeedback").textContent = "Geen lid gevonden met dit e-mailadres of fout wachtwoord.";
           }
         });
       });
