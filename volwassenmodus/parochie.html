@@ -1,1 +1,270 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Mijn Parochie</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial, sans-serif; margin:0; padding:0; background-color:#f8f5e9;}
+    nav.menu {
+      background-color: #7a5f35;
+      padding: 12px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      justify-content: center;
+    }
+    nav.menu a {
+      color: #f8f5e9;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 16px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      transition: background-color 0.3s;
+    }
+    nav.menu a:hover { background-color: #5e4724; }
+    header {
+      background-color: #e6d6b8;
+      padding: 2rem 1rem 0.7rem 1rem;
+      text-align: center;
+    }
+    h1 { margin:0; font-size:2rem; color:#5d4c2f;}
+    #parochieLabel {
+      background: #fcf6e2;
+      color: #7a5f35;
+      padding: 10px 0 8px 0;
+      text-align: center;
+      font-weight: bold;
+      letter-spacing: 1px;
+      font-size: 1.08em;
+      box-shadow: 0 2px 8px #cbb96d44;
+      margin-bottom: 10px;
+    }
+    .uitlog-link {
+      color: #fff;
+      background: #9a2617;
+      padding: 6px 16px;
+      border-radius: 8px;
+      font-size: 1em;
+      text-decoration: none;
+      font-weight: bold;
+      margin-top: 14px;
+      margin-bottom: 12px;
+      margin-left: 6px;
+      transition: background 0.18s;
+      cursor: pointer;
+      border: none;
+      outline: none;
+      float: right;
+    }
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr 1fr;
+      gap: 2rem;
+      margin: 30px auto 20px auto;
+      max-width: 1200px;
+      padding: 0 1rem;
+    }
+    .dashboard-col {
+      background:#fffef9;
+      border-radius:14px;
+      box-shadow:0 4px 16px #cbb96d32;
+      padding:1.3rem 1rem 1.2rem 1rem;
+      min-height: 360px;
+      display:flex;
+      flex-direction:column;
+      gap:1.2rem;
+    }
+    .col-titel { color:#7a5f35; font-weight:bold; font-size:1.15em; margin-bottom:0.6rem;}
+    /* Zoekertjes/prikbord */
+    .zoekertje, .prikbord-item {
+      background:#f5efdd; border-radius:10px; padding:1rem 0.9rem 0.7rem 0.9rem; margin-bottom:0.8rem; box-shadow:0 2px 6px #e7dbad22;
+      position:relative;
+    }
+    .zoekertje-titel { font-weight:bold; color:#6a5423; margin-bottom:0.4rem;}
+    .zoekertje-tekst { margin-bottom:0.5rem; }
+    .zoekertje-meta { font-size:0.95em; color:#a88a38;}
+    .zoekertje-reacties { margin:0.5rem 0 0.1rem 1.3rem; font-size:0.98em;}
+    .zoekertje-reactie { margin-bottom:0.3rem; padding-left:0.2rem;}
+    .zoekertje-form input, .zoekertje-form textarea { width:98%; border-radius:8px; border:1.2px solid #dbc592; padding:7px; margin-bottom:0.7rem;}
+    .zoekertje-form button { background:#7a5f35; color:#fff; font-weight:bold; border:none; border-radius:8px; padding:7px 19px; margin-top:0.2rem; font-size:0.99em; cursor:pointer;}
+    .zoekertje-form button:hover { background: #b09765;}
+    /* Zandtafel (kaarsjes) */
+    .kaarsjes-lijst { display: flex; flex-direction: column; gap: 1.4rem;}
+    .kaarsje-item {
+      display: flex; gap: 1.3rem; align-items: flex-start;
+      background: #f7ecd8; border-radius: 10px; box-shadow: 0 2px 6px #d7cbb1aa;
+      padding: 1rem 1.2rem;
+    }
+    .kaarsje-icon { width: 46px; display:flex; flex-direction:column; align-items:center; user-select:none;}
+    .vlam { display:block; width:16px; height:19px; margin:0 auto 0.13rem auto; border-radius:50% 50% 60% 60%; background:#fff; box-shadow: 0 0 4px #ffd70044;}
+    .vlam.nieuw { background:#fff;}
+    .vlam.gelezen, .vlam.beantwoord { background: #ffd700; }
+    .kaars { width:18px; height:30px; background:#fff; border-radius: 6px 6px 8px 8px; margin:0 auto; box-shadow: 0 1px 3px #cfcfcf33;}
+    .kaars.beantwoord { background: #fffdd0 !important;}
+    .intentie-tekst { color: #5d4c2f; font-size: 1.01rem; margin-bottom:0.4rem;}
+    .status-label { font-size: 0.98em; margin-bottom: 0.3rem; color: #bba354;}
+    .antwoord { background:#faf7e2; border-radius:7px; padding:7px 11px; color:#55440b; margin-bottom: 0.2rem;}
+    /* Prikbord priester */
+    .prikbord-item { background:#ece1c4; color:#57472b;}
+    /* Dagboekje */
+    .dagboekblok { margin:40px auto 30px auto; max-width:780px; background:#fffef9; border-radius:14px; box-shadow:0 4px 16px #cbb96d32; padding:2rem;}
+    .dagboek-login { text-align:center; margin-bottom:1.7rem; }
+    .dagboek-login input { width:240px; font-size:1.07rem; border-radius:8px; border:1.2px solid #dbc592; padding:8px; margin-bottom:0.6rem;}
+    .dagboek-login button { background:#7a5f35; color:#fff; font-weight:bold; border:none; border-radius:8px; padding:7px 22px; margin-left:7px; font-size:1em; cursor:pointer;}
+    .dagboek-login button:hover { background: #b09765;}
+    .dagboek-entry { background:#f3e8d2; border-radius:9px; padding:1rem 1.1rem; margin-bottom:0.8rem; box-shadow:0 2px 6px #e7dbad22;}
+    .dagboek-entry-titel { font-weight:bold; color:#7a5f35; margin-bottom:0.4rem;}
+    .dagboek-entry-tekst { margin-bottom:0.4rem; }
+    .dagboek-entry-meta { font-size:0.96em; color:#ab8f3d; }
+    .dagboek-form input, .dagboek-form textarea { width:97%; border-radius:8px; border:1.2px solid #dbc592; padding:7px; margin-bottom:0.7rem;}
+    .dagboek-form button { background:#7a5f35; color:#fff; font-weight:bold; border:none; border-radius:8px; padding:7px 20px; margin-top:0.2rem; font-size:0.99em; cursor:pointer;}
+    .dagboek-form button:hover { background: #b09765;}
+    @media (max-width:900px) {
+      .dashboard-grid {grid-template-columns:1fr;}
+      .dashboard-col {min-width:0; margin-bottom:2rem;}
+    }
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <header>
+    <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
+    <h1 id="welkom-tekst">Welkom in uw parochie</h1>
+    <div id="parochieLabel"></div>
+  </header>
+  <nav class="menu">
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html">🏠 Startpagina</a>
+    <a href="parochie.html">🛐 Mijn parochie</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/gebeden.html">🙏 Gebeden</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/heiligen/heiligen.html">👼 Heiligen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/contact.html">🌐 Contact</a>
+  </nav>
+  <div class="dashboard-grid">
+    <!-- Zoekertjes links -->
+    <div class="dashboard-col" id="prikbordLinks">
+      <div class="col-titel">Prikbord Zoekertjes</div>
+      <form class="zoekertje-form" id="zoekertjeForm">
+        <input id="zoekertjeTitel" type="text" maxlength="35" placeholder="Titel zoekertje" required>
+        <textarea id="zoekertjeTekst" maxlength="200" placeholder="Uw bericht (max. 200 tekens)" required></textarea>
+        <button type="submit">Zoekertje plaatsen</button>
+        <div id="zoekertjeFormFeedback"></div>
+      </form>
+      <div id="zoekertjesLijst"></div>
+    </div>
+    <!-- Zandtafel midden -->
+    <div class="dashboard-col" id="zandtafelMidden">
+      <div class="col-titel">Zandtafel - Mijn kaarsjes</div>
+      <form class="zoekertje-form" id="kaarsjeForm">
+        <textarea id="kaarsjeTekst" maxlength="180" placeholder="Nieuwe gebedsintentie..." required></textarea>
+        <button type="submit">Kaarsje aansteken</button>
+        <div id="kaarsjeFormFeedback"></div>
+      </form>
+      <div class="kaarsjes-lijst" id="kaarsjesLijst"></div>
+    </div>
+    <!-- Prikbord priester rechts -->
+    <div class="dashboard-col" id="prikbordRechts">
+      <div class="col-titel">Prikbord Priester</div>
+      <div id="prikbordPriesterLijst"></div>
+    </div>
+  </div>
+  <!-- Dagboekblok onderaan -->
+  <div class="dagboekblok">
+    <div class="col-titel">Mijn persoonlijk dagboekje</div>
+    <div class="dagboek-login" id="dagboekLoginBlok">
+      <input id="dagboekEmail" type="email" placeholder="E-mailadres voor uw dagboek" required>
+      <button onclick="dagboekLogin()">Open mijn dagboek</button>
+      <div id="dagboekLoginFeedback"></div>
+    </div>
+    <div id="dagboekContent" style="display:none;">
+      <form class="dagboek-form" id="dagboekForm">
+        <input id="dagboekTitel" type="text" maxlength="40" placeholder="Titel" required>
+        <textarea id="dagboekTekst" maxlength="600" placeholder="Uw notitie..." required></textarea>
+        <button type="submit">Toevoegen</button>
+        <div id="dagboekFormFeedback"></div>
+      </form>
+      <div id="dagboekLijst"></div>
+    </div>
+  </div>
+  <script>
+    // Beveiliging
+    if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "volwassene") {
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    }
+    let parochieNaam = localStorage.getItem("ingelogdeParochie");
+    document.getElementById("parochieLabel").textContent = `U bent ingelogd in de parochie van ${parochieNaam}`;
+    document.getElementById("uitlogKnop").onclick = function() {
+      localStorage.clear();
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    };
+    // FIREBASE INIT
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    // Helper
+    const parochieId = localStorage.getItem("ingelogdeParochieId");
+    const userId = localStorage.getItem("userId");
+
+    // ------------------- ZOEKERTJES (prikbord links) ------------------
+    function laadZoekertjes() {
+      const lijst = document.getElementById("zoekertjesLijst");
+      lijst.innerHTML = "<em>Zoekertjes laden...</em>";
+      db.collection("parishes").doc(parochieId).collection("zoekertjes")
+        .orderBy("createdAt", "desc")
+        .get().then(snapshot => {
+          if (snapshot.empty) { lijst.innerHTML = "<em>Geen zoekertjes gevonden.</em>"; return;}
+          lijst.innerHTML = "";
+          snapshot.forEach(doc => {
+            const d = doc.data();
+            let reactiesHTML = "";
+            if (d.replies && d.replies.length) {
+              d.replies.forEach(r => {
+                reactiesHTML += `<div class="zoekertje-reactie"><b>${r.naam||"Onbekend"}:</b> ${r.tekst}</div>`;
+              });
+            }
+            let html = `
+              <div class="zoekertje">
+                <div class="zoekertje-titel">${d.titel||""}</div>
+                <div class="zoekertje-tekst">${d.tekst||""}</div>
+                <div class="zoekertje-meta">Geplaatst op ${d.createdAt && d.createdAt.toDate ? d.createdAt.toDate().toLocaleDateString() : ""}</div>
+                <div class="zoekertje-reacties">${reactiesHTML}</div>
+                <form onsubmit="return reageerZoekertje(event,'${doc.id}');">
+                  <input type="text" id="reactieTekst-${doc.id}" maxlength="140" placeholder="Reageer op dit zoekertje" required>
+                  <button type="submit">Reageren</button>
+                </form>
+              </div>`;
+            lijst.innerHTML += html;
+          });
+        });
+    }
+    // Nieuw zoekertje plaatsen
+    document.getElementById("zoekertjeForm").onsubmit = function(e) {
+      e.preventDefault();
+      const titel = document.getElementById("zoekertjeTitel").value.trim();
+      const tekst = document.getElementById("zoekertjeTekst").value.trim();
+      if (titel.length < 2 || tekst.length < 2) return;
+      db.collection("parishes").doc(parochieId).collection("zoekertjes")
+        .add({
+          titel, tekst,
+          userId: userId,
+          naam: localStorage.getItem("userNaam") || "anoniem",
+          createdAt: new Date(),
+          replies: []
+        }).then(() => {
+          document.getElementById("zoekertjeFormFeedback").textContent = "Zoekertje geplaatst!";
+          document.getElementById("zoekertjeTitel").value = "";
+          document.getElementById("zoekertjeTekst").value = "";
+          laad
 
