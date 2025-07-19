@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Bijbeldagboek</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background: #faf5e1; font-family: 'Georgia', serif; margin:0; }
+    .boek-container {
+      max-width: 560px; margin: 60px auto; background: #fffdf7;
+      border-radius: 20px; box-shadow: 0 8px 48px #ccb65b25;
+      padding: 38px 28px 28px 28px;
+      position: relative;
+      min-height: 480px;
+    }
+    h1 { text-align: center; color: #7a5f35; font-size: 2em; margin-bottom: 0.8em;}
+    .hoofdstuk-titel { font-size:1.25em; font-weight:bold; color:#7a5f35; margin-bottom: 0.4em;}
+    .hoofdstuk-uitleg { margin-bottom: 1.3em; font-size: 1.07em; color: #4d3c1d;}
+    .reflectieblok { margin-top: 1em; }
+    textarea { width:98%; min-height: 84px; padding: 9px; border-radius: 10px; border:1.3px solid #dbc592; font-size:1em;}
+    .knoppenboek { display: flex; justify-content: space-between; margin-top: 1.4em;}
+    button { background: #7a5f35; color:#fff; padding:10px 25px; border-radius:10px; border:none; font-size:1em; cursor:pointer; font-family:inherit;}
+    button:disabled { opacity:0.7; background: #ccb58d;}
+    .boeknr { text-align:center; font-size:0.97em; color:#b29444; margin-top:1.3em;}
+    .opslaan-feedback {color:#a68415; margin-top:0.4em; text-align:left;}
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <div class="boek-container">
+    <h1>📖 Mijn bijbeldagboek</h1>
+    <div class="hoofdstuk-titel" id="hoofdstukTitel"></div>
+    <div class="hoofdstuk-uitleg" id="hoofdstukUitleg"></div>
+    <form id="reflectieForm" class="reflectieblok">
+      <label for="reflectieTekst"><b>Mijn reflectie:</b></label><br>
+      <textarea id="reflectieTekst" maxlength="600" placeholder="Schrijf hier jouw ervaring of gedachte..."></textarea>
+      <div class="opslaan-feedback" id="reflectieFormFeedback"></div>
+      <button type="submit" style="margin-top:0.5em;">Bewaren</button>
+    </form>
+    <div class="knoppenboek">
+      <button id="vorigeBtn">&laquo; Vorige</button>
+      <button id="volgendeBtn">Volgende &raquo;</button>
+    </div>
+    <div class="boeknr" id="boeknr"></div>
+  </div>
+  <script>
+    // --- Firebase Init ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
+    };
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const db = firebase.firestore();
+
+    // --- Gebruikers-ID ophalen (vervang indien nodig!) ---
+    let userId = localStorage.getItem("userId") || "testuser123"; // << Vervang bij echte login!
+
+    // --- Opdrachten ophalen ---
+    let opdrachten = [];
+    let index = 0;
+
+    function laadOpdrachten() {
+      db.collection("bijbeldagboek_opdrachten").orderBy("datum", "asc").get()
+      .then(snapshot => {
+        opdrachten = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+        if (opdrachten.length === 0) {
+          document.getElementById("hoofdstukTitel").textContent = "Geen opdrachten gevonden.";
+          document.getElementById("hoofdstukUitleg").textContent = "";
+          document.getElementById("reflectieForm").style.display = "none";
+          document.getElementById("vorigeBtn").disabled = true;
+          document.getElementById("volgendeBtn").disabled = true;
+          return;
+        }
+        index = 0;
+        toonOpdracht(index);
+      });
+    }
+
+    function toonOpdracht(i) {
+      const opdracht = opdrachten[i];
+      document.getElementById("hoofdstukTitel").textContent = opdracht.titel || "Opdracht";
+      document.getElementById("hoofdstukUitleg").innerHTML = opdracht.uitleg || "";
+      document.getElementById("boeknr").textContent = `Opdracht ${i+1} van ${opdrachten.length}`;
+      // Reflectie ophalen
+      db.collection("persoonlijk_dagboek").doc(userId)
+        .collection("entries").doc(opdracht.id)
+        .get().then(doc => {
+          document.getElementById("reflectieTekst").value = doc.exists ? (doc.data().tekst || "") : "";
+        });
+      document.getElementById("reflectieFormFeedback").textContent = "";
+      // Knoppen updaten
+      document.getElementById("vorigeBtn").disabled = (i === 0);
+      document.getElementById("volgendeBtn").disabled = (i === opdrachten.length-1);
+    }
+
+    document.getElementById("vorigeBtn").onclick = function() {
+      if (index > 0) {
+        index--; toonOpdracht(index);
+      }
+    };
+    document.getElementById("volgendeBtn").onclick = function() {
+      if (index < opdrachten.length-1) {
+        index++; toonOpdracht(index);
+      }
+    };
+
+    document.getElementById("reflectieForm").onsubmit = function(e) {
+      e.preventDefault();
+      if (opdrachten.length === 0) return;
+      const opdrachtId = opdrachten[index].id;
+      const tekst = document.getElementById("reflectieTekst").value.trim();
+      db.collection("persoonlijk_dagboek").doc(userId)
+        .collection("entries").doc(opdrachtId)
+        .set({
+          tekst,
+          updatedAt: new Date()
+        }).then(() => {
+          document.getElementById("reflectieFormFeedback").textContent = "Opgeslagen!";
+          setTimeout(()=>{document.getElementById("reflectieFormFeedback").textContent="";},1200);
+        });
+    };
+
+    // --- Start ---
+    laadOpdrachten();
+  </script>
+</body>
+</html>
