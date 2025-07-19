@@ -42,17 +42,6 @@
       background-color: #5d4726;
       text-decoration: underline;
     }
-    #parochieLabel {
-      color: #fff;
-      background: #b42c25;
-      border-radius: 8px;
-      padding: 12px;
-      margin: 20px auto 0 auto;
-      max-width: 400px;
-      font-size: 1.13em;
-      text-align: center;
-      box-shadow: 0 4px 16px #d98f5d26;
-    }
     .uitlog-link {
       color: #fff;
       background: #9a2617;
@@ -63,13 +52,10 @@
       font-weight: bold;
       margin-left: 14px;
       margin-right: 14px;
-      margin-top: 0;
-      margin-bottom: 0;
       transition: background 0.18s;
       cursor: pointer;
       border: none;
       outline: none;
-      float: right;
     }
     .dashboard-grid {
       display: grid;
@@ -90,7 +76,6 @@
       gap:1.2rem;
     }
     .col-titel { color:#7a5f35; font-weight:bold; font-size:1.15em; margin-bottom:0.6rem;}
-    /* Zoekertjes/prikbord */
     .zoekertje, .prikbord-item {
       background:#f5efdd; border-radius:10px; padding:1rem 0.9rem 0.7rem 0.9rem; margin-bottom:0.8rem; box-shadow:0 2px 6px #e7dbad22;
       position:relative;
@@ -100,7 +85,7 @@
     .zoekertje-meta { font-size:0.95em; color:#a88a38;}
     .zoekertje-reacties { margin:0.5rem 0 0.1rem 1.3rem; font-size:0.98em;}
     .zoekertje-reactie { margin-bottom:0.3rem; padding-left:0.2rem;}
-    .zoekertje-form input, .zoekertje-form textarea { width:98%; border-radius:8px; border:1.2px solid #dbc592; padding:7px; margin-bottom:0.7rem;}
+    .zoekertje-form input, .zoekertje-form textarea, .zoekertje-form select { width:98%; border-radius:8px; border:1.2px solid #dbc592; padding:7px; margin-bottom:0.7rem;}
     .zoekertje-form button { background:#7a5f35; color:#fff; font-weight:bold; border:none; border-radius:8px; padding:7px 19px; margin-top:0.2rem; font-size:0.99em; cursor:pointer;}
     .zoekertje-form button:hover { background: #b09765;}
     /* Zandtafel (kaarsjes) */
@@ -119,9 +104,7 @@
     .intentie-tekst { color: #5d4c2f; font-size: 1.01rem; margin-bottom:0.4rem;}
     .status-label { font-size: 0.98em; margin-bottom: 0.3rem; color: #bba354;}
     .antwoord { background:#faf7e2; border-radius:7px; padding:7px 11px; color:#55440b; margin-bottom: 0.2rem;}
-    /* Prikbord priester */
     .prikbord-item { background:#ece1c4; color:#57472b;}
-    /* Dagboekje */
     .dagboekblok { margin:40px auto 30px auto; max-width:780px; background:#fffef9; border-radius:14px; box-shadow:0 4px 16px #cbb96d32; padding:2rem;}
     .dagboek-entry { background:#f3e8d2; border-radius:9px; padding:1rem 1.1rem; margin-bottom:0.8rem; box-shadow:0 2px 6px #e7dbad22;}
     .dagboek-entry-titel { font-weight:bold; color:#7a5f35; margin-bottom:0.4rem;}
@@ -166,11 +149,20 @@
       </form>
       <div id="zoekertjesLijst"></div>
     </div>
-    <!-- Zandtafel midden -->
+    <!-- Zandtafel midden: KAARSJES -->
     <div class="dashboard-col" id="zandtafelMidden">
-      <div class="col-titel">Zandtafel - Mijn kaarsjes</div>
+      <div class="col-titel">Zandtafel – Mijn kaarsjes</div>
       <form class="zoekertje-form" id="kaarsjeForm">
-        <textarea id="kaarsjeTekst" maxlength="180" placeholder="Nieuwe gebedsintentie..." required></textarea>
+        <textarea id="kaarsjeTekst" maxlength="180" placeholder="Uw gebedsintentie..." required></textarea>
+        <input id="voorWie" type="text" maxlength="40" placeholder="Voor wie? (optioneel)">
+        <select id="categorie">
+          <option value="">Categorie (optioneel)</option>
+          <option value="ziekte">Ziekte</option>
+          <option value="dankbaarheid">Dankbaarheid</option>
+          <option value="familie">Familie</option>
+          <option value="overledene">Overledene</option>
+          <option value="anders">Anders</option>
+        </select>
         <button type="submit">Kaarsje aansteken</button>
         <div id="kaarsjeFormFeedback"></div>
       </form>
@@ -251,7 +243,6 @@
           });
         });
     }
-    // Nieuw zoekertje plaatsen
     document.getElementById("zoekertjeForm").onsubmit = function(e) {
       e.preventDefault();
       const titel = document.getElementById("zoekertjeTitel").value.trim();
@@ -272,7 +263,6 @@
           setTimeout(()=>{document.getElementById("zoekertjeFormFeedback").textContent="";},1500);
         });
     };
-    // Reageren op zoekertje
     function reageerZoekertje(e, id) {
       e.preventDefault();
       const veld = document.getElementById(`reactieTekst-${id}`);
@@ -293,11 +283,37 @@
       return false;
     }
 
-    // --- Zandtafel (mijn kaarsjes) ---
+    // --- KAARSJES (zandtafel) ---
+    document.getElementById("kaarsjeForm").onsubmit = function(e) {
+      e.preventDefault();
+      const tekst = document.getElementById("kaarsjeTekst").value.trim();
+      const voorWie = document.getElementById("voorWie").value.trim();
+      const categorie = document.getElementById("categorie").value;
+      if (!tekst) return;
+
+      const data = {
+        userId: userId,
+        text: tekst,
+        createdAt: new Date(),
+        status: "nieuw"
+      };
+      if (voorWie) data.voorWie = voorWie;
+      if (categorie) data.categorie = categorie;
+
+      db.collection("parishes").doc(parochieId).collection("kaarsjes")
+        .add(data).then(() => {
+          document.getElementById("kaarsjeFormFeedback").textContent = "Kaarsje geplaatst!";
+          document.getElementById("kaarsjeTekst").value = "";
+          document.getElementById("voorWie").value = "";
+          document.getElementById("categorie").selectedIndex = 0;
+          laadKaarsjes();
+          setTimeout(()=>{document.getElementById("kaarsjeFormFeedback").textContent="";},1200);
+        });
+    };
     function laadKaarsjes() {
       const lijst = document.getElementById("kaarsjesLijst");
       lijst.innerHTML = "<em>Gebedsintenties laden...</em>";
-      db.collection("parishes").doc(parochieId).collection("intentions")
+      db.collection("parishes").doc(parochieId).collection("kaarsjes")
         .where("userId", "==", userId)
         .orderBy("createdAt", "desc")
         .get()
@@ -322,34 +338,16 @@
                 </div>
                 <div style="flex:1">
                   <div class="status-label"><strong>Status:</strong> ${statusTekst}</div>
-                  <div class="intentie-tekst">${d.text || "(geen tekst)"}</div>
-                  <div>
-                    ${d.answer ? `<div class="antwoord"><strong>Antwoord van de priester:</strong><br>${d.answer}</div>` : ""}
-                  </div>
+                  <div class="intentie-tekst"><strong>Intentie:</strong> ${d.text || "(geen tekst)"}</div>
+                  ${d.voorWie ? `<div class="intentie-tekst"><strong>Voor:</strong> ${d.voorWie}</div>` : ""}
+                  ${d.categorie ? `<div class="intentie-tekst"><strong>Categorie:</strong> ${d.categorie}</div>` : ""}
+                  ${d.answer ? `<div class="antwoord"><strong>Antwoord van de priester:</strong><br>${d.answer}</div>` : ""}
                 </div>
               </div>`;
             lijst.innerHTML += html;
           });
         });
     }
-    // Nieuw kaarsje plaatsen
-    document.getElementById("kaarsjeForm").onsubmit = function(e) {
-      e.preventDefault();
-      const tekst = document.getElementById("kaarsjeTekst").value.trim();
-      if (!tekst) return;
-      db.collection("parishes").doc(parochieId).collection("intentions")
-        .add({
-          userId: userId,
-          text: tekst,
-          createdAt: new Date(),
-          status: "nieuw"
-        }).then(() => {
-          document.getElementById("kaarsjeFormFeedback").textContent = "Kaarsje geplaatst!";
-          document.getElementById("kaarsjeTekst").value = "";
-          laadKaarsjes();
-          setTimeout(()=>{document.getElementById("kaarsjeFormFeedback").textContent="";},1200);
-        });
-    };
 
     // --- Prikbord priester (rechts) ---
     function laadPrikbordPriester() {
@@ -376,7 +374,6 @@
     // --- Dagboek: automatisch via e-mail (uit profiel) ---
     let dagboekEmail = localStorage.getItem("userEmail");
     if (!dagboekEmail) {
-      // Probeer uit leden-profiel te halen (als het daar nog niet staat)
       db.collection("parishes").doc(parochieId).collection("leden").doc(userId)
         .get()
         .then(doc => {
@@ -407,7 +404,6 @@
           });
         });
     }
-    // Notitie toevoegen aan dagboek
     document.getElementById("dagboekForm").onsubmit = function(e) {
       e.preventDefault();
       const titel = document.getElementById("dagboekTitel").value.trim();
