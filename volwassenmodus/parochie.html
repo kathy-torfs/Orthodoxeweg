@@ -114,7 +114,6 @@
     .postit-pink    { background: #ffbae3; color: #502232; border: 2px solid #e371bc; }
     .postit-green   { background: #d3ffbc; color: #265024; border: 2px solid #79c663; }
     .postit-orange  { background: #ffe2b7; color: #77501e; border: 2px solid #ffc75b; }
-
     .zandtafel-blok {
       flex: 1 1 350px;
       min-width: 340px;
@@ -154,7 +153,6 @@
       z-index: 11;
     }
     .kaars-svg.visible { opacity: 1; filter: drop-shadow(0 1px 4px #b48726aa); }
-
     .boekblok {
       width: 180px;
       margin: 50px auto 0 auto;
@@ -210,18 +208,19 @@
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html">🧰 Mijn profiel</a>
   </nav>
+
   <!-- Borden & zandtafel layout -->
   <div class="borden-raster">
-    <!-- Prikbord PAROCHIEnieuws (links) -->
+    <!-- Prikbord links -->
     <div class="bord-blok" id="bordLinks">
-      <img src="/Orthodoxeweg/images/prikbord.png" alt="Prikbord parochienieuws" class="bord-img"/>
+      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/prikbord.png" alt="Prikbord parochienieuws" class="bord-img"/>
       <div class="postit-container" id="postitsLinks"></div>
     </div>
-    <!-- Zandtafel/Kandelaar (midden) -->
+
+    <!-- Zandtafel/kandelaar -->
     <div class="zandtafel-blok" id="zandtafel">
-      <img src="https://github.com/kathy-torfs/Orthodoxeweg/blob/main/images/kandelaar.png" alt="Kandelaar" class="kandelaar-img"/>
+      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/kandelaar.png" alt="Kandelaar" class="kandelaar-img"/>
       <div class="kaarsjes-op-tafel" id="kaarsjesOpTafel"></div>
-      <!-- Formulier voor kaarsje aansteken -->
       <form id="kaarsjeForm" style="margin-top:36px;">
         <textarea id="kaarsjeTekst" maxlength="180" placeholder="Uw gebedsintentie..." required style="width:96%;border-radius:9px;border:1.2px solid #dbc592;padding:9px;resize:vertical;font-size:1.05em;"></textarea>
         <input id="voorWie" type="text" maxlength="40" placeholder="Voor wie? (optioneel)" style="width:94%;margin:9px 0 0 0; border-radius:8px;border:1.2px solid #dbc592;padding:7px;">
@@ -229,16 +228,18 @@
         <div id="kaarsjeFormFeedback" style="margin-top:7px;font-size:1em;color:#8a6507;"></div>
       </form>
     </div>
-    <!-- Prikbord Zoekertjes (rechts) -->
+
+    <!-- Prikbord rechts -->
     <div class="bord-blok" id="bordRechts">
-      <img src="/Orthodoxeweg/images/prikbord.png" alt="Prikbord zoekertjes" class="bord-img"/>
+      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/prikbord.png" alt="Prikbord zoekertjes" class="bord-img"/>
       <div class="postit-container" id="postitsRechts"></div>
     </div>
   </div>
-  <!-- Dagboekblok onderaan -->
+
+  <!-- Bijbeldagboek -->
   <div class="boekblok">
     <a href="bijbeldagboek.html" class="boek-link">
-      <img src="/Orthodoxeweg/images/boek.png" alt="Mijn Bijbeldagboek openen"/>
+      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/boek.png" alt="Mijn Bijbeldagboek openen"/>
     </a>
     <div class="uitleg">
       Uw bijbeldagboek is 100% privé en alleen zichtbaar voor uzelf.<br>
@@ -270,7 +271,7 @@
     const parochieId = localStorage.getItem("ingelogdeParochieId");
     const userId = localStorage.getItem("userId");
 
-    // --- POST-ITS / PRIKBORD (20 per bord, random volgorde & kleur per bericht) ---
+    // --- POST-ITS ---
     const postitColors = ['postit-yellow','postit-blue','postit-pink','postit-green','postit-orange'];
     function randomColor(i) { return postitColors[i % postitColors.length]; }
     const postitPosities = [
@@ -282,8 +283,7 @@
       cont.innerHTML = "";
       for (let i=0; i<20; ++i) {
         const style = `left:${postitPosities[i][0]}%;top:${postitPosities[i][1]}%;`;
-        let html = `<div class="postit" id="${type}Postit${i}" style="${style}"></div>`;
-        cont.innerHTML += html;
+        cont.innerHTML += `<div class="postit" id="${type}Postit${i}" style="${style}"></div>`;
       }
       berichten.forEach((b,i) => {
         const idx = i<20 ? i : Math.floor(Math.random()*20);
@@ -318,7 +318,7 @@
       document.getElementById("sluitPopup").onclick = ()=>{ document.body.removeChild(popup); }
     }
 
-    // --- ZANDTAFEL / KAARSJES ---
+    // --- KAARSJES ---
     const kaarsPosities = [
       [105,13],[155,28],[188,60],[198,106],[183,152],[145,183],[105,196],[65,183],[27,152],[12,106],[22,60],[55,28]
     ];
@@ -341,7 +341,7 @@
       });
     }
 
-    // --- FIREBASE DATA LADEN ---
+    // --- DATA LADEN ---
     function laadParochieNieuws() {
       db.collection("parochies").doc(parochieId).collection("parochienieuws")
         .orderBy("createdAt","desc").limit(20)
@@ -370,6 +370,7 @@
           toonKaarsjesOpTafel(kaarsjes);
         });
     }
+
     document.getElementById("kaarsjeForm").onsubmit = function(e) {
       e.preventDefault();
       const tekst = document.getElementById("kaarsjeTekst").value.trim();
@@ -388,6 +389,7 @@
           setTimeout(()=>{document.getElementById("kaarsjeFormFeedback").textContent="";},1200);
         });
     };
+
     window.onload = function() {
       laadParochieNieuws();
       laadZoekertjes();
