@@ -84,7 +84,7 @@
       display: block;
       user-select: none;
       pointer-events: none;
-      margin-bottom: -350px; /* borden overlappen content */
+      margin-bottom: -350px;
     }
     .postit-container {
       position: absolute;
@@ -114,10 +114,7 @@
     .postit-pink    { background: #ffbae3; color: #502232; border: 2px solid #e371bc; }
     .postit-green   { background: #d3ffbc; color: #265024; border: 2px solid #79c663; }
     .postit-orange  { background: #ffe2b7; color: #77501e; border: 2px solid #ffc75b; }
-    /* Specifieke posities (20 stuks per bord) */
-    /* ... (wordt verderop door JS ingevuld per bord) ... */
 
-    /* Zandtafel (kandelaar) */
     .zandtafel-blok {
       flex: 1 1 350px;
       min-width: 340px;
@@ -149,7 +146,6 @@
       pointer-events: none;
       z-index: 9;
     }
-    /* Kaarsje (visueel op zandtafel) */
     .kaars-svg {
       width: 22px; height: 44px;
       position: absolute;
@@ -158,7 +154,7 @@
       z-index: 11;
     }
     .kaars-svg.visible { opacity: 1; filter: drop-shadow(0 1px 4px #b48726aa); }
-    /* --- Dagboekboek-icoon onderaan --- */
+
     .boekblok {
       width: 180px;
       margin: 50px auto 0 auto;
@@ -218,12 +214,12 @@
   <div class="borden-raster">
     <!-- Prikbord PAROCHIEnieuws (links) -->
     <div class="bord-blok" id="bordLinks">
-      <img src="images/prikbord.png" alt="Prikbord parochienieuws" class="bord-img"/>
+      <img src="/Orthodoxeweg/images/prikbord.png" alt="Prikbord parochienieuws" class="bord-img"/>
       <div class="postit-container" id="postitsLinks"></div>
     </div>
     <!-- Zandtafel/Kandelaar (midden) -->
     <div class="zandtafel-blok" id="zandtafel">
-      <img src="images/kandelaar.png" alt="Kandelaar" class="kandelaar-img"/>
+      <img src="/Orthodoxeweg/images/kandelaar.png" alt="Kandelaar" class="kandelaar-img"/>
       <div class="kaarsjes-op-tafel" id="kaarsjesOpTafel"></div>
       <!-- Formulier voor kaarsje aansteken -->
       <form id="kaarsjeForm" style="margin-top:36px;">
@@ -235,14 +231,14 @@
     </div>
     <!-- Prikbord Zoekertjes (rechts) -->
     <div class="bord-blok" id="bordRechts">
-      <img src="images/prikbord.png" alt="Prikbord zoekertjes" class="bord-img"/>
+      <img src="/Orthodoxeweg/images/prikbord.png" alt="Prikbord zoekertjes" class="bord-img"/>
       <div class="postit-container" id="postitsRechts"></div>
     </div>
   </div>
   <!-- Dagboekblok onderaan -->
   <div class="boekblok">
     <a href="bijbeldagboek.html" class="boek-link">
-      <img src="images/boek.png" alt="Mijn Bijbeldagboek openen"/>
+      <img src="/Orthodoxeweg/images/boek.png" alt="Mijn Bijbeldagboek openen"/>
     </a>
     <div class="uitleg">
       Uw bijbeldagboek is 100% privé en alleen zichtbaar voor uzelf.<br>
@@ -260,7 +256,7 @@
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     };
 
-  // --- FIREBASE INIT ---
+    // --- FIREBASE INIT ---
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -277,12 +273,10 @@
     // --- POST-ITS / PRIKBORD (20 per bord, random volgorde & kleur per bericht) ---
     const postitColors = ['postit-yellow','postit-blue','postit-pink','postit-green','postit-orange'];
     function randomColor(i) { return postitColors[i % postitColors.length]; }
-    // Voorbeeldposities voor 20 post-its per bord (relatief X/Y in %)
     const postitPosities = [
       [5,6],[25,4],[50,7],[75,8],[80,21],[62,20],[42,17],[16,20],[12,35],[32,28],[48,30],
       [68,35],[83,44],[71,53],[57,51],[37,47],[16,47],[7,62],[31,67],[55,65]
     ];
-    // Helper om 20 postits te plaatsen (zichtbaar afhankelijk van data)
     function tekenPostits(containerId, berichten, type) {
       const cont = document.getElementById(containerId);
       cont.innerHTML = "";
@@ -291,7 +285,6 @@
         let html = `<div class="postit" id="${type}Postit${i}" style="${style}"></div>`;
         cont.innerHTML += html;
       }
-      // Zet postits actief als er berichten zijn
       berichten.forEach((b,i) => {
         const idx = i<20 ? i : Math.floor(Math.random()*20);
         const el = document.getElementById(`${type}Postit${idx}`);
@@ -304,7 +297,6 @@
         }
       });
     }
-    // Popup bij klikken op een postit
     function toonBerichtPopup(bericht) {
       const popup = document.createElement("div");
       popup.style = `
@@ -327,7 +319,6 @@
     }
 
     // --- ZANDTAFEL / KAARSJES ---
-    // 12 vaste posities in cirkel, kaarsjes alleen zichtbaar als geplaatst
     const kaarsPosities = [
       [105,13],[155,28],[188,60],[198,106],[183,152],[145,183],[105,196],[65,183],[27,152],[12,106],[22,60],[55,28]
     ];
@@ -341,7 +332,6 @@
           if (k.status==="beantwoord") kleur="#ffd700";
           let kaarskleur = "#fff";
           if (k.status==="beantwoord") kaarskleur="#fffdd0";
-          // SVG: eenvoudige kaars
           div.innerHTML += `<svg class="kaars-svg visible" style="left:${kaarsPosities[i][0]}px;top:${kaarsPosities[i][1]}px;" viewBox="0 0 22 44">
             <ellipse cx="11" cy="9" rx="6" ry="8" fill="${kleur}" opacity="0.93"/>
             <rect x="6" y="14" width="10" height="24" rx="4" fill="${kaarskleur}" />
@@ -352,7 +342,6 @@
     }
 
     // --- FIREBASE DATA LADEN ---
-    // ParochieNieuws (links)
     function laadParochieNieuws() {
       db.collection("parochies").doc(parochieId).collection("parochienieuws")
         .orderBy("createdAt","desc").limit(20)
@@ -362,7 +351,6 @@
           tekenPostits('postitsLinks', nieuws, "links");
         });
     }
-    // Zoekertjes (rechts)
     function laadZoekertjes() {
       db.collection("parochies").doc(parochieId).collection("zoekertjes")
         .orderBy("createdAt","desc").limit(20)
@@ -372,7 +360,6 @@
           tekenPostits('postitsRechts', zoekertjes, "rechts");
         });
     }
-    // Kaarsjes (zandtafel, max 12)
     function laadKaarsjes() {
       db.collection("parochies").doc(parochieId).collection("kaarsjes")
         .where("userId","==",userId)
@@ -383,7 +370,6 @@
           toonKaarsjesOpTafel(kaarsjes);
         });
     }
-    // Kaarsje plaatsen
     document.getElementById("kaarsjeForm").onsubmit = function(e) {
       e.preventDefault();
       const tekst = document.getElementById("kaarsjeTekst").value.trim();
@@ -402,8 +388,6 @@
           setTimeout(()=>{document.getElementById("kaarsjeFormFeedback").textContent="";},1200);
         });
     };
-
-    // Alles laden bij start
     window.onload = function() {
       laadParochieNieuws();
       laadZoekertjes();
