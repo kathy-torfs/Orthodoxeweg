@@ -123,15 +123,15 @@
     </div>
   </div>
   <script>
-    // Naam voor UI, ID voor opslag
-    const parochieNaam = localStorage.getItem("ingelogdeParochie");
-    const parochieId   = localStorage.getItem("ingelogdeParochieId");
-    document.getElementById("parochieLabel").textContent = parochieNaam
-      ? `U bent ingelogd in de parochie: ${parochieNaam}`
-      : "⚠️ Geen geldige parochie geselecteerd!";
+    // Parochienaam voor display, parochieId voor Firestore!
+    const parochieNaam = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
+    const parochieId   = localStorage.getItem("ingelogdeParochieId") || "";
+    document.getElementById("parochieLabel").textContent = `U bent ingelogd in de parochie van ${parochieNaam}`;
 
     document.getElementById("uitlogKnop").onclick = () => {
-      localStorage.clear();
+      localStorage.removeItem("ingelogdeParochie");
+      localStorage.removeItem("ingelogdeParochieId");
+      localStorage.removeItem("modus");
       window.location.href = "/index.html";
     };
 
