@@ -123,10 +123,11 @@
     </div>
   </div>
   <script>
-    // Parochie-ID = exact wat uit localStorage komt
-    const parochieId = localStorage.getItem("ingelogdeParochie") || "";
-    document.getElementById("parochieLabel").textContent = parochieId
-      ? `U bent ingelogd in de parochie: ${parochieId}`
+    // HIER GAAT HET OM
+    const parochieId = localStorage.getItem("ingelogdeParochieId"); // <--- TECHNISCHE ID!
+    const parochieNaam = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
+    document.getElementById("parochieLabel").textContent = parochieNaam
+      ? `U bent ingelogd in de parochie: ${parochieNaam}`
       : "⚠️ Geen geldige parochie geselecteerd!";
 
     document.getElementById("uitlogKnop").onclick = () => {
@@ -134,20 +135,22 @@
       window.location.href = "/index.html";
     };
 
-    // JUISTE Firebase config!
+    // --- JUISTE FIREBASE INSTELLINGEN ---
     const firebaseConfig = {
-      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      apiKey: "AIzaSyDZy9T9TPOrj_R5ehpH1nBr8A6wV38Btxg",
       authDomain: "orthodoxeweg.firebaseapp.com",
       projectId: "orthodoxeweg",
       storageBucket: "orthodoxeweg.appspot.com",
-      messagingSenderId: "408582263618",
-      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
+      messagingSenderId: "52779087045",
+      appId: "1:52779087045:web:13a54c61df872e72b6c0df"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
     function opslaan(index) {
-      if (!parochieId || parochieId.trim() === "") {
+      // Belangrijk! Altijd werken met de TECHNISCHE id:
+      const id = localStorage.getItem("ingelogdeParochieId");
+      if (!id || id.trim() === "") {
         alert("Kan niet opslaan: er is geen geldige parochie geselecteerd!");
         return;
       }
@@ -158,7 +161,7 @@
         return;
       }
       db.collection("parochies")
-        .doc(parochieId)
+        .doc(id)
         .collection("prikbord_priester")
         .doc("postit" + index)
         .set({
