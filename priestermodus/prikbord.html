@@ -127,63 +127,52 @@
   </nav>
 
   <div class="formcontainer">
-  <div class="formblok kleur1">
-    <input id="titel0" placeholder="Titel">
-    <textarea id="tekst0" placeholder="Tekst"></textarea>
-    <button onclick="opslaan(0)">Plaatsen</button>
-  </div>
-  <div class="formblok kleur2">
-    <input id="titel1" placeholder="Titel">
-    <textarea id="tekst1" placeholder="Tekst"></textarea>
-    <button onclick="opslaan(1)">Plaatsen</button>
-  </div>
-  <div class="formblok kleur3">
-    <input id="titel2" placeholder="Titel">
-    <textarea id="tekst2" placeholder="Tekst"></textarea>
-    <button onclick="opslaan(2)">Plaatsen</button>
-  </div>
-  <div class="formblok kleur4">
-    <input id="titel3" placeholder="Titel">
-    <textarea id="tekst3" placeholder="Tekst"></textarea>
-    <button onclick="opslaan(3)">Plaatsen</button>
-  </div>
-  <div class="formblok kleur5">
-    <input id="titel4" placeholder="Titel">
-    <textarea id="tekst4" placeholder="Tekst"></textarea>
-    <button onclick="opslaan(4)">Plaatsen</button>
-  </div>
-  <div class="formblok kleur6">
-    <input id="titel5" placeholder="Titel">
-    <textarea id="tekst5" placeholder="Tekst"></textarea>
-    <button onclick="opslaan(5)">Plaatsen</button>
-  </div>
-  <div class="formblok kleur7">
-    <input id="titel6" placeholder="Titel">
-    <textarea id="tekst6" placeholder="Tekst"></textarea>
-    <button onclick="opslaan(6)">Plaatsen</button>
-  </div>
-  <div class="formblok kleur8">
-    <input id="titel7" placeholder="Titel">
-    <textarea id="tekst7" placeholder="Tekst"></textarea>
-    <button onclick="opslaan(7)">Plaatsen</button>
-  </div>
-  <div class="formblok kleur9">
-    <input id="titel8" placeholder="Titel">
-    <textarea id="tekst8" placeholder="Tekst"></textarea>
-    <button onclick="opslaan(8)">Plaatsen</button>
-  </div>
-</div>
+    <div class="formblok kleur1">
+      <input id="titel0" placeholder="Titel">
+      <textarea id="tekst0" placeholder="Tekst"></textarea>
+      <button onclick="opslaan(0)">Plaatsen</button>
     </div>
-    <div class="formblok kleur2"></div>
-    <div class="formblok kleur3"></div>
-    <div class="formblok kleur4"></div>
-    <div class="formblok kleur5"></div>
-    <div class="formblok kleur6"></div>
-    <div class="formblok kleur7"></div>
-    <div class="formblok kleur8"></div>
-    <div class="formblok kleur9"></div>
+    <div class="formblok kleur2">
+      <input id="titel1" placeholder="Titel">
+      <textarea id="tekst1" placeholder="Tekst"></textarea>
+      <button onclick="opslaan(1)">Plaatsen</button>
+    </div>
+    <div class="formblok kleur3">
+      <input id="titel2" placeholder="Titel">
+      <textarea id="tekst2" placeholder="Tekst"></textarea>
+      <button onclick="opslaan(2)">Plaatsen</button>
+    </div>
+    <div class="formblok kleur4">
+      <input id="titel3" placeholder="Titel">
+      <textarea id="tekst3" placeholder="Tekst"></textarea>
+      <button onclick="opslaan(3)">Plaatsen</button>
+    </div>
+    <div class="formblok kleur5">
+      <input id="titel4" placeholder="Titel">
+      <textarea id="tekst4" placeholder="Tekst"></textarea>
+      <button onclick="opslaan(4)">Plaatsen</button>
+    </div>
+    <div class="formblok kleur6">
+      <input id="titel5" placeholder="Titel">
+      <textarea id="tekst5" placeholder="Tekst"></textarea>
+      <button onclick="opslaan(5)">Plaatsen</button>
+    </div>
+    <div class="formblok kleur7">
+      <input id="titel6" placeholder="Titel">
+      <textarea id="tekst6" placeholder="Tekst"></textarea>
+      <button onclick="opslaan(6)">Plaatsen</button>
+    </div>
+    <div class="formblok kleur8">
+      <input id="titel7" placeholder="Titel">
+      <textarea id="tekst7" placeholder="Tekst"></textarea>
+      <button onclick="opslaan(7)">Plaatsen</button>
+    </div>
+    <div class="formblok kleur9">
+      <input id="titel8" placeholder="Titel">
+      <textarea id="tekst8" placeholder="Tekst"></textarea>
+      <button onclick="opslaan(8)">Plaatsen</button>
+    </div>
   </div>
-
   <script>
     const parochie = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
     document.getElementById("parochieLabel").textContent = `U bent ingelogd in de parochie van ${parochie}`;
@@ -192,6 +181,40 @@
       localStorage.clear();
       window.location.href = "/index.html";
     };
-  </script>
+    <!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script>
+  // Zet hier jouw Firebase-config (die is bij jou als volgt):
+  const firebaseConfig = {
+    apiKey: "AIzaSyDZy9T9TPOrj_R5ehpH1nBr8A6wV38Btxg",
+    authDomain: "orthodoxeweg.firebaseapp.com",
+    projectId: "orthodoxeweg",
+    storageBucket: "orthodoxeweg.appspot.com",
+    messagingSenderId: "52779087045",
+    appId: "1:52779087045:web:13a54c61df872e72b6c0df"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  function opslaan(index) {
+    const titel = document.getElementById('titel' + index).value.trim();
+    const tekst = document.getElementById('tekst' + index).value.trim();
+    if (!titel && !tekst) {
+      alert("Vul minstens het titel- of tekstveld in.");
+      return;
+    }
+    db.collection("prikbord").doc("postit" + index).set({
+      titel: titel,
+      tekst: tekst,
+      tijd: firebase.firestore.Timestamp.now()
+    }).then(() => {
+      alert("Post-it " + (index + 1) + " opgeslagen!");
+    }).catch((error) => {
+      alert("Fout bij opslaan: " + error);
+      console.error("Fout bij opslaan:", error);
+    });
+  }
+</script>
 </body>
 </html>
