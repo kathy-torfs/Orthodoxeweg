@@ -203,7 +203,8 @@
         alert("Vul minstens het titel- of tekstveld in.");
         return;
       }
-      db.collection("prikbord").doc("postit" + index).set({
+      const parochie = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
+      db.collection("parochies").doc(parochie).collection("prikbord_priester").doc("postit" + index).set({
         titel: titel,
         tekst: tekst,
         tijd: firebase.firestore.Timestamp.now()
