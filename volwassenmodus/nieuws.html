@@ -78,7 +78,6 @@
     }
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
@@ -112,39 +111,37 @@
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     };
 
-    // Firebase init
+    // Beveiliging op basis van lokale modus ipv Firebase auth
+    const modus = localStorage.getItem("modus");
+    if (modus !== "volwassene") {
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    }
+
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain: "orthodoxeweg.firebaseapp.com",
-      projectId: "orthodoxeweg",
+      projectId: "orthodoxeweg"
     };
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
-    const auth = firebase.auth();
 
-    auth.onAuthStateChanged(user => {
-      if (!user) {
-        window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
-      } else {
-        const parochieId = localStorage.getItem("ingelogdeParochieId");
-        if (!parochieId) return;
-
-        db.collection("parochies").doc(parochieId).collection("prikbord_priester")
-          .orderBy("createdAt", "desc").limit(30)
-          .get().then(snapshot => {
-            const div = document.getElementById("postitBoard");
-            div.innerHTML = "";
-            snapshot.forEach(doc => {
-              const b = doc.data();
-              const el = document.createElement("div");
-              el.className = "postit";
-              el.textContent = b.titel || b.tekst || "✉";
-              el.title = b.tekst || "";
-              div.appendChild(el);
-            });
+    const parochieId = localStorage.getItem("ingelogdeParochieId");
+    if (parochieId) {
+      db.collection("parochies").doc(parochieId).collection("prikbord_priester")
+        .orderBy("createdAt", "desc").limit(30)
+        .get().then(snapshot => {
+          const div = document.getElementById("postitBoard");
+          div.innerHTML = "";
+          snapshot.forEach(doc => {
+            const b = doc.data();
+            const el = document.createElement("div");
+            el.className = "postit";
+            el.textContent = b.titel || b.tekst || "✉";
+            el.title = b.tekst || "";
+            div.appendChild(el);
           });
-      }
-    });
+        });
+    }
   </script>
 </body>
 </html>
