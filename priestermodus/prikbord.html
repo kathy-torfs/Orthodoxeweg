@@ -12,14 +12,22 @@
       background: #d8ecf9;
       color: #5b4320;
     }
-    .topbar {
-      background: #7a5f35;
-      color: #fff;
-      padding: 10px 24px;
-      font-size: 1.07em;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    header {
+      background-color: #e6d6b8;
+      padding: 2rem 1rem 0.7rem 1rem;
+      text-align: center;
+    }
+    h1 { margin:0; font-size:2rem; color:#5d4c2f; }
+    #parochieLabel {
+      background: #fcf6e2;
+      color: #7a5f35;
+      padding: 10px 0 8px 0;
+      text-align: center;
+      font-weight: bold;
+      letter-spacing: 1px;
+      font-size: 1.08em;
+      box-shadow: 0 2px 8px #cbb96d44;
+      margin-bottom: 10px;
     }
     nav.menu {
       background-color: #7a5f35;
@@ -52,17 +60,29 @@
       transition: background 0.18s;
       cursor: pointer;
       border: none;
-      outline: none;
+      float: right;
     }
     .formblok {
       padding: 20px;
-      max-width: 500px;
-      margin: 30px auto 10px auto;
-      background: #fffbe4;
+      width: 100%;
+      height: 240px;
       border-radius: 12px;
       box-shadow: 2px 4px 8px #0001;
-      border: 2px solid #ead87e;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      color: #222;
+      font-weight: bold;
     }
+    .kleur1 { background: #fff980; border: 2px solid #ebd700; }
+    .kleur2 { background: #c2eaff; border: 2px solid #53b6e2; }
+    .kleur3 { background: #ffbae3; border: 2px solid #e371bc; }
+    .kleur4 { background: #d3ffbc; border: 2px solid #79c663; }
+    .kleur5 { background: #ffe2b7; border: 2px solid #ffc75b; }
+    .kleur6 { background: #e8d1ff; border: 2px solid #b48ff4; }
+    .kleur7 { background: #ffd8d8; border: 2px solid #ff6a6a; }
+    .kleur8 { background: #d2ffd2; border: 2px solid #7fd97f; }
+    .kleur9 { background: #fce5cd; border: 2px solid #f9a825; }
     .formblok textarea, .formblok input {
       width: 100%;
       margin-bottom: 12px;
@@ -80,115 +100,58 @@
       border-radius: 8px;
       cursor: pointer;
     }
-    .postit-board {
+    .formcontainer {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 20px;
-      padding: 20px;
-      max-width: 1000px;
-      margin: auto;
+      max-width: 1200px;
+      margin: 30px auto;
     }
-    .postit {
-      padding: 10px;
-      min-height: 140px;
-      border-radius: 10px;
-      box-shadow: 2px 4px 8px #0002;
-      color: #222;
-      font-weight: bold;
-      font-size: 1em;
-      white-space: pre-wrap;
-      transform: rotateZ(var(--rotatie));
-    }
-    .kleur1 { background: #fff980; border: 2px solid #ebd700; --rotatie: -2deg; }
-    .kleur2 { background: #c2eaff; border: 2px solid #53b6e2; --rotatie: 1.5deg; }
-    .kleur3 { background: #ffbae3; border: 2px solid #e371bc; --rotatie: -1.5deg; }
-    .kleur4 { background: #d3ffbc; border: 2px solid #79c663; --rotatie: 2deg; }
-    .kleur5 { background: #ffe2b7; border: 2px solid #ffc75b; --rotatie: -3deg; }
   </style>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <div class="topbar">
-    <div id="welkom-tekst"></div>
+  <header>
     <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
-  </div>
-  <nav class="menu"> 
-    <a href="/priestermodus/start.html">🏠 Start</a>
-    <a href="/priestermodus/prikbord.html">📌 Prikbord</a>
-    <a href="/priestermodus/leden.html">👥 Leden</a>
-    <a href="/priestermodus/kaarsjes.html">🕯 Kaarsjes</a>
-    <a href="/priestermodus/profiel.html">🧰 Profiel</a>
+    <h1 id="welkom-tekst">Welkom vader, ik wens u een gezegende dag.</h1>
+    <div id="parochieLabel"></div>
+  </header>
+  <nav class="menu">
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/startpagina.html">🏠 Startpagina</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/parochie.html">🛐 Mijn parochie</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/psalmen/psalmen.html">📜 Psalmen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/gebeden.html">🙏 Gebeden</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/catechese/catechese.html">📖 Catechese</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/heiligen/heiligen.html">👼 Heiligen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/layout.html">🧰 Bewerk parochie</a>
   </nav>
 
-  <div class="formblok">
-    <h2>Nieuw bericht op prikbord plaatsen</h2>
-    <input id="titel" type="text" placeholder="Titel" required />
-    <textarea id="tekst" rows="4" placeholder="Bericht..." required></textarea>
-    <button onclick="voegBerichtToe()">Plaatsen</button>
-    <div id="feedback" style="margin-top:10px;font-size:0.95em;color:#753;"></div>
+  <div class="formcontainer">
+    <div class="formblok kleur1">
+      <h2>Nieuw bericht op prikbord plaatsen</h2>
+      <input id="titel" type="text" placeholder="Titel" required />
+      <textarea id="tekst" rows="4" placeholder="Bericht..." required></textarea>
+      <button onclick="voegBerichtToe()">Plaatsen</button>
+      <div id="feedback" style="margin-top:10px;font-size:0.95em;color:#753;"></div>
+    </div>
+    <div class="formblok kleur2"></div>
+    <div class="formblok kleur3"></div>
+    <div class="formblok kleur4"></div>
+    <div class="formblok kleur5"></div>
+    <div class="formblok kleur6"></div>
+    <div class="formblok kleur7"></div>
+    <div class="formblok kleur8"></div>
+    <div class="formblok kleur9"></div>
   </div>
 
-  <div class="postit-board" id="postitBoard"></div>
-
   <script>
-    const welkomTekst = document.getElementById("welkom-tekst");
     const parochie = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
-    welkomTekst.textContent = `Welkom priester – ingelogd in: ${parochie}`;
+    document.getElementById("parochieLabel").textContent = `U bent ingelogd in de parochie van ${parochie}`;
 
     document.getElementById("uitlogKnop").onclick = () => {
       localStorage.clear();
       window.location.href = "/index.html";
     };
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
-      authDomain: "orthodoxeweg.firebaseapp.com",
-      projectId: "orthodoxeweg",
-    };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const parochieId = localStorage.getItem("ingelogdeParochieId");
-
-    function voegBerichtToe() {
-      const titel = document.getElementById("titel").value.trim();
-      const tekst = document.getElementById("tekst").value.trim();
-      if (!titel && !tekst) return;
-
-      db.collection("parochies").doc(parochieId).collection("prikbord_priester")
-        .add({ titel, tekst, createdAt: new Date() })
-        .then(() => {
-          document.getElementById("titel").value = "";
-          document.getElementById("tekst").value = "";
-          document.getElementById("feedback").textContent = "Bericht geplaatst";
-          laadBerichten();
-        });
-    }
-
-    function laadBerichten() {
-      db.collection("parochies").doc(parochieId).collection("prikbord_priester")
-        .orderBy("createdAt","desc").limit(9)
-        .get().then(snapshot => {
-          const kleuren = ['kleur1','kleur2','kleur3','kleur4','kleur5'];
-          const board = document.getElementById("postitBoard");
-          board.innerHTML = "";
-          const berichten = [];
-          snapshot.forEach(doc => berichten.push(doc.data()));
-          for (let i = 0; i < 9; i++) {
-            const b = berichten[i];
-            const div = document.createElement("div");
-            div.className = "postit " + kleuren[i % kleuren.length];
-            if (b) {
-              div.textContent = (b.titel ? b.titel + "\n" : "") + (b.tekst || "");
-            } else {
-              div.textContent = "";
-            }
-            board.appendChild(div);
-          }
-        });
-    }
-
-    window.onload = laadBerichten;
   </script>
 </body>
 </html>
