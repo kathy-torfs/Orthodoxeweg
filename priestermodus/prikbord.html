@@ -123,19 +123,18 @@
     </div>
   </div>
   <script>
-    // HIER GAAT HET OM
-    const parochieId = localStorage.getItem("ingelogdeParochieId"); // <--- TECHNISCHE ID!
-    const parochieNaam = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
-    document.getElementById("parochieLabel").textContent = parochieNaam
-      ? `U bent ingelogd in de parochie: ${parochieNaam}`
-      : "⚠️ Geen geldige parochie geselecteerd!";
+    // Omschrijving Firestore-id uit NAAM
+    function naarFirestoreId(naam) {
+      return naam
+        .toLowerCase()
+        .replace('parochie van ', '')
+        .replace(/ /g, '-')
+        .replace(/[^\w\-]/g, '')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+    }
 
-    document.getElementById("uitlogKnop").onclick = () => {
-      localStorage.clear();
-      window.location.href = "/index.html";
-    };
-
-    // --- JUISTE FIREBASE INSTELLINGEN ---
+    // Firebase config en init
     const firebaseConfig = {
       apiKey: "AIzaSyDZy9T9TPOrj_R5ehpH1nBr8A6wV38Btxg",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -147,13 +146,25 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    // Begroeting
+    const parochieNaam = localStorage.getItem("ingelogdeParochie") || "";
+    document.getElementById("parochieLabel").textContent = parochieNaam
+      ? `U bent ingelogd in de parochie van ${parochieNaam}`
+      : "⚠️ Geen geldige parochie geselecteerd!";
+
+    document.getElementById("uitlogKnop").onclick = () => {
+      localStorage.clear();
+      window.location.href = "/index.html";
+    };
+
+    // Post-it opslaan in juiste collectie, juiste Firestore-id
     function opslaan(index) {
-      // Belangrijk! Altijd werken met de TECHNISCHE id:
-      const id = localStorage.getItem("ingelogdeParochieId");
-      if (!id || id.trim() === "") {
+      const parochieNaam = localStorage.getItem("ingelogdeParochie");
+      if (!parochieNaam) {
         alert("Kan niet opslaan: er is geen geldige parochie geselecteerd!");
         return;
       }
+      const parochieId = naarFirestoreId(parochieNaam);
       const titel = document.getElementById('titel' + index).value.trim();
       const tekst = document.getElementById('tekst' + index).value.trim();
       if (!titel && !tekst) {
@@ -161,7 +172,7 @@
         return;
       }
       db.collection("parochies")
-        .doc(id)
+        .doc(parochieId)
         .collection("prikbord_priester")
         .doc("postit" + index)
         .set({
