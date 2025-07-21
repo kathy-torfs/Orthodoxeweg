@@ -5,74 +5,33 @@
   <title>Prikbordbeheer – Priester</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-      background: #d8ecf9;
-      color: #5b4320;
-    }
-    header {
-      background-color: #e6d6b8;
-      padding: 2rem 1rem 0.7rem 1rem;
-      text-align: center;
-    }
+    body { margin: 0; padding: 0; font-family: Arial, sans-serif; background: #d8ecf9; color: #5b4320; }
+    header { background-color: #e6d6b8; padding: 2rem 1rem 0.7rem 1rem; text-align: center; }
     h1 { margin:0; font-size:2rem; color:#5d4c2f; }
     #parochieLabel {
-      background: #fcf6e2;
-      color: #7a5f35;
-      padding: 10px 0 8px 0;
-      text-align: center;
-      font-weight: bold;
-      letter-spacing: 1px;
-      font-size: 1.08em;
-      box-shadow: 0 2px 8px #cbb96d44;
-      margin-bottom: 10px;
+      background: #fcf6e2; color: #7a5f35; padding: 10px 0 8px 0; text-align: center;
+      font-weight: bold; letter-spacing: 1px; font-size: 1.08em;
+      box-shadow: 0 2px 8px #cbb96d44; margin-bottom: 10px;
     }
     nav.menu {
-      background-color: #7a5f35;
-      padding: 12px 20px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 14px;
-      justify-content: center;
+      background-color: #7a5f35; padding: 12px 20px;
+      display: flex; flex-wrap: wrap; gap: 14px; justify-content: center;
     }
     nav.menu a {
-      color: #f8f5e9;
-      text-decoration: none;
-      font-weight: bold;
-      font-size: 16px;
-      padding: 6px 14px;
-      border-radius: 8px;
-      transition: background-color 0.3s;
+      color: #f8f5e9; text-decoration: none; font-weight: bold; font-size: 16px;
+      padding: 6px 14px; border-radius: 8px; transition: background-color 0.3s;
     }
     nav.menu a:hover { background-color: #5e4724; }
     .uitlog-link {
-      color: #fff;
-      background: #9a2617;
-      padding: 6px 16px;
-      border-radius: 8px;
-      font-size: 1em;
-      text-decoration: none;
-      font-weight: bold;
-      margin-left: 14px;
-      margin-right: 14px;
-      transition: background 0.18s;
-      cursor: pointer;
-      border: none;
-      float: right;
+      color: #fff; background: #9a2617; padding: 6px 16px; border-radius: 8px;
+      font-size: 1em; text-decoration: none; font-weight: bold;
+      margin-left: 14px; margin-right: 14px; transition: background 0.18s;
+      cursor: pointer; border: none; float: right;
     }
     .formblok {
-      padding: 20px;
-      width: 100%;
-      height: 240px;
-      border-radius: 12px;
-      box-shadow: 2px 4px 8px #0001;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      color: #222;
-      font-weight: bold;
+      padding: 20px; width: 100%; height: 240px; border-radius: 12px;
+      box-shadow: 2px 4px 8px #0001; display: flex; flex-direction: column;
+      justify-content: space-between; color: #222; font-weight: bold;
     }
     .kleur1 { background: #fff980; border: 2px solid #ebd700; }
     .kleur2 { background: #c2eaff; border: 2px solid #53b6e2; }
@@ -84,28 +43,16 @@
     .kleur8 { background: #d2ffd2; border: 2px solid #7fd97f; }
     .kleur9 { background: #fce5cd; border: 2px solid #f9a825; }
     .formblok textarea, .formblok input {
-      width: 100%;
-      margin-bottom: 12px;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1.5px solid #ccc;
-      font-size: 1em;
+      width: 100%; margin-bottom: 12px; padding: 10px; border-radius: 8px;
+      border: 1.5px solid #ccc; font-size: 1em;
     }
     .formblok button {
-      background: #7a5f35;
-      color: #fff;
-      font-weight: bold;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
+      background: #7a5f35; color: #fff; font-weight: bold; padding: 10px 20px;
+      border: none; border-radius: 8px; cursor: pointer;
     }
     .formcontainer {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
-      max-width: 1200px;
-      margin: 30px auto;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px; max-width: 1200px; margin: 30px auto;
     }
   </style>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -176,9 +123,12 @@
     </div>
   </div>
   <script>
-    // Parochie label en uitloggen
-    const parochie = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
-    document.getElementById("parochieLabel").textContent = `U bent ingelogd in de parochie van ${parochie}`;
+    // Parochie label tonen
+    const parochieId = localStorage.getItem("ingelogdeParochie");
+    document.getElementById("parochieLabel").textContent = parochieId 
+      ? `U bent ingelogd in de parochie: ${parochieId}`
+      : "⚠️ Geen geldige parochie geselecteerd!";
+
     document.getElementById("uitlogKnop").onclick = () => {
       localStorage.clear();
       window.location.href = "/index.html";
@@ -197,23 +147,31 @@
     const db = firebase.firestore();
 
     function opslaan(index) {
+      const parochieId = localStorage.getItem("ingelogdeParochie");
+      if (!parochieId || parochieId.trim() === "" || parochieId === "parochie" || parochieId === "(onbekend)" || parochieId === "undefined") {
+        alert("Kan niet opslaan: er is geen geldige parochie geselecteerd!");
+        return;
+      }
       const titel = document.getElementById('titel' + index).value.trim();
       const tekst = document.getElementById('tekst' + index).value.trim();
       if (!titel && !tekst) {
         alert("Vul minstens het titel- of tekstveld in.");
         return;
       }
-      const parochie = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
-      db.collection("parochies").doc(parochie).collection("prikbord_priester").doc("postit" + index).set({
-        titel: titel,
-        tekst: tekst,
-        tijd: firebase.firestore.Timestamp.now()
-      }).then(() => {
-        alert("Post-it " + (index + 1) + " opgeslagen!");
-      }).catch((error) => {
-        alert("Fout bij opslaan: " + error);
-        console.error("Fout bij opslaan:", error);
-      });
+      db.collection("parochies")
+        .doc(parochieId)
+        .collection("prikbord_priester")
+        .doc("postit" + index)
+        .set({
+          titel: titel,
+          tekst: tekst,
+          tijd: firebase.firestore.Timestamp.now()
+        }).then(() => {
+          alert("Post-it " + (index + 1) + " opgeslagen!");
+        }).catch((error) => {
+          alert("Fout bij opslaan: " + error);
+          console.error("Fout bij opslaan:", error);
+        });
     }
   </script>
 </body>
