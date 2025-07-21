@@ -29,19 +29,12 @@
       cursor: pointer; border: none; float: right;
     }
     .formblok {
-      padding: 20px; width: 100%; height: 240px; border-radius: 12px;
+      padding: 20px; width: 100%; min-height: 190px; border-radius: 12px;
       box-shadow: 2px 4px 8px #0001; display: flex; flex-direction: column;
       justify-content: space-between; color: #222; font-weight: bold;
+      margin-bottom: 16px;
     }
     .kleur1 { background: #fff980; border: 2px solid #ebd700; }
-    .kleur2 { background: #c2eaff; border: 2px solid #53b6e2; }
-    .kleur3 { background: #ffbae3; border: 2px solid #e371bc; }
-    .kleur4 { background: #d3ffbc; border: 2px solid #79c663; }
-    .kleur5 { background: #ffe2b7; border: 2px solid #ffc75b; }
-    .kleur6 { background: #e8d1ff; border: 2px solid #b48ff4; }
-    .kleur7 { background: #ffd8d8; border: 2px solid #ff6a6a; }
-    .kleur8 { background: #d2ffd2; border: 2px solid #7fd97f; }
-    .kleur9 { background: #fce5cd; border: 2px solid #f9a825; }
     .formblok textarea, .formblok input {
       width: 100%; margin-bottom: 12px; padding: 10px; border-radius: 8px;
       border: 1.5px solid #ccc; font-size: 1em;
@@ -51,12 +44,17 @@
       border: none; border-radius: 8px; cursor: pointer;
     }
     .formcontainer {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px; max-width: 1200px; margin: 30px auto;
+      max-width: 600px; margin: 30px auto;
     }
+    #feedback { color:#B90000; text-align:center; font-size:1.09em; margin-bottom:20px;}
+    .berichtenlijst {max-width:600px;margin:0 auto 20px auto;}
+    .bericht-blok {background:#fffef9;border-radius:8px;box-shadow:0 2px 10px #e7dbad55;padding:14px 18px;margin-bottom:12px;}
+    .bericht-titel {font-weight:bold;font-size:1.16em;color:#755600;margin-bottom:4px;}
+    .bericht-tekst {color:#333;margin-bottom:6px;}
+    .bericht-tijd {color:#a78c4f;font-size:0.98em;}
   </style>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
   <header>
@@ -74,118 +72,131 @@
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/heiligen/heiligen.html">👼 Heiligen</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/layout.html">🧰 Bewerk parochie</a>
   </nav>
-
   <div class="formcontainer">
+    <div id="feedback"></div>
     <div class="formblok kleur1">
-      <input id="titel0" placeholder="Titel">
-      <textarea id="tekst0" placeholder="Tekst"></textarea>
-      <button onclick="opslaan(0)">Plaatsen</button>
-    </div>
-    <div class="formblok kleur2">
-      <input id="titel1" placeholder="Titel">
-      <textarea id="tekst1" placeholder="Tekst"></textarea>
-      <button onclick="opslaan(1)">Plaatsen</button>
-    </div>
-    <div class="formblok kleur3">
-      <input id="titel2" placeholder="Titel">
-      <textarea id="tekst2" placeholder="Tekst"></textarea>
-      <button onclick="opslaan(2)">Plaatsen</button>
-    </div>
-    <div class="formblok kleur4">
-      <input id="titel3" placeholder="Titel">
-      <textarea id="tekst3" placeholder="Tekst"></textarea>
-      <button onclick="opslaan(3)">Plaatsen</button>
-    </div>
-    <div class="formblok kleur5">
-      <input id="titel4" placeholder="Titel">
-      <textarea id="tekst4" placeholder="Tekst"></textarea>
-      <button onclick="opslaan(4)">Plaatsen</button>
-    </div>
-    <div class="formblok kleur6">
-      <input id="titel5" placeholder="Titel">
-      <textarea id="tekst5" placeholder="Tekst"></textarea>
-      <button onclick="opslaan(5)">Plaatsen</button>
-    </div>
-    <div class="formblok kleur7">
-      <input id="titel6" placeholder="Titel">
-      <textarea id="tekst6" placeholder="Tekst"></textarea>
-      <button onclick="opslaan(6)">Plaatsen</button>
-    </div>
-    <div class="formblok kleur8">
-      <input id="titel7" placeholder="Titel">
-      <textarea id="tekst7" placeholder="Tekst"></textarea>
-      <button onclick="opslaan(7)">Plaatsen</button>
-    </div>
-    <div class="formblok kleur9">
-      <input id="titel8" placeholder="Titel">
-      <textarea id="tekst8" placeholder="Tekst"></textarea>
-      <button onclick="opslaan(8)">Plaatsen</button>
+      <input id="titel" placeholder="Titel">
+      <textarea id="tekst" placeholder="Tekst"></textarea>
+      <button onclick="opslaan()">Plaatsen</button>
     </div>
   </div>
+  <div class="berichtenlijst" id="berichtenLijst"></div>
   <script>
-    // Omschrijving Firestore-id uit NAAM
-    function naarFirestoreId(naam) {
-      return naam
-        .toLowerCase()
-        .replace('parochie van ', '')
-        .replace(/ /g, '-')
-        .replace(/[^\w\-]/g, '')
-        .replace(/-+/g, '-')
-        .replace(/^-|-$/g, '');
-    }
+    // AUTH & LABELS
+    const parochieNaam = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
+    const parochieId   = localStorage.getItem("ingelogdeParochieId") || "";
+    document.getElementById("parochieLabel").textContent = `U bent ingelogd in de parochie van ${parochieNaam}`;
+    document.getElementById("uitlogKnop").onclick = function() {
+      localStorage.clear();
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    };
 
-    // Firebase config en init
+    // WELKOMTEKST op dagdeel
+    const welkomTekst = document.getElementById("welkom-tekst");
+    const uur = new Date().getHours();
+    let moment = "dag";
+    if (uur >= 5 && uur < 10) moment = "goeiemorgen";
+    else if (uur >= 10 && uur < 11) moment = "goedendag";
+    else if (uur >= 11 && uur < 13) moment = "goedemiddag";
+    else if (uur >= 13 && uur < 17) moment = "goedendag";
+    else if (uur >= 17 && uur < 22) moment = "goedeavond";
+    else moment = "goede nacht";
+    welkomTekst.textContent = `${moment} vader, ik wens u een gezegende dag.`;
+
+    // FIREBASE INIT
     const firebaseConfig = {
-      apiKey: "AIzaSyDZy9T9TPOrj_R5ehpH1nBr8A6wV38Btxg",
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain: "orthodoxeweg.firebaseapp.com",
       projectId: "orthodoxeweg",
       storageBucket: "orthodoxeweg.appspot.com",
-      messagingSenderId: "52779087045",
-      appId: "1:52779087045:web:13a54c61df872e72b6c0df"
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Begroeting
-    const parochieNaam = localStorage.getItem("ingelogdeParochie") || "";
-    document.getElementById("parochieLabel").textContent = parochieNaam
-      ? `U bent ingelogd in de parochie van ${parochieNaam}`
-      : "⚠️ Geen geldige parochie geselecteerd!";
-
-    document.getElementById("uitlogKnop").onclick = () => {
-      localStorage.clear();
-      window.location.href = "/index.html";
-    };
-
-    // Post-it opslaan in juiste collectie, juiste Firestore-id
-    function opslaan(index) {
-      const parochieNaam = localStorage.getItem("ingelogdeParochie");
-      if (!parochieNaam) {
-        alert("Kan niet opslaan: er is geen geldige parochie geselecteerd!");
+    // OPSLAAN
+    function opslaan() {
+      const titel = document.getElementById('titel').value.trim();
+      const tekst = document.getElementById('tekst').value.trim();
+      const feedback = document.getElementById("feedback");
+      feedback.textContent = "";
+      if (!parochieId) {
+        feedback.textContent = "⚠️ Kan niet opslaan: er is geen geldige parochie geselecteerd!";
         return;
       }
-      const parochieId = naarFirestoreId(parochieNaam);
-      const titel = document.getElementById('titel' + index).value.trim();
-      const tekst = document.getElementById('tekst' + index).value.trim();
       if (!titel && !tekst) {
-        alert("Vul minstens het titel- of tekstveld in.");
+        feedback.textContent = "Vul minstens het titel- of tekstveld in.";
+        return;
+      }
+      const data = {
+        titel: titel,
+        tekst: tekst,
+        tijd: firebase.firestore.Timestamp.now()
+      };
+      db.collection("parochies")
+        .doc(parochieId)
+        .collection("prikbord_priesters")
+        .add(data)
+        .then(() => {
+          feedback.style.color = "#3a8011";
+          feedback.textContent = "Post-it opgeslagen!";
+          document.getElementById('titel').value = "";
+          document.getElementById('tekst').value = "";
+          laadBerichten();
+          setTimeout(() => { feedback.textContent = ""; }, 1800);
+        })
+        .catch((error) => {
+          feedback.style.color = "#B90000";
+          feedback.textContent = "Fout bij opslaan: " + error;
+          console.error("Fout bij opslaan:", error);
+        });
+    }
+
+    // LAAD EN TOON PRIKBORD
+    function laadBerichten() {
+      const lijst = document.getElementById("berichtenLijst");
+      lijst.innerHTML = "<em>Berichten worden geladen...</em>";
+      if (!parochieId) {
+        lijst.innerHTML = "<em>Geen geldige parochie geselecteerd.</em>";
         return;
       }
       db.collection("parochies")
         .doc(parochieId)
-        .collection("prikbord_priester")
-        .doc("postit" + index)
-        .set({
-          titel: titel,
-          tekst: tekst,
-          tijd: firebase.firestore.Timestamp.now()
-        }).then(() => {
-          alert("Post-it " + (index + 1) + " opgeslagen!");
-        }).catch((error) => {
-          alert("Fout bij opslaan: " + error);
-          console.error("Fout bij opslaan:", error);
+        .collection("prikbord_priesters")
+        .orderBy("tijd", "desc")
+        .get()
+        .then(snapshot => {
+          if (snapshot.empty) {
+            lijst.innerHTML = "<em>Geen prikbordberichten gevonden.</em>";
+            return;
+          }
+          let html = "";
+          snapshot.forEach(doc => {
+            const d = doc.data();
+            const tijd = d.tijd && d.tijd.toDate
+              ? d.tijd.toDate()
+              : new Date();
+            const datumTekst = tijd.toLocaleString("nl-BE", {
+              year: "numeric", month: "2-digit", day: "2-digit",
+              hour: "2-digit", minute: "2-digit"
+            });
+            html += `
+              <div class="bericht-blok">
+                <div class="bericht-titel">${d.titel || "(zonder titel)"}</div>
+                <div class="bericht-tekst">${d.tekst || ""}</div>
+                <div class="bericht-tijd">🕓 ${datumTekst}</div>
+              </div>
+            `;
+          });
+          lijst.innerHTML = html;
+        })
+        .catch(err => {
+          lijst.innerHTML = "<em>Fout bij laden van berichten.</em>";
         });
     }
+    // INIT
+    window.onload = laadBerichten;
   </script>
 </body>
 </html>
