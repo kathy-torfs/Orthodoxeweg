@@ -5,6 +5,7 @@
   <title>Mijn Gebedsintenties</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
+    /* --- JOUW CSS ONGEWIJZIGD --- */
     body { font-family: Arial, sans-serif; margin:0; padding:0; background-color:#f8f5e9;}
     nav.menu {
       background-color: #7a5f35;
@@ -182,7 +183,7 @@
       const parochieId = localStorage.getItem("ingelogdeParochieId");
       db.collection("parochies")
         .doc(parochieId)
-        .collection("intentions")
+        .collection("kaarsjes")
         .where("userId", "==", userId)
         .orderBy("createdAt", "desc")
         .get()
@@ -231,9 +232,9 @@
       if (tekst.length === 0) return;
       const parochieId = localStorage.getItem("ingelogdeParochieId");
       document.getElementById("nieuwKaarsjeFeedback").textContent = "Uw intentie wordt verstuurd...";
-      db.collection("parishes")
+      db.collection("parochies")
         .doc(parochieId)
-        .collection("intentions")
+        .collection("kaarsjes")
         .add({
           userId: userId,
           text: tekst,
