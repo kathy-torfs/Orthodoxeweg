@@ -108,6 +108,8 @@
       margin: 30px auto;
     }
   </style>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
   <header>
@@ -174,47 +176,44 @@
     </div>
   </div>
   <script>
+    // Parochie label en uitloggen
     const parochie = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
     document.getElementById("parochieLabel").textContent = `U bent ingelogd in de parochie van ${parochie}`;
-
     document.getElementById("uitlogKnop").onclick = () => {
       localStorage.clear();
       window.location.href = "/index.html";
     };
-    <!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-<script>
-  // Zet hier jouw Firebase-config (die is bij jou als volgt):
-  const firebaseConfig = {
-    apiKey: "AIzaSyDZy9T9TPOrj_R5ehpH1nBr8A6wV38Btxg",
-    authDomain: "orthodoxeweg.firebaseapp.com",
-    projectId: "orthodoxeweg",
-    storageBucket: "orthodoxeweg.appspot.com",
-    messagingSenderId: "52779087045",
-    appId: "1:52779087045:web:13a54c61df872e72b6c0df"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
 
-  function opslaan(index) {
-    const titel = document.getElementById('titel' + index).value.trim();
-    const tekst = document.getElementById('tekst' + index).value.trim();
-    if (!titel && !tekst) {
-      alert("Vul minstens het titel- of tekstveld in.");
-      return;
+    // Firebase setup
+    const firebaseConfig = {
+      apiKey: "AIzaSyDZy9T9TPOrj_R5ehpH1nBr8A6wV38Btxg",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "52779087045",
+      appId: "1:52779087045:web:13a54c61df872e72b6c0df"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    function opslaan(index) {
+      const titel = document.getElementById('titel' + index).value.trim();
+      const tekst = document.getElementById('tekst' + index).value.trim();
+      if (!titel && !tekst) {
+        alert("Vul minstens het titel- of tekstveld in.");
+        return;
+      }
+      db.collection("prikbord").doc("postit" + index).set({
+        titel: titel,
+        tekst: tekst,
+        tijd: firebase.firestore.Timestamp.now()
+      }).then(() => {
+        alert("Post-it " + (index + 1) + " opgeslagen!");
+      }).catch((error) => {
+        alert("Fout bij opslaan: " + error);
+        console.error("Fout bij opslaan:", error);
+      });
     }
-    db.collection("prikbord").doc("postit" + index).set({
-      titel: titel,
-      tekst: tekst,
-      tijd: firebase.firestore.Timestamp.now()
-    }).then(() => {
-      alert("Post-it " + (index + 1) + " opgeslagen!");
-    }).catch((error) => {
-      alert("Fout bij opslaan: " + error);
-      console.error("Fout bij opslaan:", error);
-    });
-  }
-</script>
+  </script>
 </body>
 </html>
