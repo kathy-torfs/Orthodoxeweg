@@ -1,1 +1,150 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Parochienieuws</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background: #d8ecf9;
+      color: #5b4320;
+    }
+    .topbar {
+      background: #7a5f35;
+      color: #fff;
+      padding: 10px 24px;
+      font-size: 1.07em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    nav.menu {
+      background-color: #7a5f35;
+      padding: 12px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      justify-content: center;
+    }
+    nav.menu a {
+      color: #f8f5e9;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 16px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      transition: background-color 0.3s;
+    }
+    nav.menu a:hover { background-color: #5e4724; }
+    .uitlog-link {
+      color: #fff;
+      background: #9a2617;
+      padding: 6px 16px;
+      border-radius: 8px;
+      font-size: 1em;
+      text-decoration: none;
+      font-weight: bold;
+      margin-left: 14px;
+      margin-right: 14px;
+      transition: background 0.18s;
+      cursor: pointer;
+      border: none;
+      outline: none;
+    }
+    .postit-board {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      padding: 40px 20px;
+    }
+    .postit {
+      width: 140px;
+      height: 140px;
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 2px 4px 8px #0002;
+      background: #fff980;
+      border: 2px solid #ebd700;
+      color: #222;
+      font-weight: bold;
+      font-size: 1.1em;
+      cursor: pointer;
+      position: relative;
+      white-space: pre-line;
+    }
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <div class="topbar">
+    <div id="welkom-tekst"></div>
+    <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
+  </div>
+  <nav class="menu"> 
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html">🏠 Home</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/gebeden.html">🙏 Gebeden</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html">🧰 Mijn profiel</a>
+  </nav>
+  <div class="postit-board" id="postitBoard"></div>
+  <script>
+    const welkomTekst = document.getElementById("welkom-tekst");
+    const uur = new Date().getHours();
+    let moment = "goeiedag";
+    if (uur >= 5 && uur <= 10) moment = "goeiemorgend";
+    else if (uur >= 11 && uur <= 13) moment = "goeiemiddag";
+    else if (uur >= 17 && uur <= 22) moment = "goeienavond";
+    else if (uur > 22 || uur < 5) moment = "goedenacht";
+    const parochie = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
+    welkomTekst.textContent = `${moment}, u bent ingelogd in: ${parochie}`;
 
+    document.getElementById("uitlogKnop").onclick = () => {
+      localStorage.clear();
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    };
+
+    // Firebase init
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+    };
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+      } else {
+        const parochieId = localStorage.getItem("ingelogdeParochieId");
+        if (!parochieId) return;
+
+        db.collection("parochies").doc(parochieId).collection("prikbord_priester")
+          .orderBy("createdAt", "desc").limit(30)
+          .get().then(snapshot => {
+            const div = document.getElementById("postitBoard");
+            div.innerHTML = "";
+            snapshot.forEach(doc => {
+              const b = doc.data();
+              const el = document.createElement("div");
+              el.className = "postit";
+              el.textContent = b.titel || b.tekst || "✉";
+              el.title = b.tekst || "";
+              div.appendChild(el);
+            });
+          });
+      }
+    });
+  </script>
+</body>
+</html>
