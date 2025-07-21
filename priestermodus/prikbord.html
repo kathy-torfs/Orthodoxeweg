@@ -123,9 +123,11 @@
     </div>
   </div>
   <script>
-    const parochieId = localStorage.getItem("ingelogdeParochie");
-    document.getElementById("parochieLabel").textContent = parochieId
-      ? `U bent ingelogd in de parochie: ${parochieId}`
+    // Naam voor UI, ID voor opslag
+    const parochieNaam = localStorage.getItem("ingelogdeParochie");
+    const parochieId   = localStorage.getItem("ingelogdeParochieId");
+    document.getElementById("parochieLabel").textContent = parochieNaam
+      ? `U bent ingelogd in de parochie: ${parochieNaam}`
       : "⚠️ Geen geldige parochie geselecteerd!";
 
     document.getElementById("uitlogKnop").onclick = () => {
@@ -145,7 +147,6 @@
     const db = firebase.firestore();
 
     function opslaan(index) {
-      const parochieId = localStorage.getItem("ingelogdeParochieId");
       if (!parochieId || parochieId.trim() === "") {
         alert("Kan niet opslaan: er is geen geldige parochie geselecteerd!");
         return;
