@@ -5,59 +5,15 @@
   <title>Prikbord voor priesters</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { font-family: Arial, sans-serif; background:#f8f5e9; margin:0; padding:0;}
-    nav.menu {
-      background-color: #7a5f35;
-      padding: 12px 20px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 14px;
-      justify-content: center;
-    }
-    nav.menu a {
-      color: #f8f5e9;
-      text-decoration: none;
-      font-weight: bold;
-      font-size: 16px;
-      padding: 6px 14px;
-      border-radius: 8px;
-      transition: background-color 0.3s;
-    }
+    /* Jouw CSS hier – kan dezelfde zijn als bij kaarsjes, desnoods kopiëren */
+    body { font-family: Arial, sans-serif; margin:0; padding:0; background-color:#f8f5e9;}
+    nav.menu { background-color: #7a5f35; padding: 12px 20px; display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
+    nav.menu a { color: #f8f5e9; text-decoration: none; font-weight: bold; font-size: 16px; padding: 6px 14px; border-radius: 8px; transition: background-color 0.3s;}
     nav.menu a:hover { background-color: #5e4724; }
-    header {
-      background-color: #e6d6b8;
-      padding: 2rem 1rem 0.7rem 1rem;
-      text-align: center;
-    }
+    header { background-color: #e6d6b8; padding: 2rem 1rem 0.7rem 1rem; text-align: center; }
     h1 { margin:0; font-size:2rem; color:#5d4c2f;}
-    #parochieLabel {
-      background: #fcf6e2;
-      color: #7a5f35;
-      padding: 10px 0 8px 0;
-      text-align: center;
-      font-weight: bold;
-      letter-spacing: 1px;
-      font-size: 1.08em;
-      box-shadow: 0 2px 8px #cbb96d44;
-      margin-bottom: 10px;
-    }
-    .uitlog-link {
-      color: #fff;
-      background: #9a2617;
-      padding: 6px 16px;
-      border-radius: 8px;
-      font-size: 1em;
-      text-decoration: none;
-      font-weight: bold;
-      margin-top: 14px;
-      margin-bottom: 12px;
-      margin-left: 6px;
-      transition: background 0.18s;
-      cursor: pointer;
-      border: none;
-      outline: none;
-      float: right;
-    }
+    #parochieLabel { background: #fcf6e2; color: #7a5f35; padding: 10px 0 8px 0; text-align: center; font-weight: bold; letter-spacing: 1px; font-size: 1.08em; box-shadow: 0 2px 8px #cbb96d44; margin-bottom: 10px; }
+    .uitlog-link { color: #fff; background: #9a2617; padding: 6px 16px; border-radius: 8px; font-size: 1em; text-decoration: none; font-weight: bold; margin-top: 14px; margin-bottom: 12px; margin-left: 6px; transition: background 0.18s; cursor: pointer; border: none; outline: none; float: right; }
     .container { max-width: 780px; margin: 30px auto 40px auto; background:#fffef9; border-radius:14px; box-shadow:0 4px 16px #cbb96d32; padding:2rem; }
     .nieuw-bericht-blok { background: #f5efdd; border-radius: 12px; padding:1.1rem 1.4rem 1.2rem 1.4rem; margin-bottom:2.2rem; box-shadow: 0 2px 10px #e7dbad25;}
     .nieuw-bericht-blok h2 { font-size:1.16rem; color:#76580c; margin:0 0 0.7rem 0;}
@@ -65,21 +21,11 @@
     .nieuw-bericht-blok button { background:#7a5f35; color:#fff; font-weight:bold; border:none; border-radius:8px; padding:8px 20px; margin-top:1rem; font-size:1em; cursor:pointer;}
     .nieuw-bericht-blok button:hover { background: #b09765; }
     .berichten-lijst { display: flex; flex-direction: column; gap: 1.6rem;}
-    .bericht-item {
-      background: #f7ecd8;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px #d7cbb1aa;
-      padding: 1.1rem 1.5rem;
-      position: relative;
-    }
+    .bericht-item { background: #f7ecd8; border-radius: 12px; box-shadow: 0 2px 6px #d7cbb1aa; padding: 1.1rem 1.5rem; position: relative;}
     .bericht-titel { font-weight: bold; color: #775d21; font-size: 1.15em; margin-bottom: 6px;}
     .bericht-tekst { color: #5d4c2f; font-size: 1.07rem; margin-bottom:0.6rem; }
     .bericht-tijd { font-size:0.95em; color: #bba354;}
-    @media (max-width:700px){
-      .container {padding:0.7rem;}
-      .berichten-lijst{gap:0.8rem;}
-      .bericht-item{padding:0.7rem;}
-    }
+    @media (max-width:700px){ .container {padding:0.7rem;} .berichten-lijst{gap:0.8rem;} .bericht-item{padding:0.7rem;} }
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -142,16 +88,16 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Helper: eigen parochieId uit localStorage
+    // Helper: parochieId uit localStorage
     const parochieId = localStorage.getItem("ingelogdeParochieId");
 
-    // Laad alle prikbordberichten uit Firestore voor deze parochie
+    // Laad alle prikbordberichten
     function laadPrikbordBerichten() {
       const lijst = document.getElementById("berichtenLijst");
       lijst.innerHTML = "<em>Prikbordberichten worden geladen...</em>";
       db.collection("parochies")
         .doc(parochieId)
-        .collection("prikbord_priesters")
+        .collection("prikbord_priester")
         .orderBy("tijd", "desc")
         .get()
         .then(snapshot => {
