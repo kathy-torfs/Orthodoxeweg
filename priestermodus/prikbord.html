@@ -29,13 +29,23 @@
       cursor: pointer; border: none; float: right;
     }
     .formcontainer {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 22px; max-width: 1200px; margin: 32px auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 36px;
+      max-width: 1100px;
+      margin: 36px auto 50px auto;
+      justify-items: center;
     }
     .formblok {
-      padding: 20px; height: 230px; border-radius: 12px;
-      box-shadow: 2px 4px 8px #0001; display: flex; flex-direction: column;
-      justify-content: space-between; color: #222; font-weight: bold;
+      padding: 24px 20px;
+      height: 300px;
+      border-radius: 14px;
+      box-shadow: 2px 4px 16px #0001;
+      display: flex; flex-direction: column;
+      justify-content: flex-end;
+      align-items: stretch;
+      color: #222; font-weight: bold;
+      min-width: 270px;
     }
     .kleur1 { background: #fff980; border: 2px solid #ebd700; }
     .kleur2 { background: #c2eaff; border: 2px solid #53b6e2; }
@@ -46,25 +56,52 @@
     .kleur7 { background: #ffd8d8; border: 2px solid #ff6a6a; }
     .kleur8 { background: #d2ffd2; border: 2px solid #7fd97f; }
     .kleur9 { background: #fce5cd; border: 2px solid #f9a825; }
-    .formblok textarea, .formblok input {
-      width: 100%; margin-bottom: 12px; padding: 10px; border-radius: 8px;
-      border: 1.5px solid #ccc; font-size: 1em;
-    }
-    .formblok .button-row {
-      display: flex; gap: 8px; align-items: center; justify-content: flex-start;
+    .formblok textarea {
+      width: 100%;
+      margin-bottom: 18px;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1.5px solid #ccc;
+      font-size: 1.08em;
+      min-height: 120px;
+      resize: vertical;
     }
     .formblok button {
-      background: #7a5f35; color: #fff; font-weight: bold; padding: 8px 16px;
+      background: #7a5f35; color: #fff; font-weight: bold; padding: 10px 18px;
       border: none; border-radius: 8px; cursor: pointer; font-size: 1em;
-      margin-top: 6px;
+      margin-top: 0; margin-right: 8px;
     }
     .formblok button:hover { background: #b09765; }
-    .verwijderknop {
-      background: none; color: #d10000; border: none; font-size: 1.3em; cursor: pointer;
-      margin-left: 6px; padding: 2px 4px; transition: color 0.2s;
+    .postit-buttons {
+      display: flex;
+      flex-direction: row;
+      gap: 10px;
+      margin-top: 0;
+      align-items: center;
+      justify-content: flex-start;
     }
-    .verwijderknop:hover { color: #ff2323; }
+    .delete-btn {
+      background: #b6322c;
+      color: #fff;
+      font-weight: bold;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1.2em;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .delete-btn:hover { background: #ef1616; }
     .feedback { text-align:center; color: #9a2617; font-size: 1em; margin-bottom:8px;}
+    @media (max-width: 1050px) {
+      .formcontainer { grid-template-columns: repeat(2, 1fr);}
+    }
+    @media (max-width: 700px) {
+      .formcontainer { grid-template-columns: 1fr; gap: 18px;}
+    }
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -87,84 +124,76 @@
   </nav>
 
   <div class="formcontainer">
+    <!-- 9 post-its -->
     <div class="formblok kleur1">
-      <input id="titel0" placeholder="Titel">
-      <textarea id="tekst0" placeholder="Tekst"></textarea>
-      <div class="button-row">
+      <textarea id="tekst0" placeholder="Notitie..."></textarea>
+      <div class="postit-buttons">
         <button onclick="opslaan(0)">Plaatsen</button>
-        <button class="verwijderknop" onclick="verwijder(0)" title="Verwijderen">❌</button>
+        <button class="delete-btn" onclick="verwijderPostit(0)">&#10060;</button>
       </div>
       <div class="feedback" id="feedback0"></div>
     </div>
     <div class="formblok kleur2">
-      <input id="titel1" placeholder="Titel">
-      <textarea id="tekst1" placeholder="Tekst"></textarea>
-      <div class="button-row">
+      <textarea id="tekst1" placeholder="Notitie..."></textarea>
+      <div class="postit-buttons">
         <button onclick="opslaan(1)">Plaatsen</button>
-        <button class="verwijderknop" onclick="verwijder(1)" title="Verwijderen">❌</button>
+        <button class="delete-btn" onclick="verwijderPostit(1)">&#10060;</button>
       </div>
       <div class="feedback" id="feedback1"></div>
     </div>
     <div class="formblok kleur3">
-      <input id="titel2" placeholder="Titel">
-      <textarea id="tekst2" placeholder="Tekst"></textarea>
-      <div class="button-row">
+      <textarea id="tekst2" placeholder="Notitie..."></textarea>
+      <div class="postit-buttons">
         <button onclick="opslaan(2)">Plaatsen</button>
-        <button class="verwijderknop" onclick="verwijder(2)" title="Verwijderen">❌</button>
+        <button class="delete-btn" onclick="verwijderPostit(2)">&#10060;</button>
       </div>
       <div class="feedback" id="feedback2"></div>
     </div>
     <div class="formblok kleur4">
-      <input id="titel3" placeholder="Titel">
-      <textarea id="tekst3" placeholder="Tekst"></textarea>
-      <div class="button-row">
+      <textarea id="tekst3" placeholder="Notitie..."></textarea>
+      <div class="postit-buttons">
         <button onclick="opslaan(3)">Plaatsen</button>
-        <button class="verwijderknop" onclick="verwijder(3)" title="Verwijderen">❌</button>
+        <button class="delete-btn" onclick="verwijderPostit(3)">&#10060;</button>
       </div>
       <div class="feedback" id="feedback3"></div>
     </div>
     <div class="formblok kleur5">
-      <input id="titel4" placeholder="Titel">
-      <textarea id="tekst4" placeholder="Tekst"></textarea>
-      <div class="button-row">
+      <textarea id="tekst4" placeholder="Notitie..."></textarea>
+      <div class="postit-buttons">
         <button onclick="opslaan(4)">Plaatsen</button>
-        <button class="verwijderknop" onclick="verwijder(4)" title="Verwijderen">❌</button>
+        <button class="delete-btn" onclick="verwijderPostit(4)">&#10060;</button>
       </div>
       <div class="feedback" id="feedback4"></div>
     </div>
     <div class="formblok kleur6">
-      <input id="titel5" placeholder="Titel">
-      <textarea id="tekst5" placeholder="Tekst"></textarea>
-      <div class="button-row">
+      <textarea id="tekst5" placeholder="Notitie..."></textarea>
+      <div class="postit-buttons">
         <button onclick="opslaan(5)">Plaatsen</button>
-        <button class="verwijderknop" onclick="verwijder(5)" title="Verwijderen">❌</button>
+        <button class="delete-btn" onclick="verwijderPostit(5)">&#10060;</button>
       </div>
       <div class="feedback" id="feedback5"></div>
     </div>
     <div class="formblok kleur7">
-      <input id="titel6" placeholder="Titel">
-      <textarea id="tekst6" placeholder="Tekst"></textarea>
-      <div class="button-row">
+      <textarea id="tekst6" placeholder="Notitie..."></textarea>
+      <div class="postit-buttons">
         <button onclick="opslaan(6)">Plaatsen</button>
-        <button class="verwijderknop" onclick="verwijder(6)" title="Verwijderen">❌</button>
+        <button class="delete-btn" onclick="verwijderPostit(6)">&#10060;</button>
       </div>
       <div class="feedback" id="feedback6"></div>
     </div>
     <div class="formblok kleur8">
-      <input id="titel7" placeholder="Titel">
-      <textarea id="tekst7" placeholder="Tekst"></textarea>
-      <div class="button-row">
+      <textarea id="tekst7" placeholder="Notitie..."></textarea>
+      <div class="postit-buttons">
         <button onclick="opslaan(7)">Plaatsen</button>
-        <button class="verwijderknop" onclick="verwijder(7)" title="Verwijderen">❌</button>
+        <button class="delete-btn" onclick="verwijderPostit(7)">&#10060;</button>
       </div>
       <div class="feedback" id="feedback7"></div>
     </div>
     <div class="formblok kleur9">
-      <input id="titel8" placeholder="Titel">
-      <textarea id="tekst8" placeholder="Tekst"></textarea>
-      <div class="button-row">
+      <textarea id="tekst8" placeholder="Notitie..."></textarea>
+      <div class="postit-buttons">
         <button onclick="opslaan(8)">Plaatsen</button>
-        <button class="verwijderknop" onclick="verwijder(8)" title="Verwijderen">❌</button>
+        <button class="delete-btn" onclick="verwijderPostit(8)">&#10060;</button>
       </div>
       <div class="feedback" id="feedback8"></div>
     </div>
@@ -206,12 +235,10 @@
     async function laadPostits() {
       const parochieId = await parochieIdPromise;
       for (let i = 0; i < 9; i++) {
-        const titelInput = document.getElementById("titel" + i);
         const tekstInput = document.getElementById("tekst" + i);
         const feedback = document.getElementById("feedback" + i);
         if (!parochieId) {
           feedback.textContent = "Parochie niet gevonden.";
-          titelInput.value = "";
           tekstInput.value = "";
           continue;
         }
@@ -221,11 +248,9 @@
           .then(doc => {
             if (doc.exists) {
               const d = doc.data();
-              titelInput.value = d.titel || "";
               tekstInput.value = d.tekst || "";
               feedback.textContent = "";
             } else {
-              titelInput.value = "";
               tekstInput.value = "";
               feedback.textContent = "";
             }
@@ -235,7 +260,6 @@
 
     // Opslaan van een post-it
     async function opslaan(index) {
-      const titel = document.getElementById("titel" + index).value.trim();
       const tekst = document.getElementById("tekst" + index).value.trim();
       const feedback = document.getElementById("feedback" + index);
       feedback.textContent = "";
@@ -244,28 +268,27 @@
         feedback.textContent = "Parochie niet gevonden!";
         return;
       }
-      if (!titel && !tekst) {
-        feedback.textContent = "Vul minstens het titel- of tekstveld in.";
+      if (!tekst) {
+        feedback.textContent = "Het tekstvak is leeg.";
         return;
       }
       db.collection("parochies").doc(parochieId).collection("prikbord_priester")
         .doc("postit" + index)
         .set({
-          titel: titel,
           tekst: tekst,
           tijd: firebase.firestore.Timestamp.now()
         }).then(() => {
           feedback.textContent = "Opgeslagen!";
-          setTimeout(() => { feedback.textContent = ""; }, 2000);
+          setTimeout(() => { feedback.textContent = ""; }, 1800);
         }).catch((error) => {
           feedback.textContent = "Fout bij opslaan: " + error;
         });
     }
 
-    // Verwijderen van een post-it
-    async function verwijder(index) {
+    // Verwijder post-it
+    async function verwijderPostit(index) {
       const feedback = document.getElementById("feedback" + index);
-      feedback.textContent = "";
+      const tekstInput = document.getElementById("tekst" + index);
       const parochieId = await parochieIdPromise;
       if (!parochieId) {
         feedback.textContent = "Parochie niet gevonden!";
@@ -275,10 +298,9 @@
         .doc("postit" + index)
         .delete()
         .then(() => {
-          document.getElementById("titel" + index).value = "";
-          document.getElementById("tekst" + index).value = "";
-          feedback.textContent = "Bericht verwijderd.";
-          setTimeout(() => { feedback.textContent = ""; }, 2000);
+          tekstInput.value = "";
+          feedback.textContent = "Verwijderd!";
+          setTimeout(() => { feedback.textContent = ""; }, 1200);
         })
         .catch((error) => {
           feedback.textContent = "Fout bij verwijderen: " + error;
@@ -287,7 +309,7 @@
 
     window.onload = laadPostits;
     window.opslaan = opslaan;
-    window.verwijder = verwijder;
+    window.verwijderPostit = verwijderPostit;
   </script>
 </body>
 </html>
