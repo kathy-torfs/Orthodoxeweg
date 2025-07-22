@@ -2,146 +2,206 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>Parochienieuws</title>
+  <title>Prikbord – Mijn Parochie</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-      background: #d8ecf9;
-      color: #5b4320;
-    }
-    .topbar {
-      background: #7a5f35;
-      color: #fff;
-      padding: 10px 24px;
-      font-size: 1.07em;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    body { margin: 0; padding: 0; font-family: Arial, sans-serif; background: #d8ecf9; color: #5b4320; }
+    header { background-color: #e6d6b8; padding: 2rem 1rem 0.7rem 1rem; text-align: center; }
+    h1 { margin:0; font-size:2rem; color:#5d4c2f; }
+    #parochieLabel {
+      background: #fcf6e2; color: #7a5f35; padding: 10px 0 8px 0; text-align: center;
+      font-weight: bold; letter-spacing: 1px; font-size: 1.08em;
+      box-shadow: 0 2px 8px #cbb96d44; margin-bottom: 10px;
     }
     nav.menu {
-      background-color: #7a5f35;
-      padding: 12px 20px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 14px;
-      justify-content: center;
+      background-color: #7a5f35; padding: 12px 20px;
+      display: flex; flex-wrap: wrap; gap: 14px; justify-content: center;
     }
     nav.menu a {
-      color: #f8f5e9;
-      text-decoration: none;
-      font-weight: bold;
-      font-size: 16px;
-      padding: 6px 14px;
-      border-radius: 8px;
-      transition: background-color 0.3s;
+      color: #f8f5e9; text-decoration: none; font-weight: bold; font-size: 16px;
+      padding: 6px 14px; border-radius: 8px; transition: background-color 0.3s;
     }
     nav.menu a:hover { background-color: #5e4724; }
     .uitlog-link {
-      color: #fff;
-      background: #9a2617;
-      padding: 6px 16px;
-      border-radius: 8px;
-      font-size: 1em;
-      text-decoration: none;
-      font-weight: bold;
-      margin-left: 14px;
-      margin-right: 14px;
-      transition: background 0.18s;
-      cursor: pointer;
+      color: #fff; background: #9a2617; padding: 6px 16px; border-radius: 8px;
+      font-size: 1em; text-decoration: none; font-weight: bold;
+      margin-left: 14px; margin-right: 14px; transition: background 0.18s;
+      cursor: pointer; border: none; float: right;
+    }
+    .formcontainer {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 36px;
+      max-width: 1100px;
+      margin: 36px auto 50px auto;
+      justify-items: center;
+    }
+    .formblok {
+      padding: 24px 20px;
+      height: 320px;
+      border-radius: 14px;
+      box-shadow: 2px 4px 16px #0001;
+      display: flex; flex-direction: column;
+      justify-content: flex-end;
+      align-items: stretch;
+      color: #222; font-weight: bold;
+      min-width: 270px;
+      overflow: hidden;
+    }
+    .kleur1 { background: #fff980; border: 2px solid #ebd700; }
+    .kleur2 { background: #c2eaff; border: 2px solid #53b6e2; }
+    .kleur3 { background: #ffbae3; border: 2px solid #e371bc; }
+    .kleur4 { background: #d3ffbc; border: 2px solid #79c663; }
+    .kleur5 { background: #ffe2b7; border: 2px solid #ffc75b; }
+    .kleur6 { background: #e8d1ff; border: 2px solid #b48ff4; }
+    .kleur7 { background: #ffd8d8; border: 2px solid #ff6a6a; }
+    .kleur8 { background: #d2ffd2; border: 2px solid #7fd97f; }
+    .kleur9 { background: #fce5cd; border: 2px solid #f9a825; }
+    .formblok textarea {
+      width: 100%;
+      margin-bottom: 18px;
+      padding: 10px 0 10px 0;
       border: none;
       outline: none;
-    }
-    .postit-board {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 20px;
-      padding: 40px 20px;
-    }
-    .postit {
-      width: 140px;
-      height: 140px;
-      padding: 10px;
-      border-radius: 10px;
-      box-shadow: 2px 4px 8px #0002;
-      background: #fff980;
-      border: 2px solid #ebd700;
+      background: transparent;
       color: #222;
-      font-weight: bold;
-      font-size: 1.1em;
-      cursor: pointer;
-      position: relative;
-      white-space: pre-line;
+      font-size: 1.13em;
+      min-height: 170px;
+      resize: none;
+      box-shadow: none;
+      font-family: inherit;
+      box-sizing: border-box;
+      pointer-events: none; /* Gebruiker kan NIET klikken/wijzigen */
+    }
+    .formblok textarea:focus {
+      outline: none;
+      background: transparent;
+      border: none;
+    }
+    .feedback { display: none; }
+    @media (max-width: 1050px) {
+      .formcontainer { grid-template-columns: repeat(2, 1fr);}
+    }
+    @media (max-width: 700px) {
+      .formcontainer { grid-template-columns: 1fr; gap: 18px;}
     }
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <div class="topbar">
-    <div id="welkom-tekst"></div>
+  <header>
     <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
-  </div>
-  <nav class="menu"> 
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html">🏠 Home</a>
+    <h1 id="welkom-tekst">Prikbord – Mijn Parochie</h1>
+    <div id="parochieLabel"></div>
+  </header>
+  <nav class="menu">
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html">🏠 Startpagina</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/gebeden.html">🙏 Gebeden</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html">🧰 Mijn profiel</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/heiligen/heiligen.html">👼 Heiligen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/contact.html">🌐 Contact</a>
   </nav>
-  <div class="postit-board" id="postitBoard"></div>
-  <script>
-    const welkomTekst = document.getElementById("welkom-tekst");
-    const uur = new Date().getHours();
-    let moment = "goeiedag";
-    if (uur >= 5 && uur <= 10) moment = "goeiemorgend";
-    else if (uur >= 11 && uur <= 13) moment = "goeiemiddag";
-    else if (uur >= 17 && uur <= 22) moment = "goeienavond";
-    else if (uur > 22 || uur < 5) moment = "goedenacht";
-    const parochie = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
-    welkomTekst.textContent = `${moment}, u bent ingelogd in: ${parochie}`;
 
-    document.getElementById("uitlogKnop").onclick = () => {
+  <div class="formcontainer">
+    <!-- 9 post-its -->
+    <div class="formblok kleur1">
+      <textarea id="tekst0" placeholder="Notitie..." readonly></textarea>
+      <div class="feedback" id="feedback0"></div>
+    </div>
+    <div class="formblok kleur2">
+      <textarea id="tekst1" placeholder="Notitie..." readonly></textarea>
+      <div class="feedback" id="feedback1"></div>
+    </div>
+    <div class="formblok kleur3">
+      <textarea id="tekst2" placeholder="Notitie..." readonly></textarea>
+      <div class="feedback" id="feedback2"></div>
+    </div>
+    <div class="formblok kleur4">
+      <textarea id="tekst3" placeholder="Notitie..." readonly></textarea>
+      <div class="feedback" id="feedback3"></div>
+    </div>
+    <div class="formblok kleur5">
+      <textarea id="tekst4" placeholder="Notitie..." readonly></textarea>
+      <div class="feedback" id="feedback4"></div>
+    </div>
+    <div class="formblok kleur6">
+      <textarea id="tekst5" placeholder="Notitie..." readonly></textarea>
+      <div class="feedback" id="feedback5"></div>
+    </div>
+    <div class="formblok kleur7">
+      <textarea id="tekst6" placeholder="Notitie..." readonly></textarea>
+      <div class="feedback" id="feedback6"></div>
+    </div>
+    <div class="formblok kleur8">
+      <textarea id="tekst7" placeholder="Notitie..." readonly></textarea>
+      <div class="feedback" id="feedback7"></div>
+    </div>
+    <div class="formblok kleur9">
+      <textarea id="tekst8" placeholder="Notitie..." readonly></textarea>
+      <div class="feedback" id="feedback8"></div>
+    </div>
+  </div>
+  <script>
+    // Alleen toegankelijk voor ingelogde volwassenen
+    if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "volwassene") {
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    }
+    const parochieNaam = localStorage.getItem("ingelogdeParochie");
+    document.getElementById("parochieLabel").textContent = parochieNaam
+      ? `U bent ingelogd in de parochie van ${parochieNaam}`
+      : "⚠️ Geen geldige parochie geselecteerd!";
+    document.getElementById("uitlogKnop").onclick = function() {
       localStorage.clear();
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     };
 
-    // Beveiliging op basis van lokale modus ipv Firebase auth
-    const modus = localStorage.getItem("modus");
-    if (modus !== "volwassene") {
-      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
-    }
-
+    // FIREBASE INIT
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain: "orthodoxeweg.firebaseapp.com",
-      projectId: "orthodoxeweg"
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
     };
-    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    const parochieId = localStorage.getItem("ingelogdeParochieId");
-    if (parochieId) {
-      db.collection("parochies").doc(parochieId).collection("prikbord_priester")
-        .orderBy("createdAt", "desc").limit(30)
-        .get().then(snapshot => {
-          const div = document.getElementById("postitBoard");
-          div.innerHTML = "";
-          snapshot.forEach(doc => {
-            const b = doc.data();
-            const el = document.createElement("div");
-            el.className = "postit";
-            el.textContent = b.titel || b.tekst || "✉";
-            el.title = b.tekst || "";
-            div.appendChild(el);
+    // Haal correcte parochieId uit Firestore op basis van naam
+    let parochieIdPromise = db.collection("parochies")
+      .where("naam", "==", parochieNaam)
+      .limit(1)
+      .get()
+      .then(snap => snap.empty ? null : snap.docs[0].id);
+
+    // Laad alle post-its bij openen (alleen lezen)
+    async function laadPostits() {
+      const parochieId = await parochieIdPromise;
+      for (let i = 0; i < 9; i++) {
+        const tekstInput = document.getElementById("tekst" + i);
+        if (!parochieId) {
+          tekstInput.value = "Parochie niet gevonden.";
+          continue;
+        }
+        db.collection("parochies").doc(parochieId).collection("prikbord_priester")
+          .doc("postit" + i)
+          .get()
+          .then(doc => {
+            if (doc.exists) {
+              const d = doc.data();
+              tekstInput.value = d.tekst || "";
+            } else {
+              tekstInput.value = "";
+            }
           });
-        });
+      }
     }
+
+    window.onload = laadPostits;
   </script>
 </body>
 </html>
