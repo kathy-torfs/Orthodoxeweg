@@ -2,12 +2,12 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>Zoekertjes – Priester</title>
+  <title>Zoekertjes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { font-family: Arial, sans-serif; margin:0; padding:0; background-color:#f8f5e9;}
-    header { background-color: #e6d6b8; padding: 2rem 1rem 0.7rem 1rem; text-align: center; }
-    h1 { margin:0; font-size:2rem; color:#5d4c2f; }
+    body { font-family: Arial,sans-serif; background: #f8f5e9; margin:0; padding:0;}
+    header { background: #e6d6b8; padding: 2rem 1rem 0.7rem 1rem; text-align: center;}
+    h1 { margin:0; font-size:2rem; color:#5d4c2f;}
     #parochieLabel {
       background: #fcf6e2; color: #7a5f35; padding: 10px 0 8px 0; text-align: center;
       font-weight: bold; letter-spacing: 1px; font-size: 1.08em;
@@ -22,47 +22,40 @@
       padding: 6px 14px; border-radius: 8px; transition: background-color 0.3s;
     }
     nav.menu a:hover { background-color: #5e4724; }
-    .uitlog-link {
-      color: #fff; background: #9a2617; padding: 6px 16px; border-radius: 8px;
-      font-size: 1em; text-decoration: none; font-weight: bold;
-      margin-left: 14px; margin-right: 14px; transition: background 0.18s;
-      cursor: pointer; border: none; float: right;
+    .container { max-width: 760px; margin: 32px auto 40px auto; background:#fffef9;
+      border-radius:14px; box-shadow:0 4px 16px #cbb96d32; padding:2rem; }
+    .nieuw-zoekertje-blok {
+      background: #f5efdd; border-radius: 12px; padding:1.1rem 1.4rem 1.2rem 1.4rem;
+      margin-bottom:2.2rem; box-shadow: 0 2px 10px #e7dbad25;
     }
-    .container { max-width: 650px; margin: 36px auto 40px auto; background:#fffef9; border-radius:16px; box-shadow:0 4px 16px #cbb96d32; padding:2.2rem; }
-    .nieuw-zoekertje-blok { background: #f5efdd; border-radius: 12px; padding:1.1rem 1.4rem 1.2rem 1.4rem; margin-bottom:2.2rem; box-shadow: 0 2px 10px #e7dbad25;}
-    .nieuw-zoekertje-blok textarea { width:100%; min-height:54px; font-size:1.06rem; border-radius:8px; border:1.2px solid #dbc592; padding:8px;}
+    .nieuw-zoekertje-blok h2 { font-size:1.16rem; color:#76580c; margin:0 0 0.7rem 0;}
+    .nieuw-zoekertje-blok textarea { width:100%; min-height:52px; font-size:1.06rem; border-radius:8px; border:1.2px solid #dbc592; padding:8px; }
+    .nieuw-zoekertje-blok select { font-size:1em; border-radius:6px; border:1.2px solid #dbc592; padding:6px 8px; margin-left:12px;}
     .nieuw-zoekertje-blok button { background:#7a5f35; color:#fff; font-weight:bold; border:none; border-radius:8px; padding:8px 20px; margin-top:1rem; font-size:1em; cursor:pointer;}
     .nieuw-zoekertje-blok button:hover { background: #b09765; }
-    .zoekertjes-lijst { display: flex; flex-direction: column; gap: 1.2rem;}
-    .zoekertje-item {
-      background: #f7ecd8;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px #d7cbb1aa;
-      padding: 1.05rem 1.4rem 0.9rem 1.4rem;
+    .zoekertjes-lijst { display: flex; flex-direction: column; gap: 1.5rem; }
+    .zoekertje-blok {
       position: relative;
-      display: flex;
-      align-items: flex-start;
-      gap: 16px;
+      background: #faf7e2;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px #d7cbb1aa;
+      padding: 1.25rem 1.5rem 1.2rem 1.5rem;
+      margin-bottom: 0.8rem;
+      display: flex; flex-direction: column; gap:0.5rem;
     }
-    .zoekertekst { color: #4a391c; font-size: 1.11rem; flex:1;}
-    .zoekertje-info { font-size:0.93em; color: #968043; margin-top:3px;}
+    .zoekertje-tijd { color: #bba354; font-size:0.99em; margin-bottom:0.2em;}
+    .zoekertje-tekst { color: #5d4c2f; font-size:1.08rem; }
+    .zoekertje-footer { display: flex; justify-content: space-between; align-items: center; }
+    .zoekertje-poster { color: #836a3b; font-size:0.99em; }
     .verwijder-btn {
-      background: #b6322c;
-      color: #fff;
-      border: none;
-      border-radius: 7px;
-      font-size: 1.4em;
-      cursor: pointer;
-      padding: 4px 10px 4px 10px;
-      align-self: flex-start;
-      margin-left: 8px;
-      transition: background 0.2s;
+      background: #b6322c; color:#fff; border:none; border-radius:8px; font-size:1.24em;
+      padding: 4px 12px 4px 12px; cursor:pointer; transition: background 0.2s; margin-left: 16px;
+      display: flex; align-items:center; justify-content: center;
     }
-    .verwijder-btn:hover { background: #ef1616; }
-    #feedbackNieuw { text-align:center; color: #9a2617; font-size: 1em; margin-bottom:8px;}
-    @media (max-width:700px){
+    .verwijder-btn:hover { background:#ef1616; }
+    .feedback { text-align:center; color: #9a2617; font-size: 1em; margin-bottom:8px;}
+    @media (max-width: 750px) {
       .container {padding:0.7rem;}
-      .zoekertje-item{flex-direction:column;gap:7px;}
     }
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -70,8 +63,8 @@
 </head>
 <body>
   <header>
-    <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
-    <h1 id="welkom-tekst">Zoekertjes beheer – Priester</h1>
+    <button class="uitlog-link" id="uitlogKnop" style="float:right; margin-top: 10px;">🚪 Uitloggen</button>
+    <h1 id="welkom-tekst">Zoekertjes</h1>
     <div id="parochieLabel"></div>
   </header>
   <nav class="menu">
@@ -86,31 +79,37 @@
   </nav>
   <div class="container">
     <div class="nieuw-zoekertje-blok">
+      <h2>Plaats een nieuw zoekertje</h2>
       <form id="nieuwZoekertjeForm">
-        <textarea id="nieuwZoekertjeTekst" required maxlength="300" placeholder="Typ uw zoekertje (max. 300 tekens)..."></textarea>
-        <button type="submit">Plaats zoekertje</button>
+        <textarea id="nieuwZoekertjeTekst" required maxlength="240" placeholder="Omschrijf hier uw zoekertje..."></textarea>
+        <label for="duurSelect">Tonen tot:</label>
+        <select id="duurSelect">
+          <option value="24">24 uur (standaard)</option>
+          <option value="48">2 dagen</option>
+          <option value="72">3 dagen</option>
+          <option value="168">7 dagen</option>
+        </select>
+        <button type="submit">Plaatsen</button>
       </form>
-      <div id="feedbackNieuw"></div>
+      <div class="feedback" id="nieuwZoekertjeFeedback"></div>
     </div>
-    <div class="zoekertjes-lijst" id="zoekertjesLijst">
-      <!-- Zoekertjes komen hier -->
-    </div>
+    <div class="zoekertjes-lijst" id="zoekertjesLijst"></div>
   </div>
   <script>
-    // Beveiliging: Alleen priester mag deze pagina
-    if (!localStorage.getItem("ingelogdeParochie") || !["priester", "volwassene"].includes(localStorage.getItem("modus"))) {
+    // Beveiliging en info
+    let modus = localStorage.getItem("modus");
+    if (!localStorage.getItem("ingelogdeParochie")) {
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     }
     let parochieNaam = localStorage.getItem("ingelogdeParochie");
-    document.getElementById("parochieLabel").textContent = parochieNaam
-      ? `U bent ingelogd in de parochie van ${parochieNaam}`
-      : "⚠️ Geen geldige parochie geselecteerd!";
+    let userId = localStorage.getItem("userId") || "";
+    document.getElementById("parochieLabel").textContent = `U bent ingelogd in de parochie van ${parochieNaam}`;
     document.getElementById("uitlogKnop").onclick = function() {
       localStorage.clear();
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     };
 
-    // Firebase
+    // FIREBASE INIT
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -122,7 +121,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    const userId = localStorage.getItem("userId") || ""; // unieke gebruiker
+    // Haal correcte parochieId uit Firestore op basis van naam
     let parochieIdPromise = db.collection("parochies")
       .where("naam", "==", parochieNaam)
       .limit(1)
@@ -131,69 +130,100 @@
 
     // Zoekertjes laden
     async function laadZoekertjes() {
+      const parochieId = await parochieIdPromise;
       const lijst = document.getElementById("zoekertjesLijst");
       lijst.innerHTML = "<em>Zoekertjes worden geladen...</em>";
-      const parochieId = await parochieIdPromise;
       if (!parochieId) {
-        lijst.innerHTML = "<em>Parochie niet gevonden!</em>";
+        lijst.innerHTML = "<em>Parochie niet gevonden.</em>";
         return;
       }
+      const nu = Date.now();
       db.collection("parochies").doc(parochieId).collection("zoekertjes")
-        .orderBy("createdAt", "desc")
+        .where("verlooptOp", ">", new Date(nu - 86400000*7)) // toon max 1 week oude zoekertjes
+        .orderBy("verlooptOp", "desc")
         .get()
         .then(snapshot => {
-          if (snapshot.empty) {
+          let items = [];
+          snapshot.forEach(doc => {
+            const d = doc.data();
+            if (d.verlooptOp && d.verlooptOp.toDate().getTime() < nu) return; // Verlopen, niet tonen
+            items.push({
+              id: doc.id,
+              tekst: d.tekst,
+              aangemaaktDoor: d.aangemaaktDoor,
+              aangemaaktDoorNaam: d.aangemaaktDoorNaam || "",
+              aangemaaktOp: d.aangemaaktOp ? d.aangemaaktOp.toDate() : null,
+              verlooptOp: d.verlooptOp ? d.verlooptOp.toDate() : null
+            });
+          });
+          if (items.length === 0) {
             lijst.innerHTML = "<em>Er zijn nog geen zoekertjes.</em>";
             return;
           }
+          items.sort((a,b) => b.aangemaaktOp-b.aangemaaktOp);
           lijst.innerHTML = "";
-          snapshot.forEach(doc => {
-            const d = doc.data();
-            const magVerwijderen = (d.userId === userId);
-            let html = `
-              <div class="zoekertje-item">
-                <div class="zoekertekst">${d.text || "(geen tekst)"}</div>
-                <div>
-                  <div class="zoekertje-info">
-                    Geplaatst op: ${(d.createdAt && d.createdAt.toDate) ? d.createdAt.toDate().toLocaleDateString("nl-BE") : "onbekend"}
-                  </div>
-                  ${magVerwijderen ? `<button class="verwijder-btn" onclick="verwijderZoekertje('${doc.id}')">&#10060;</button>` : ""}
-                </div>
+          items.forEach(item => {
+            let tijdText = "Verloopt: ";
+            if (item.verlooptOp) {
+              let uur = item.verlooptOp.getHours().toString().padStart(2,"0");
+              let min = item.verlooptOp.getMinutes().toString().padStart(2,"0");
+              tijdText += `${item.verlooptOp.toLocaleDateString()} ${uur}:${min}`;
+            }
+            let naam = item.aangemaaktDoorNaam ? "door "+item.aangemaaktDoorNaam : "";
+            let blok = document.createElement("div");
+            blok.className = "zoekertje-blok";
+            blok.innerHTML = `
+              <div class="zoekertje-tijd">${tijdText}</div>
+              <div class="zoekertje-tekst">${item.tekst ? item.tekst.replace(/\n/g,"<br>") : ""}</div>
+              <div class="zoekertje-footer">
+                <span class="zoekertje-poster">${naam}</span>
+                ${
+                  item.aangemaaktDoor === userId
+                  ? `<button class="verwijder-btn" onclick="verwijderZoekertje('${item.id}')">&#10060;</button>`
+                  : ""
+                }
               </div>
             `;
-            lijst.innerHTML += html;
+            lijst.appendChild(blok);
           });
         });
     }
 
-    // Zoekertje plaatsen
+    // Nieuw zoekertje toevoegen
     document.getElementById("nieuwZoekertjeForm").onsubmit = async function(e) {
       e.preventDefault();
       const tekst = document.getElementById("nieuwZoekertjeTekst").value.trim();
-      if (tekst.length === 0) return;
+      const duurUur = parseInt(document.getElementById("duurSelect").value) || 24;
+      const feedback = document.getElementById("nieuwZoekertjeFeedback");
+      if (!tekst) { feedback.textContent = "Vul een zoekertje in."; return; }
       const parochieId = await parochieIdPromise;
-      document.getElementById("feedbackNieuw").textContent = "Verzenden...";
+      if (!parochieId) { feedback.textContent = "Parochie niet gevonden!"; return; }
+      let naam = localStorage.getItem("userVoornaam") || "";
       db.collection("parochies").doc(parochieId).collection("zoekertjes")
         .add({
-          userId: userId,
-          text: tekst,
-          createdAt: firebase.firestore.Timestamp.now()
+          tekst: tekst,
+          aangemaaktDoor: userId,
+          aangemaaktDoorNaam: naam,
+          aangemaaktOp: new Date(),
+          verlooptOp: new Date(Date.now() + duurUur * 60 * 60 * 1000)
         })
         .then(() => {
-          document.getElementById("feedbackNieuw").textContent = "Zoekertje geplaatst.";
           document.getElementById("nieuwZoekertjeTekst").value = "";
+          feedback.textContent = "Zoekertje geplaatst!";
           laadZoekertjes();
-          setTimeout(() => { document.getElementById("feedbackNieuw").textContent = ""; }, 1400);
+          setTimeout(() => { feedback.textContent = ""; }, 1400);
         })
         .catch(() => {
-          document.getElementById("feedbackNieuw").textContent = "Fout: niet opgeslagen.";
+          feedback.textContent = "Fout bij plaatsen.";
         });
     };
 
-    // Zoekertje verwijderen (alleen je eigen)
+    // Eigen zoekertje verwijderen
     async function verwijderZoekertje(id) {
       const parochieId = await parochieIdPromise;
-      db.collection("parochies").doc(parochieId).collection("zoekertjes").doc(id).delete()
+      if (!parochieId) return;
+      db.collection("parochies").doc(parochieId).collection("zoekertjes").doc(id)
+        .delete()
         .then(() => laadZoekertjes());
     }
 
