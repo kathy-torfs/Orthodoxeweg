@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
@@ -62,15 +62,6 @@
       transition: box-shadow 0.2s;
       border-left: 10px solid #c2eaff;
     }
-    .zoekertje-blok .verwijder-btn {
-      position: absolute; top: 12px; right: 12px;
-      background: #b6322c; color: #fff; border: none;
-      border-radius: 50%; width: 34px; height: 34px;
-      font-size: 1.3em; font-weight: bold;
-      cursor: pointer; transition: background 0.18s;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .zoekertje-blok .verwijder-btn:hover { background: #ef1616; }
     .zoekertekst { color: #463900; font-size:1.10em; white-space: pre-wrap; }
     .zoekerinfo { margin-top: 0.7em; color: #6d5e3d; font-size:0.93em; }
     .vervalt { color: #bd412d; font-size: 0.97em; margin-left: 6px;}
@@ -89,6 +80,7 @@
     <div id="parochieLabel"></div>
   </header>
   <nav class="menu">
+    <!-- Vul aan met correcte links -->
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html">🏠 Startpagina</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
@@ -176,7 +168,6 @@
             const d = doc.data();
             if (!d.vervalDatum || (d.vervalDatum && d.vervalDatum.toDate() > nu)) {
               count++;
-              const magVerwijderen = (d.userId === userId); // enkel eigen zoekertje
               let naamTekst = d.naam ? d.naam : "";
               let tijd = "";
               if (d.datum && d.datum.toDate) {
@@ -200,7 +191,6 @@
               }
               lijst.innerHTML += `
                 <div class="zoekertje-blok">
-                  ${magVerwijderen ? `<button class="verwijder-btn" onclick="verwijderZoekertje('${doc.id}')">&#10060;</button>` : ""}
                   <div class="zoekertekst">${d.tekst || ""}</div>
                   <div class="zoekerinfo">
                     ${naamTekst ? `<span><strong>Door:</strong> ${naamTekst}</span>` : ""}
@@ -252,20 +242,7 @@
         });
     };
 
-    // Zoekertje verwijderen (enkel eigen)
-    async function verwijderZoekertje(id) {
-      if (!confirm("Weet u zeker dat u dit zoekertje wilt verwijderen?")) return;
-      const parochieId = await parochieIdPromise;
-      if (!parochieId) return;
-      db.collection("parochies").doc(parochieId).collection("zoekertjes")
-        .doc(id).delete().then(() => {
-          laadZoekertjes();
-        });
-    }
-    window.verwijderZoekertje = verwijderZoekertje;
-
     window.onload = laadZoekertjes;
   </script>
 </body>
 </html>
-
