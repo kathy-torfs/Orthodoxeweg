@@ -28,8 +28,12 @@
       margin-left: 14px; margin-right: 14px; transition: background 0.18s;
       cursor: pointer; border: none; float: right;
     }
+    .formcontainer {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 22px; max-width: 1200px; margin: 32px auto;
+    }
     .formblok {
-      padding: 20px; width: 100%; height: 240px; border-radius: 12px;
+      padding: 20px; height: 230px; border-radius: 12px;
       box-shadow: 2px 4px 8px #0001; display: flex; flex-direction: column;
       justify-content: space-between; color: #222; font-weight: bold;
     }
@@ -46,18 +50,21 @@
       width: 100%; margin-bottom: 12px; padding: 10px; border-radius: 8px;
       border: 1.5px solid #ccc; font-size: 1em;
     }
+    .formblok .button-row {
+      display: flex; gap: 8px; align-items: center; justify-content: flex-start;
+    }
     .formblok button {
-      background: #7a5f35; color: #fff; font-weight: bold; padding: 10px 20px;
-      border: none; border-radius: 8px; cursor: pointer;
+      background: #7a5f35; color: #fff; font-weight: bold; padding: 8px 16px;
+      border: none; border-radius: 8px; cursor: pointer; font-size: 1em;
+      margin-top: 6px;
     }
-    .formblok .verwijder-knop {
-      background: #ba3333; margin-top: 5px;
+    .formblok button:hover { background: #b09765; }
+    .verwijderknop {
+      background: none; color: #d10000; border: none; font-size: 1.3em; cursor: pointer;
+      margin-left: 6px; padding: 2px 4px; transition: color 0.2s;
     }
-    .formcontainer {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px; max-width: 1200px; margin: 30px auto;
-    }
-    .feedback { font-size:0.97em; color: #7a5f35; margin-top:8px; min-height:1.2em;}
+    .verwijderknop:hover { color: #ff2323; }
+    .feedback { text-align:center; color: #9a2617; font-size: 1em; margin-bottom:8px;}
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -65,7 +72,7 @@
 <body>
   <header>
     <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
-    <h1 id="welkom-tekst">Welkom vader, ik wens u een gezegende dag.</h1>
+    <h1 id="welkom-tekst">Prikbordbeheer – Priester</h1>
     <div id="parochieLabel"></div>
   </header>
   <nav class="menu">
@@ -83,64 +90,82 @@
     <div class="formblok kleur1">
       <input id="titel0" placeholder="Titel">
       <textarea id="tekst0" placeholder="Tekst"></textarea>
-      <button onclick="opslaan(0)">Plaatsen</button>
-      <button class="verwijder-knop" onclick="verwijder(0)">Verwijder</button>
+      <div class="button-row">
+        <button onclick="opslaan(0)">Plaatsen</button>
+        <button class="verwijderknop" onclick="verwijder(0)" title="Verwijderen">❌</button>
+      </div>
       <div class="feedback" id="feedback0"></div>
     </div>
     <div class="formblok kleur2">
       <input id="titel1" placeholder="Titel">
       <textarea id="tekst1" placeholder="Tekst"></textarea>
-      <button onclick="opslaan(1)">Plaatsen</button>
-      <button class="verwijder-knop" onclick="verwijder(1)">Verwijder</button>
+      <div class="button-row">
+        <button onclick="opslaan(1)">Plaatsen</button>
+        <button class="verwijderknop" onclick="verwijder(1)" title="Verwijderen">❌</button>
+      </div>
       <div class="feedback" id="feedback1"></div>
     </div>
     <div class="formblok kleur3">
       <input id="titel2" placeholder="Titel">
       <textarea id="tekst2" placeholder="Tekst"></textarea>
-      <button onclick="opslaan(2)">Plaatsen</button>
-      <button class="verwijder-knop" onclick="verwijder(2)">Verwijder</button>
+      <div class="button-row">
+        <button onclick="opslaan(2)">Plaatsen</button>
+        <button class="verwijderknop" onclick="verwijder(2)" title="Verwijderen">❌</button>
+      </div>
       <div class="feedback" id="feedback2"></div>
     </div>
     <div class="formblok kleur4">
       <input id="titel3" placeholder="Titel">
       <textarea id="tekst3" placeholder="Tekst"></textarea>
-      <button onclick="opslaan(3)">Plaatsen</button>
-      <button class="verwijder-knop" onclick="verwijder(3)">Verwijder</button>
+      <div class="button-row">
+        <button onclick="opslaan(3)">Plaatsen</button>
+        <button class="verwijderknop" onclick="verwijder(3)" title="Verwijderen">❌</button>
+      </div>
       <div class="feedback" id="feedback3"></div>
     </div>
     <div class="formblok kleur5">
       <input id="titel4" placeholder="Titel">
       <textarea id="tekst4" placeholder="Tekst"></textarea>
-      <button onclick="opslaan(4)">Plaatsen</button>
-      <button class="verwijder-knop" onclick="verwijder(4)">Verwijder</button>
+      <div class="button-row">
+        <button onclick="opslaan(4)">Plaatsen</button>
+        <button class="verwijderknop" onclick="verwijder(4)" title="Verwijderen">❌</button>
+      </div>
       <div class="feedback" id="feedback4"></div>
     </div>
     <div class="formblok kleur6">
       <input id="titel5" placeholder="Titel">
       <textarea id="tekst5" placeholder="Tekst"></textarea>
-      <button onclick="opslaan(5)">Plaatsen</button>
-      <button class="verwijder-knop" onclick="verwijder(5)">Verwijder</button>
+      <div class="button-row">
+        <button onclick="opslaan(5)">Plaatsen</button>
+        <button class="verwijderknop" onclick="verwijder(5)" title="Verwijderen">❌</button>
+      </div>
       <div class="feedback" id="feedback5"></div>
     </div>
     <div class="formblok kleur7">
       <input id="titel6" placeholder="Titel">
       <textarea id="tekst6" placeholder="Tekst"></textarea>
-      <button onclick="opslaan(6)">Plaatsen</button>
-      <button class="verwijder-knop" onclick="verwijder(6)">Verwijder</button>
+      <div class="button-row">
+        <button onclick="opslaan(6)">Plaatsen</button>
+        <button class="verwijderknop" onclick="verwijder(6)" title="Verwijderen">❌</button>
+      </div>
       <div class="feedback" id="feedback6"></div>
     </div>
     <div class="formblok kleur8">
       <input id="titel7" placeholder="Titel">
       <textarea id="tekst7" placeholder="Tekst"></textarea>
-      <button onclick="opslaan(7)">Plaatsen</button>
-      <button class="verwijder-knop" onclick="verwijder(7)">Verwijder</button>
+      <div class="button-row">
+        <button onclick="opslaan(7)">Plaatsen</button>
+        <button class="verwijderknop" onclick="verwijder(7)" title="Verwijderen">❌</button>
+      </div>
       <div class="feedback" id="feedback7"></div>
     </div>
     <div class="formblok kleur9">
       <input id="titel8" placeholder="Titel">
       <textarea id="tekst8" placeholder="Tekst"></textarea>
-      <button onclick="opslaan(8)">Plaatsen</button>
-      <button class="verwijder-knop" onclick="verwijder(8)">Verwijder</button>
+      <div class="button-row">
+        <button onclick="opslaan(8)">Plaatsen</button>
+        <button class="verwijderknop" onclick="verwijder(8)" title="Verwijderen">❌</button>
+      </div>
       <div class="feedback" id="feedback8"></div>
     </div>
   </div>
@@ -149,17 +174,16 @@
     if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "priester") {
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     }
-
-    // Welkomtekst & parochiebalk
-    const parochieNaam = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
-    const parochieId = localStorage.getItem("ingelogdeParochieId") || "";
-    document.getElementById("parochieLabel").textContent = `U bent ingelogd in de parochie van ${parochieNaam}`;
-    document.getElementById("uitlogKnop").onclick = () => {
+    const parochieNaam = localStorage.getItem("ingelogdeParochie");
+    document.getElementById("parochieLabel").textContent = parochieNaam
+      ? `U bent ingelogd in de parochie van ${parochieNaam}`
+      : "⚠️ Geen geldige parochie geselecteerd!";
+    document.getElementById("uitlogKnop").onclick = function() {
       localStorage.clear();
-      window.location.href = "/index.html";
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     };
 
-    // Firebase
+    // FIREBASE INIT
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -171,40 +195,80 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Opslaan post-it
-    function opslaan(index) {
+    // Haal correcte parochieId uit Firestore op basis van naam
+    let parochieIdPromise = db.collection("parochies")
+      .where("naam", "==", parochieNaam)
+      .limit(1)
+      .get()
+      .then(snap => snap.empty ? null : snap.docs[0].id);
+
+    // Laad alle post-its bij openen
+    async function laadPostits() {
+      const parochieId = await parochieIdPromise;
+      for (let i = 0; i < 9; i++) {
+        const titelInput = document.getElementById("titel" + i);
+        const tekstInput = document.getElementById("tekst" + i);
+        const feedback = document.getElementById("feedback" + i);
+        if (!parochieId) {
+          feedback.textContent = "Parochie niet gevonden.";
+          titelInput.value = "";
+          tekstInput.value = "";
+          continue;
+        }
+        db.collection("parochies").doc(parochieId).collection("prikbord_priester")
+          .doc("postit" + i)
+          .get()
+          .then(doc => {
+            if (doc.exists) {
+              const d = doc.data();
+              titelInput.value = d.titel || "";
+              tekstInput.value = d.tekst || "";
+              feedback.textContent = "";
+            } else {
+              titelInput.value = "";
+              tekstInput.value = "";
+              feedback.textContent = "";
+            }
+          });
+      }
+    }
+
+    // Opslaan van een post-it
+    async function opslaan(index) {
+      const titel = document.getElementById("titel" + index).value.trim();
+      const tekst = document.getElementById("tekst" + index).value.trim();
+      const feedback = document.getElementById("feedback" + index);
+      feedback.textContent = "";
+      const parochieId = await parochieIdPromise;
       if (!parochieId) {
-        document.getElementById("feedback" + index).textContent = "Geen geldige parochie!";
+        feedback.textContent = "Parochie niet gevonden!";
         return;
       }
-      const titel = document.getElementById('titel' + index).value.trim();
-      const tekst = document.getElementById('tekst' + index).value.trim();
       if (!titel && !tekst) {
-        document.getElementById("feedback" + index).textContent = "Vul minstens het titel- of tekstveld in.";
+        feedback.textContent = "Vul minstens het titel- of tekstveld in.";
         return;
       }
-      db.collection("parochies")
-        .doc(parochieId)
-        .collection("prikbord_priester")
+      db.collection("parochies").doc(parochieId).collection("prikbord_priester")
         .doc("postit" + index)
         .set({
           titel: titel,
           tekst: tekst,
           tijd: firebase.firestore.Timestamp.now()
-        })
-        .then(() => {
-          document.getElementById("feedback" + index).textContent = "Post-it opgeslagen!";
-          setTimeout(() => { document.getElementById("feedback" + index).textContent = ""; }, 2000);
-        })
-        .catch((error) => {
-          document.getElementById("feedback" + index).textContent = "Fout bij opslaan: " + error;
+        }).then(() => {
+          feedback.textContent = "Opgeslagen!";
+          setTimeout(() => { feedback.textContent = ""; }, 2000);
+        }).catch((error) => {
+          feedback.textContent = "Fout bij opslaan: " + error;
         });
     }
 
-    // Verwijderen post-it
-    function verwijder(index) {
+    // Verwijderen van een post-it
+    async function verwijder(index) {
+      const feedback = document.getElementById("feedback" + index);
+      feedback.textContent = "";
+      const parochieId = await parochieIdPromise;
       if (!parochieId) {
-        document.getElementById("feedback" + index).textContent = "Geen geldige parochie!";
+        feedback.textContent = "Parochie niet gevonden!";
         return;
       }
       db.collection("parochies").doc(parochieId).collection("prikbord_priester")
@@ -213,13 +277,15 @@
         .then(() => {
           document.getElementById("titel" + index).value = "";
           document.getElementById("tekst" + index).value = "";
-          document.getElementById("feedback" + index).textContent = "Bericht verwijderd.";
-          setTimeout(() => { document.getElementById("feedback" + index).textContent = ""; }, 2000);
+          feedback.textContent = "Bericht verwijderd.";
+          setTimeout(() => { feedback.textContent = ""; }, 2000);
         })
         .catch((error) => {
-          document.getElementById("feedback" + index).textContent = "Fout bij verwijderen: " + error;
+          feedback.textContent = "Fout bij verwijderen: " + error;
         });
     }
+
+    window.onload = laadPostits;
     window.opslaan = opslaan;
     window.verwijder = verwijder;
   </script>
