@@ -1,18 +1,23 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>Parochie Zoekertjes</title>
+  <title>Parochie Zoekertjes – Priester</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { font-family: Arial, sans-serif; margin:0; padding:0; background: #f8f5e9; color: #5b4320;}
-    header { background: #e6d6b8; padding: 2rem 1rem 0.7rem 1rem; text-align: center; }
-    h1 { margin:0; font-size:2rem; color:#5d4c2f; }
-    #parochieLabel {
-      background: #fcf6e2; color: #7a5f35; padding: 10px 0 8px 0; text-align: center;
-      font-weight: bold; letter-spacing: 1px; font-size: 1.08em;
-      box-shadow: 0 2px 8px #cbb96d44; margin-bottom: 10px;
+    .statusbar {
+      background: #7a5f35; color: #fff; padding: 10px 24px;
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 1.07em;
     }
+    .uitlog-link {
+      color: #fff; background: #9a2617;
+      padding: 6px 16px; border-radius: 8px; font-size: 1em;
+      font-weight: bold; margin-left: 20px; border: none; cursor: pointer;
+      transition: background 0.18s;
+    }
+    .uitlog-link:hover { background: #bd2e23; }
     nav.menu {
       background: #7a5f35; padding: 12px 20px;
       display: flex; flex-wrap: wrap; gap: 14px; justify-content: center;
@@ -21,12 +26,12 @@
       color: #f8f5e9; text-decoration: none; font-weight: bold; font-size: 16px;
       padding: 6px 14px; border-radius: 8px; transition: background-color 0.3s;
     }
-    nav.menu a:hover { background-color: #5e4724; }
-    .uitlog-link {
-      color: #fff; background: #9a2617; padding: 6px 16px; border-radius: 8px;
-      font-size: 1em; text-decoration: none; font-weight: bold;
-      margin-left: 14px; margin-right: 14px; transition: background 0.18s;
-      cursor: pointer; border: none; float: right;
+    nav.menu a:hover { background: #5e4724; }
+    h1 { text-align: center; color: #5d4c2f; margin-top: 34px; }
+    #parochieLabel {
+      background: #fcf6e2; color: #7a5f35; padding: 10px 0 8px 0; text-align: center;
+      font-weight: bold; letter-spacing: 1px; font-size: 1.08em;
+      box-shadow: 0 2px 8px #cbb96d44; margin: 0 auto 14px auto; max-width: 700px;
     }
     .container { max-width: 700px; margin: 32px auto 40px auto; }
     .nieuw-zoekertje-blok {
@@ -74,22 +79,22 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <header>
+  <div class="statusbar">
+    <span>U bent ingelogd in: <span id="parochieNaam">...</span></span>
     <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
-    <h1>Zoekertjes – Mijn Parochie</h1>
-    <div id="parochieLabel"></div>
-  </header>
+  </div>
   <nav class="menu">
-    <!-- Vul aan met correcte links -->
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html">🏠 Startpagina</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/gebeden.html">🙏 Gebeden</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/heiligen/heiligen.html">👼 Heiligen</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/contact.html">🌐 Contact</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/startpagina.html">🏠 Startpagina</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/parochie.html">🛐 Mijn parochie</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/psalmen/psalmen.html">📜 Psalmen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/gebeden.html">🙏 Gebeden</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/catechese/catechese.html">📖 Catechese</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/heiligen/heiligen.html">👼 Heiligen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/layout.html">🧰 Bewerk parochie</a>
   </nav>
+  <h1>Zoekertjes – Mijn Parochie</h1>
+  <div id="parochieLabel"></div>
   <div class="container">
     <div class="nieuw-zoekertje-blok">
       <form id="zoekertjeForm">
@@ -109,13 +114,12 @@
     </div>
   </div>
   <script>
-    // Modus en parochie controleren
-    const modus = localStorage.getItem("modus");
-    const toegelaten = modus === "priester" || modus === "volwassene";
-    if (!localStorage.getItem("ingelogdeParochie") || !toegelaten) {
+    // Toegangscontrole voor priestermodus
+    if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "priester") {
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     }
     const parochieNaam = localStorage.getItem("ingelogdeParochie");
+    document.getElementById("parochieNaam").textContent = parochieNaam || "...";
     document.getElementById("parochieLabel").textContent = parochieNaam
       ? `U bent ingelogd in de parochie van ${parochieNaam}`
       : "⚠️ Geen geldige parochie geselecteerd!";
