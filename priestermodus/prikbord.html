@@ -2,30 +2,58 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>Prikbord voor priesters</title>
+  <title>Prikbordbeheer – Priester</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    /* Jouw CSS hier – kan dezelfde zijn als bij kaarsjes, desnoods kopiëren */
-    body { font-family: Arial, sans-serif; margin:0; padding:0; background-color:#f8f5e9;}
-    nav.menu { background-color: #7a5f35; padding: 12px 20px; display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
-    nav.menu a { color: #f8f5e9; text-decoration: none; font-weight: bold; font-size: 16px; padding: 6px 14px; border-radius: 8px; transition: background-color 0.3s;}
-    nav.menu a:hover { background-color: #5e4724; }
+    body { margin: 0; padding: 0; font-family: Arial, sans-serif; background: #d8ecf9; color: #5b4320; }
     header { background-color: #e6d6b8; padding: 2rem 1rem 0.7rem 1rem; text-align: center; }
-    h1 { margin:0; font-size:2rem; color:#5d4c2f;}
-    #parochieLabel { background: #fcf6e2; color: #7a5f35; padding: 10px 0 8px 0; text-align: center; font-weight: bold; letter-spacing: 1px; font-size: 1.08em; box-shadow: 0 2px 8px #cbb96d44; margin-bottom: 10px; }
-    .uitlog-link { color: #fff; background: #9a2617; padding: 6px 16px; border-radius: 8px; font-size: 1em; text-decoration: none; font-weight: bold; margin-top: 14px; margin-bottom: 12px; margin-left: 6px; transition: background 0.18s; cursor: pointer; border: none; outline: none; float: right; }
-    .container { max-width: 780px; margin: 30px auto 40px auto; background:#fffef9; border-radius:14px; box-shadow:0 4px 16px #cbb96d32; padding:2rem; }
-    .nieuw-bericht-blok { background: #f5efdd; border-radius: 12px; padding:1.1rem 1.4rem 1.2rem 1.4rem; margin-bottom:2.2rem; box-shadow: 0 2px 10px #e7dbad25;}
-    .nieuw-bericht-blok h2 { font-size:1.16rem; color:#76580c; margin:0 0 0.7rem 0;}
-    .nieuw-bericht-blok input, .nieuw-bericht-blok textarea { width:100%; font-size:1.06rem; border-radius:8px; border:1.2px solid #dbc592; padding:8px; margin-bottom:8px;}
-    .nieuw-bericht-blok button { background:#7a5f35; color:#fff; font-weight:bold; border:none; border-radius:8px; padding:8px 20px; margin-top:1rem; font-size:1em; cursor:pointer;}
-    .nieuw-bericht-blok button:hover { background: #b09765; }
-    .berichten-lijst { display: flex; flex-direction: column; gap: 1.6rem;}
-    .bericht-item { background: #f7ecd8; border-radius: 12px; box-shadow: 0 2px 6px #d7cbb1aa; padding: 1.1rem 1.5rem; position: relative;}
-    .bericht-titel { font-weight: bold; color: #775d21; font-size: 1.15em; margin-bottom: 6px;}
-    .bericht-tekst { color: #5d4c2f; font-size: 1.07rem; margin-bottom:0.6rem; }
-    .bericht-tijd { font-size:0.95em; color: #bba354;}
-    @media (max-width:700px){ .container {padding:0.7rem;} .berichten-lijst{gap:0.8rem;} .bericht-item{padding:0.7rem;} }
+    h1 { margin:0; font-size:2rem; color:#5d4c2f; }
+    #parochieLabel {
+      background: #fcf6e2; color: #7a5f35; padding: 10px 0 8px 0; text-align: center;
+      font-weight: bold; letter-spacing: 1px; font-size: 1.08em;
+      box-shadow: 0 2px 8px #cbb96d44; margin-bottom: 10px;
+    }
+    nav.menu {
+      background-color: #7a5f35; padding: 12px 20px;
+      display: flex; flex-wrap: wrap; gap: 14px; justify-content: center;
+    }
+    nav.menu a {
+      color: #f8f5e9; text-decoration: none; font-weight: bold; font-size: 16px;
+      padding: 6px 14px; border-radius: 8px; transition: background-color 0.3s;
+    }
+    nav.menu a:hover { background-color: #5e4724; }
+    .uitlog-link {
+      color: #fff; background: #9a2617; padding: 6px 16px; border-radius: 8px;
+      font-size: 1em; text-decoration: none; font-weight: bold;
+      margin-left: 14px; margin-right: 14px; transition: background 0.18s;
+      cursor: pointer; border: none; float: right;
+    }
+    .postit-blok {
+      background: #fffef9; border: 2px solid #d3c29b; border-radius: 12px;
+      box-shadow: 0 4px 10px #d7cbb1aa; padding: 1.5rem; margin-bottom: 18px;
+      width: 95%; max-width: 390px; margin-left: auto; margin-right: auto;
+      min-height: 90px; display: flex; flex-direction: column;
+      justify-content: center; align-items: stretch; text-align: left;
+    }
+    .postit-title { font-weight: bold; font-size: 1.15em; color: #65450e; margin-bottom: 7px; }
+    .postit-tekst { color: #5b4320; font-size: 1.08em; }
+    .postit-datum { color: #8d7954; font-size: 0.93em; margin-top: 5px; }
+    .formblok {
+      background: #fff980; border: 2px solid #ebd700; border-radius: 12px; margin-bottom: 28px;
+      padding: 18px 15px 16px 15px; max-width: 390px; margin-left: auto; margin-right: auto;
+      box-shadow: 2px 4px 8px #0001;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .formblok input, .formblok textarea {
+      width: 100%; margin-bottom: 12px; padding: 9px; border-radius: 8px;
+      border: 1.5px solid #ccc; font-size: 1em;
+    }
+    .formblok button {
+      background: #7a5f35; color: #fff; font-weight: bold; padding: 10px 20px;
+      border: none; border-radius: 8px; cursor: pointer; font-size: 1em;
+    }
+    .formblok button:hover { background: #b09765; }
+    .feedback { text-align:center; color: #9a2617; font-size: 1em; margin-bottom:10px;}
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -33,7 +61,7 @@
 <body>
   <header>
     <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
-    <h1 id="welkom-tekst">Prikbord voor priesters</h1>
+    <h1 id="welkom-tekst">Prikbordbeheer – Priester</h1>
     <div id="parochieLabel"></div>
   </header>
   <nav class="menu">
@@ -46,33 +74,28 @@
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/heiligen/heiligen.html">👼 Heiligen</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/layout.html">🧰 Bewerk parochie</a>
   </nav>
-  <div class="container">
-    <div class="nieuw-bericht-blok">
-      <h2>Nieuw prikbordbericht toevoegen</h2>
-      <form id="nieuwBerichtForm">
-        <input id="nieuwBerichtTitel" placeholder="Titel" maxlength="60" required>
-        <textarea id="nieuwBerichtTekst" required maxlength="400" placeholder="Schrijf hier uw bericht..."></textarea>
-        <button type="submit">Prikbordbericht plaatsen</button>
-      </form>
-      <div id="nieuwBerichtFeedback"></div>
-    </div>
-    <div class="berichten-lijst" id="berichtenLijst">
-      <!-- Prikbordberichten komen hier dynamisch -->
-    </div>
+
+  <div class="formblok">
+    <input id="titel" placeholder="Titel" maxlength="60">
+    <textarea id="tekst" placeholder="Tekst" maxlength="600"></textarea>
+    <button id="opslaanBtn">Plaatsen</button>
+    <div class="feedback" id="feedback"></div>
   </div>
+  <div id="postitsLijst">
+    <!-- Post-its worden hier getoond -->
+  </div>
+
   <script>
-    // Beveiliging
+    // Toegangscontrole priestermodus
     if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "priester") {
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     }
-    let parochieNaam = localStorage.getItem("ingelogdeParochie");
-    document.getElementById("parochieLabel").textContent = `U bent ingelogd in de parochie van ${parochieNaam}`;
-    // Uitloggen
+    const parochieNaam = localStorage.getItem("ingelogdeParochie");
+    document.getElementById("parochieLabel").textContent = parochieNaam
+      ? `U bent ingelogd in de parochie van ${parochieNaam}`
+      : "⚠️ Geen geldige parochie geselecteerd!";
     document.getElementById("uitlogKnop").onclick = function() {
-      localStorage.removeItem("ingelogdeParochie");
-      localStorage.removeItem("ingelogdeParochieId");
-      localStorage.removeItem("userId");
-      localStorage.removeItem("modus");
+      localStorage.clear();
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     };
 
@@ -88,71 +111,78 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Helper: parochieId uit localStorage
-    const parochieId = localStorage.getItem("ingelogdeParochieId");
+    // Eerst: zoek het parochie-ID op a.d.h.v. de naam
+    let parochieIdPromise = db.collection("parochies")
+      .where("naam", "==", parochieNaam)
+      .limit(1)
+      .get()
+      .then(snap => snap.empty ? null : snap.docs[0].id);
 
-    // Laad alle prikbordberichten
-    function laadPrikbordBerichten() {
-      const lijst = document.getElementById("berichtenLijst");
-      lijst.innerHTML = "<em>Prikbordberichten worden geladen...</em>";
-      db.collection("parochies")
-        .doc(parochieId)
-        .collection("prikbord_priester")
+    // Laad bestaande post-its
+    async function laadPostits() {
+      const parochieId = await parochieIdPromise;
+      const lijst = document.getElementById("postitsLijst");
+      lijst.innerHTML = "<div class='feedback'>Post-its worden geladen...</div>";
+      if (!parochieId) {
+        lijst.innerHTML = "<div class='feedback'>Parochie niet gevonden.</div>";
+        return;
+      }
+      db.collection("parochies").doc(parochieId).collection("prikbord_priester")
         .orderBy("tijd", "desc")
         .get()
         .then(snapshot => {
           if (snapshot.empty) {
-            lijst.innerHTML = "<em>Er zijn nog geen prikbordberichten geplaatst.</em>";
+            lijst.innerHTML = "<div class='feedback'>Nog geen berichten geplaatst.</div>";
             return;
           }
           lijst.innerHTML = "";
           snapshot.forEach(doc => {
             const d = doc.data();
-            let tijd = "";
-            if (d.tijd && d.tijd.toDate) {
-              const t = d.tijd.toDate();
-              tijd = t.toLocaleDateString("nl-BE", { day:"2-digit", month:"2-digit", year:"numeric" }) + " " +
-                     t.toLocaleTimeString("nl-BE", { hour:"2-digit", minute:"2-digit" });
-            }
-            let html = `
-              <div class="bericht-item">
-                <div class="bericht-titel">${d.titel || "(geen titel)"}</div>
-                <div class="bericht-tekst">${d.tekst || "(geen tekst)"}</div>
-                <div class="bericht-tijd">${tijd ? "Geplaatst op: " + tijd : ""}</div>
-              </div>`;
-            lijst.innerHTML += html;
+            let datum = d.tijd && d.tijd.toDate ? d.tijd.toDate().toLocaleString() : '';
+            lijst.innerHTML += `
+              <div class="postit-blok">
+                <div class="postit-title">${d.titel || "(geen titel)"}</div>
+                <div class="postit-tekst">${d.tekst || ""}</div>
+                <div class="postit-datum">${datum}</div>
+              </div>
+            `;
           });
         });
     }
 
-    // Nieuw bericht indienen
-    document.getElementById("nieuwBerichtForm").onsubmit = function(e) {
-      e.preventDefault();
-      const titel = document.getElementById("nieuwBerichtTitel").value.trim();
-      const tekst = document.getElementById("nieuwBerichtTekst").value.trim();
-      if (titel.length === 0 && tekst.length === 0) return;
-      document.getElementById("nieuwBerichtFeedback").textContent = "Uw prikbordbericht wordt verstuurd...";
-      db.collection("parochies")
-        .doc(parochieId)
-        .collection("prikbord_priester")
+    // Opslaan van een nieuwe post-it
+    document.getElementById("opslaanBtn").onclick = async function() {
+      const feedback = document.getElementById("feedback");
+      feedback.textContent = "";
+      const titel = document.getElementById("titel").value.trim();
+      const tekst = document.getElementById("tekst").value.trim();
+      if (!titel && !tekst) {
+        feedback.textContent = "Vul minstens het titel- of tekstveld in.";
+        return;
+      }
+      const parochieId = await parochieIdPromise;
+      if (!parochieId) {
+        feedback.textContent = "Parochie niet gevonden. Probeer opnieuw in te loggen.";
+        return;
+      }
+      db.collection("parochies").doc(parochieId).collection("prikbord_priester")
         .add({
           titel: titel,
           tekst: tekst,
           tijd: firebase.firestore.Timestamp.now()
-        })
-        .then(() => {
-          document.getElementById("nieuwBerichtFeedback").textContent = "Uw prikbordbericht is geplaatst.";
-          document.getElementById("nieuwBerichtTitel").value = "";
-          document.getElementById("nieuwBerichtTekst").value = "";
-          laadPrikbordBerichten();
-          setTimeout(() => { document.getElementById("nieuwBerichtFeedback").textContent = ""; }, 2000);
-        })
-        .catch(() => {
-          document.getElementById("nieuwBerichtFeedback").textContent = "Fout: uw bericht kon niet worden verstuurd.";
+        }).then(() => {
+          document.getElementById("titel").value = "";
+          document.getElementById("tekst").value = "";
+          feedback.textContent = "Bericht geplaatst!";
+          laadPostits();
+          setTimeout(() => { feedback.textContent = ""; }, 2000);
+        }).catch((error) => {
+          feedback.textContent = "Fout bij opslaan: " + error;
         });
     };
 
-    window.onload = laadPrikbordBerichten;
+    // Pagina laden: toon bestaande berichten
+    window.onload = laadPostits;
   </script>
 </body>
 </html>
