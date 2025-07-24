@@ -48,11 +48,72 @@
   </nav>
   <main>
     <h1>Mijn profiel</h1>
-    <!-- Vanaf de volgende stap bouwen we de inhoud uit -->
+   <form id="profielForm" style="max-width:500px;margin:32px auto 0 auto;">
+  <label>Voornaam: <input type="text" id="voornaam"></label><br>
+  <label>Achternaam: <input type="text" id="achternaam"></label><br>
+  <label>Doopnaam: <input type="text" id="doopnaam"></label><br>
+  <label>E-mail: <input type="email" id="email" readonly style="background:#f6f6f6"></label><br>
+  <label>Geboortedatum: <input type="date" id="geboortedatum"></label>
+    <label style="display:inline;font-weight:normal;font-size:0.95em;margin-left:8px;">
+      <input type="checkbox" id="toonVerjaardag"> Zichtbaar op verjaardagskalender
+    </label>
+    <br>
+  <label>Loginnaam: <input type="text" id="loginKeuze" readonly style="background:#f6f6f6"></label><br>
+  <label>Wachtwoord:
+    <span style="position:relative;">
+      <input type="password" id="wachtwoord" style="padding-right:36px;">
+      <span id="pwToggle" style="cursor:pointer;position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:1.05em;">👁️</span>
+    </span>
+  </label><br>
+  <button type="button" onclick="opslaanProfiel()" style="margin-top:18px;">💾 Wijzigingen opslaan</button>
+</form>
+<div id="melding" style="color:#8b5418;margin:15px 0 0 0;"></div>
   </main>
   <script>
     // Zet parochie in de statusbar
     document.getElementById("parochieLabel").textContent = parochieNaam || "-";
   </script>
+  // FIREBASE INIT
+const firebaseConfig = {
+  apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+  authDomain: "orthodoxeweg.firebaseapp.com",
+  projectId: "orthodoxeweg",
+  storageBucket: "orthodoxeweg.appspot.com",
+  messagingSenderId: "408582263618",
+  appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
+};
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// Ophalen & tonen
+window.addEventListener('DOMContentLoaded', async () => {
+  let docRef = db.collection("parochies").doc(parochieId).collection("leden").doc(loginKeuze);
+  let doc = await docRef.get();
+  if (!doc.exists) {
+    document.getElementById("profielForm").style.display = "none";
+    document.getElementById("melding").textContent = "Profiel niet gevonden!";
+    return;
+  }
+  let d = doc.data();
+  document.getElementById("voornaam").value = d.voornaam || "";
+  document.getElementById("achternaam").value = d.achternaam || "";
+  document.getElementById("doopnaam").value = d.doopnaam || "";
+  document.getElementById("email").value = d.email || "";
+  document.getElementById("geboortedatum").value = d.geboortedatum || "";
+  document.getElementById("loginKeuze").value = d.loginKeuze || "";
+  document.getElementById("wachtwoord").value = d.wachtwoord || "";
+  document.getElementById("toonVerjaardag").checked = !!d.verjaardagZichtbaar;
+});
+
+// Toon/verberg wachtwoord
+document.getElementById("pwToggle").onclick = function() {
+  let w = document.getElementById("wachtwoord");
+  if (w.type === "password") {
+    w.type = "text"; this.textContent = "🙈";
+  } else {
+    w.type = "password"; this.textContent = "👁️";
+  }
+};
+
 </body>
 </html>
