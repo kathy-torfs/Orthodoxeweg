@@ -96,7 +96,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <nav class="menu">
+  <nav class="menu"> 
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html">🏠 Home</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
@@ -109,10 +109,10 @@
   <h1>Mijn profiel</h1>
   <div class="container">
     <label>Voornaam:</label>
-    <input type="text" id="voornaam" disabled>
+    <input type="text" id="voornaam">
 
     <label>Achternaam:</label>
-    <input type="text" id="achternaam" disabled>
+    <input type="text" id="achternaam">
 
     <label>E-mailadres:</label>
     <input type="email" id="email" disabled>
@@ -124,10 +124,12 @@
     <div id="kinderen"></div>
 
     <button onclick="wijzigWachtwoord()">Wachtwoord wijzigen</button>
+    <button onclick="verwijderAccount()" style="background-color: #bb3333;">Verwijder mijn account</button>
 
     <div class="info">
       ℹ️ Opgelet: elk volwassen lid moet een <strong>uniek e-mailadres</strong> gebruiken.<br>
-      Het dagboek en profiel zijn gekoppeld aan je e-mailadres.
+      Het dagboek en profiel zijn gekoppeld aan je e-mailadres.<br>
+      Parochies kunnen enkel beheerd worden via goedkeuring door de priester.
     </div>
   </div>
 
@@ -144,10 +146,13 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
+    let email = "";
+    let parochiesSnap;
+
     auth.onAuthStateChanged(async user => {
       if (user) {
-        const email = user.email;
-        const parochiesSnap = await db.collection("parochies").get();
+        email = user.email;
+        parochiesSnap = await db.collection("parochies").get();
         let lidData;
         const parochieNamen = [];
 
@@ -177,8 +182,7 @@
           document.getElementById("parochielijst").innerHTML = parochieNamen.map(n => `<li>${n}</li>`).join("");
         }
       } else {
-        alert("Je bent niet ingelogd.");
-        window.location.href = "/login.html";
+        window.location.replace("https://www.orthodoxeweg.be/");
       }
     });
 
@@ -186,6 +190,21 @@
       firebase.auth().sendPasswordResetEmail(firebase.auth().currentUser.email)
         .then(() => alert("E-mail verzonden om wachtwoord te wijzigen."))
         .catch(err => alert("Fout: " + err.message));
+    }
+
+    async function verwijderAccount() {
+      if (!confirm("Ben je zeker dat je je account definitief wil verwijderen?")) return;
+      const user = firebase.auth().currentUser;
+      for (const parochieDoc of parochiesSnap.docs) {
+        const ledenSnap = await db.collection("parochies").doc(parochieDoc.id).collection("leden").where("email", "==", email).get();
+        for (const lidDoc of ledenSnap.docs) {
+          await db.collection("parochies").doc(parochieDoc.id).collection("leden").doc(lidDoc.id).delete();
+        }
+      }
+      user.delete().then(() => {
+        alert("Je account is verwijderd.");
+        window.location.href = "https://www.orthodoxeweg.be/";
+      }).catch(err => alert("Fout bij verwijderen: " + err.message));
     }
   </script>
 </body>
