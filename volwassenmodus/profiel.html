@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Mijn profiel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom right, #fff8ec, #f7f0d8);
+      margin: 0;
+      padding: 0;
+      color: #3f3f3f;
+    }
+    nav.menu {
+      background-color: #7a5f35;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 10px;
+    }
+    nav.menu a {
+      color: #fffef4;
+      text-decoration: none;
+      margin: 6px 12px;
+      font-size: 1em;
+      padding: 8px 12px;
+      border-radius: 12px;
+      background-color: #9c7c4c;
+    }
+    nav.menu a:hover {
+      background-color: #b69466;
+    }
+    h1 {
+      text-align: center;
+      color: #5d4c2f;
+      margin-top: 24px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 20px auto;
+      background: #fffef9;
+      padding: 24px;
+      border-radius: 18px;
+      box-shadow: 0 8px 32px #d7cbb142;
+    }
+    label {
+      display: block;
+      margin-top: 14px;
+      font-weight: bold;
+      color: #5a4a2d;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background-color: #fefdf9;
+    }
+    .kindblok {
+      background: #f2eee1;
+      padding: 10px;
+      border-radius: 10px;
+      margin-top: 12px;
+      box-shadow: inset 0 0 6px #ccc8b3;
+    }
+    .parochielijst, .kindlijst {
+      margin-top: 12px;
+      padding-left: 20px;
+    }
+    button {
+      margin-top: 20px;
+      background: #7a5f35;
+      color: white;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1em;
+    }
+    button:hover {
+      background: #604926;
+    }
+    .info {
+      margin-top: 20px;
+      font-size: 0.9em;
+      color: #6a5e3c;
+      background: #f8f2da;
+      padding: 12px;
+      border-radius: 8px;
+    }
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <nav class="menu"> 
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html">🏠 Startpagina</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/gebeden.html">🙏 Gebeden</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/heiligen/heiligen.html">👼 Heiligen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/contact.html">🌐 Contact</a>
+  </nav>
+
+  <h1>Mijn profiel</h1>
+  <div class="container">
+    <label>Voornaam:</label>
+    <input type="text" id="voornaam" disabled>
+
+    <label>Achternaam:</label>
+    <input type="text" id="achternaam" disabled>
+
+    <label>E-mailadres:</label>
+    <input type="email" id="email" disabled>
+
+    <label>Parochies:</label>
+    <ul class="parochielijst" id="parochielijst"></ul>
+
+    <label>Kinderen:</label>
+    <div id="kinderen"></div>
+
+    <button onclick="wijzigWachtwoord()">Wachtwoord wijzigen</button>
+
+    <div class="info">
+      ℹ️ Opgelet: elk volwassen lid moet een <strong>uniek e-mailadres</strong> gebruiken.<br>
+      Het dagboek en profiel zijn gekoppeld aan je e-mailadres.
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    auth.onAuthStateChanged(async user => {
+      if (user) {
+        const email = user.email;
+        const parochiesSnap = await db.collection("parochies").get();
+        let lidData;
+        const parochieNamen = [];
+
+        for (const parochieDoc of parochiesSnap.docs) {
+          const ledenSnap = await db.collection("parochies").doc(parochieDoc.id).collection("leden").where("email", "==", email).get();
+          if (!ledenSnap.empty) {
+            const lidDoc = ledenSnap.docs[0];
+            if (!lidData) lidData = lidDoc.data();
+            parochieNamen.push(parochieDoc.data().naam);
+
+            const kinderenSnap = await db.collection("parochies").doc(parochieDoc.id).collection("leden").doc(lidDoc.id).collection("kinderen").get();
+            const kinderenDiv = document.getElementById("kinderen");
+            kinderenSnap.forEach(k => {
+              const data = k.data();
+              const div = document.createElement("div");
+              div.className = "kindblok";
+              div.innerHTML = `<strong>${data.voornaam} ${data.achternaam}</strong><br>Geboortedatum: ${data.geboortedatum || "-"}<br>Toegang kinderportaal: ${data.kinderportaal ? "Ja" : "Nee"}`;
+              kinderenDiv.appendChild(div);
+            });
+          }
+        }
+
+        if (lidData) {
+          document.getElementById("voornaam").value = lidData.voornaam || "";
+          document.getElementById("achternaam").value = lidData.achternaam || "";
+          document.getElementById("email").value = user.email;
+          document.getElementById("parochielijst").innerHTML = parochieNamen.map(n => `<li>${n}</li>`).join("");
+        }
+      } else {
+        alert("Je bent niet ingelogd.");
+        window.location.href = "/login.html";
+      }
+    });
+
+    function wijzigWachtwoord() {
+      firebase.auth().sendPasswordResetEmail(firebase.auth().currentUser.email)
+        .then(() => alert("E-mail verzonden om wachtwoord te wijzigen."))
+        .catch(err => alert("Fout: " + err.message));
+    }
+  </script>
+</body>
+</html>
