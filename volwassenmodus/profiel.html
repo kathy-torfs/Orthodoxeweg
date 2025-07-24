@@ -19,7 +19,7 @@
     .wachtwoord-veld { position: relative; }
     .toggle-wachtwoord { position: absolute; right: 12px; top: 13px; background: none; border: none; font-size: 1.12em; cursor: pointer; color: #a68842; }
     .info { margin-top: 12px; margin-bottom: 15px; font-size: 0.94em; color: #6a5e3c; background: #f8f2da; padding: 11px; border-radius: 8px; }
-    .parochielijst, .andereparochies, .kindlijst { margin: 13px 0 7px 24px; padding-left: 0; list-style: disc inside; color: #65531b; }
+    .parochielijst, .kindlijst { margin: 13px 0 7px 24px; padding-left: 0; list-style: disc inside; color: #65531b; }
     .kindblok { background: #f2eee1; padding: 10px; border-radius: 10px; margin-top: 12px; box-shadow: inset 0 0 6px #ccc8b3; }
     .kinditem { background: #fff7e4; margin-bottom: 10px; padding: 11px 14px; border-radius: 8px; position: relative; box-shadow: 0 2px 8px #dfd7b945; }
     .kinditem .verwijderKind { position: absolute; top: 10px; right: 10px; color: #b72a20; background: #f9e7e0; border: none; padding: 3px 12px; border-radius: 7px; font-size: 0.98em; cursor: pointer; font-weight: bold; }
@@ -35,13 +35,12 @@
     .switch input:checked + .slider:before { transform: translateX(16px); }
     .slider { transition: .3s; }
     .verwijderAccount { background: #c7372f; margin-top: 28px; float: right; }
-    .verlaatParochieKnop { margin-left: 18px; background: #cd9c21; color: #fff; font-size: 0.96em; padding: 6px 15px; border-radius: 7px; }
-    .verlaatParochieKnop:hover { background: #be7a14; }
     @media (max-width: 700px) {
       .container {padding: 9px;}
       h1 {font-size: 1.1em;}
       nav.menu a {font-size:0.98em;}
     }
+    .foutmelding { background: #f9d6d6; color: #9b2525; border-radius: 10px; padding: 13px 17px; margin: 18px 0; font-weight: bold; }
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
@@ -61,7 +60,7 @@
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html">🧰 Mijn profiel</a>
   </nav>
   <h1>🧰 Mijn profiel</h1>
-  <div class="container">
+  <div class="container" id="profielcontainer">
     <div class="info">
       Gebruik steeds je eigen unieke e-mailadres. Het dagboek is hieraan gekoppeld.<br>
       Kinderen worden beheerd via het profiel van een volwassene.<br>
@@ -97,11 +96,8 @@
 
     <button onclick="opslaanProfiel()">💾 Opslaan</button>
     <hr>
-    <h3>Parochie waar je nu actief bent:</h3>
+    <h3>Parochie:</h3>
     <ul class="parochielijst" id="parochielijst"></ul>
-
-    <h4>Ook lid van deze parochies:</h4>
-    <ul class="andereparochies" id="andereparochies"></ul>
 
     <hr>
     <h2>Kinderen</h2>
@@ -130,8 +126,7 @@
     </div>
     <button class="verwijderAccount" onclick="verwijderAccount()">🗑️ Verwijder mijn account uit deze parochie</button>
   </div>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+  <div id="foutmelding" class="foutmelding" style="display:none"></div>
   <script>
     // BEVEILIGING & BASISVARIABELEN
     if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "volwassene") {
@@ -168,13 +163,13 @@
     const userEmail = localStorage.getItem("userEmail");
 
     let huidigeLidRef = null;
-    let andereLedenRefs = [];
 
     // Profiel ophalen
     window.onload = async function() {
       if (!userEmail || !userId || !parochieNaam) {
-        alert("Geen gebruiker gevonden. Log opnieuw in.");
-        window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+        document.getElementById("profielcontainer").style.display = "none";
+        document.getElementById("foutmelding").innerHTML = "Geen gebruiker gevonden. Log opnieuw in.";
+        document.getElementById("foutmelding").style.display = "block";
         return;
       }
       document.getElementById("email").value = userEmail;
@@ -182,7 +177,9 @@
       // Zoek actieve parochie in Firestore
       let parochieQuery = await db.collection("parochies").where("naam", "==", parochieNaam).limit(1).get();
       if (parochieQuery.empty) {
-        alert("Parochie niet gevonden.");
+        document.getElementById("profielcontainer").style.display = "none";
+        document.getElementById("foutmelding").innerHTML = "Parochie niet gevonden.";
+        document.getElementById("foutmelding").style.display = "block";
         return;
       }
       let parochieId = parochieQuery.docs[0].id;
@@ -191,7 +188,9 @@
       let ledenCol = db.collection("parochies").doc(parochieId).collection("leden");
       let lidDocSnap = await ledenCol.doc(userId).get();
       if (!lidDocSnap.exists) {
-        alert("Uw profiel is niet gevonden in deze parochie.");
+        document.getElementById("profielcontainer").style.display = "none";
+        document.getElementById("foutmelding").innerHTML = "Uw profiel is niet gevonden in deze parochie.";
+        document.getElementById("foutmelding").style.display = "block";
         return;
       }
       huidigeLidRef = ledenCol.doc(userId);
@@ -206,26 +205,6 @@
 
       // Parochie-lijst (enkel actieve)
       document.getElementById("parochielijst").innerHTML = `<li>${parochieNaam}</li>`;
-
-      // Zoek andere parochies waar je lid bent op basis van email (en niet actieve)
-      let andere = [];
-      let groep = await db.collectionGroup("leden").where("email", "==", userEmail).get();
-      andereLedenRefs = [];
-      let andereHTML = "";
-      groep.forEach(doc => {
-        let pad = doc.ref.parent.parent;
-        if (!pad) return;
-        doc.ref.get().then(ldoc => {
-          if (!ldoc.exists) return;
-          let pnaam = pad.id;
-          if (pnaam !== parochieId) {
-            andereLedenRefs.push({ref: doc.ref, pnaam: pnaam});
-            andereHTML += `<li>${pnaam.replace(/-/g, " ")} 
-            <button class="verlaatParochieKnop" onclick="verlaatParochie('${doc.ref.path}')">Verlaat parochie</button></li>`;
-            document.getElementById("andereparochies").innerHTML = andereHTML;
-          }
-        });
-      });
 
       // Kinderen in actieve parochie
       let kindlijstDiv = document.getElementById("kindlijst");
@@ -311,13 +290,6 @@
       alert("Je account is verwijderd uit deze parochie. Je wordt uitgelogd.");
       localStorage.clear();
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
-    }
-
-    // Verlaat andere parochie
-    async function verlaatParochie(lidPad) {
-      if (!confirm("Weet je zeker dat je deze parochie wilt verlaten? Je profiel in die parochie wordt verwijderd.")) return;
-      await db.doc(lidPad).delete();
-      alert("Je bent verwijderd uit deze parochie. Vernieuw de pagina.");
     }
   </script>
 </body>
