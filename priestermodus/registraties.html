@@ -188,17 +188,18 @@
       const wachtwoord = genereerWachtwoord();
 
       // 2. Voeg toe aan leden (met wachtwoord)
-      await db.collection("parochies").doc(parochieId).collection("leden").add({
-        voornaam: data.voornaam,
-        achternaam: data.achternaam,
-        doopnaam: data.doopnaam,
-        email: data.email,
-        geboortedatum: data.geboortedatum,
-        loginKeuze: data.loginKeuze,
-        wachtwoord: wachtwoord,
-        status: "actief"
-      });
-
+    await db.collection("parochies").doc(parochieId).collection("leden")
+  .doc(data.loginKeuze)
+  .set({
+    voornaam: data.voornaam,
+    achternaam: data.achternaam,
+    doopnaam: data.doopnaam,
+    email: data.email,
+    geboortedatum: data.geboortedatum,
+    loginKeuze: data.loginKeuze,
+    wachtwoord: wachtwoord,
+    status: "actief"
+  });
       // 3. Verstuur mail via Firebase Function
       let mailOk = false;
       try {
