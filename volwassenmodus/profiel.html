@@ -184,7 +184,7 @@
       background-color: #7a5f35;
     }
     .slider:before {
-      content: "";
+      content: \"\";
       position: absolute;
       width: 16px;
       height: 16px;
@@ -212,7 +212,6 @@
     }
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
@@ -304,7 +303,7 @@
     <button class="verwijderAccount" onclick="verwijderAccount()">🗑️ Verwijder mijn account</button>
   </div>
   <script>
-    // Beveiliging
+    // BEVEILIGING & BASISVARIABELEN
     if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "volwassene") {
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     }
@@ -317,11 +316,12 @@
       localStorage.removeItem("ingelogdeParochie");
       localStorage.removeItem("ingelogdeParochieId");
       localStorage.removeItem("userId");
+      localStorage.removeItem("userEmail");
       localStorage.removeItem("modus");
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     };
 
-    // Firebase INIT
+    // FIREBASE INIT
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -333,12 +333,14 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    let userEmail = ""; let ledenDocs = []; let ledenRefs = [];
+    // GEBRUIKERSINFO UIT LOCALSTORAGE
+    const userId = localStorage.getItem("userId");
+    const userEmail = localStorage.getItem("userEmail");
+
+    let ledenRefs = [];
     // Profiel ophalen
     window.onload = async function() {
-      // Haal userId op via lokale storage
-      userEmail = localStorage.getItem("userEmail");
-      if (!userEmail) {
+      if (!userEmail || !userId) {
         alert("Geen gebruiker gevonden. Log opnieuw in.");
         window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
         return;
@@ -347,12 +349,11 @@
 
       // Vind alle parochies waar dit lid zit
       const groep = await db.collectionGroup("leden").where("email", "==", userEmail).get();
-      ledenDocs = groep.docs.map(doc => doc.data());
       ledenRefs = groep.docs.map(doc => doc.ref);
 
       // Hoofdgegevens tonen (altijd van eerste record)
-      if (ledenDocs.length > 0) {
-        let d = ledenDocs[0];
+      if (groep.docs.length > 0) {
+        let d = groep.docs[0].data();
         document.getElementById("voornaam").value = d.voornaam || "";
         document.getElementById("achternaam").value = d.achternaam || "";
         document.getElementById("doopnaam").value = d.doopnaam || "";
@@ -365,27 +366,27 @@
       // Parochielijst tonen
       let parochies = [];
       groep.forEach(doc => {
-        let pad = doc.ref.parent.parent;
-        if (pad) parochies.push(pad.id.replace(/-/g, " "));
+        let pdoc = doc.ref.parent.parent;
+        if (pdoc) parochies.push(pdoc.id.replace(/-/g, \" \"));
       });
-      let pl = document.getElementById("parochielijst");
-      pl.innerHTML = parochies.length ? parochies.map(p => `<li>${p}</li>`).join("") :
-        "<li>Geen parochies gevonden.</li>";
+      let pl = document.getElementById(\"parochielijst\");
+      pl.innerHTML = parochies.length ? parochies.map(p => `<li>${p}</li>`).join(\"\") :
+        \"<li>Geen parochies gevonden.</li>\";
 
       // Kinderen ophalen van *alle* parochies
-      let kindlijstDiv = document.getElementById("kindlijst");
-      kindlijstDiv.innerHTML = "";
+      let kindlijstDiv = document.getElementById(\"kindlijst\");
+      kindlijstDiv.innerHTML = \"\";
       for (let i = 0; i < groep.docs.length; i++) {
-        const kindSnap = await groep.docs[i].ref.collection("kinderen").get();
+        const kindSnap = await groep.docs[i].ref.collection(\"kinderen\").get();
         kindSnap.forEach(kindDoc => {
           const k = kindDoc.data();
-          let zicht = k.geboortedatumZichtbaar ? "🎂" : "🔒";
+          let zicht = k.geboortedatumZichtbaar ? \"🎂\" : \"🔒\";
           kindlijstDiv.innerHTML += `
-            <div class="kinditem">
-              <b>${k.voornaam || ""} ${k.achternaam || ""}</b><br>
-              Geboortedatum: ${k.geboortedatum || "-"} <span title="${k.geboortedatumZichtbaar?'Wordt getoond op de kalender':'Niet zichtbaar'}">${zicht}</span><br>
-              Kinderportaal: <b>${k.toegang == "ja" ? "Toegang" : "Geen toegang"}</b>
-              <button class="verwijderKind" onclick="verwijderKind('${groep.docs[i].ref.path}', '${kindDoc.id}')">Verwijder</button>
+            <div class=\"kinditem\">
+              <b>${k.voornaam || \"\"} ${k.achternaam || \"\"}</b><br>
+              Geboortedatum: ${k.geboortedatum || \"-\"} <span title=\"${k.geboortedatumZichtbaar?'Wordt getoond op de kalender':'Niet zichtbaar'}\">${zicht}</span><br>
+              Kinderportaal: <b>${k.toegang == \"ja\" ? \"Toegang\" : \"Geen toegang\"}</b>
+              <button class=\"verwijderKind\" onclick=\"verwijderKind('${groep.docs[i].ref.path}', '${kindDoc.id}')\">Verwijder</button>
             </div>
           `;
         });
@@ -394,15 +395,14 @@
 
     // Profiel opslaan
     async function opslaanProfiel() {
-      const voornaam = document.getElementById("voornaam").value;
-      const achternaam = document.getElementById("achternaam").value;
-      const doopnaam = document.getElementById("doopnaam").value;
-      const loginKeuze = document.getElementById("loginKeuze").value;
-      const geboortedatum = document.getElementById("geboortedatum").value;
-      const geboortedatumZichtbaar = document.getElementById("geboortedatumZichtbaar").checked;
-      const wachtwoord = document.getElementById("wachtwoord").value;
+      const voornaam = document.getElementById(\"voornaam\").value;
+      const achternaam = document.getElementById(\"achternaam\").value;
+      const doopnaam = document.getElementById(\"doopnaam\").value;
+      const loginKeuze = document.getElementById(\"loginKeuze\").value;
+      const geboortedatum = document.getElementById(\"geboortedatum\").value;
+      const geboortedatumZichtbaar = document.getElementById(\"geboortedatumZichtbaar\").checked;
+      const wachtwoord = document.getElementById(\"wachtwoord\").value;
 
-      // Update in alle parochies
       for (let ref of ledenRefs) {
         await ref.update({
           voornaam, achternaam, doopnaam, loginKeuze,
@@ -410,23 +410,22 @@
           wachtwoord
         });
       }
-      alert("Profiel opgeslagen!");
+      alert(\"Profiel opgeslagen!\");
     }
 
     // Kind toevoegen
     async function voegKindToe() {
-      const kvoornaam = document.getElementById("kvoornaam").value;
-      const kachternaam = document.getElementById("kachternaam").value;
-      const kgeboortedatum = document.getElementById("kgeboortedatum").value;
-      const toegang = document.getElementById("toegang").value;
-      const geboortedatumZichtbaar = document.getElementById("kgeboortedatumZichtbaar").checked;
+      const kvoornaam = document.getElementById(\"kvoornaam\").value;
+      const kachternaam = document.getElementById(\"kachternaam\").value;
+      const kgeboortedatum = document.getElementById(\"kgeboortedatum\").value;
+      const toegang = document.getElementById(\"toegang\").value;
+      const geboortedatumZichtbaar = document.getElementById(\"kgeboortedatumZichtbaar\").checked;
       if (!kvoornaam || !kachternaam || !kgeboortedatum) {
-        alert("Vul alle gegevens van het kind in.");
+        alert(\"Vul alle gegevens van het kind in.\");
         return;
       }
-      // Voeg toe in elke parochie waar deze gebruiker lid is
       for (let ref of ledenRefs) {
-        await ref.collection("kinderen").add({
+        await ref.collection(\"kinderen\").add({
           voornaam: kvoornaam,
           achternaam: kachternaam,
           geboortedatum: kgeboortedatum,
@@ -434,38 +433,35 @@
           geboortedatumZichtbaar
         });
       }
-      alert("Kind toegevoegd! Vernieuw de pagina om te zien.");
-      document.getElementById("kvoornaam").value = "";
-      document.getElementById("kachternaam").value = "";
-      document.getElementById("kgeboortedatum").value = "";
-      document.getElementById("toegang").value = "ja";
-      document.getElementById("kgeboortedatumZichtbaar").checked = false;
+      alert(\"Kind toegevoegd! Vernieuw de pagina om te zien.\");
+      document.getElementById(\"kvoornaam\").value = \"\";
+      document.getElementById(\"kachternaam\").value = \"\";
+      document.getElementById(\"kgeboortedatum\").value = \"\";
+      document.getElementById(\"toegang\").value = \"ja\";
+      document.getElementById(\"kgeboortedatumZichtbaar\").checked = false;
     }
 
     // Kind verwijderen
     async function verwijderKind(parentPath, kindId) {
-      if (!confirm("Weet je zeker dat je dit kind wilt verwijderen?")) return;
-      await db.doc(parentPath + "/kinderen/" + kindId).delete();
-      alert("Kind verwijderd! Vernieuw de pagina om te zien.");
+      if (!confirm(\"Weet je zeker dat je dit kind wilt verwijderen?\")) return;
+      await db.doc(parentPath + \"/kinderen/\" + kindId).delete();
+      alert(\"Kind verwijderd! Vernieuw de pagina om te zien.\");
     }
 
     // Wachtwoord tonen/verbergen
     function toggleWachtwoord() {
-      const w = document.getElementById("wachtwoord");
-      w.type = w.type === "password" ? "text" : "password";
+      const w = document.getElementById(\"wachtwoord\");
+      w.type = w.type === \"password\" ? \"text\" : \"password\";
     }
 
     // Account verwijderen
     async function verwijderAccount() {
-      if (!confirm("Ben je zeker dat je je volledige account wilt verwijderen uit alle parochies?")) return;
+      if (!confirm(\"Ben je zeker dat je je volledige account wilt verwijderen uit alle parochies?\")) return;
       for (let ref of ledenRefs) await ref.delete();
-      alert("Je account is verwijderd. Je wordt uitgelogd.");
+      alert(\"Je account is verwijderd. Je wordt uitgelogd.\");
       localStorage.clear();
-      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+      window.location.href = \"https://kathy-torfs.github.io/Orthodoxeweg/index.html\";
     }
-
-    // Sla userEmail direct in localStorage als je dat nog niet deed bij login:
-    // localStorage.setItem("userEmail", email);
   </script>
 </body>
 </html>
