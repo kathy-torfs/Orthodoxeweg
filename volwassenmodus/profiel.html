@@ -2,11 +2,11 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>Mijn profiel</title>
+  <title>Mijn profiel – Volwassenmodus</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
+      font-family: 'Segoe UI', Arial, sans-serif;
       background: linear-gradient(to bottom right, #fff8ec, #f7f0d8);
       margin: 0;
       padding: 0;
@@ -21,6 +21,17 @@
       justify-content: space-between;
       align-items: center;
     }
+    .uitlog {
+      background: #b83722;
+      color: #fff;
+      border: none;
+      padding: 7px 15px;
+      font-size: 1em;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .uitlog:hover { background: #a32218; }
     nav.menu {
       background-color: #7a5f35;
       display: flex;
@@ -36,6 +47,7 @@
       padding: 8px 12px;
       border-radius: 12px;
       background-color: #9c7c4c;
+      transition: background 0.2s;
     }
     nav.menu a:hover {
       background-color: #b69466;
@@ -44,10 +56,11 @@
       text-align: center;
       color: #5d4c2f;
       margin-top: 24px;
+      margin-bottom: 5px;
     }
     .container {
       max-width: 800px;
-      margin: 20px auto;
+      margin: 22px auto 35px auto;
       background: #fffef9;
       padding: 24px;
       border-radius: 18px;
@@ -67,19 +80,64 @@
       border-radius: 8px;
       background-color: #fefdf9;
     }
-    .kindblok, .kindlijstweergave {
+    .wachtwoord-veld {
+      position: relative;
+    }
+    .toggle-wachtwoord {
+      position: absolute;
+      right: 12px;
+      top: 13px;
+      background: none;
+      border: none;
+      font-size: 1.12em;
+      cursor: pointer;
+      color: #a68842;
+    }
+    .info {
+      margin-top: 12px;
+      margin-bottom: 15px;
+      font-size: 0.94em;
+      color: #6a5e3c;
+      background: #f8f2da;
+      padding: 11px;
+      border-radius: 8px;
+    }
+    .parochielijst, .kindlijst {
+      margin: 13px 0 7px 24px;
+      padding-left: 0;
+      list-style: disc inside;
+      color: #65531b;
+    }
+    .kindblok {
       background: #f2eee1;
       padding: 10px;
       border-radius: 10px;
       margin-top: 12px;
       box-shadow: inset 0 0 6px #ccc8b3;
     }
-    .parochielijst, .kindlijst {
-      margin-top: 12px;
-      padding-left: 20px;
+    .kinditem {
+      background: #fff7e4;
+      margin-bottom: 10px;
+      padding: 11px 14px;
+      border-radius: 8px;
+      position: relative;
+      box-shadow: 0 2px 8px #dfd7b945;
+    }
+    .kinditem .verwijderKind {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      color: #b72a20;
+      background: #f9e7e0;
+      border: none;
+      padding: 3px 12px;
+      border-radius: 7px;
+      font-size: 0.98em;
+      cursor: pointer;
+      font-weight: bold;
     }
     button {
-      margin-top: 20px;
+      margin-top: 19px;
       background: #7a5f35;
       color: white;
       padding: 10px 18px;
@@ -87,28 +145,70 @@
       border-radius: 8px;
       cursor: pointer;
       font-size: 1em;
+      font-weight: 600;
     }
     button:hover {
       background: #604926;
     }
-    .info {
-      margin-top: 20px;
-      font-size: 0.9em;
-      color: #6a5e3c;
-      background: #f8f2da;
-      padding: 12px;
-      border-radius: 8px;
+    .kindtoevoegenblok {
+      margin-top: 28px;
+      background: #f7f0e3;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 2px 7px #d4c29b2a;
     }
-    #loading {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: #fff8ec;
-      display: flex;
-      justify-content: center;
+    .label-switch {
+      display: inline-flex;
       align-items: center;
-      font-size: 1.5em;
-      color: #7a5f35;
-      z-index: 9999;
+      gap: 8px;
+      margin-top: 7px;
+    }
+    .switch {
+      width: 36px;
+      height: 20px;
+      position: relative;
+      display: inline-block;
+    }
+    .switch input {
+      display: none;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      background-color: #ddd;
+      border-radius: 12px;
+      top: 0; left: 0; right: 0; bottom: 0;
+      transition: background .3s;
+    }
+    .switch input:checked + .slider {
+      background-color: #7a5f35;
+    }
+    .slider:before {
+      content: "";
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      left: 2px;
+      bottom: 2px;
+      background-color: #fff;
+      border-radius: 50%;
+      transition: .3s;
+    }
+    .switch input:checked + .slider:before {
+      transform: translateX(16px);
+    }
+    .slider {
+      transition: .3s;
+    }
+    .verwijderAccount {
+      background: #c7372f;
+      margin-top: 28px;
+      float: right;
+    }
+    @media (max-width: 700px) {
+      .container {padding: 9px;}
+      h1 {font-size: 1.1em;}
+      nav.menu a {font-size:0.98em;}
     }
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
@@ -116,140 +216,256 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-<div id="loading">Laden...</div>
-<div class="statusbar">
-  <span>U bent ingelogd in: <span id="parochieNaam">...</span></span>
-</div>
-<nav class="menu">
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html">🏠 Home</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/gebeden.html">🙏 Gebeden</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html">🧰 Mijn profiel</a>
-</nav>
-<h1>Mijn profiel</h1>
-<div class="container" style="display:none">
-  <p class="info">Gebruik steeds je eigen unieke e-mailadres. Het dagboek is hieraan gekoppeld. Kinderen worden beheerd via het profiel van een volwassene.</p>
-
-  <label for="voornaam">Voornaam:</label>
-  <input type="text" id="voornaam">
-
-  <label for="achternaam">Achternaam:</label>
-  <input type="text" id="achternaam">
-
-  <button onclick="opslaanProfiel()">💾 Opslaan</button>
-
-  <hr>
-  <h2>Kind toevoegen</h2>
-  <div class="kindblok">
-    <label for="kvoornaam">Voornaam kind:</label>
-    <input type="text" id="kvoornaam">
-
-    <label for="kachternaam">Achternaam kind:</label>
-    <input type="text" id="kachternaam">
-
-    <label for="kgeboortedatum">Geboortedatum:</label>
-    <input type="date" id="kgeboortedatum">
-
-    <label for="toegang">Toegang tot kinderportaal?</label>
-    <select id="toegang">
-      <option value="ja">Ja</option>
-      <option value="nee">Nee</option>
-    </select>
-
-    <button onclick="voegKindToe()">➕ Kind toevoegen</button>
+  <div class="statusbar">
+    <span id="parochieLabel">...</span>
+    <button class="uitlog" id="uitlogKnop">Uitloggen</button>
   </div>
+  <nav class="menu">
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html">🏠 Home</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/gebeden.html">🙏 Gebeden</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html">🧰 Mijn profiel</a>
+  </nav>
+  <h1>🧰 Mijn profiel</h1>
+  <div class="container">
+    <div class="info">
+      Gebruik steeds je eigen unieke e-mailadres. Het dagboek is hieraan gekoppeld.<br>
+      Kinderen worden beheerd via het profiel van een volwassene.<br>
+      <b>Let op:</b> Geboortedatum en wachtwoord zijn standaard privé.
+    </div>
 
-  <div class="kindlijstweergave" id="kindlijst"></div>
+    <label for="voornaam">Voornaam:</label>
+    <input type="text" id="voornaam">
+    <label for="achternaam">Achternaam:</label>
+    <input type="text" id="achternaam">
+    <label for="doopnaam">Doopnaam:</label>
+    <input type="text" id="doopnaam">
+    <label for="loginKeuze">Loginnaam (weergavenaam):</label>
+    <input type="text" id="loginKeuze">
+    <label for="email">E-mailadres (uniek):</label>
+    <input type="email" id="email" readonly style="background:#eee">
 
-  <button onclick="verwijderAccount()" style="background:#c7372f">🗑️ Verwijder mijn account</button>
-</div>
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
-    authDomain: "orthodoxeweg.firebaseapp.com",
-    projectId: "orthodoxeweg",
-    storageBucket: "orthodoxeweg.appspot.com",
-    messagingSenderId: "408582263618",
-    appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
-  };
-  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
+    <label for="geboortedatum">Geboortedatum:</label>
+    <input type="date" id="geboortedatum">
+    <div class="label-switch">
+      <span>Zichtbaar op verjaardagskalender?</span>
+      <label class="switch">
+        <input type="checkbox" id="geboortedatumZichtbaar">
+        <span class="slider"></span>
+      </label>
+    </div>
 
-  const parochieNaam = localStorage.getItem("ingelogdeParochie");
-  document.getElementById("parochieNaam").textContent = parochieNaam || "[niet ingelogd]";
+    <label for="wachtwoord">Wachtwoord:</label>
+    <div class="wachtwoord-veld">
+      <input type="password" id="wachtwoord">
+      <button type="button" class="toggle-wachtwoord" onclick="toggleWachtwoord()"
+        title="Toon/verberg wachtwoord">&#128065;</button>
+    </div>
 
-  let email = "";
+    <button onclick="opslaanProfiel()">💾 Opslaan</button>
+    <hr>
+    <h3>Parochies waarin je geregistreerd bent:</h3>
+    <ul class="parochielijst" id="parochielijst"></ul>
 
-  auth.onAuthStateChanged(async user => {
-    if (!user) {
-      window.location.replace("https://www.orthodoxeweg.be/");
-      return;
+    <hr>
+    <h2>Kinderen</h2>
+    <div id="kindlijst"></div>
+    <div class="kindtoevoegenblok">
+      <h4>Kind toevoegen</h4>
+      <label for="kvoornaam">Voornaam kind:</label>
+      <input type="text" id="kvoornaam">
+
+      <label for="kachternaam">Achternaam kind:</label>
+      <input type="text" id="kachternaam">
+
+      <label for="kgeboortedatum">Geboortedatum:</label>
+      <input type="date" id="kgeboortedatum">
+
+      <div class="label-switch">
+        <span>Zichtbaar op verjaardagskalender?</span>
+        <label class="switch">
+          <input type="checkbox" id="kgeboortedatumZichtbaar">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <label for="toegang">Toegang tot kinderportaal?</label>
+      <select id="toegang">
+        <option value="ja">Ja</option>
+        <option value="nee">Nee</option>
+      </select>
+
+      <button onclick="voegKindToe()">➕ Kind toevoegen</button>
+    </div>
+
+    <button class="verwijderAccount" onclick="verwijderAccount()">🗑️ Verwijder mijn account</button>
+  </div>
+  <script>
+    // Beveiliging
+    if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "volwassene") {
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    }
+    let parochieNaam = localStorage.getItem("ingelogdeParochie") || "";
+    document.getElementById("parochieLabel").textContent =
+      parochieNaam ? "U bent ingelogd in de parochie van " + parochieNaam : "";
+
+    // Uitloggen
+    document.getElementById("uitlogKnop").onclick = function() {
+      localStorage.removeItem("ingelogdeParochie");
+      localStorage.removeItem("ingelogdeParochieId");
+      localStorage.removeItem("userId");
+      localStorage.removeItem("modus");
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    };
+
+    // Firebase INIT
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let userEmail = ""; let ledenDocs = []; let ledenRefs = [];
+    // Profiel ophalen
+    window.onload = async function() {
+      // Haal userId op via lokale storage
+      userEmail = localStorage.getItem("userEmail");
+      if (!userEmail) {
+        alert("Geen gebruiker gevonden. Log opnieuw in.");
+        window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+        return;
+      }
+      document.getElementById("email").value = userEmail;
+
+      // Vind alle parochies waar dit lid zit
+      const groep = await db.collectionGroup("leden").where("email", "==", userEmail).get();
+      ledenDocs = groep.docs.map(doc => doc.data());
+      ledenRefs = groep.docs.map(doc => doc.ref);
+
+      // Hoofdgegevens tonen (altijd van eerste record)
+      if (ledenDocs.length > 0) {
+        let d = ledenDocs[0];
+        document.getElementById("voornaam").value = d.voornaam || "";
+        document.getElementById("achternaam").value = d.achternaam || "";
+        document.getElementById("doopnaam").value = d.doopnaam || "";
+        document.getElementById("loginKeuze").value = d.loginKeuze || "";
+        document.getElementById("geboortedatum").value = d.geboortedatum || "";
+        document.getElementById("wachtwoord").value = d.wachtwoord || "";
+        document.getElementById("geboortedatumZichtbaar").checked = !!d.geboortedatumZichtbaar;
+      }
+
+      // Parochielijst tonen
+      let parochies = [];
+      groep.forEach(doc => {
+        let pad = doc.ref.parent.parent;
+        if (pad) parochies.push(pad.id.replace(/-/g, " "));
+      });
+      let pl = document.getElementById("parochielijst");
+      pl.innerHTML = parochies.length ? parochies.map(p => `<li>${p}</li>`).join("") :
+        "<li>Geen parochies gevonden.</li>";
+
+      // Kinderen ophalen van *alle* parochies
+      let kindlijstDiv = document.getElementById("kindlijst");
+      kindlijstDiv.innerHTML = "";
+      for (let i = 0; i < groep.docs.length; i++) {
+        const kindSnap = await groep.docs[i].ref.collection("kinderen").get();
+        kindSnap.forEach(kindDoc => {
+          const k = kindDoc.data();
+          let zicht = k.geboortedatumZichtbaar ? "🎂" : "🔒";
+          kindlijstDiv.innerHTML += `
+            <div class="kinditem">
+              <b>${k.voornaam || ""} ${k.achternaam || ""}</b><br>
+              Geboortedatum: ${k.geboortedatum || "-"} <span title="${k.geboortedatumZichtbaar?'Wordt getoond op de kalender':'Niet zichtbaar'}">${zicht}</span><br>
+              Kinderportaal: <b>${k.toegang == "ja" ? "Toegang" : "Geen toegang"}</b>
+              <button class="verwijderKind" onclick="verwijderKind('${groep.docs[i].ref.path}', '${kindDoc.id}')">Verwijder</button>
+            </div>
+          `;
+        });
+      }
+    };
+
+    // Profiel opslaan
+    async function opslaanProfiel() {
+      const voornaam = document.getElementById("voornaam").value;
+      const achternaam = document.getElementById("achternaam").value;
+      const doopnaam = document.getElementById("doopnaam").value;
+      const loginKeuze = document.getElementById("loginKeuze").value;
+      const geboortedatum = document.getElementById("geboortedatum").value;
+      const geboortedatumZichtbaar = document.getElementById("geboortedatumZichtbaar").checked;
+      const wachtwoord = document.getElementById("wachtwoord").value;
+
+      // Update in alle parochies
+      for (let ref of ledenRefs) {
+        await ref.update({
+          voornaam, achternaam, doopnaam, loginKeuze,
+          geboortedatum, geboortedatumZichtbaar,
+          wachtwoord
+        });
+      }
+      alert("Profiel opgeslagen!");
     }
 
-    document.getElementById("loading").style.display = "none";
-    document.querySelector(".container").style.display = "block";
-    email = user.email;
-
-    const query = await db.collectionGroup("leden").where("email", "==", email).get();
-    if (query.empty) return;
-    const doc = query.docs[0];
-    const data = doc.data();
-    document.getElementById("voornaam").value = data.voornaam || "";
-    document.getElementById("achternaam").value = data.achternaam || "";
-    laadKinderen(doc.ref);
-  });
-
-  async function laadKinderen(ref) {
-    const container = document.getElementById("kindlijst");
-    const snap = await ref.collection("kinderen").get();
-    if (snap.empty) {
-      container.innerHTML = "<p><em>Geen kinderen toegevoegd.</em></p>";
-    } else {
-      container.innerHTML = "<h3>Geregistreerde kinderen:</h3><ul>" +
-        snap.docs.map(d => {
-          const k = d.data();
-          return `<li><strong>${k.voornaam} ${k.achternaam}</strong> – Geboren: ${k.geboortedatum || "?"} – Kinderportaal: ${k.toegang}</li>`;
-        }).join("") + "</ul>";
+    // Kind toevoegen
+    async function voegKindToe() {
+      const kvoornaam = document.getElementById("kvoornaam").value;
+      const kachternaam = document.getElementById("kachternaam").value;
+      const kgeboortedatum = document.getElementById("kgeboortedatum").value;
+      const toegang = document.getElementById("toegang").value;
+      const geboortedatumZichtbaar = document.getElementById("kgeboortedatumZichtbaar").checked;
+      if (!kvoornaam || !kachternaam || !kgeboortedatum) {
+        alert("Vul alle gegevens van het kind in.");
+        return;
+      }
+      // Voeg toe in elke parochie waar deze gebruiker lid is
+      for (let ref of ledenRefs) {
+        await ref.collection("kinderen").add({
+          voornaam: kvoornaam,
+          achternaam: kachternaam,
+          geboortedatum: kgeboortedatum,
+          toegang,
+          geboortedatumZichtbaar
+        });
+      }
+      alert("Kind toegevoegd! Vernieuw de pagina om te zien.");
+      document.getElementById("kvoornaam").value = "";
+      document.getElementById("kachternaam").value = "";
+      document.getElementById("kgeboortedatum").value = "";
+      document.getElementById("toegang").value = "ja";
+      document.getElementById("kgeboortedatumZichtbaar").checked = false;
     }
-  }
 
-  async function opslaanProfiel() {
-    const voornaam = document.getElementById("voornaam").value;
-    const achternaam = document.getElementById("achternaam").value;
-    const query = await db.collectionGroup("leden").where("email", "==", email).get();
-    query.forEach(doc => doc.ref.update({ voornaam, achternaam }));
-    alert("Gegevens opgeslagen!");
-  }
-
-  async function voegKindToe() {
-    const kvoornaam = document.getElementById("kvoornaam").value;
-    const kachternaam = document.getElementById("kachternaam").value;
-    const kgeboortedatum = document.getElementById("kgeboortedatum").value;
-    const toegang = document.getElementById("toegang").value;
-
-    const query = await db.collectionGroup("leden").where("email", "==", email).get();
-    for (const doc of query.docs) {
-      await doc.ref.collection("kinderen").add({ voornaam: kvoornaam, achternaam: kachternaam, geboortedatum: kgeboortedatum, toegang });
-      await laadKinderen(doc.ref);
+    // Kind verwijderen
+    async function verwijderKind(parentPath, kindId) {
+      if (!confirm("Weet je zeker dat je dit kind wilt verwijderen?")) return;
+      await db.doc(parentPath + "/kinderen/" + kindId).delete();
+      alert("Kind verwijderd! Vernieuw de pagina om te zien.");
     }
-    alert("Kind toegevoegd!");
-  }
 
-  async function verwijderAccount() {
-    if (!confirm("Ben je zeker dat je je account wil verwijderen?")) return;
-    const user = auth.currentUser;
-    const query = await db.collectionGroup("leden").where("email", "==", email).get();
-    for (const doc of query.docs) {
-      await doc.ref.delete();
+    // Wachtwoord tonen/verbergen
+    function toggleWachtwoord() {
+      const w = document.getElementById("wachtwoord");
+      w.type = w.type === "password" ? "text" : "password";
     }
-    await user.delete();
-    alert("Account verwijderd.");
-    window.location.href = "https://www.orthodoxeweg.be/";
-  }
-</script>
+
+    // Account verwijderen
+    async function verwijderAccount() {
+      if (!confirm("Ben je zeker dat je je volledige account wilt verwijderen uit alle parochies?")) return;
+      for (let ref of ledenRefs) await ref.delete();
+      alert("Je account is verwijderd. Je wordt uitgelogd.");
+      localStorage.clear();
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    }
+
+    // Sla userEmail direct in localStorage als je dat nog niet deed bij login:
+    // localStorage.setItem("userEmail", email);
+  </script>
 </body>
 </html>
