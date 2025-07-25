@@ -11,16 +11,48 @@
       margin: 0; padding: 0;
       color: #473916;
     }
+    .statusbar {
+      background: #7a5f35;
+      color: #fff;
+      padding: 10px 24px;
+      font-size: 1.07em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    nav.menu {
+      background-color: #7a5f35;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 10px;
+    }
+    nav.menu a {
+      color: #fffef4;
+      text-decoration: none;
+      margin: 6px 12px;
+      font-size: 1em;
+      padding: 8px 12px;
+      border-radius: 12px;
+      background-color: #9c7c4c;
+      transition: background-color 0.3s;
+      font-weight: 600;
+    }
+    nav.menu a:hover {
+      background-color: #b69466;
+      text-decoration: underline;
+    }
     h1 {
       text-align: center;
       margin-top: 32px;
       color: #986b0c;
+      font-size: 2.1em;
     }
     #maandSelector {
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 1.4em;
+      font-size: 1.32em;
       gap: 18px;
       margin: 24px 0 14px 0;
     }
@@ -31,21 +63,21 @@
     }
     #maandSelector button:hover { background: #dab664; }
     #kalender {
-      max-width: 600px;
-      margin: 0 auto 30px auto;
+      max-width: 640px;
+      margin: 0 auto 38px auto;
       background: #fffef9;
       border-radius: 18px;
       box-shadow: 0 6px 32px #d7cbb142;
-      padding: 16px;
+      padding: 18px;
     }
     .kalender-weekdagen {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       gap: 2px;
-      font-size: 1.02em;
+      font-size: 1.07em;
       font-weight: bold;
       color: #7a5f35;
-      margin-bottom: 6px;
+      margin-bottom: 7px;
       text-align: center;
     }
     .kalender-grid {
@@ -59,12 +91,12 @@
       background: #f8e5b1;
       margin: 1px;
       padding: 6px 4px 3px 6px;
-      font-size: 1.06em;
+      font-size: 1.09em;
       position: relative;
       overflow: visible;
     }
     .kalender-dag .datum {
-      font-size: 0.97em;
+      font-size: 0.99em;
       font-weight: bold;
       color: #7a5f35;
     }
@@ -72,7 +104,7 @@
       font-size: 0.97em;
       color: #7c4a1c;
       margin-top: 2px;
-      line-height: 1.15;
+      line-height: 1.16;
       white-space: pre-line;
     }
     .kalender-dag.vandaag {
@@ -86,6 +118,24 @@
   </style>
 </head>
 <body>
+  <!-- STATUSBALK -->
+  <div class="statusbar">
+    <span>U bent ingelogd in: <span id="parochieNaam">...</span></span>
+  </div>
+  <!-- MENUBALK VOLWASSENMODUS -->
+  <nav class="menu">
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html">🏠 Home</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/verjaardagskalender.html">🎂 Verjaardagskalender</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/bijbeldagboek.html">📔 Bijbeldagboek</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/heiligen.html">👼 Heiligen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/gebeden.html">🙏 Gebeden</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html">🧰 Mijn profiel</a>
+  </nav>
+
   <h1>🎂 Verjaardagskalender</h1>
   <div id="maandSelector">
     <button onclick="wisselMaand(-1)">◀️</button>
@@ -95,6 +145,10 @@
   <div id="kalender"></div>
 
   <script>
+    // Toon parochie in statusbalk
+    document.getElementById("parochieNaam").textContent =
+      localStorage.getItem("ingelogdeParochie") || "[niet ingelogd]";
+
     // Basis voor kalender
     const maanden = ["januari","februari","maart","april","mei","juni","juli","augustus","september","oktober","november","december"];
     const weekdagen = ["ma","di","wo","do","vr","za","zo"];
