@@ -1,41 +1,174 @@
-// FIREBASE INIT
-const firebaseConfig = {
-  apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
-  authDomain: "orthodoxeweg.firebaseapp.com",
-  projectId: "orthodoxeweg",
-  storageBucket: "orthodoxeweg.appspot.com",
-  messagingSenderId: "408582263618",
-  appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
-};
-if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mijn profiel – Orthodoxeweg</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f8f5e9;
+      margin: 0; padding: 0; color: #433c27;
+    }
+    .statusbar {
+      background: #7a5f35; color: #fff; padding: 10px 24px;
+      font-size: 1.07em;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    nav.menu {
+      background: #7a5f35; padding: 10px 15px;
+      display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;
+    }
+    nav.menu a {
+      color: #f5e9b8; text-decoration: none; font-weight: 600; font-size: 16px;
+      padding: 6px 12px; border-radius: 8px; transition: background-color 0.3s;
+    }
+    nav.menu a:hover { background-color: #5d4726; text-decoration: underline; }
+    main { max-width: 540px; margin: 38px auto 40px auto; background: #fffef9;
+      padding: 30px 22px 22px 22px; border-radius: 20px;
+      box-shadow: 0 6px 32px #d7cbb142;
+    }
+    h1 { text-align: center; margin-bottom: 32px; font-size: 2.1em; }
+    label { display: block; margin-top: 18px; font-weight: bold; }
+    input[type="text"], input[type="date"], input[type="email"], input[type="password"] {
+      width: 100%; padding: 9px 12px; border: 1px solid #bba868;
+      border-radius: 7px; margin-top: 6px; font-size: 1em;
+      background: #fcfaf5;
+    }
+    input[readonly] { background: #f6f6f6; color: #998a5f; }
+    .pw-row { position: relative; }
+    .pw-toggle {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      cursor: pointer; font-size: 1.15em;
+    }
+    .formrow-inline {
+      display: flex; align-items: center; gap: 12px; margin-top: 0;
+    }
+    #profielForm button {
+      background: #7a5f35; color: #fff; border: none; border-radius: 9px;
+      padding: 12px 22px; font-size: 1em; font-weight: bold;
+      margin-top: 30px; cursor: pointer;
+      transition: background 0.16s;
+      box-shadow: 0 2px 10px #e3e3b588;
+    }
+    #profielForm button:hover { background: #604926; }
+    #melding { color: #a05213; margin: 18px 0 0 0; min-height: 32px; text-align: center;}
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <!-- Beveiliging: Enkel toegankelijk als ingelogd als volwassene -->
+  <script>
+    if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "volwassene") {
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    }
+  </script>
+  <div class="statusbar">
+    <span>U bent ingelogd in: <span id="parochieLabel">...</span></span>
+  </div>
+  <nav class="menu">
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html">🏠 Home</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/gebeden.html">🙏 Gebeden</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html">🧰 Mijn profiel</a>
+  </nav>
+  <main>
+    <h1>Mijn profiel</h1>
+    <form id="profielForm" autocomplete="off">
+      <label>Voornaam:
+        <input type="text" id="voornaam" autocomplete="off">
+      </label>
+      <label>Achternaam:
+        <input type="text" id="achternaam" autocomplete="off">
+      </label>
+      <label>Doopnaam:
+        <input type="text" id="doopnaam" autocomplete="off">
+      </label>
+      <label>E-mailadres:
+        <input type="email" id="email" readonly>
+      </label>
+      <label>Geboortedatum:
+        <input type="date" id="geboortedatum">
+        <span class="formrow-inline">
+          <input type="checkbox" id="toonVerjaardag" style="width:auto;margin-left:8px;">
+          <span style="font-weight:normal;font-size:0.98em;">Zichtbaar op verjaardagskalender</span>
+        </span>
+      </label>
+      <label>Loginnaam:
+        <input type="text" id="loginKeuze" readonly>
+      </label>
+      <label>Wachtwoord:
+        <div class="pw-row">
+          <input type="password" id="wachtwoord" autocomplete="off">
+          <span class="pw-toggle" id="pwToggle" title="Toon/verberg wachtwoord">👁️</span>
+        </div>
+      </label>
+      <button type="button" onclick="opslaanProfiel()">💾 Wijzigingen opslaan</button>
+    </form>
+    <div id="melding"></div>
+  </main>
+  <script>
+    // Statusbar vullen
+    let parochieNaam = localStorage.getItem("ingelogdeParochie");
+    document.getElementById("parochieLabel").textContent = parochieNaam || "...";
+    // User info uit localStorage
+    const parochieId = localStorage.getItem("ingelogdeParochieId");
+    const loginKeuze = localStorage.getItem("loginKeuze");
+    // Firebase init
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-// Ophalen & tonen
-window.addEventListener('DOMContentLoaded', async () => {
-  let docRef = db.collection("parochies").doc(parochieId).collection("leden").doc(loginKeuze);
-  let doc = await docRef.get();
-  if (!doc.exists) {
-    document.getElementById("profielForm").style.display = "none";
-    document.getElementById("melding").textContent = "Profiel niet gevonden!";
-    return;
-  }
-  let d = doc.data();
-  document.getElementById("voornaam").value = d.voornaam || "";
-  document.getElementById("achternaam").value = d.achternaam || "";
-  document.getElementById("doopnaam").value = d.doopnaam || "";
-  document.getElementById("email").value = d.email || "";
-  document.getElementById("geboortedatum").value = d.geboortedatum || "";
-  document.getElementById("loginKeuze").value = d.loginKeuze || "";
-  document.getElementById("wachtwoord").value = d.wachtwoord || "";
-  document.getElementById("toonVerjaardag").checked = !!d.verjaardagZichtbaar;
-});
+    // Ophalen & tonen van profiel
+    async function laadProfiel() {
+      try {
+        let docRef = db.collection("parochies").doc(parochieId).collection("leden").doc(loginKeuze);
+        let doc = await docRef.get();
+        if (!doc.exists) {
+          document.getElementById("profielForm").style.display = "none";
+          document.getElementById("melding").textContent = "Profiel niet gevonden!";
+          return;
+        }
+        let d = doc.data();
+        document.getElementById("voornaam").value = d.voornaam || "";
+        document.getElementById("achternaam").value = d.achternaam || "";
+        document.getElementById("doopnaam").value = d.doopnaam || "";
+        document.getElementById("email").value = d.email || "";
+        document.getElementById("geboortedatum").value = d.geboortedatum || "";
+        document.getElementById("loginKeuze").value = d.loginKeuze || "";
+        document.getElementById("wachtwoord").value = d.wachtwoord || "";
+        document.getElementById("toonVerjaardag").checked = !!d.verjaardagZichtbaar;
+      } catch (e) {
+        document.getElementById("melding").textContent = "Fout bij laden profiel.";
+      }
+    }
+    window.addEventListener('DOMContentLoaded', laadProfiel);
 
-// Toon/verberg wachtwoord
-document.getElementById("pwToggle").onclick = function() {
-  let w = document.getElementById("wachtwoord");
-  if (w.type === "password") {
-    w.type = "text"; this.textContent = "🙈";
-  } else {
-    w.type = "password"; this.textContent = "👁️";
-  }
-};
+    // Toon/verberg wachtwoord
+    document.getElementById("pwToggle").onclick = function() {
+      let w = document.getElementById("wachtwoord");
+      if (w.type === "password") {
+        w.type = "text"; this.textContent = "🙈";
+      } else {
+        w.type = "password"; this.textContent = "👁️";
+      }
+    };
+
+    // Opslaan profiel (wordt in volgende stap verder ingevuld)
+    function opslaanProfiel() {
+      document.getElementById("melding").textContent = "Wijzigen opslaan nog niet geactiveerd.";
+    }
+  </script>
+</body>
+</html>
