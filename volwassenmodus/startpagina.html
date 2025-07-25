@@ -6,13 +6,11 @@
   <title>Orthodoxeweg - Dagkalender</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
-    body {
-      background-color: #f5e9b8;
-      color: #6f4e1a;
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-    }
+    /* ==== ALGEMEEN: BEGIN ==== */
+    body { background-color: #f5e9b8; color: #6f4e1a; font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    /* ==== ALGEMEEN: EINDE ==== */
+
+    /* ==== TOPBAR + BEGROETING: BEGIN ==== */
     .topbar {
       background-color: #6f4e1a;
       color: white;
@@ -21,6 +19,11 @@
       justify-content: space-between;
       align-items: center;
       font-weight: bold;
+      flex-wrap: wrap;
+    }
+    #welkom-tekst {
+      font-size: 1.07em;
+      font-weight: normal;
     }
     .uitlog-link {
       background-color: #8722aa;
@@ -30,7 +33,11 @@
       border-radius: 18px;
       cursor: pointer;
       font-weight: bold;
+      margin-left: 12px;
     }
+    /* ==== TOPBAR + BEGROETING: EINDE ==== */
+
+    /* ==== MENUBALK: BEGIN ==== */
     nav.menu {
       background-color: #7a5f35;
       padding: 10px 15px;
@@ -38,8 +45,10 @@
       flex-wrap: wrap;
       gap: 12px;
       justify-content: center;
+      align-items: center;
     }
-    nav.menu a {
+    nav.menu a,
+    nav.menu button {
       color: #f5e9b8;
       text-decoration: none;
       font-weight: 600;
@@ -47,11 +56,44 @@
       padding: 6px 12px;
       border-radius: 8px;
       transition: background-color 0.3s;
+      background: none;
+      border: none;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
     }
-    nav.menu a:hover {
+    nav.menu a:hover, nav.menu button:hover {
       background-color: #5d4726;
       text-decoration: underline;
     }
+    .menu-avatar {
+      padding: 0 !important;
+      background: none !important;
+      border: none !important;
+      margin-left: 2px;
+    }
+    .menu-avatar img {
+      height: 2.1em;
+      width: 2.1em;
+      border-radius: 50%;
+      border: 2.2px solid #dab97a;
+      background: #fff8eb;
+      transition: box-shadow 0.2s, border 0.2s;
+      box-shadow: 0 1px 4px rgba(160,140,80,0.13);
+      display: block;
+    }
+    .menu-avatar img:hover {
+      border: 2.2px solid #a06a19;
+      box-shadow: 0 2px 8px rgba(160,140,80,0.23);
+    }
+    @media (max-width: 650px) {
+      nav.menu { flex-wrap: wrap; gap: 8px;}
+      nav.menu a, nav.menu button { font-size: 1em; padding: 6px 6px;}
+      .menu-avatar img { height: 1.75em; width: 1.75em;}
+    }
+    /* ==== MENUBALK: EINDE ==== */
+
+    /* ==== REST VAN DE PAGINA (taalkeuze, boek, enz.): BEGIN ==== */
     .taalkeuze {
       text-align: center;
       margin: 18px 0 6px 0;
@@ -233,16 +275,17 @@
       .pagina { font-size: 0.93em; padding: 10px 2vw 14px 2vw; }
       .boek .tip-blok { left: 4vw; right: 4vw; font-size:0.98em; }
     }
+    /* ==== REST VAN DE PAGINA: EINDE ==== */
   </style>
-  <!-- FIREBASE SCRIPTS EN CONFIG -->
+  <!-- ==== FIREBASE ==== -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <script>
-    // Volwassenenbescherming
+    // ==== VOLWASSENENBESCHERMING ====
     if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "volwassene") {
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     }
-    // Firebase config
+    // ==== FIREBASE CONFIGURATIE ====
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -257,21 +300,29 @@
   </script>
 </head>
 <body>
+  <!-- ==== TOPBAR + BEGROETING: BEGIN ==== -->
   <div class="topbar">
     <div id="welkom-tekst"></div>
     <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
   </div>
+  <!-- ==== TOPBAR + BEGROETING: EINDE ==== -->
 
+  <!-- ==== MENUBALK: BEGIN ==== -->
   <nav class="menu">
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html">🏠 Home</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html" title="Home">🏠</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/gebeden.html">🙏 Gebeden</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html">🧰 Mijn profiel</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
+    <!-- Avatar-profiel -->
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html" class="menu-avatar" title="Mijn profiel">
+      <img id="menu-avatar-img" src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png" alt="Mijn profiel">
+    </a>
   </nav>
+  <!-- ==== MENUBALK: EINDE ==== -->
 
+  <!-- ==== TAALKEUZE EN DAGKALENDER: BEGIN ==== -->
   <div class="taalkeuze">
     <button id="btn-vlaams" class="selected">🇧🇪 Vlaams</button>
     <button id="btn-engels">🇬🇧 English</button>
@@ -296,24 +347,33 @@
       <button class="hoek-rechtsonder" id="volgendeDag" title="Volgende dag">&gt;</button>
     </div>
   </div>
+  <!-- ==== TAALKEUZE EN DAGKALENDER: EINDE ==== -->
+
   <script>
-    // Begroeting + parochie
+    // ==== BEGROETING EN AVATAR INLADEN: BEGIN ====
     const welkomTekst = document.getElementById("welkom-tekst");
-    const uur = new Date().getHours();
-    let moment = "goeiedag";
-    if (uur >= 5 && uur <= 10) moment = "goeiemorgend";
-    else if (uur >= 11 && uur <= 13) moment = "goeiemiddag";
-    else if (uur >= 17 && uur <= 22) moment = "goeienavond";
-    else if (uur > 22 || uur < 5) moment = "goedenacht";
+    const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
     const parochie = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
-    welkomTekst.textContent = `${moment}, u bent ingelogd in: ${parochie}`;
+    const uur = new Date().getHours();
+    let moment = "Goeiedag";
+    if (uur >= 5 && uur <= 10) moment = "Goeiemorgend";
+    else if (uur >= 11 && uur <= 13) moment = "Goeiemiddag";
+    else if (uur >= 17 && uur <= 22) moment = "Goeienavond";
+    else if (uur > 22 || uur < 5) moment = "Goedenacht";
+    welkomTekst.textContent = `${moment}, ${loginNaam} (Parochie: ${parochie})`;
+
+    // Avatar dynamisch tonen
+    const avatarImg = document.getElementById("menu-avatar-img");
+    const opgeslagenAvatar = localStorage.getItem("avatarURL");
+    if (opgeslagenAvatar) avatarImg.src = opgeslagenAvatar;
 
     document.getElementById("uitlogKnop").onclick = () => {
       localStorage.clear();
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     };
+    // ==== BEGROETING EN AVATAR INLADEN: EINDE ====
 
-    // Boeklogica
+    // ==== DAGKALENDER LOGICA: BEGIN ====
     let huidigeTaal = "vlaams";
     let actieveDatum = new Date();
 
@@ -442,6 +502,7 @@
     }
     // Initieel laden
     laadAlles();
+    // ==== DAGKALENDER LOGICA: EINDE ====
   </script>
 </body>
 </html>
