@@ -2,103 +2,140 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>Verjaardagskalender</title>
+  <title>🎂 Verjaardagskalender</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { background: #f9e8c8; color: #554223; font-family: Arial, sans-serif; margin:0; }
-    .statusbar {
-      background: #7a5f35;
-      color: #fff;
-      padding: 10px 24px;
-      font-size: 1.07em;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f8f5e9;
+      margin: 0; padding: 0;
+      color: #473916;
     }
-    nav.menu {
-      background: #7a5f35;
-      padding: 10px 15px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      justify-content: center;
-    }
-    nav.menu a {
-      color: #fffef4;
-      text-decoration: none;
-      margin: 6px 12px;
-      font-size: 1em;
-      padding: 8px 12px;
-      border-radius: 12px;
-      background-color: #9c7c4c;
-    }
-    nav.menu a:hover { background-color: #b69466; }
     h1 {
       text-align: center;
-      color: #a06709;
-      margin: 28px 0 14px 0;
-      font-size: 2em;
-      font-weight: bold;
-      text-shadow: 0 2px 12px #ffe3b0aa;
+      margin-top: 32px;
+      color: #986b0c;
     }
-    .lijst {
-      background: #fffbe7;
-      max-width: 520px;
-      margin: 30px auto 50px auto;
-      border-radius: 18px;
-      box-shadow: 0 8px 32px #d7cbb142;
-      padding: 28px 18px 22px 18px;
-    }
-    .lid {
-      margin: 0 0 12px 0;
-      padding: 12px 12px 8px 12px;
-      border-radius: 10px;
-      background: #f6eecd;
-      box-shadow: 0 2px 12px #fff2;
+    #maandSelector {
       display: flex;
+      justify-content: center;
       align-items: center;
+      font-size: 1.4em;
       gap: 18px;
-      font-size: 1.12em;
+      margin: 24px 0 14px 0;
     }
-    .lid span {
+    #maandSelector button {
+      background: #e7c377; color: #7a5f35; border: none;
+      border-radius: 10px; padding: 8px 18px; font-size: 1em; cursor: pointer; font-weight: bold;
+      transition: background 0.14s;
+    }
+    #maandSelector button:hover { background: #dab664; }
+    #kalender {
+      max-width: 600px;
+      margin: 0 auto 30px auto;
+      background: #fffef9;
+      border-radius: 18px;
+      box-shadow: 0 6px 32px #d7cbb142;
+      padding: 16px;
+    }
+    .kalender-weekdagen {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 2px;
+      font-size: 1.02em;
       font-weight: bold;
-      margin-right: 16px;
-      color: #6b470f;
-    }
-    .geboortedatum {
-      background: #eedaaa;
-      color: #644600;
-      border-radius: 8px;
-      padding: 2px 12px 2px 10px;
-      font-size: 1em;
-    }
-    .geen {
+      color: #7a5f35;
+      margin-bottom: 6px;
       text-align: center;
-      color: #bb933c;
-      margin-top: 30px;
-      font-size: 1.1em;
+    }
+    .kalender-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 2px;
+    }
+    .kalender-dag {
+      min-height: 62px;
+      border-radius: 7px;
+      background: #f8e5b1;
+      margin: 1px;
+      padding: 6px 4px 3px 6px;
+      font-size: 1.06em;
+      position: relative;
+      overflow: visible;
+    }
+    .kalender-dag .datum {
+      font-size: 0.97em;
+      font-weight: bold;
+      color: #7a5f35;
+    }
+    .kalender-dag .namen {
+      font-size: 0.97em;
+      color: #7c4a1c;
+      margin-top: 2px;
+      line-height: 1.15;
+      white-space: pre-line;
+    }
+    .kalender-dag.vandaag {
+      border: 2.5px solid #ba8e2d;
+      background: #ffefc2;
+    }
+    @media (max-width:650px){
+      #kalender {padding:4px;}
+      .kalender-dag {min-height: 44px; font-size:0.93em;}
     }
   </style>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <div class="statusbar">
-    <span>U bent ingelogd in: <span id="parochieNaam">...</span></span>
+  <h1>🎂 Verjaardagskalender</h1>
+  <div id="maandSelector">
+    <button onclick="wisselMaand(-1)">◀️</button>
+    <span id="maandNaam"></span>
+    <button onclick="wisselMaand(1)">▶️</button>
   </div>
-  <nav class="menu">
-    <a href="startpagina.html">🏠 Home</a>
-    <a href="parochie.html">🛐 Mijn parochie</a>
-    <a href="psalmen/psalmen.html">📜 Psalmen</a>
-    <a href="gebeden/gebeden.html">🙏 Gebeden</a>
-    <a href="gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
-    <a href="catechese/catechese.html">📖 Catechese</a>
-    <a href="profiel.html">🧰 Mijn profiel</a>
-    <a href="verjaardagskalender.html" style="background:#b46e0d; color: #fff;">🎂 Verjaardagskalender</a>
-  </nav>
-  <h1>🎉 Verjaardagskalender</h1>
-  <div class="lijst" id="verjaardagLijst">
-    <div class="geen">Bezig met laden...</div>
-  </div>
+  <div id="kalender"></div>
+
+  <script>
+    // Basis voor kalender
+    const maanden = ["januari","februari","maart","april","mei","juni","juli","augustus","september","oktober","november","december"];
+    const weekdagen = ["ma","di","wo","do","vr","za","zo"];
+    let huidigJaar = (new Date()).getFullYear();
+    let huidigMaand = (new Date()).getMonth(); // 0-indexed
+
+    function toonKalender(jaar, maand) {
+      document.getElementById("maandNaam").textContent = `${maanden[maand]} ${jaar}`;
+
+      // Maak dag-titels
+      let html = `<div class="kalender-weekdagen">${weekdagen.map(d=>`<div>${d}</div>`).join('')}</div>`;
+      html += `<div class="kalender-grid">`;
+
+      let eersteDag = new Date(jaar, maand, 1).getDay(); // 0 = zondag!
+      let start = (eersteDag + 6) % 7; // Maandag als eerste (0)
+
+      let dagenInMaand = new Date(jaar, maand + 1, 0).getDate();
+
+      // Vul lege vakjes
+      for (let i = 0; i < start; i++) html += `<div></div>`;
+
+      // Vul dagen
+      for (let dag = 1; dag <= dagenInMaand; dag++) {
+        let vandaag = new Date();
+        let isVandaag = (dag === vandaag.getDate() && maand === vandaag.getMonth() && jaar === vandaag.getFullYear());
+        html += `<div class="kalender-dag${isVandaag ? ' vandaag' : ''}"><span class="datum">${dag}</span><div class="namen"></div></div>`;
+      }
+
+      html += `</div>`;
+      document.getElementById("kalender").innerHTML = html;
+    }
+
+    function wisselMaand(delta) {
+      huidigMaand += delta;
+      if (huidigMaand < 0) { huidigMaand = 11; huidigJaar--; }
+      if (huidigMaand > 11) { huidigMaand = 0; huidigJaar++; }
+      toonKalender(huidigJaar, huidigMaand);
+    }
+
+    // Init
+    toonKalender(huidigJaar, huidigMaand);
+  </script>
 </body>
 </html>
