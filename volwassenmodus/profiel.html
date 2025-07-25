@@ -1,79 +1,4 @@
-<!DOCTYPE html>
-<html lang="nl">
-<head>
-  <meta charset="UTF-8" />
-  <title>Mijn profiel</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body { background: #f8f5e9; font-family: Arial, sans-serif; margin: 0; }
-    .statusbar { background: #7a5f35; color: #fff; padding: 10px 24px; font-size: 1.07em; }
-    nav.menu {
-      background: #7a5f35; padding: 12px 20px;
-      display: flex; flex-wrap: wrap; gap: 14px; justify-content: center;
-    }
-    nav.menu a {
-      color: #f8f5e9; text-decoration: none; font-weight: bold;
-      font-size: 16px; padding: 6px 14px; border-radius: 8px;
-      transition: background-color 0.3s;
-    }
-    nav.menu a:hover { background: #5e4724; }
-    main { max-width: 780px; margin: 34px auto 0 auto; background: #fffef9; border-radius: 18px;
-      box-shadow: 0 6px 32px #d7cbb142; padding: 32px 18px 26px 18px; }
-  </style>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
-  <script>
-    // Beveiliging: check login status
-    if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "volwassene") {
-      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
-    }
-    // Variabelen klaarzetten
-    var parochieNaam = localStorage.getItem("ingelogdeParochie");
-    var parochieId   = localStorage.getItem("ingelogdeParochieId");
-    var loginKeuze   = localStorage.getItem("loginKeuze");
-  </script>
-</head>
-<body>
-  <div class="statusbar">
-    U bent ingelogd in: <b id="parochieLabel"></b>
-  </div>
-  <nav class="menu">
-    <a href="startpagina.html">🏠 Home</a>
-    <a href="parochie.html">🛐 Mijn parochie</a>
-    <a href="psalmen/psalmen.html">📜 Psalmen</a>
-    <a href="gebeden/gebeden.html">🙏 Gebeden</a>
-    <a href="gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
-    <a href="catechese/catechese.html">📖 Catechese</a>
-    <a href="profiel.html">🧰 Mijn profiel</a>
-  </nav>
-  <main>
-    <h1>Mijn profiel</h1>
-   <form id="profielForm" style="max-width:500px;margin:32px auto 0 auto;">
-  <label>Voornaam: <input type="text" id="voornaam"></label><br>
-  <label>Achternaam: <input type="text" id="achternaam"></label><br>
-  <label>Doopnaam: <input type="text" id="doopnaam"></label><br>
-  <label>E-mail: <input type="email" id="email" readonly style="background:#f6f6f6"></label><br>
-  <label>Geboortedatum: <input type="date" id="geboortedatum"></label>
-    <label style="display:inline;font-weight:normal;font-size:0.95em;margin-left:8px;">
-      <input type="checkbox" id="toonVerjaardag"> Zichtbaar op verjaardagskalender
-    </label>
-    <br>
-  <label>Loginnaam: <input type="text" id="loginKeuze" readonly style="background:#f6f6f6"></label><br>
-  <label>Wachtwoord:
-    <span style="position:relative;">
-      <input type="password" id="wachtwoord" style="padding-right:36px;">
-      <span id="pwToggle" style="cursor:pointer;position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:1.05em;">👁️</span>
-    </span>
-  </label><br>
-  <button type="button" onclick="opslaanProfiel()" style="margin-top:18px;">💾 Wijzigingen opslaan</button>
-</form>
-<div id="melding" style="color:#8b5418;margin:15px 0 0 0;"></div>
-  </main>
-  <script>
-    // Zet parochie in de statusbar
-    document.getElementById("parochieLabel").textContent = parochieNaam || "-";
-  </script>
-  // FIREBASE INIT
+// FIREBASE INIT
 const firebaseConfig = {
   apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
   authDomain: "orthodoxeweg.firebaseapp.com",
@@ -114,6 +39,3 @@ document.getElementById("pwToggle").onclick = function() {
     w.type = "password"; this.textContent = "👁️";
   }
 };
-
-</body>
-</html>
