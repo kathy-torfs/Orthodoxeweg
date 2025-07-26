@@ -219,6 +219,32 @@
       localStorage.clear();
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     };
+ const db = firebase.firestore();
+const actieveParochie = localStorage.getItem("ingelogdeParochie");
+
+function toonPostitAlsErBerichtIs() {
+  if (!actieveParochie) return;
+
+  db.collection("parochies")
+    .doc(actieveParochie)
+    .collection("prikbord_priester")
+    .limit(1)
+    .get()
+    .then((querySnapshot) => {
+      if (!querySnapshot.empty) {
+        const postit = document.createElement("div");
+        postit.className = "postit visible";
+        postit.style.backgroundColor = "#ffdf4f";
+        postit.style.top = "45%";
+        postit.style.left = "60%";
+        document.getElementById("postitsLinks").appendChild(postit);
+      }
+    })
+    .catch((error) => console.error("Fout bij ophalen prikbord:", error));
+}
+
+document.addEventListener("DOMContentLoaded", toonPostitAlsErBerichtIs);
+
   </script>
   <!-- === SCRIPT: EINDE === -->
 </body>
