@@ -2,11 +2,11 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>Parochie Zoekertjes</title>
+  <title>Zoekertjesbeheer – Parochie</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { font-family: Arial, sans-serif; margin:0; padding:0; background: #f8f5e9; color: #5b4320;}
-    header { background: #e6d6b8; padding: 2rem 1rem 0.7rem 1rem; text-align: center; }
+    body { margin: 0; padding: 0; font-family: Arial, sans-serif; background: #f8f5e9; color: #5b4320; }
+    header { background-color: #e6d6b8; padding: 2rem 1rem 0.7rem 1rem; text-align: center; }
     h1 { margin:0; font-size:2rem; color:#5d4c2f; }
     #parochieLabel {
       background: #fcf6e2; color: #7a5f35; padding: 10px 0 8px 0; text-align: center;
@@ -14,7 +14,7 @@
       box-shadow: 0 2px 8px #cbb96d44; margin-bottom: 10px;
     }
     nav.menu {
-      background: #7a5f35; padding: 12px 20px;
+      background-color: #7a5f35; padding: 12px 20px;
       display: flex; flex-wrap: wrap; gap: 14px; justify-content: center;
     }
     nav.menu a {
@@ -28,46 +28,91 @@
       margin-left: 14px; margin-right: 14px; transition: background 0.18s;
       cursor: pointer; border: none; float: right;
     }
-    .container { max-width: 700px; margin: 32px auto 40px auto; }
-    .nieuw-zoekertje-blok {
-      background: #f5efdd; border-radius: 12px; padding:1.1rem 1.3rem 1.3rem 1.3rem;
-      margin-bottom:2.3rem; box-shadow: 0 2px 10px #e7dbad25;
-      display: flex; flex-direction: column; align-items: stretch;
+    .krantcontainer {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 36px;
+      max-width: 1200px;
+      margin: 36px auto 50px auto;
+      justify-items: center;
     }
-    .nieuw-zoekertje-blok textarea {
-      width: 100%; min-height: 64px; font-size:1.07rem; border-radius:8px;
-      border:1.2px solid #dbc592; padding:10px; resize:vertical;
-      background: #fffef9;
-      margin-bottom: 1rem;
-    }
-    .nieuw-zoekertje-blok select {
-      width: 180px; font-size: 1em; padding: 7px 10px; border-radius: 7px;
-      border: 1.2px solid #dbc592; background: #fff; margin-bottom: 1.2em;
-    }
-    .nieuw-zoekertje-blok button {
-      background:#7a5f35; color:#fff; font-weight:bold; border:none; border-radius:8px;
-      padding:10px 28px; font-size:1.05em; align-self: flex-end; cursor:pointer;
-      margin-top: 2px;
-    }
-    .nieuw-zoekertje-blok button:hover { background: #b09765; }
-    .feedback { color: #b91e1e; text-align: right; font-size: 0.99em; min-height: 22px; margin-bottom: 0;}
-    .zoekertjes-lijst { display: flex; flex-direction: column; gap: 1.6rem;}
-    .zoekertje-blok {
-      position: relative;
-      background: #fffef9;
+    .krantblok {
+      padding: 20px 18px;
+      min-height: 265px;
       border-radius: 14px;
-      box-shadow: 0 2px 10px #e7dbad25;
-      padding: 1.1rem 1.3rem 1rem 1.3rem;
+      box-shadow: 2px 4px 16px #0001;
       display: flex; flex-direction: column;
-      transition: box-shadow 0.2s;
-      border-left: 10px solid #c2eaff;
+      justify-content: flex-end;
+      align-items: stretch;
+      color: #222; font-weight: bold;
+      min-width: 260px; max-width:340px;
+      overflow: hidden;
+      background: #f6f6f6;
+      border: 2px solid #dadada;
+      position: relative;
     }
-    .zoekertekst { color: #463900; font-size:1.10em; white-space: pre-wrap; }
-    .zoekerinfo { margin-top: 0.7em; color: #6d5e3d; font-size:0.93em; }
-    .vervalt { color: #bd412d; font-size: 0.97em; margin-left: 6px;}
-    @media (max-width: 760px){
-      .container{padding:0.7rem;}
-      .zoekertje-blok{padding:0.9rem 0.6rem 0.7rem 1.1rem;}
+    .krantblok input[type="text"] {
+      width: 100%;
+      margin-bottom: 10px;
+      border: none;
+      outline: none;
+      font-size: 1.08em;
+      font-family: inherit;
+      background: #fafafa;
+      color: #313131;
+      border-bottom: 2px solid #c9c9c9;
+      padding: 6px 4px;
+    }
+    .krantblok textarea {
+      width: 100%;
+      margin-bottom: 16px;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: #222;
+      font-size: 1.05em;
+      min-height: 110px;
+      resize: vertical;
+      font-family: inherit;
+      box-sizing: border-box;
+    }
+    .krantblok textarea:focus,
+    .krantblok input:focus { background: #f0fcff; }
+    .krantblok button {
+      background: #7a5f35; color: #fff; font-weight: bold; padding: 8px 18px;
+      border: none; border-radius: 8px; cursor: pointer; font-size: 1em;
+      margin-top: 0; margin-right: 8px;
+    }
+    .krantblok button:hover { background: #b09765; }
+    .krantbuttons {
+      display: flex;
+      flex-direction: row;
+      gap: 10px;
+      margin-top: 0;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    .delete-btn {
+      background: #b6322c;
+      color: #fff;
+      font-weight: bold;
+      padding: 8px 14px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1.18em;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .delete-btn:hover { background: #ef1616; }
+    .feedback { text-align:center; color: #9a2617; font-size: 1em; margin-bottom:8px;}
+    @media (max-width: 1050px) {
+      .krantcontainer { grid-template-columns: repeat(2, 1fr);}
+    }
+    @media (max-width: 700px) {
+      .krantcontainer { grid-template-columns: 1fr; gap: 18px;}
     }
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -76,189 +121,255 @@
 <body>
   <header>
     <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
-    <h1>Zoekertjes – Mijn Parochie</h1>
+    <h1 id="welkom-tekst">Zoekertjesbeheer – Parochie</h1>
     <div id="parochieLabel"></div>
   </header>
- <nav class="menu">
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html">🏠 Home</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/gebeden.html">🙏 Gebeden</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html">🧰 Mijn profiel</a>
-  </nav>
-  <div class="container">
-    <div class="nieuw-zoekertje-blok">
-      <form id="zoekertjeForm">
-        <textarea id="zoekertjeTekst" maxlength="350" required placeholder="Voeg een zoekertje toe (max. 350 tekens)..."></textarea>
-        <select id="duurSelect">
-          <option value="1">1 dag (standaard)</option>
-          <option value="3">3 dagen</option>
-          <option value="7">7 dagen</option>
-          <option value="14">14 dagen</option>
-        </select>
-        <button type="submit">Toevoegen</button>
-      </form>
-      <div class="feedback" id="feedback"></div>
+<nav class="menu">
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html" title="Startpagina">🏠</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/gebeden.html">🙏 Gebeden</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/heiligen.html">👼 Heiligen</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/bijbeldagboek.html">📔 Bijbeldagboek</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/verjaardagskalender.html">🎂 Verjaardagskalender</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html" class="menu-avatar" title="Mijn profiel">
+    <img id="menu-avatar-img" src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png" alt="Mijn profiel">
+  </a>
+</nav>
+<div class="krantcontainer">
+  <!-- 12 krantenknipsels -->
+  <!-- Je kan eventueel per kleur aanpassen -->
+  <!-- Hier vaste ID's en inputs voor elke knipsel -->
+  <div class="krantblok" id="krantblok0">
+    <input type="text" id="krant_titel0" maxlength="50" placeholder="Titel..." />
+    <textarea id="krant_tekst0" maxlength="350" placeholder="Tekst..."></textarea>
+    <div class="krantbuttons">
+      <button onclick="opslaan(0)">Plaatsen</button>
+      <button class="delete-btn" onclick="verwijderKrant(0)">&#10060;</button>
     </div>
-    <div class="zoekertjes-lijst" id="zoekertjesLijst">
-      <!-- Zoekertjes verschijnen hier -->
-    </div>
+    <div class="feedback" id="feedback0"></div>
   </div>
-  <script>
-    // Modus en parochie controleren
-    const modus = localStorage.getItem("modus");
-    const toegelaten = modus === "priester" || modus === "volwassene";
-    if (!localStorage.getItem("ingelogdeParochie") || !toegelaten) {
-      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
-    }
-    const parochieNaam = localStorage.getItem("ingelogdeParochie");
-    document.getElementById("parochieLabel").textContent = parochieNaam
-      ? `U bent ingelogd in de parochie van ${parochieNaam}`
-      : "⚠️ Geen geldige parochie geselecteerd!";
-    document.getElementById("uitlogKnop").onclick = function() {
-      localStorage.clear();
-      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
-    };
+  <div class="krantblok" id="krantblok1">
+    <input type="text" id="krant_titel1" maxlength="50" placeholder="Titel..." />
+    <textarea id="krant_tekst1" maxlength="350" placeholder="Tekst..."></textarea>
+    <div class="krantbuttons">
+      <button onclick="opslaan(1)">Plaatsen</button>
+      <button class="delete-btn" onclick="verwijderKrant(1)">&#10060;</button>
+    </div>
+    <div class="feedback" id="feedback1"></div>
+  </div>
+  <div class="krantblok" id="krantblok2">
+    <input type="text" id="krant_titel2" maxlength="50" placeholder="Titel..." />
+    <textarea id="krant_tekst2" maxlength="350" placeholder="Tekst..."></textarea>
+    <div class="krantbuttons">
+      <button onclick="opslaan(2)">Plaatsen</button>
+      <button class="delete-btn" onclick="verwijderKrant(2)">&#10060;</button>
+    </div>
+    <div class="feedback" id="feedback2"></div>
+  </div>
+  <div class="krantblok" id="krantblok3">
+    <input type="text" id="krant_titel3" maxlength="50" placeholder="Titel..." />
+    <textarea id="krant_tekst3" maxlength="350" placeholder="Tekst..."></textarea>
+    <div class="krantbuttons">
+      <button onclick="opslaan(3)">Plaatsen</button>
+      <button class="delete-btn" onclick="verwijderKrant(3)">&#10060;</button>
+    </div>
+    <div class="feedback" id="feedback3"></div>
+  </div>
+  <div class="krantblok" id="krantblok4">
+    <input type="text" id="krant_titel4" maxlength="50" placeholder="Titel..." />
+    <textarea id="krant_tekst4" maxlength="350" placeholder="Tekst..."></textarea>
+    <div class="krantbuttons">
+      <button onclick="opslaan(4)">Plaatsen</button>
+      <button class="delete-btn" onclick="verwijderKrant(4)">&#10060;</button>
+    </div>
+    <div class="feedback" id="feedback4"></div>
+  </div>
+  <div class="krantblok" id="krantblok5">
+    <input type="text" id="krant_titel5" maxlength="50" placeholder="Titel..." />
+    <textarea id="krant_tekst5" maxlength="350" placeholder="Tekst..."></textarea>
+    <div class="krantbuttons">
+      <button onclick="opslaan(5)">Plaatsen</button>
+      <button class="delete-btn" onclick="verwijderKrant(5)">&#10060;</button>
+    </div>
+    <div class="feedback" id="feedback5"></div>
+  </div>
+  <div class="krantblok" id="krantblok6">
+    <input type="text" id="krant_titel6" maxlength="50" placeholder="Titel..." />
+    <textarea id="krant_tekst6" maxlength="350" placeholder="Tekst..."></textarea>
+    <div class="krantbuttons">
+      <button onclick="opslaan(6)">Plaatsen</button>
+      <button class="delete-btn" onclick="verwijderKrant(6)">&#10060;</button>
+    </div>
+    <div class="feedback" id="feedback6"></div>
+  </div>
+  <div class="krantblok" id="krantblok7">
+    <input type="text" id="krant_titel7" maxlength="50" placeholder="Titel..." />
+    <textarea id="krant_tekst7" maxlength="350" placeholder="Tekst..."></textarea>
+    <div class="krantbuttons">
+      <button onclick="opslaan(7)">Plaatsen</button>
+      <button class="delete-btn" onclick="verwijderKrant(7)">&#10060;</button>
+    </div>
+    <div class="feedback" id="feedback7"></div>
+  </div>
+  <div class="krantblok" id="krantblok8">
+    <input type="text" id="krant_titel8" maxlength="50" placeholder="Titel..." />
+    <textarea id="krant_tekst8" maxlength="350" placeholder="Tekst..."></textarea>
+    <div class="krantbuttons">
+      <button onclick="opslaan(8)">Plaatsen</button>
+      <button class="delete-btn" onclick="verwijderKrant(8)">&#10060;</button>
+    </div>
+    <div class="feedback" id="feedback8"></div>
+  </div>
+  <div class="krantblok" id="krantblok9">
+    <input type="text" id="krant_titel9" maxlength="50" placeholder="Titel..." />
+    <textarea id="krant_tekst9" maxlength="350" placeholder="Tekst..."></textarea>
+    <div class="krantbuttons">
+      <button onclick="opslaan(9)">Plaatsen</button>
+      <button class="delete-btn" onclick="verwijderKrant(9)">&#10060;</button>
+    </div>
+    <div class="feedback" id="feedback9"></div>
+  </div>
+  <div class="krantblok" id="krantblok10">
+    <input type="text" id="krant_titel10" maxlength="50" placeholder="Titel..." />
+    <textarea id="krant_tekst10" maxlength="350" placeholder="Tekst..."></textarea>
+    <div class="krantbuttons">
+      <button onclick="opslaan(10)">Plaatsen</button>
+      <button class="delete-btn" onclick="verwijderKrant(10)">&#10060;</button>
+    </div>
+    <div class="feedback" id="feedback10"></div>
+  </div>
+  <div class="krantblok" id="krantblok11">
+    <input type="text" id="krant_titel11" maxlength="50" placeholder="Titel..." />
+    <textarea id="krant_tekst11" maxlength="350" placeholder="Tekst..."></textarea>
+    <div class="krantbuttons">
+      <button onclick="opslaan(11)">Plaatsen</button>
+      <button class="delete-btn" onclick="verwijderKrant(11)">&#10060;</button>
+    </div>
+    <div class="feedback" id="feedback11"></div>
+  </div>
+</div>
+<script>
+  // Toegangscontrole
+  if (!localStorage.getItem("ingelogdeParochie")) {
+    window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+  }
+  const parochieNaam = localStorage.getItem("ingelogdeParochie");
+  document.getElementById("parochieLabel").textContent = parochieNaam
+    ? `U bent ingelogd in de parochie van ${parochieNaam}`
+    : "⚠️ Geen geldige parochie geselecteerd!";
+  document.getElementById("uitlogKnop").onclick = function() {
+    localStorage.clear();
+    window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+  };
 
-    // Firebase
-    const firebaseConfig = {
-      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
-      authDomain: "orthodoxeweg.firebaseapp.com",
-      projectId: "orthodoxeweg",
-      storageBucket: "orthodoxeweg.appspot.com",
-      messagingSenderId: "408582263618",
-      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+  // FIREBASE INIT
+  const firebaseConfig = {
+    apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+    authDomain: "orthodoxeweg.firebaseapp.com",
+    projectId: "orthodoxeweg",
+    storageBucket: "orthodoxeweg.appspot.com",
+    messagingSenderId: "408582263618",
+    appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
+  };
+  if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+  const db = firebase.firestore();
 
-    // Hulp: eigen userId + (optioneel) naam
-    const userId = localStorage.getItem("userId") || "onbekend";
-    const voornaam = localStorage.getItem("voornaam") || "";
-    const achternaam = localStorage.getItem("achternaam") || "";
+  // Haal correcte parochieId uit Firestore op basis van naam
+  let parochieIdPromise = db.collection("parochies")
+    .where("naam", "==", parochieNaam)
+    .limit(1)
+    .get()
+    .then(snap => snap.empty ? null : snap.docs[0].id);
 
-    // Parochie-ID ophalen uit naam
-    let parochieIdPromise = db.collection("parochies")
-      .where("naam", "==", parochieNaam)
-      .limit(1)
-      .get()
-      .then(snap => snap.empty ? null : snap.docs[0].id);
-
-    // Zoekertjes laden
-    async function laadZoekertjes() {
-      const parochieId = await parochieIdPromise;
-      const lijst = document.getElementById("zoekertjesLijst");
-      lijst.innerHTML = "<em>Zoekertjes worden geladen...</em>";
-      if (!parochieId) {
-        lijst.innerHTML = "<em>Parochie niet gevonden.</em>";
-        return;
-      }
-      const nu = new Date();
-      // LET OP: we tonen ze in ID-volgorde zodat krant0 bovenaan staat, dan krant1, enz.
-      const promises = [];
-      for (let i = 0; i < 12; i++) {
-        promises.push(
-          db.collection("parochies").doc(parochieId).collection("zoekertjes")
-            .doc("krant" + i).get()
-        );
-      }
-      const docs = await Promise.all(promises);
-      lijst.innerHTML = "";
-      let count = 0;
-      docs.forEach(docSnap => {
-        if (docSnap.exists) {
-          const d = docSnap.data();
-          if (!d.vervalDatum || (d.vervalDatum && d.vervalDatum.toDate() > nu)) {
-            count++;
-            let naamTekst = d.naam ? d.naam : "";
-            let tijd = "";
-            if (d.datum && d.datum.toDate) {
-              const dt = d.datum.toDate();
-              tijd = dt.toLocaleDateString("nl-BE", {day: "2-digit", month: "short", year:"numeric"});
-            }
-            let vervaltTekst = "";
-            if (d.vervalDatum && d.vervalDatum.toDate) {
-              const ver = d.vervalDatum.toDate();
-              const nuu = new Date();
-              const restMS = ver.getTime() - nuu.getTime();
-              if (restMS > 0) {
-                const uren = Math.floor(restMS / (1000*60*60));
-                if (uren < 36) {
-                  vervaltTekst = `<span class="vervalt">Vervalt over: ${Math.ceil(restMS/(1000*60*60))}u</span>`;
-                } else {
-                  const dagen = Math.ceil(restMS / (1000*60*60*24));
-                  vervaltTekst = `<span class="vervalt">Vervalt over: ${dagen} dagen</span>`;
-                }
-              }
-            }
-            lijst.innerHTML += `
-              <div class="zoekertje-blok">
-                <div class="zoekertekst">${d.tekst || ""}</div>
-                <div class="zoekerinfo">
-                  ${naamTekst ? `<span><strong>Door:</strong> ${naamTekst}</span>` : ""}
-                  ${tijd ? ` &middot; <span>${tijd}</span>` : ""}
-                  ${vervaltTekst}
-                </div>
-              </div>
-            `;
-          }
-        }
-      });
-      if (count === 0) {
-        lijst.innerHTML = "<em>Er zijn momenteel geen actieve zoekertjes.</em>";
-      }
-    }
-
-    // Zoekertje toevoegen
-    document.getElementById("zoekertjeForm").onsubmit = async function(e) {
-      e.preventDefault();
-      const tekst = document.getElementById("zoekertjeTekst").value.trim();
-      const duur = parseInt(document.getElementById("duurSelect").value, 10) || 1;
-      const feedback = document.getElementById("feedback");
-      feedback.textContent = "";
-      if (tekst.length === 0) {
-        feedback.textContent = "Het zoekertje is leeg.";
-        return;
-      }
-      const parochieId = await parochieIdPromise;
+  // Laad alle krantenknipsels bij openen
+  async function laadKnipsels() {
+    const parochieId = await parochieIdPromise;
+    for (let i = 0; i < 12; i++) {
+      const titelInput = document.getElementById("krant_titel" + i);
+      const tekstInput = document.getElementById("krant_tekst" + i);
+      const feedback = document.getElementById("feedback" + i);
       if (!parochieId) {
         feedback.textContent = "Parochie niet gevonden.";
-        return;
+        tekstInput.value = ""; titelInput.value = "";
+        continue;
       }
-      // Zoek eerste vrije plek (krant0...krant11)
-      let eersteVrij = null;
-      for (let i = 0; i < 12; i++) {
-        // eslint-disable-next-line no-await-in-loop
-        const docSnap = await db.collection("parochies").doc(parochieId).collection("zoekertjes").doc("krant" + i).get();
-        if (!docSnap.exists || (docSnap.data().vervalDatum && docSnap.data().vervalDatum.toDate() < new Date())) {
-          eersteVrij = i;
-          break;
-        }
-      }
-      if (eersteVrij === null) {
-        feedback.textContent = "Er zijn maximum 12 zoekertjes tegelijk toegestaan.";
-        return;
-      }
-      const nu = new Date();
-      const vervalDatum = new Date(nu.getTime() + duur*24*60*60*1000);
-      await db.collection("parochies").doc(parochieId).collection("zoekertjes")
-        .doc("krant" + eersteVrij)
-        .set({
-          tekst: tekst,
-          userId: userId,
-          naam: voornaam ? `${voornaam} ${achternaam}` : "",
-          datum: firebase.firestore.Timestamp.fromDate(nu),
-          vervalDatum: firebase.firestore.Timestamp.fromDate(vervalDatum)
+      db.collection("parochies").doc(parochieId).collection("zoekertjes")
+        .doc("krant" + i)
+        .get()
+        .then(doc => {
+          if (doc.exists) {
+            const d = doc.data();
+            titelInput.value = d.titel || "";
+            tekstInput.value = d.tekst || "";
+            feedback.textContent = "";
+          } else {
+            titelInput.value = "";
+            tekstInput.value = "";
+            feedback.textContent = "";
+          }
         });
-      feedback.textContent = "Toegevoegd!";
-      document.getElementById("zoekertjeTekst").value = "";
-      laadZoekertjes();
-      setTimeout(() => { feedback.textContent = ""; }, 1600);
-    };
+    }
+  }
 
-    window.onload = laadZoekertjes;
-  </script>
+  // Opslaan van een krantenknipsel
+  async function opslaan(index) {
+    const titel = document.getElementById("krant_titel" + index).value.trim();
+    const tekst = document.getElementById("krant_tekst" + index).value.trim();
+    const feedback = document.getElementById("feedback" + index);
+    feedback.textContent = "";
+    const parochieId = await parochieIdPromise;
+    if (!parochieId) {
+      feedback.textContent = "Parochie niet gevonden!";
+      return;
+    }
+    if (!titel && !tekst) {
+      feedback.textContent = "Titel en tekst zijn leeg.";
+      return;
+    }
+    db.collection("parochies").doc(parochieId).collection("zoekertjes")
+      .doc("krant" + index)
+      .set({
+        titel: titel,
+        tekst: tekst,
+        tijd: firebase.firestore.Timestamp.now()
+      }).then(() => {
+        feedback.textContent = "Opgeslagen!";
+        setTimeout(() => { feedback.textContent = ""; }, 1800);
+      }).catch((error) => {
+        feedback.textContent = "Fout bij opslaan: " + error;
+      });
+  }
+
+  // Verwijder krantenknipsel
+  async function verwijderKrant(index) {
+    const feedback = document.getElementById("feedback" + index);
+    const titelInput = document.getElementById("krant_titel" + index);
+    const tekstInput = document.getElementById("krant_tekst" + index);
+    const parochieId = await parochieIdPromise;
+    if (!parochieId) {
+      feedback.textContent = "Parochie niet gevonden!";
+      return;
+    }
+    db.collection("parochies").doc(parochieId).collection("zoekertjes")
+      .doc("krant" + index)
+      .delete()
+      .then(() => {
+        titelInput.value = "";
+        tekstInput.value = "";
+        feedback.textContent = "Verwijderd!";
+        setTimeout(() => { feedback.textContent = ""; }, 1200);
+      })
+      .catch((error) => {
+        feedback.textContent = "Fout bij verwijderen: " + error;
+      });
+  }
+
+  window.onload = laadKnipsels;
+  window.opslaan = opslaan;
+  window.verwijderKrant = verwijderKrant;
+</script>
 </body>
 </html>
