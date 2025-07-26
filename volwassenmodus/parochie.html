@@ -1,3 +1,4 @@
+<!-- === MIJN PAROCHIE – OVERZICHT: BEGIN === -->
 <!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -5,6 +6,7 @@
   <title>Mijn Parochie – Overzicht</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
+    /* === STIJL: BEGIN === */
     body {
       margin: 0;
       padding: 0;
@@ -39,6 +41,11 @@
       transition: background-color 0.3s;
     }
     nav.menu a:hover { background-color: #5e4724; }
+    .menu-avatar img {
+      height: 26px;
+      border-radius: 50%;
+      vertical-align: middle;
+    }
     .uitlog-link {
       color: #fff;
       background: #9a2617;
@@ -140,24 +147,37 @@
       border: 2px solid #d2ba86;
       box-shadow: 0 4px 12px #cbb77750;
     }
+    /* === STIJL: EINDE === */
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
+  <!-- === BEGROETING EN UITLOGKNOP: BEGIN === -->
   <div class="topbar">
     <div id="welkom-tekst"></div>
     <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
   </div>
-  <nav class="menu"> 
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html">🏠 Home</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
+  <!-- === BEGROETING EN UITLOGKNOP: EINDE === -->
+
+  <!-- === MENUBALK: BEGIN === -->
+  <nav class="menu">
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html" title="Home">🏠</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🚐 Mijn parochie</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/gebeden.html">🙏 Gebeden</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html">🧰 Mijn profiel</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/heiligen.html">👼 Heiligen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/bijbeldagboek.html">📔 Bijbeldagboek</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/verjaardagskalender.html">🎂 Verjaardagskalender</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html" class="menu-avatar" title="Mijn profiel">
+      <img id="menu-avatar-img" src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png" alt="Mijn profiel">
+    </a>
   </nav>
+  <!-- === MENUBALK: EINDE === -->
+
+  <!-- === PAROCHIE-INHOUD: BEGIN === -->
   <div class="borden-raster">
     <div class="bovenste-rij">
       <a href="nieuws.html" class="bord-blok">
@@ -176,21 +196,31 @@
   <a class="bijbel-link" href="bijbeldagboek.html">
     <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/boek.png" alt="Bijbeldagboek">
   </a>
+  <!-- === PAROCHIE-INHOUD: EINDE === -->
+
+  <!-- === SCRIPT: BEGIN === -->
   <script>
     const welkomTekst = document.getElementById("welkom-tekst");
+    const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
     const uur = new Date().getHours();
-    let moment = "goeiedag";
-    if (uur >= 5 && uur <= 10) moment = "goeiemorgend";
-    else if (uur >= 11 && uur <= 13) moment = "goeiemiddag";
-    else if (uur >= 17 && uur <= 22) moment = "goeienavond";
-    else if (uur > 22 || uur < 5) moment = "goedenacht";
+    let moment = "Goeiedag";
+    if (uur >= 5 && uur <= 10) moment = "Goeiemorgend";
+    else if (uur >= 11 && uur <= 13) moment = "Goeiemiddag";
+    else if (uur >= 17 && uur <= 22) moment = "Goeienavond";
+    else if (uur > 22 || uur < 5) moment = "Goedenacht";
     const parochie = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
-    welkomTekst.textContent = `${moment}, u bent ingelogd in: ${parochie}`;
+    welkomTekst.textContent = `${moment}, ${loginNaam} — u bent ingelogd in de parochie van ${parochie}`;
+
+    const avatarImg = document.getElementById("menu-avatar-img");
+    const opgeslagenAvatar = localStorage.getItem("avatarURL");
+    if (opgeslagenAvatar) avatarImg.src = opgeslagenAvatar;
 
     document.getElementById("uitlogKnop").onclick = () => {
       localStorage.clear();
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     };
   </script>
+  <!-- === SCRIPT: EINDE === -->
 </body>
 </html>
+<!-- === MIJN PAROCHIE – OVERZICHT: EINDE === -->
