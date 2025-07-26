@@ -83,6 +83,7 @@
       position: relative;
       display: block;
       text-decoration: none;
+      overflow: hidden;
     }
     .bord-blok:first-child {
       background: #dceeff;
@@ -119,55 +120,24 @@
       width: 100%; height: 100%;
       pointer-events: none;
     }
-    /* === POSTIT PREVIEW: BEGIN === */
-    .postit-preview-grid {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      pointer-events: none;
-    }
-    .postit-mini {
-      width: 50px; height: 50px;
-      border-radius: 7px;
-      box-shadow: 1px 3px 8px #0002;
-      position: absolute;
-      display: flex;
-      align-items: flex-start;
-      justify-content: flex-start;
-      padding: 6px 4px 2px 7px;
-      border: 1.5px solid #dec26a8a;
-      color: #4d3206;
-      word-break: break-word;
-      overflow: hidden;
-    }
-    .kleur-geel    { background: #fff99c; }
-    .kleur-blauw   { background: #bbecfc; }
-    .kleur-roze    { background: #ffd1ed; }
-    .kleur-groen   { background: #d8ffc7; }
-    .kleur-oranje  { background: #ffe9be; }
-    .kleur-paars   { background: #eddcff; }
-    .kleur-beige   { background: #fff4e0; }
-    .kleur-rood    { background: #ffd5d0; }
-    .kleur-grijs   { background: #ececec; }
-    /* === POSTIT PREVIEW: EINDE === */
     .postit {
-      width: 50px; height: 50px;
+      width: 60px;
+      height: 60px;
       border-radius: 6px;
       box-shadow: 2px 3px 8px #0002;
       position: absolute;
-      background-color: #ffdf4f;
-      display: none;
-    }
-    .postit.visible {
-      display: block;
-    }
-    .kaars-svg {
-      width: 20px; height: 40px;
-      position: absolute;
-      opacity: 0;
-      transition: opacity 0.2s;
-    }
-    .kaars-svg.visible {
-      opacity: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #222;
+      font-size: 0.96em;
+      font-weight: bold;
+      text-align: center;
+      padding: 7px;
+      overflow: hidden;
+      word-break: break-word;
+      user-select: none;
+      opacity: 0.96;
     }
     .bijbel-link {
       display: block;
@@ -215,8 +185,7 @@
     <div class="bovenste-rij">
       <a href="nieuws.html" class="bord-blok">
         <div class="bord-titel">Parochienieuws</div>
-        <!-- Postit preview grid: hier verschijnen de mini-postits -->
-        <div class="postit-preview-grid" id="postitsPreview"></div>
+        <div class="postit-container" id="postitsLinks"></div>
       </a>
       <a href="zoekertjes.html" class="bord-blok">
         <div class="bord-titel">Zoekertjes</div>
@@ -270,65 +239,59 @@
     }
     const db = firebase.firestore();
 
-    // Mini postits preview (exacte kleur en positie zoals groot bord)
-    const previewKleuren = [
-      "kleur-geel",   // 0
-      "kleur-blauw",  // 1
-      "kleur-roze",   // 2
-      "kleur-groen",  // 3
-      "kleur-oranje", // 4
-      "kleur-paars",  // 5
-      "kleur-beige",  // 6
-      "kleur-rood",   // 7
-      "kleur-grijs"   // 8
-    ];
-    // Top/left px voor elk vakje, afgemeten van grote bord-screenshot
-    const previewPosities = [
-      [16,  23],   // 0 - geel
-      [16, 127],   // 1 - blauw
-      [16, 231],   // 2 - roze
-      [105, 23],   // 3 - groen
-      [105,127],   // 4 - oranje
-      [105,231],   // 5 - paars
-      [194, 23],   // 6 - beige
-      [194,127],   // 7 - rood
-      [194,231]    // 8 - grijs
+    // Parochie ID gebruiken (uit storage)
+    const actieveParochie = localStorage.getItem("ingelogdeParochieId");
+
+    // Mapping voor postits: index → kleur & positie
+    const postitMapping = [
+      { kleur: "#fff86b", top: "11%", left: "12%" }, // postit0
+      { kleur: "#e39aff", top: "10%", left: "43%" }, // postit1
+      { kleur: "#a6e3ff", top: "10%", left: "74%" }, // postit2
+      { kleur: "#ffdf4f", top: "40%", left: "12%" }, // postit3
+      { kleur: "#c1ff8e", top: "39%", left: "43%" }, // postit4
+      { kleur: "#ffbbbb", top: "39%", left: "74%" }, // postit5
+      { kleur: "#b3f8e0", top: "69%", left: "12%" }, // postit6
+      { kleur: "#bba5ff", top: "68%", left: "43%" }, // postit7
+      { kleur: "#ffa49a", top: "68%", left: "74%" }  // postit8
     ];
 
-    function toonPrikbordPreview() {
-      const preview = document.getElementById("postitsPreview");
-      preview.innerHTML = "";
-      const parochieId = localStorage.getItem("ingelogdeParochieId");
-      if (!parochieId) return;
+    // Laad postits en plaats visueel op het bord
+    function laadPostitsPrikbord() {
+      if (!actieveParochie) return;
+      const container = document.getElementById("postitsLinks");
+      container.innerHTML = ""; // Leegmaken eerst
 
-      db.collection("parochies")
-        .doc(parochieId)
-        .collection("prikbord_priester")
-        .get()
-        .then(snapshot => {
-          // Alle nummers ophalen die een postit hebben
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            // Controle: alleen tonen als 'nummer' (0-8) en tekst ingevuld is
-            if (
-              data && typeof data.nummer === "number" &&
-              data.nummer >= 0 && data.nummer < 9 &&
-              data.tekst && data.tekst.trim()
-            ) {
-              const kleur = previewKleuren[data.nummer];
-              const [top, left] = previewPosities[data.nummer];
-              const div = document.createElement("div");
-              div.className = `postit-mini ${kleur}`;
-              div.style.top = top + "px";
-              div.style.left = left + "px";
-              preview.appendChild(div);
-            }
-          });
-        })
-        .catch((error) => console.error("Fout bij ophalen prikbord:", error));
+      // Voor alle 9 postits
+      let promises = [];
+      for (let i = 0; i < 9; i++) {
+        let ref = db.collection("parochies")
+          .doc(actieveParochie)
+          .collection("prikbord_priester")
+          .doc("postit" + i);
+
+        // Async ophalen, alles verzamelen als promises
+        promises.push(ref.get().then(doc => {
+          if (doc.exists) {
+            const tekst = doc.data().tekst || "";
+            // Neem de eerste 5 woorden
+            let preview = tekst.split(/\s+/).slice(0, 5).join(" ");
+            if (tekst.split(/\s+/).length > 5) preview += "…";
+            // Maak postit aan
+            const postit = document.createElement("div");
+            postit.className = "postit";
+            postit.style.backgroundColor = postitMapping[i].kleur;
+            postit.style.top = postitMapping[i].top;
+            postit.style.left = postitMapping[i].left;
+            postit.textContent = preview;
+            container.appendChild(postit);
+          }
+        }));
+      }
+      // Wachten tot alles klaar is (optioneel voor later)
+      Promise.all(promises).catch(console.error);
     }
-    document.addEventListener("DOMContentLoaded", toonPrikbordPreview);
 
+    document.addEventListener("DOMContentLoaded", laadPostitsPrikbord);
   </script>
   <!-- === SCRIPT: EINDE === -->
 </body>
