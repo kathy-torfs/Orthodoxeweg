@@ -126,6 +126,8 @@
       position: absolute;
       background-color: #ffdf4f;
       display: none;
+      top: 45%;
+      left: 60%;
     }
     .postit.visible {
       display: block;
@@ -152,12 +154,11 @@
     }
     /* === STIJL: EINDE === */
   </style>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
-<!-- === BEGROETING EN UITLOGKNOP: BEGIN === -->
+  <!-- === BEGROETING EN UITLOGKNOP: BEGIN === -->
   <div class="topbar">
     <div id="welkom-tekst"></div>
     <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
@@ -204,6 +205,7 @@
 
   <!-- === SCRIPT: BEGIN === -->
   <script>
+    // Welkomsttekst
     const welkomTekst = document.getElementById("welkom-tekst");
     const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
     const uur = new Date().getHours();
@@ -213,42 +215,54 @@
     else if (uur >= 17 && uur <= 22) moment = "Goeienavond";
     else if (uur > 22 || uur < 5) moment = "Goedenacht";
     const parochie = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
-    welkomTekst.textContent = ${moment}, ${loginNaam} — u bent ingelogd in de ${parochie};
+    welkomTekst.textContent = `${moment}, ${loginNaam} — u bent ingelogd in de ${parochie}`;
 
+    // Avatar
     const avatarImg = document.getElementById("menu-avatar-img");
     const opgeslagenAvatar = localStorage.getItem("avatarURL");
     if (opgeslagenAvatar) avatarImg.src = opgeslagenAvatar;
 
+    // Uitloggen
     document.getElementById("uitlogKnop").onclick = () => {
       localStorage.clear();
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     };
- const db = firebase.firestore();
-const actieveParochie = localStorage.getItem("ingelogdeParochie");
 
-function toonPostitAlsErBerichtIs() {
-  if (!actieveParochie) return;
+    // Firebase init
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
+    };
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const db = firebase.firestore();
+    const actieveParochie = localStorage.getItem("ingelogdeParochie");
 
-  db.collection("parochies")
-    .doc(actieveParochie)
-    .collection("prikbord_priester")
-    .limit(1)
-    .get()
-    .then((querySnapshot) => {
-      if (!querySnapshot.empty) {
-        const postit = document.createElement("div");
-        postit.className = "postit visible";
-        postit.style.backgroundColor = "#ffdf4f";
-        postit.style.top = "45%";
-        postit.style.left = "60%";
-        document.getElementById("postitsLinks").appendChild(postit);
-      }
-    })
-    .catch((error) => console.error("Fout bij ophalen prikbord:", error));
-}
-
-document.addEventListener("DOMContentLoaded", toonPostitAlsErBerichtIs);
-
+    // Toon postit als er berichten zijn op prikbord_priester
+    function toonPostitAlsErBerichtIs() {
+      if (!actieveParochie) return;
+      db.collection("parochies")
+        .doc(actieveParochie)
+        .collection("prikbord_priester")
+        .limit(1)
+        .get()
+        .then((querySnapshot) => {
+          if (!querySnapshot.empty) {
+            // Kijk of er al geen postit bestaat
+            let container = document.getElementById("postitsLinks");
+            if (!container.querySelector(".postit")) {
+              const postit = document.createElement("div");
+              postit.className = "postit visible";
+              container.appendChild(postit);
+            }
+          }
+        })
+        .catch((error) => console.error("Fout bij ophalen prikbord:", error));
+    }
+    document.addEventListener("DOMContentLoaded", toonPostitAlsErBerichtIs);
   </script>
   <!-- === SCRIPT: EINDE === -->
 </body>
