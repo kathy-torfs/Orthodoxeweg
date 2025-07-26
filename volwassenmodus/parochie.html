@@ -123,10 +123,13 @@
       width: 50px; height: 50px;
       border-radius: 6px;
       box-shadow: 2px 3px 8px #0002;
-      display: none;
       position: absolute;
+      background-color: #ffdf4f;
+      display: none;
     }
-    .postit.visible { display: block; }
+    .postit.visible {
+      display: block;
+    }
     .kaars-svg {
       width: 20px; height: 40px;
       position: absolute;
@@ -200,6 +203,19 @@
 
   <!-- === SCRIPT: BEGIN === -->
   <script>
+    // === FIREBASE INIT ===
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
+    };
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+
     const welkomTekst = document.getElementById("welkom-tekst");
     const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
     const uur = new Date().getHours();
@@ -219,32 +235,31 @@
       localStorage.clear();
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     };
- const db = firebase.firestore();
-const actieveParochie = localStorage.getItem("ingelogdeParochie");
 
-function toonPostitAlsErBerichtIs() {
-  if (!actieveParochie) return;
+    const db = firebase.firestore();
+    const actieveParochie = localStorage.getItem("ingelogdeParochie");
 
-  db.collection("parochies")
-    .doc(actieveParochie)
-    .collection("prikbord_priester")
-    .limit(1)
-    .get()
-    .then((querySnapshot) => {
-      if (!querySnapshot.empty) {
-        const postit = document.createElement("div");
-        postit.className = "postit visible";
-        postit.style.backgroundColor = "#ffdf4f";
-        postit.style.top = "45%";
-        postit.style.left = "60%";
-        document.getElementById("postitsLinks").appendChild(postit);
-      }
-    })
-    .catch((error) => console.error("Fout bij ophalen prikbord:", error));
-}
+    function toonPostitAlsErBerichtIs() {
+      if (!actieveParochie) return;
 
-document.addEventListener("DOMContentLoaded", toonPostitAlsErBerichtIs);
+      db.collection("parochies")
+        .doc(actieveParochie)
+        .collection("prikbord_priester")
+        .limit(1)
+        .get()
+        .then((querySnapshot) => {
+          if (!querySnapshot.empty) {
+            const postit = document.createElement("div");
+            postit.className = "postit visible";
+            postit.style.top = "45%";
+            postit.style.left = "60%";
+            document.getElementById("postitsLinks").appendChild(postit);
+          }
+        })
+        .catch((error) => console.error("Fout bij ophalen prikbord:", error));
+    }
 
+    document.addEventListener("DOMContentLoaded", toonPostitAlsErBerichtIs);
   </script>
   <!-- === SCRIPT: EINDE === -->
 </body>
