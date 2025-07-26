@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
@@ -156,53 +156,59 @@
         return;
       }
       const nu = new Date();
-      db.collection("parochies").doc(parochieId).collection("zoekertjes")
-        .orderBy("datum", "desc")
-        .get()
-        .then(snapshot => {
-          let count = 0;
-          lijst.innerHTML = "";
-          snapshot.forEach(doc => {
-            const d = doc.data();
-            if (!d.vervalDatum || (d.vervalDatum && d.vervalDatum.toDate() > nu)) {
-              count++;
-              let naamTekst = d.naam ? d.naam : "";
-              let tijd = "";
-              if (d.datum && d.datum.toDate) {
-                const dt = d.datum.toDate();
-                tijd = dt.toLocaleDateString("nl-BE", {day: "2-digit", month: "short", year:"numeric"});
-              }
-              let vervaltTekst = "";
-              if (d.vervalDatum && d.vervalDatum.toDate) {
-                const ver = d.vervalDatum.toDate();
-                const nuu = new Date();
-                const restMS = ver.getTime() - nuu.getTime();
-                if (restMS > 0) {
-                  const uren = Math.floor(restMS / (1000*60*60));
-                  if (uren < 36) {
-                    vervaltTekst = `<span class="vervalt">Vervalt over: ${Math.ceil(restMS/(1000*60*60))}u</span>`;
-                  } else {
-                    const dagen = Math.ceil(restMS / (1000*60*60*24));
-                    vervaltTekst = `<span class="vervalt">Vervalt over: ${dagen} dagen</span>`;
-                  }
+      // LET OP: we tonen ze in ID-volgorde zodat krant0 bovenaan staat, dan krant1, enz.
+      const promises = [];
+      for (let i = 0; i < 12; i++) {
+        promises.push(
+          db.collection("parochies").doc(parochieId).collection("zoekertjes")
+            .doc("krant" + i).get()
+        );
+      }
+      const docs = await Promise.all(promises);
+      lijst.innerHTML = "";
+      let count = 0;
+      docs.forEach(docSnap => {
+        if (docSnap.exists) {
+          const d = docSnap.data();
+          if (!d.vervalDatum || (d.vervalDatum && d.vervalDatum.toDate() > nu)) {
+            count++;
+            let naamTekst = d.naam ? d.naam : "";
+            let tijd = "";
+            if (d.datum && d.datum.toDate) {
+              const dt = d.datum.toDate();
+              tijd = dt.toLocaleDateString("nl-BE", {day: "2-digit", month: "short", year:"numeric"});
+            }
+            let vervaltTekst = "";
+            if (d.vervalDatum && d.vervalDatum.toDate) {
+              const ver = d.vervalDatum.toDate();
+              const nuu = new Date();
+              const restMS = ver.getTime() - nuu.getTime();
+              if (restMS > 0) {
+                const uren = Math.floor(restMS / (1000*60*60));
+                if (uren < 36) {
+                  vervaltTekst = `<span class="vervalt">Vervalt over: ${Math.ceil(restMS/(1000*60*60))}u</span>`;
+                } else {
+                  const dagen = Math.ceil(restMS / (1000*60*60*24));
+                  vervaltTekst = `<span class="vervalt">Vervalt over: ${dagen} dagen</span>`;
                 }
               }
-              lijst.innerHTML += `
-                <div class="zoekertje-blok">
-                  <div class="zoekertekst">${d.tekst || ""}</div>
-                  <div class="zoekerinfo">
-                    ${naamTekst ? `<span><strong>Door:</strong> ${naamTekst}</span>` : ""}
-                    ${tijd ? ` &middot; <span>${tijd}</span>` : ""}
-                    ${vervaltTekst}
-                  </div>
-                </div>
-              `;
             }
-          });
-          if (count === 0) {
-            lijst.innerHTML = "<em>Er zijn momenteel geen actieve zoekertjes.</em>";
+            lijst.innerHTML += `
+              <div class="zoekertje-blok">
+                <div class="zoekertekst">${d.tekst || ""}</div>
+                <div class="zoekerinfo">
+                  ${naamTekst ? `<span><strong>Door:</strong> ${naamTekst}</span>` : ""}
+                  ${tijd ? ` &middot; <span>${tijd}</span>` : ""}
+                  ${vervaltTekst}
+                </div>
+              </div>
+            `;
           }
-        });
+        }
+      });
+      if (count === 0) {
+        lijst.innerHTML = "<em>Er zijn momenteel geen actieve zoekertjes.</em>";
+      }
     }
 
     // Zoekertje toevoegen
@@ -221,23 +227,35 @@
         feedback.textContent = "Parochie niet gevonden.";
         return;
       }
+      // Zoek eerste vrije plek (krant0...krant11)
+      let eersteVrij = null;
+      for (let i = 0; i < 12; i++) {
+        // eslint-disable-next-line no-await-in-loop
+        const docSnap = await db.collection("parochies").doc(parochieId).collection("zoekertjes").doc("krant" + i).get();
+        if (!docSnap.exists || (docSnap.data().vervalDatum && docSnap.data().vervalDatum.toDate() < new Date())) {
+          eersteVrij = i;
+          break;
+        }
+      }
+      if (eersteVrij === null) {
+        feedback.textContent = "Er zijn maximum 12 zoekertjes tegelijk toegestaan.";
+        return;
+      }
       const nu = new Date();
       const vervalDatum = new Date(nu.getTime() + duur*24*60*60*1000);
-      db.collection("parochies").doc(parochieId).collection("zoekertjes")
-        .add({
+      await db.collection("parochies").doc(parochieId).collection("zoekertjes")
+        .doc("krant" + eersteVrij)
+        .set({
           tekst: tekst,
           userId: userId,
           naam: voornaam ? `${voornaam} ${achternaam}` : "",
           datum: firebase.firestore.Timestamp.fromDate(nu),
           vervalDatum: firebase.firestore.Timestamp.fromDate(vervalDatum)
-        }).then(() => {
-          feedback.textContent = "Toegevoegd!";
-          document.getElementById("zoekertjeTekst").value = "";
-          laadZoekertjes();
-          setTimeout(() => { feedback.textContent = ""; }, 1600);
-        }).catch((error) => {
-          feedback.textContent = "Fout: niet toegevoegd. " + error;
         });
+      feedback.textContent = "Toegevoegd!";
+      document.getElementById("zoekertjeTekst").value = "";
+      laadZoekertjes();
+      setTimeout(() => { feedback.textContent = ""; }, 1600);
     };
 
     window.onload = laadZoekertjes;
