@@ -141,7 +141,7 @@
 
   <!-- ==== KRANTEN KNIPSELS RASTER ==== -->
   <div class="krantenraster" id="krantenraster">
-    <!-- Hier komen straks de 12 knipsels, nu nog leeg -->
+    <!-- Krant 0 wordt hieronder getekend via JS -->
   </div>
 
   <script>
@@ -165,6 +165,188 @@
       localStorage.clear();
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     };
+
+    // Krant-stijl blok CSS
+    const krantenStyle = `
+      .krantblok {
+        background: #fcfbf9;
+        border-radius: 7px;
+        box-shadow: 0 2px 14px #cec8b04c, 0 0.7px 0 #a59d8d;
+        border: 1.8px solid #beb7a8;
+        display: flex; flex-direction: column;
+        align-items: stretch;
+        min-width: 240px;
+        min-height: 190px;
+        max-width: 310px;
+        padding: 18px 16px 18px 16px;
+        justify-content: flex-end;
+        position: relative;
+        overflow: hidden;
+        font-family: Georgia, 'Times New Roman', serif;
+        font-size: 1.07em;
+      }
+      .krantblok input[type="text"] {
+        width: 100%;
+        margin-bottom: 8px;
+        padding: 6px 8px;
+        font-size: 1em;
+        border-radius: 5px;
+        border: 1px solid #d6d2ca;
+        background: #f5f4f3;
+        color: #392e21;
+        font-weight: bold;
+        outline: none;
+        box-sizing: border-box;
+        font-family: inherit;
+      }
+      .krantblok textarea {
+        width: 100%;
+        margin-bottom: 10px;
+        padding: 7px 8px;
+        border-radius: 5px;
+        border: 1px solid #d6d2ca;
+        background: #f7f6f4;
+        color: #392e21;
+        font-size: 1em;
+        min-height: 52px;
+        resize: vertical;
+        box-sizing: border-box;
+        font-family: inherit;
+      }
+      .krantblok .postit-buttons {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 4px;
+      }
+      .krantblok button {
+        background: #7a5f35; color: #fff; font-weight: bold; padding: 7px 18px;
+        border: none; border-radius: 7px; cursor: pointer; font-size: 1em;
+        margin-right: 6px; margin-top: 0;
+        transition: background 0.18s;
+        font-family: inherit;
+        letter-spacing: 0.3px;
+      }
+      .krantblok button:hover { background: #b09765; }
+      .feedback { color:#943838; font-size: 0.99em; text-align:left; min-height: 18px;}
+      .vervalt-datum {
+        font-size: 0.96em;
+        color: #70653d;
+        margin-bottom: 5px;
+        display: block;
+        font-style: italic;
+      }
+      .zoeker-titel {
+        font-size: 1.13em; font-weight: bold;
+        color: #31291d; margin-bottom: 7px;
+        letter-spacing: 0.3px;
+        font-family: inherit;
+        text-shadow: 0 1.5px 0 #e4dfd7;
+      }
+      .zoeker-tekst {
+        font-size: 1.04em; color: #3b2c1a; margin-bottom: 10px;
+        font-family: inherit;
+      }
+    `;
+    // Voeg dynamisch stijl toe
+    const style = document.createElement('style');
+    style.innerHTML = krantenStyle;
+    document.head.appendChild(style);
+
+    // --- FIREBASE SETUP ---
+    const parochieNaam = localStorage.getItem("ingelogdeParochie");
+    let parochieIdPromise = db.collection("parochies")
+      .where("naam", "==", parochieNaam)
+      .limit(1)
+      .get()
+      .then(snap => snap.empty ? null : snap.docs[0].id);
+
+    // Toon één krantenknipsel, met input of als vast bericht
+    async function toonKrantBlok(index) {
+      const parochieId = await parochieIdPromise;
+      const nu = new Date();
+      let doc = parochieId
+        ? await db.collection("parochies").doc(parochieId).collection("zoekertjes").doc("krant"+index).get()
+        : null;
+      let data = doc && doc.exists ? doc.data() : {};
+      let editable = true;
+      let verval = "";
+      if (data.vervalDatum && data.vervalDatum.toDate) {
+        let ver = data.vervalDatum.toDate();
+        if (ver > nu) {
+          verval = ver.toLocaleDateString("nl-BE", {day:"2-digit", month:"short", year:"numeric"});
+          editable = false;
+        }
+      }
+      let html = "";
+      if (data && data.titel && data.tekst && !editable) {
+        html = `
+          <div class="krantblok">
+            <div class="zoeker-titel">${data.titel}</div>
+            <div class="zoeker-tekst">${data.tekst}</div>
+            <span class="vervalt-datum">Vervalt: ${verval}</span>
+          </div>
+        `;
+      } else {
+        let titel = data && data.titel ? data.titel : "";
+        let tekst = data && data.tekst ? data.tekst : "";
+        html = `
+          <div class="krantblok">
+            <input type="text" id="titel${index}" maxlength="45" placeholder="Titel..." value="${titel.replace(/"/g,"&quot;")}" />
+            <textarea id="tekst${index}" maxlength="300" placeholder="Tekst...">${tekst}</textarea>
+            <div class="postit-buttons">
+              <select id="duur${index}" style="margin-right:10px;">
+                <option value="1">1 dag</option>
+                <option value="3">3 dagen</option>
+                <option value="7">7 dagen</option>
+                <option value="14">14 dagen</option>
+              </select>
+              <button onclick="opslaanKrant(${index})">Plaatsen</button>
+            </div>
+            <div class="feedback" id="feedbackKrant${index}"></div>
+          </div>
+        `;
+      }
+      document.getElementById("krantenraster").innerHTML = html;
+    }
+
+    // Opslaan van een zoekertje/krantenknipsel
+    window.opslaanKrant = async function(index) {
+      const titel = document.getElementById("titel"+index).value.trim();
+      const tekst = document.getElementById("tekst"+index).value.trim();
+      const duur = parseInt(document.getElementById("duur"+index).value, 10) || 1;
+      const feedback = document.getElementById("feedbackKrant"+index);
+      feedback.textContent = "";
+      if (!titel || !tekst) {
+        feedback.textContent = "Titel en tekst zijn verplicht.";
+        return;
+      }
+      const parochieId = await parochieIdPromise;
+      if (!parochieId) {
+        feedback.textContent = "Parochie niet gevonden!";
+        return;
+      }
+      const nu = new Date();
+      const vervalDatum = new Date(nu.getTime() + duur*24*60*60*1000);
+      db.collection("parochies").doc(parochieId).collection("zoekertjes").doc("krant"+index)
+        .set({
+          titel: titel,
+          tekst: tekst,
+          datum: firebase.firestore.Timestamp.fromDate(nu),
+          vervalDatum: firebase.firestore.Timestamp.fromDate(vervalDatum)
+        })
+        .then(() => {
+          feedback.textContent = "Opgeslagen!";
+          toonKrantBlok(index);
+          setTimeout(() => { feedback.textContent = ""; }, 1800);
+        })
+        .catch((error) => {
+          feedback.textContent = "Fout bij opslaan: " + error;
+        });
+    };
+
+    window.onload = () => toonKrantBlok(0);
   </script>
+
 </body>
 </html>
