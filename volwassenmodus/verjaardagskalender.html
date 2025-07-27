@@ -2,194 +2,186 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>🎂 Verjaardagskalender</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Verjaardagskalender – Orthodoxeweg</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
-    body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: #f8f5e9;
-      margin: 0; padding: 0;
-      color: #473916;
+    body { background-color: #f5e9b8; color: #6f4e1a; font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    .topbar { background-color: #6f4e1a; color: white; padding: 12px 20px;
+      display: flex; justify-content: space-between; align-items: center; font-weight: bold; flex-wrap: wrap;}
+    #welkom-tekst { font-size: 1.07em; font-weight: normal;}
+    .uitlog-link { background-color: #8722aa; color: white; border: none;
+      padding: 8px 18px; border-radius: 18px; cursor: pointer; font-weight: bold; margin-left: 12px;}
+    nav.menu { background-color: #7a5f35; padding: 10px 15px; display: flex; flex-wrap: wrap; gap: 12px;
+      justify-content: center; align-items: center;}
+    nav.menu a, nav.menu button { color: #f5e9b8; text-decoration: none; font-weight: 600; font-size: 16px;
+      padding: 6px 12px; border-radius: 8px; transition: background-color 0.3s; background: none; border: none;
+      display: flex; align-items: center; cursor: pointer;}
+    nav.menu a:hover, nav.menu button:hover { background-color: #5d4726; text-decoration: underline;}
+    .menu-avatar { padding: 0 !important; background: none !important; border: none !important; margin-left: 2px;}
+    .menu-avatar img { height: 2.1em; width: 2.1em; border-radius: 50%; border: 2.2px solid #dab97a; background: #fff8eb;
+      transition: box-shadow 0.2s, border 0.2s; box-shadow: 0 1px 4px rgba(160,140,80,0.13); display: block;}
+    .menu-avatar img:hover { border: 2.2px solid #a06a19; box-shadow: 0 2px 8px rgba(160,140,80,0.23);}
+    @media (max-width: 650px) {
+      nav.menu { flex-wrap: wrap; gap: 8px;}
+      nav.menu a, nav.menu button { font-size: 1em; padding: 6px 6px;}
+      .menu-avatar img { height: 1.75em; width: 1.75em;}
     }
-    .statusbar {
-      background: #7a5f35;
-      color: #fff;
-      padding: 10px 24px;
-      font-size: 1.07em;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    nav.menu {
-      background-color: #7a5f35;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      padding: 10px;
-    }
-    nav.menu a {
-      color: #fffef4;
-      text-decoration: none;
-      margin: 6px 12px;
-      font-size: 1em;
-      padding: 8px 12px;
-      border-radius: 12px;
-      background-color: #9c7c4c;
-      transition: background-color 0.3s;
-      font-weight: 600;
-    }
-    nav.menu a:hover {
-      background-color: #b69466;
-      text-decoration: underline;
-    }
-    h1 {
-      text-align: center;
-      margin-top: 32px;
-      color: #986b0c;
-      font-size: 2.1em;
-    }
-    #maandSelector {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 1.32em;
-      gap: 18px;
-      margin: 24px 0 14px 0;
-    }
-    #maandSelector button {
-      background: #e7c377; color: #7a5f35; border: none;
-      border-radius: 10px; padding: 8px 18px; font-size: 1em; cursor: pointer; font-weight: bold;
-      transition: background 0.14s;
-    }
-    #maandSelector button:hover { background: #dab664; }
-    #kalender {
-      max-width: 640px;
-      margin: 0 auto 38px auto;
-      background: #fffef9;
-      border-radius: 18px;
-      box-shadow: 0 6px 32px #d7cbb142;
-      padding: 18px;
-    }
-    .kalender-weekdagen {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 2px;
-      font-size: 1.07em;
-      font-weight: bold;
-      color: #7a5f35;
-      margin-bottom: 7px;
-      text-align: center;
-    }
-    .kalender-grid {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 2px;
-    }
-    .kalender-dag {
-      min-height: 62px;
-      border-radius: 7px;
-      background: #f8e5b1;
-      margin: 1px;
-      padding: 6px 4px 3px 6px;
-      font-size: 1.09em;
-      position: relative;
-      overflow: visible;
-    }
-    .kalender-dag .datum {
-      font-size: 0.99em;
-      font-weight: bold;
-      color: #7a5f35;
-    }
-    .kalender-dag .namen {
-      font-size: 0.97em;
-      color: #7c4a1c;
-      margin-top: 2px;
-      line-height: 1.16;
-      white-space: pre-line;
-    }
-    .kalender-dag.vandaag {
-      border: 2.5px solid #ba8e2d;
-      background: #ffefc2;
-    }
-    @media (max-width:650px){
-      #kalender {padding:4px;}
-      .kalender-dag {min-height: 44px; font-size:0.93em;}
-    }
+    .kalender-container { max-width: 670px; margin: 44px auto 34px auto; background: #fffef9;
+      border-radius: 18px; box-shadow: 0 3px 18px #e7dab382; padding: 26px 19px 26px 19px;}
+    .kalender-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .kalender-header h1 { margin: 0 0 8px 0; font-size: 1.36em; }
+    .maand-select { font-size:1.08em; padding:5px 18px; border-radius:7px; border:1px solid #cbb68a;
+      background: #fcfaf5; color:#6f4e1a; margin-left:12px;}
+    .verjaardag-lijst { margin-top: 18px;}
+    .verjaardag-dag { margin-bottom: 24px;}
+    .verjaardag-dag h3 { margin: 0 0 5px 0; font-size: 1.13em; color: #a9802c;}
+    .verjaardag-persoon { background:#f7ecd7; border-radius: 7px; box-shadow:0 1px 4px #e8d08d66;
+      padding: 9px 14px 7px 12px; margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
+    .verjaardag-persoon .badge { font-size: 0.98em; margin-left: 7px; color: #7e733d;}
+    .verjaardag-persoon .rol-badge { font-size: 0.89em; background:#eadca9; border-radius:4px; padding:2px 6px; margin-left:10px; color:#a88020;}
   </style>
+  <!-- ==== FIREBASE ==== -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+  <script>
+    if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "volwassene") {
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    }
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb",
+      measurementId: "G-C942F2NYQV"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
 </head>
 <body>
-  <!-- STATUSBALK -->
-  <div class="statusbar">
-    <span>U bent ingelogd in: <span id="parochieNaam">...</span></span>
+  <div class="topbar">
+    <div id="welkom-tekst"></div>
+    <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
   </div>
-  <!-- MENUBALK VOLWASSENMODUS -->
   <nav class="menu">
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html">🏠 Home</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/verjaardagskalender.html">🎂 Verjaardagskalender</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/bijbeldagboek.html">📔 Bijbeldagboek</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/heiligen.html">👼 Heiligen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html" title="Home">🏠</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/gebeden.html">🙏 Gebeden</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html">🧰 Mijn profiel</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/heiligen.html">👼 Heiligen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/bijbeldagboek.html">📔 Bijbeldagboek</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/verjaardagskalender.html">🎂 Verjaardagskalender</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html" class="menu-avatar" title="Mijn profiel">
+      <img id="menu-avatar-img" src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png" alt="Mijn profiel">
+    </a>
   </nav>
-
-  <h1>🎂 Verjaardagskalender</h1>
-  <div id="maandSelector">
-    <button onclick="wisselMaand(-1)">◀️</button>
-    <span id="maandNaam"></span>
-    <button onclick="wisselMaand(1)">▶️</button>
+  <div class="kalender-container">
+    <div class="kalender-header">
+      <h1>🎂 Verjaardagskalender</h1>
+      <select id="maandSelect" class="maand-select">
+        <option value="1">Januari</option><option value="2">Februari</option><option value="3">Maart</option>
+        <option value="4">April</option><option value="5">Mei</option><option value="6">Juni</option>
+        <option value="7">Juli</option><option value="8">Augustus</option><option value="9">September</option>
+        <option value="10">Oktober</option><option value="11">November</option><option value="12">December</option>
+      </select>
+    </div>
+    <div class="verjaardag-lijst" id="verjaardagLijst">
+      <span style="color:#a4925a;">Verjaardagen laden...</span>
+    </div>
   </div>
-  <div id="kalender"></div>
-
   <script>
-    // Toon parochie in statusbalk
-    document.getElementById("parochieNaam").textContent =
-      localStorage.getItem("ingelogdeParochie") || "[niet ingelogd]";
+    // Welkomtekst + avatar
+    const welkomTekst = document.getElementById("welkom-tekst");
+    const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
+    const parochieNaam = localStorage.getItem("ingelogdeParochieNaam") || localStorage.getItem("ingelogdeParochie") || "(onbekend)";
+    welkomTekst.textContent = `Welkom, ${loginNaam}! U bent ingelogd in de ${parochieNaam}.`;
+    const avatarImg = document.getElementById("menu-avatar-img");
+    const opgeslagenAvatar = localStorage.getItem("avatarURL");
+    if (opgeslagenAvatar) avatarImg.src = opgeslagenAvatar;
+    document.getElementById("uitlogKnop").onclick = () => {
+      localStorage.clear();
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    };
 
-    // Basis voor kalender
-    const maanden = ["januari","februari","maart","april","mei","juni","juli","augustus","september","oktober","november","december"];
-    const weekdagen = ["ma","di","wo","do","vr","za","zo"];
-    let huidigJaar = (new Date()).getFullYear();
-    let huidigMaand = (new Date()).getMonth(); // 0-indexed
+    // Kalenderlogica
+    const maanden = [null,"Januari","Februari","Maart","April","Mei","Juni","Juli","Augustus","September","Oktober","November","December"];
+    const maandSelect = document.getElementById('maandSelect');
+    const verjaardagLijst = document.getElementById('verjaardagLijst');
+    const parochieId = localStorage.getItem("ingelogdeParochieId");
 
-    function toonKalender(jaar, maand) {
-      document.getElementById("maandNaam").textContent = `${maanden[maand]} ${jaar}`;
+    // Standaard huidige maand selecteren
+    maandSelect.value = (new Date().getMonth() + 1).toString();
 
-      // Maak dag-titels
-      let html = `<div class="kalender-weekdagen">${weekdagen.map(d=>`<div>${d}</div>`).join('')}</div>`;
-      html += `<div class="kalender-grid">`;
+    maandSelect.onchange = laadVerjaardagen;
+    window.addEventListener('DOMContentLoaded', laadVerjaardagen);
 
-      let eersteDag = new Date(jaar, maand, 1).getDay(); // 0 = zondag!
-      let start = (eersteDag + 6) % 7; // Maandag als eerste (0)
-
-      let dagenInMaand = new Date(jaar, maand + 1, 0).getDate();
-
-      // Vul lege vakjes
-      for (let i = 0; i < start; i++) html += `<div></div>`;
-
-      // Vul dagen
-      for (let dag = 1; dag <= dagenInMaand; dag++) {
-        let vandaag = new Date();
-        let isVandaag = (dag === vandaag.getDate() && maand === vandaag.getMonth() && jaar === vandaag.getFullYear());
-        html += `<div class="kalender-dag${isVandaag ? ' vandaag' : ''}"><span class="datum">${dag}</span><div class="namen"></div></div>`;
+    async function laadVerjaardagen() {
+      const maand = maandSelect.value.padStart(2,"0");
+      verjaardagLijst.innerHTML = "<span style='color:#a4925a;'>Verjaardagen laden...</span>";
+      // Data ophalen
+      const ledenSnap = await db.collection("parochies").doc(parochieId).collection("leden").get();
+      let verjaardagen = [];
+      ledenSnap.forEach(doc => {
+        const d = doc.data();
+        if (d.verjaardagToevoegen && d.geboortedatum) {
+          const m = d.geboortedatum.substr(5,2);
+          if (m === maand) {
+            verjaardagen.push({
+              dag: d.geboortedatum.substr(8,2),
+              naam: d.voornaam + (d.doopnaam ? " (" + d.doopnaam + ")" : "") + " " + d.achternaam,
+              rol: "lid"
+            });
+          }
+        }
+      });
+      // Kinderen ophalen
+      for (const doc of ledenSnap.docs) {
+        const kindSnap = await db.collection("parochies").doc(parochieId).collection("leden").doc(doc.id).collection("kinderen").get();
+        kindSnap.forEach(kdoc => {
+          const kind = kdoc.data();
+          if (kind.verjaardagZichtbaar && kind.geboortedatum) {
+            const m = kind.geboortedatum.substr(5,2);
+            if (m === maand) {
+              verjaardagen.push({
+                dag: kind.geboortedatum.substr(8,2),
+                naam: kind.voornaam + (kind.achternaam ? " " + kind.achternaam : ""),
+                rol: "kind"
+              });
+            }
+          }
+        });
       }
-
-      html += `</div>`;
-      document.getElementById("kalender").innerHTML = html;
+      // Sorteren op dag
+      verjaardagen.sort((a,b) => a.dag.localeCompare(b.dag, 'nl', {numeric:true}));
+      // Groeperen per dag
+      let dagen = {};
+      verjaardagen.forEach(v => {
+        if (!dagen[v.dag]) dagen[v.dag] = [];
+        dagen[v.dag].push(v);
+      });
+      if (verjaardagen.length === 0) {
+        verjaardagLijst.innerHTML = "<span style='color:#a4925a;'>Geen verjaardagen deze maand.</span>";
+        return;
+      }
+      // Weergave
+      verjaardagLijst.innerHTML = "";
+      Object.keys(dagen).forEach(dag => {
+        verjaardagLijst.innerHTML += `<div class="verjaardag-dag">
+            <h3>${parseInt(dag)} ${maanden[parseInt(maand)]}</h3>
+            ${dagen[dag].map(v =>
+              `<div class="verjaardag-persoon">
+                <span>🎉 <b>${v.naam}</b></span>
+                <span class="rol-badge">${v.rol==="kind"?"Kind":"Lid"}</span>
+              </div>`
+            ).join("")}
+          </div>`;
+      });
     }
-
-    function wisselMaand(delta) {
-      huidigMaand += delta;
-      if (huidigMaand < 0) { huidigMaand = 11; huidigJaar--; }
-      if (huidigMaand > 11) { huidigMaand = 0; huidigJaar++; }
-      toonKalender(huidigJaar, huidigMaand);
-    }
-
-    // Init
-    toonKalender(huidigJaar, huidigMaand);
   </script>
 </body>
 </html>
