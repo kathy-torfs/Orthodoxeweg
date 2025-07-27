@@ -7,90 +7,243 @@
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
     body { background-color: #f5e9b8; color: #6f4e1a; font-family: Arial, sans-serif; margin: 0; padding: 0; }
-    .topbar { background-color: #6f4e1a; color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; flex-wrap: wrap;}
-    #welkom-tekst { font-size: 1.07em; font-weight: normal; }
-    .uitlog-link { background-color: #8722aa; color: white; border: none; padding: 8px 18px; border-radius: 18px; cursor: pointer; font-weight: bold; margin-left: 12px; }
-    nav.menu { background-color: #7a5f35; padding: 10px 15px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; align-items: center;}
-    nav.menu a, nav.menu button { color: #f5e9b8; text-decoration: none; font-weight: 600; font-size: 16px; padding: 6px 12px; border-radius: 8px; transition: background-color 0.3s; background: none; border: none; display: flex; align-items: center; cursor: pointer;}
-    nav.menu a:hover, nav.menu button:hover { background-color: #5d4726; text-decoration: underline;}
-    .menu-avatar { padding: 0 !important; background: none !important; border: none !important; margin-left: 2px;}
-    .menu-avatar img { height: 2.1em; width: 2.1em; border-radius: 50%; border: 2.2px solid #dab97a; background: #fff8eb; transition: box-shadow 0.2s, border 0.2s; box-shadow: 0 1px 4px rgba(160,140,80,0.13); display: block;}
-    .menu-avatar img:hover { border: 2.2px solid #a06a19; box-shadow: 0 2px 8px rgba(160,140,80,0.23);}
+
+    .topbar {
+      background-color: #6f4e1a;
+      color: white;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+      flex-wrap: wrap;
+    }
+    #welkom-tekst {
+      font-size: 1.07em;
+      font-weight: normal;
+    }
+    .uitlog-link {
+      background-color: #8722aa;
+      color: white;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 18px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-left: 12px;
+    }
+
+    nav.menu {
+      background-color: #7a5f35;
+      padding: 10px 15px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      align-items: center;
+    }
+    nav.menu a,
+    nav.menu button {
+      color: #f5e9b8;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 16px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      transition: background-color 0.3s;
+      background: none;
+      border: none;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+    nav.menu a:hover, nav.menu button:hover {
+      background-color: #5d4726;
+      text-decoration: underline;
+    }
+    .menu-avatar {
+      padding: 0 !important;
+      background: none !important;
+      border: none !important;
+      margin-left: 2px;
+    }
+    .menu-avatar img {
+      height: 2.1em;
+      width: 2.1em;
+      border-radius: 50%;
+      border: 2.2px solid #dab97a;
+      background: #fff8eb;
+      transition: box-shadow 0.2s, border 0.2s;
+      box-shadow: 0 1px 4px rgba(160,140,80,0.13);
+      display: block;
+    }
+    .menu-avatar img:hover {
+      border: 2.2px solid #a06a19;
+      box-shadow: 0 2px 8px rgba(160,140,80,0.23);
+    }
     @media (max-width: 650px) {
       nav.menu { flex-wrap: wrap; gap: 8px;}
       nav.menu a, nav.menu button { font-size: 1em; padding: 6px 6px;}
       .menu-avatar img { height: 1.75em; width: 1.75em;}
     }
-    .borden-raster { display: flex; flex-direction: column; align-items: center; padding: 40px 20px; gap: 30px; }
-    .bovenste-rij { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; }
-    .bord-blok { width: 440px; height: 280px; border: 18px solid #8a663c; border-radius: 18px; box-shadow: 0 6px 16px #00000033; position: relative; display: block; text-decoration: none; overflow: hidden; background: #f4faff;}
-    .bord-blok:first-child { background: #dceeff; }
-    .bord-blok:last-child { background: #e2f8d4; }
-    .bord-header {
-      width: 92%; margin: 0 auto 14px auto; margin-top: 10px; background: linear-gradient(90deg, #fae6be 40%, #ecd097 100%);
-      color: #7a5f35; border-radius: 9px 9px 18px 18px; font-size: 1.28em; font-family: 'Georgia', serif; font-weight: bold; text-align: center; letter-spacing: 1px;
-      padding: 11px 0 7px 0; box-shadow: 0 3px 12px #bba77b30, 0 1px 0 #eeddb9 inset; border-bottom: 2.7px solid #ceb27d; text-shadow: 0 2px 7px #fff6dc99;
-    }
-    .postit-container, .knipsel-container { position: absolute; top: 65px; left: 0; width: 100%; height: 215px; pointer-events: none; }
-    .postit { width: 60px; height: 60px; border-radius: 6px; box-shadow: 2px 3px 8px #0002; position: absolute; display: flex; align-items: center; justify-content: center; color: #222; font-size: 0.96em; font-weight: bold; text-align: center; padding: 7px; overflow: hidden; word-break: break-word; user-select: none; opacity: 0.96; }
-    .krant-knipsel {
-      width: 98px; min-height: 60px; max-width: 122px; border-radius: 6px 6px 22px 22px;
-      background: repeating-linear-gradient(135deg, #f5f3ed, #eceae3 25px, #f7f5ef 40px), #fcfbf9;
-      box-shadow: 0 2px 14px #cec8b04c, 0 0.7px 0 #a59d8d;
-      border: 1.5px solid #beb7a8; position: absolute;
-      font-family: Georgia, 'Times New Roman', serif; color: #3a2c17; font-size: 0.97em; font-weight: normal; text-align: left; padding: 10px 9px 18px 10px; word-break: break-word; line-height: 1.2; opacity: 0.99; z-index: 2; overflow: hidden;
-    }
-    .krant-knipsel::after {
-      content: "";
-      position: absolute; left: 0; right: 0; bottom: 0; height: 18px; pointer-events: none;
-      background: url('data:image/svg+xml;utf8,<svg width="100%" height="18" viewBox="0 0 400 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 9 Q 10 18 30 9 Q 50 0 70 9 Q 90 18 110 9 Q 130 0 150 9 Q 170 18 190 9 Q 210 0 230 9 Q 250 18 270 9 Q 290 0 310 9 Q 330 18 350 9 Q 370 0 400 9 V18 H0 V9Z" fill="%23eceae3" /></svg>');
-      background-size: 100% 18px; background-repeat: no-repeat; z-index: 3;
-    }
-    .zandtafel-blok { width: 360px; height: 360px; border-radius: 50%; overflow: hidden; background: radial-gradient(circle, #e9dfc2, #cbb88e); border: 10px solid #8c7344; box-shadow: 0 0 16px #0004; position: relative; margin-top: 18px;}
-    .kaarsjes-op-tafel { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-    .kaarsje {
-      width: 22px; height: 52px; border-radius: 7px 7px 6px 6px;
-      background: #f6eed3;
-      border: 1.2px solid #a58e5d;
-      box-shadow: 0 1.5px 6px #b5a77580;
-      position: absolute;
-      z-index: 10;
+
+    /* === PAROCHIE PRIKBORDEN EN KAARSEN === */
+    .borden-raster {
       display: flex;
-      align-items: flex-end;
+      flex-direction: column;
+      align-items: center;
+      padding: 52px 0 0 0;
+      gap: 54px;
+    }
+    .bovenste-rij {
+      display: flex;
       justify-content: center;
-      left: 0; top: 0;
+      gap: 130px;
+      flex-wrap: wrap;
     }
-    .vlammetje {
-      width: 10px; height: 18px;
-      background: radial-gradient(ellipse at center, #ffe999 52%, #ffc94b 98%, transparent 100%);
-      border-radius: 90% 90% 70% 70%;
+    .bord-blok {
+      width: 530px;
+      height: 340px;
+      border: 18px solid #8a663c;
+      border-radius: 22px;
+      box-shadow: 0 8px 22px #00000033;
+      position: relative;
+      display: block;
+      text-decoration: none;
+      overflow: hidden;
+      background: #eaf5ff;
+    }
+    .bord-blok:last-child {
+      background: #e7ffe9;
+    }
+    .bord-titel {
       position: absolute;
-      top: -17px; left: 6px;
-      opacity: 0;
-      transition: opacity 0.4s;
-      z-index: 12;
-      filter: blur(0.5px);
-      box-shadow: 0 0 9px #ffd25d88;
+      top: 13px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #f7e3b2;
+      color: #7a5f35;
+      padding: 8px 34px 7px 34px;
+      font-weight: bold;
+      font-size: 1.24em;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px #0003;
+      letter-spacing: 1px;
+      text-align: center;
+      z-index: 5;
+      pointer-events: none;
     }
-    .vlammetje.aan { opacity: 1; }
-    .bijbel-link { display: block; text-align: center; margin: 50px auto;}
-    .bijbel-link img { width: 160px; border-radius: 12px; border: 2px solid #d2ba86; box-shadow: 0 4px 12px #cbb77750;}
+    .postit-container, .krant-container {
+      position: absolute;
+      top: 60px;
+      left: 0; right: 0; bottom: 0;
+      width: 100%; height: calc(100% - 60px);
+      pointer-events: none;
+    }
+    /* Post-it style */
+    .postit {
+      width: 68px;
+      height: 68px;
+      border-radius: 7px;
+      box-shadow: 2px 3px 10px #0001;
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #222;
+      font-size: 0.98em;
+      font-weight: bold;
+      text-align: center;
+      padding: 8px;
+      overflow: hidden;
+      word-break: break-word;
+      user-select: none;
+      opacity: 0.96;
+      background: #fff86b;
+      border: 1.5px solid #e6d600;
+    }
+    /* Krantenknipsel style */
+    .krant-knipsel {
+      min-width: 130px;
+      max-width: 165px;
+      min-height: 48px;
+      max-height: 76px;
+      border-radius: 8px;
+      font-size: 1em;
+      background: #fcfbf9;
+      border: 1.8px solid #beb7a8;
+      box-shadow: 0 2px 14px #cec8b04c, 0 0.7px 0 #a59d8d;
+      font-family: Georgia, 'Times New Roman', serif;
+      color: #3a2c17;
+      padding: 10px 12px 8px 12px;
+      opacity: 0.99;
+      position: absolute;
+      z-index: 2;
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-start;
+      pointer-events: none;
+      overflow: hidden;
+      word-break: break-word;
+    }
+    /* Zandtafel (ovaal) */
+    .zandtafel-blok {
+      width: 430px;
+      height: 240px;
+      border-radius: 190px / 105px;
+      background: radial-gradient(circle at 60% 60%, #e9dfc2 60%, #cbb88e 100%);
+      border: 10px solid #8c7344;
+      box-shadow: 0 0 20px #0004;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 32px;
+    }
+    .kaarsjes-op-tafel {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+    }
+    .kaarsje {
+      width: 22px;
+      height: 44px;
+      background: #f7f1e2;
+      border-radius: 7px 7px 8px 8px;
+      border: 2.4px solid #ccb99d;
+      box-shadow: 0 3px 10px #dbc8a9a6, 0 1.2px 0 #bba376;
+      position: absolute;
+      z-index: 2;
+    }
+    .bijbel-link {
+      display: block;
+      text-align: center;
+      margin: 48px auto 0 auto;
+    }
+    .bijbel-link img {
+      width: 160px;
+      border-radius: 12px;
+      border: 2px solid #d2ba86;
+      box-shadow: 0 4px 12px #cbb77750;
+    }
   </style>
   <!-- ==== FIREBASE ==== -->
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script>
+    // ==== VOLWASSENENBESCHERMING ====
     if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "volwassene") {
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     }
+    // ==== FIREBASE CONFIGURATIE ====
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain: "orthodoxeweg.firebaseapp.com",
       projectId: "orthodoxeweg",
       storageBucket: "orthodoxeweg.appspot.com",
       messagingSenderId: "408582263618",
-      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb",
-      measurementId: "G-C942F2NYQV"
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
@@ -121,18 +274,21 @@
   </nav>
   <!-- ==== MENUBALK: EINDE ==== -->
 
-  <!-- === ZOEKERTJES-PRIKBORD: BEGIN === -->
+  <!-- === PRIKBORDEN EN KAARSJES: BEGIN === -->
   <div class="borden-raster">
     <div class="bovenste-rij">
+      <!-- PAROCHIENIEUWS -->
       <a href="nieuws.html" class="bord-blok">
-        <div class="bord-header">Parochienieuws</div>
+        <div class="bord-titel">Parochienieuws</div>
         <div class="postit-container" id="postitsLinks"></div>
       </a>
+      <!-- ZOEKERTJES -->
       <a href="zoekertjes.html" class="bord-blok">
-        <div class="bord-header">Zoekertjes</div>
-        <div class="knipsel-container" id="postitsRechts"></div>
+        <div class="bord-titel">Zoekertjes</div>
+        <div class="krant-container" id="postitsRechts"></div>
       </a>
     </div>
+    <!-- KAARSJESTAFEL -->
     <a href="kaarsjes.html" class="zandtafel-blok">
       <div class="kaarsjes-op-tafel" id="kaarsjesOpTafel"></div>
     </a>
@@ -140,10 +296,11 @@
   <a class="bijbel-link" href="bijbeldagboek.html">
     <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/boek.png" alt="Bijbeldagboek">
   </a>
-  <!-- === ZOEKERTJES-PRIKBORD: EINDE === -->
+  <!-- === PRIKBORDEN EN KAARSJES: EINDE === -->
 
+  <!-- === LOGICA EN DYNAMIEK: BEGIN === -->
   <script>
-    // BEGROETING EN AVATAR
+    // Welkomtekst en avatar
     const welkomTekst = document.getElementById("welkom-tekst");
     const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
     const parochie = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
@@ -159,33 +316,34 @@
     const avatarImg = document.getElementById("menu-avatar-img");
     const opgeslagenAvatar = localStorage.getItem("avatarURL");
     if (opgeslagenAvatar) avatarImg.src = opgeslagenAvatar;
+
     document.getElementById("uitlogKnop").onclick = () => {
       localStorage.clear();
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     };
 
-    // POSTITS (PRIKEBORD)
+    // PRIKBORD PAROCHIENIEUWS (POST-ITS)
     const postitMapping = [
-      { kleur: "#fff86b", top: "11%", left: "12%" },
-      { kleur: "#a6e3ff", top: "10%", left: "43%" },
-      { kleur: "#e39aff", top: "10%", left: "74%" },
-      { kleur: "#c1ff8e", top: "40%", left: "12%" },
-      { kleur: "#ffc39a", top: "39%", left: "43%" },
-      { kleur: "#bba5ff", top: "39%", left: "74%" },
-      { kleur: "#ffa49a", top: "69%", left: "12%" },
-      { kleur: "#d0ffcc", top: "68%", left: "43%" },
-      { kleur: "#ffe2ae", top: "68%", left: "74%" }
+      { kleur: "#fff86b", top: "18%", left: "11%" },
+      { kleur: "#a6e3ff", top: "17%", left: "38%" },
+      { kleur: "#e39aff", top: "16%", left: "65%" },
+      { kleur: "#c1ff8e", top: "44%", left: "13%" },
+      { kleur: "#ffc39a", top: "41%", left: "45%" },
+      { kleur: "#bba5ff", top: "44%", left: "75%" },
+      { kleur: "#ffa49a", top: "72%", left: "12%" },
+      { kleur: "#d0ffcc", top: "68%", left: "44%" },
+      { kleur: "#ffe2ae", top: "70%", left: "74%" }
     ];
     function laadPostitsPrikbord() {
-      const actieveParochie = localStorage.getItem("ingelogdeParochieId");
-      if (!actieveParochie) return;
+      const parochieId = localStorage.getItem("ingelogdeParochieId");
+      if (!parochieId) return;
       const container = document.getElementById("postitsLinks");
       if (!container) return;
       container.innerHTML = "";
       let promises = [];
       for (let i = 0; i < 9; i++) {
         let ref = db.collection("parochies")
-          .doc(actieveParochie)
+          .doc(parochieId)
           .collection("prikbord_priester")
           .doc("postit" + i);
         promises.push(ref.get().then(doc => {
@@ -205,13 +363,13 @@
       }
       Promise.all(promises).catch(console.error);
     }
-    document.addEventListener("DOMContentLoaded", laadPostitsPrikbord);
 
-    // KRANTENKNIPSELS (ZOEKERTJES)
-    const zoekertjesMapping = [
-      { top: "8%", left: "13%" }, { top: "8%", left: "43%" }, { top: "8%", left: "72%" },
-      { top: "37%", left: "12%" }, { top: "38%", left: "43%" }, { top: "37%", left: "72%" },
-      { top: "65%", left: "17%" }, { top: "66%", left: "43%" }, { top: "66%", left: "70%" }
+    // PRIKBORD ZOEKERTJES (KRANTENKNIPSELS, 12 STUKS)
+    const krantenMapping = [
+      { top: "15%", left: "5%" },   { top: "15%", left: "38%" },   { top: "15%", left: "70%" },
+      { top: "36%", left: "8%" },   { top: "34%", left: "41%" },   { top: "36%", left: "73%" },
+      { top: "60%", left: "5%" },   { top: "58%", left: "38%" },   { top: "61%", left: "71%" },
+      { top: "80%", left: "18%" },  { top: "82%", left: "47%" },   { top: "80%", left: "77%" }
     ];
     function laadZoekertjesPrikbord() {
       const parochieId = localStorage.getItem("ingelogdeParochieId");
@@ -220,7 +378,7 @@
       if (!container) return;
       container.innerHTML = "";
       let promises = [];
-      for (let i = 0; i < 9; i++) {
+      for (let i = 0; i < 12; i++) {
         let ref = db.collection("parochies")
           .doc(parochieId)
           .collection("zoekertjes")
@@ -231,12 +389,12 @@
             const titel = data.titel || "";
             const tekst = data.tekst || "";
             let preview = titel;
-            if (tekst) preview += ": " + tekst.split(/\s+/).slice(0, 8).join(" ");
-            if (tekst.split(/\s+/).length > 8) preview += "…";
+            if (tekst) preview += ": " + tekst.split(/\s+/).slice(0, 6).join(" ");
+            if (tekst.split(/\s+/).length > 6) preview += "…";
             const knipsel = document.createElement("div");
             knipsel.className = "krant-knipsel";
-            knipsel.style.top = zoekertjesMapping[i].top;
-            knipsel.style.left = zoekertjesMapping[i].left;
+            knipsel.style.top = krantenMapping[i].top;
+            knipsel.style.left = krantenMapping[i].left;
             knipsel.textContent = preview;
             container.appendChild(knipsel);
           }
@@ -244,30 +402,46 @@
       }
       Promise.all(promises).catch(console.error);
     }
-    document.addEventListener("DOMContentLoaded", laadZoekertjesPrikbord);
 
-    // KAARSJES OP ZANDTAFEL
-    function tekenKaarsjes() {
+    // KAARSJES-TWEEDE VERSIE: 33 stuks, netjes verspreid over de zandtafel
+    function plaatsKaarsjes() {
       const tafel = document.getElementById("kaarsjesOpTafel");
       if (!tafel) return;
-      tafel.innerHTML = "";
-      const R = 140, Cx = 180, Cy = 180;
-      for (let i = 0; i < 30; i++) {
-        const angle = (i / 30) * 2 * Math.PI - Math.PI/2;
-        const x = Cx + R * Math.cos(angle) - 11;
-        const y = Cy + R * Math.sin(angle) - 45;
-        const kaarsje = document.createElement("div");
-        kaarsje.className = "kaarsje";
-        kaarsje.style.left = x + "px";
-        kaarsje.style.top = y + "px";
-        // Vlammetje standaard UIT
-        const vlam = document.createElement("div");
-        vlam.className = "vlammetje";
-        kaarsje.appendChild(vlam);
-        tafel.appendChild(kaarsje);
+      tafel.innerHTML = '';
+      const n = 33;
+      // Plaats kaarsjes op een mooi grid, rijen en kolommen over ovaal
+      const cols = 6, rows = 6; // 6x6 grid, enkele plaatsen leeg laten
+      let positions = [];
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          positions.push([r, c]);
+        }
+      }
+      // Kies 33 posities uit (shuffle)
+      positions = positions.sort(() => Math.random() - 0.5).slice(0, n);
+      // Ovaal parameters
+      const w = 430, h = 240, rx = (w-60)/2, ry = (h-60)/2, cx = w/2-11, cy = h/2-18;
+      for (let i = 0; i < n; i++) {
+        let [r, c] = positions[i];
+        // Normale grid naar -1..1
+        let xrel = (c / (cols - 1)) * 2 - 1;
+        let yrel = (r / (rows - 1)) * 2 - 1;
+        // Maak het ovaal, voeg kleine randoms toe voor spreiding
+        let x = cx + xrel * rx * (0.95 + Math.random()*0.08);
+        let y = cy + yrel * ry * (0.93 + Math.random()*0.08);
+        const el = document.createElement("div");
+        el.className = "kaarsje";
+        el.style.left = `${x}px`;
+        el.style.top = `${y}px`;
+        tafel.appendChild(el);
       }
     }
-    document.addEventListener("DOMContentLoaded", tekenKaarsjes);
+
+    document.addEventListener("DOMContentLoaded", function() {
+      laadPostitsPrikbord();
+      laadZoekertjesPrikbord();
+      plaatsKaarsjes();
+    });
   </script>
 </body>
 </html>
