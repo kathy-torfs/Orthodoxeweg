@@ -57,14 +57,14 @@
       nav.menu a, nav.menu button { font-size: 1em; padding: 6px 6px;}
       .menu-avatar img { height: 1.75em; width: 1.75em;}
     }
-    /* KAARSEN OPSTELLING */
+
     .kaarsen-container {
       margin: 36px auto 48px auto;
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 44px 48px;
-      max-width: 1320px;
+      max-width: 1360px;
+      gap: 60px 38px;
     }
     .kaarsblok {
       width: 270px;
@@ -74,7 +74,23 @@
       align-items: center;
       justify-content: flex-end;
       position: relative;
+      margin-top: 0;
+      margin-bottom: 0;
+      /* Verspreid ze wat speelser */
     }
+    .kaarsblok:nth-child(1)  { margin-top: 8px;}
+    .kaarsblok:nth-child(2)  { margin-top: 22px;}
+    .kaarsblok:nth-child(3)  { margin-top: 38px;}
+    .kaarsblok:nth-child(4)  { margin-top: 0;}
+    .kaarsblok:nth-child(5)  { margin-top: 18px;}
+    .kaarsblok:nth-child(6)  { margin-top: 25px;}
+    .kaarsblok:nth-child(7)  { margin-top: 32px;}
+    .kaarsblok:nth-child(8)  { margin-top: 7px;}
+    .kaarsblok:nth-child(9)  { margin-top: 29px;}
+    .kaarsblok:nth-child(10) { margin-top: 16px;}
+    .kaarsblok:nth-child(11) { margin-top: 41px;}
+    .kaarsblok:nth-child(12) { margin-top: 13px;}
+
     .kaars-svg {
       width: 240px;
       height: 400px;
@@ -88,32 +104,45 @@
     }
     .kaars-inhoud {
       position: absolute;
-      top: 80px;
+      top: 85px;
       left: 13%;
       width: 74%;
       z-index: 2;
       display: flex;
       flex-direction: column;
       align-items: stretch;
-      gap: 15px;
+      gap: 12px;
     }
     .kaars-inhoud input, .kaars-inhoud select, .kaars-inhoud textarea {
       background: transparent;
       border: none;
       outline: none;
       color: #6f4e1a;
-      font-size: 1.19em;
+      font-size: 1.18em;
       width: 100%;
       text-align: center;
       resize: none;
-      padding: 6px 2px;
+      padding: 7px 2px;
       border-radius: 10px;
+      font-family: Arial, sans-serif;
+      box-sizing: border-box;
     }
-    .kaars-inhoud textarea { min-height: 80px; }
+    .kaars-inhoud textarea { min-height: 66px; }
     .kaars-inhoud input::placeholder, .kaars-inhoud textarea::placeholder {
       color: #b4a077;
       opacity: 1;
     }
+    .kaars-acties {
+      display: flex; gap: 22px; justify-content: center; align-items: center; margin-top: 3px;
+    }
+    .kaars-acties button {
+      border: none; background: none; font-size: 2.3em; cursor: pointer; transition: transform 0.1s;
+      color: #a88723;
+      padding: 0 5px;
+    }
+    .kaars-acties button:hover { transform: scale(1.20);}
+    .kaars-acties .kruisje { color: #c13a00; }
+    .kaars-acties .vinkje { color: #498b00;}
     /* Kaars vlam - 3 statussen */
     .vlam-vorm {
       position: absolute;
@@ -130,7 +159,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <script>
-    // Beveiliging en firebase init
+    // ==== TEMPLATE-LOGICA: beveiliging + avatar + welkom ====
     if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "volwassene") {
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     }
@@ -144,6 +173,61 @@
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // Welkomtekst + avatar
+      const welkomTekst = document.getElementById("welkom-tekst");
+      const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
+      const parochie = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
+      const uur = new Date().getHours();
+      let moment = "Goeiedag";
+      if (uur >= 5 && uur <= 10) moment = "Goeiemorgend";
+      else if (uur >= 11 && uur <= 13) moment = "Goeiemiddag";
+      else if (uur >= 17 && uur <= 22) moment = "Goeienavond";
+      else if (uur > 22 || uur < 5) moment = "Goedenacht";
+      welkomTekst.textContent = `Welkom, ${loginNaam}! U bent ingelogd in de ${parochie}.`;
+      const avatarImg = document.getElementById("menu-avatar-img");
+      const opgeslagenAvatar = localStorage.getItem("avatarURL");
+      if (opgeslagenAvatar) avatarImg.src = opgeslagenAvatar;
+      document.getElementById("uitlogKnop").onclick = () => {
+        localStorage.clear();
+        window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+      };
+
+      // ------ KAARSEN LOGICA ------
+      // Initieer vlammen bij start
+      document.querySelectorAll('.kaarsblok').forEach((blok, idx) => {
+        const inputs = blok.querySelectorAll('input,select,textarea');
+        const vlam = blok.querySelector('.vlam-vorm');
+        function updateVlam() {
+          // Als er in 1 van de velden iets staat, wordt de vlam wit
+          let gevuld = false;
+          blok.querySelectorAll('input,textarea').forEach(el => {
+            if (el.value.trim().length > 0) gevuld = true;
+          });
+          if (gevuld) {
+            vlam.classList.remove('vlam-transparant','vlam-rood');
+            vlam.classList.add('vlam-wit');
+          } else {
+            vlam.classList.remove('vlam-wit','vlam-rood');
+            vlam.classList.add('vlam-transparant');
+          }
+        }
+        inputs.forEach(inp => inp.addEventListener('input', updateVlam));
+        blok.querySelector('.kaars-acties .kruisje').onclick = function(e) {
+          e.preventDefault();
+          blok.querySelectorAll('input,textarea').forEach(el => el.value = "");
+          blok.querySelector('select').selectedIndex = 0;
+          updateVlam();
+        };
+        blok.querySelector('.kaars-acties .vinkje').onclick = function(e) {
+          e.preventDefault();
+          // TODO: Opslaan in Firestore
+          // Toon evt. animatie of melding
+          updateVlam();
+        };
+      });
+    });
   </script>
 </head>
 <body>
@@ -169,22 +253,17 @@
   </nav>
   <!-- ==== KAARSEN ==== -->
   <div class="kaarsen-container">
+    <!-- 12 KAARSEN -->
+    <!-- Met speelse margin-top voor elke -->
+    <!-- Je kan het later gerust aanpassen (meer/minder speels) -->
+    <!-- --- KAARS --- -->
     <div class="kaarsblok">
-      <!-- SVG vlam: standaard transparant -->
-      <svg class="vlam-vorm vlam-transparant" viewBox="0 0 40 45">
-        <path d="M20 7 Q29 22 20 37 Q11 22 20 7 Z" />
-      </svg>
-      <!-- SVG kaars zelf (cilinder) -->
+      <svg class="vlam-vorm vlam-transparant" viewBox="0 0 40 45"><path d="M20 7 Q29 22 20 37 Q11 22 20 7 Z" /></svg>
       <svg class="kaars-svg" viewBox="0 0 90 160">
-        <!-- Bovenkant -->
         <ellipse cx="45" cy="38" rx="32" ry="14" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
-        <!-- Cilinder -->
         <rect x="13" y="38" width="64" height="85" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
-        <!-- Onderkant -->
         <ellipse cx="45" cy="123" rx="32" ry="14" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
-        <!-- Schaduw bovenrand -->
         <ellipse cx="45" cy="38" rx="32" ry="14" fill="#f5e9b8" stroke="#ceb27d" stroke-width="3"/>
-        <!-- Lont -->
         <rect x="41" y="15" width="8" height="16" fill="#8b6f43" rx="2"/>
       </svg>
       <form class="kaars-inhoud">
@@ -194,29 +273,265 @@
           <option>Anders</option>
         </select>
         <textarea maxlength="160" placeholder="Uw intentie..."></textarea>
+        <div class="kaars-acties">
+          <button class="vinkje" title="Plaatsen">&#10003;</button>
+          <button class="kruisje" title="Wissen">&#10005;</button>
+        </div>
+      </form>
+    </div>
+    <!-- 2 -->
+    <div class="kaarsblok">
+      <svg class="vlam-vorm vlam-transparant" viewBox="0 0 40 45"><path d="M20 7 Q29 22 20 37 Q11 22 20 7 Z" /></svg>
+      <svg class="kaars-svg" viewBox="0 0 90 160">
+        <ellipse cx="45" cy="38" rx="32" ry="14" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
+        <rect x="13" y="38" width="64" height="85" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
+        <ellipse cx="45" cy="123" rx="32" ry="14" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
+        <ellipse cx="45" cy="38" rx="32" ry="14" fill="#f5e9b8" stroke="#ceb27d" stroke-width="3"/>
+        <rect x="41" y="15" width="8" height="16" fill="#8b6f43" rx="2"/>
+      </svg>
+      <form class="kaars-inhoud">
+        <input type="text" maxlength="30" placeholder="Voor wie...">
+        <select>
+          <option>Orthodox gelovige</option>
+          <option>Anders</option>
+        </select>
+        <textarea maxlength="160" placeholder="Uw intentie..."></textarea>
+        <div class="kaars-acties">
+          <button class="vinkje" title="Plaatsen">&#10003;</button>
+          <button class="kruisje" title="Wissen">&#10005;</button>
+        </div>
+      </form>
+    </div>
+    <!-- 3 -->
+    <div class="kaarsblok">
+      <svg class="vlam-vorm vlam-transparant" viewBox="0 0 40 45"><path d="M20 7 Q29 22 20 37 Q11 22 20 7 Z" /></svg>
+      <svg class="kaars-svg" viewBox="0 0 90 160">
+        <ellipse cx="45" cy="38" rx="32" ry="14" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
+        <rect x="13" y="38" width="64" height="85" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
+        <ellipse cx="45" cy="123" rx="32" ry="14" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
+        <ellipse cx="45" cy="38" rx="32" ry="14" fill="#f5e9b8" stroke="#ceb27d" stroke-width="3"/>
+        <rect x="41" y="15" width="8" height="16" fill="#8b6f43" rx="2"/>
+      </svg>
+      <form class="kaars-inhoud">
+        <input type="text" maxlength="30" placeholder="Voor wie...">
+        <select>
+          <option>Orthodox gelovige</option>
+          <option>Anders</option>
+        </select>
+        <textarea maxlength="160" placeholder="Uw intentie..."></textarea>
+        <div class="kaars-acties">
+          <button class="vinkje" title="Plaatsen">&#10003;</button>
+          <button class="kruisje" title="Wissen">&#10005;</button>
+        </div>
+      </form>
+    </div>
+    <!-- 4 -->
+    <div class="kaarsblok">
+      <svg class="vlam-vorm vlam-transparant" viewBox="0 0 40 45"><path d="M20 7 Q29 22 20 37 Q11 22 20 7 Z" /></svg>
+      <svg class="kaars-svg" viewBox="0 0 90 160">
+        <ellipse cx="45" cy="38" rx="32" ry="14" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
+        <rect x="13" y="38" width="64" height="85" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
+        <ellipse cx="45" cy="123" rx="32" ry="14" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
+        <ellipse cx="45" cy="38" rx="32" ry="14" fill="#f5e9b8" stroke="#ceb27d" stroke-width="3"/>
+        <rect x="41" y="15" width="8" height="16" fill="#8b6f43" rx="2"/>
+      </svg>
+      <form class="kaars-inhoud">
+        <input type="text" maxlength="30" placeholder="Voor wie...">
+        <select>
+          <option>Orthodox gelovige</option>
+          <option>Anders</option>
+        </select>
+        <textarea maxlength="160" placeholder="Uw intentie..."></textarea>
+        <div class="kaars-acties">
+          <button class="vinkje" title="Plaatsen">&#10003;</button>
+          <button class="kruisje" title="Wissen">&#10005;</button>
+        </div>
+      </form>
+    </div>
+    <!-- 5 -->
+    <div class="kaarsblok">
+      <svg class="vlam-vorm vlam-transparant" viewBox="0 0 40 45"><path d="M20 7 Q29 22 20 37 Q11 22 20 7 Z" /></svg>
+      <svg class="kaars-svg" viewBox="0 0 90 160">
+        <ellipse cx="45" cy="38" rx="32" ry="14" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
+        <rect x="13" y="38" width="64" height="85" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
+        <ellipse cx="45" cy="123" rx="32" ry="14" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
+        <ellipse cx="45" cy="38" rx="32" ry="14" fill="#f5e9b8" stroke="#ceb27d" stroke-width="3"/>
+        <rect x="41" y="15" width="8" height="16" fill="#8b6f43" rx="2"/>
+      </svg>
+      <form class="kaars-inhoud">
+        <input type="text" maxlength="30" placeholder="Voor wie...">
+        <select>
+          <option>Orthodox gelovige</option>
+          <option>Anders</option>
+        </select>
+        <textarea maxlength="160" placeholder="Uw intentie..."></textarea>
+        <div class="kaars-acties">
+          <button class="vinkje" title="Plaatsen">&#10003;</button>
+          <button class="kruisje" title="Wissen">&#10005;</button>
+        </div>
+      </form>
+    </div>
+    <!-- 6 -->
+    <div class="kaarsblok">
+      <svg class="vlam-vorm vlam-transparant" viewBox="0 0 40 45"><path d="M20 7 Q29 22 20 37 Q11 22 20 7 Z" /></svg>
+      <svg class="kaars-svg" viewBox="0 0 90 160">
+        <ellipse cx="45" cy="38" rx="32" ry="14" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
+        <rect x="13" y="38" width="64" height="85" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
+        <ellipse cx="45" cy="123" rx="32" ry="14" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
+        <ellipse cx="45" cy="38" rx="32" ry="14" fill="#f5e9b8" stroke="#ceb27d" stroke-width="3"/>
+        <rect x="41" y="15" width="8" height="16" fill="#8b6f43" rx="2"/>
+      </svg>
+      <form class="kaars-inhoud">
+        <input type="text" maxlength="30" placeholder="Voor wie...">
+        <select>
+          <option>Orthodox gelovige</option>
+          <option>Anders</option>
+        </select>
+        <textarea maxlength="160" placeholder="Uw intentie..."></textarea>
+        <div class="kaars-acties">
+          <button class="vinkje" title="Plaatsen">&#10003;</button>
+          <button class="kruisje" title="Wissen">&#10005;</button>
+        </div>
+      </form>
+    </div>
+    <!-- 7 -->
+    <div class="kaarsblok">
+      <svg class="vlam-vorm vlam-transparant" viewBox="0 0 40 45"><path d="M20 7 Q29 22 20 37 Q11 22 20 7 Z" /></svg>
+      <svg class="kaars-svg" viewBox="0 0 90 160">
+        <ellipse cx="45" cy="38" rx="32" ry="14" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
+        <rect x="13" y="38" width="64" height="85" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
+        <ellipse cx="45" cy="123" rx="32" ry="14" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
+        <ellipse cx="45" cy="38" rx="32" ry="14" fill="#f5e9b8" stroke="#ceb27d" stroke-width="3"/>
+        <rect x="41" y="15" width="8" height="16" fill="#8b6f43" rx="2"/>
+      </svg>
+      <form class="kaars-inhoud">
+        <input type="text" maxlength="30" placeholder="Voor wie...">
+        <select>
+          <option>Orthodox gelovige</option>
+          <option>Anders</option>
+        </select>
+        <textarea maxlength="160" placeholder="Uw intentie..."></textarea>
+        <div class="kaars-acties">
+          <button class="vinkje" title="Plaatsen">&#10003;</button>
+          <button class="kruisje" title="Wissen">&#10005;</button>
+        </div>
+      </form>
+    </div>
+    <!-- 8 -->
+    <div class="kaarsblok">
+      <svg class="vlam-vorm vlam-transparant" viewBox="0 0 40 45"><path d="M20 7 Q29 22 20 37 Q11 22 20 7 Z" /></svg>
+      <svg class="kaars-svg" viewBox="0 0 90 160">
+        <ellipse cx="45" cy="38" rx="32" ry="14" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
+        <rect x="13" y="38" width="64" height="85" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
+        <ellipse cx="45" cy="123" rx="32" ry="14" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
+        <ellipse cx="45" cy="38" rx="32" ry="14" fill="#f5e9b8" stroke="#ceb27d" stroke-width="3"/>
+        <rect x="41" y="15" width="8" height="16" fill="#8b6f43" rx="2"/>
+      </svg>
+      <form class="kaars-inhoud">
+        <input type="text" maxlength="30" placeholder="Voor wie...">
+        <select>
+          <option>Orthodox gelovige</option>
+          <option>Anders</option>
+        </select>
+        <textarea maxlength="160" placeholder="Uw intentie..."></textarea>
+        <div class="kaars-acties">
+          <button class="vinkje" title="Plaatsen">&#10003;</button>
+          <button class="kruisje" title="Wissen">&#10005;</button>
+        </div>
+      </form>
+    </div>
+    <!-- 9 -->
+    <div class="kaarsblok">
+      <svg class="vlam-vorm vlam-transparant" viewBox="0 0 40 45"><path d="M20 7 Q29 22 20 37 Q11 22 20 7 Z" /></svg>
+      <svg class="kaars-svg" viewBox="0 0 90 160">
+        <ellipse cx="45" cy="38" rx="32" ry="14" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
+        <rect x="13" y="38" width="64" height="85" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
+        <ellipse cx="45" cy="123" rx="32" ry="14" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
+        <ellipse cx="45" cy="38" rx="32" ry="14" fill="#f5e9b8" stroke="#ceb27d" stroke-width="3"/>
+        <rect x="41" y="15" width="8" height="16" fill="#8b6f43" rx="2"/>
+      </svg>
+      <form class="kaars-inhoud">
+        <input type="text" maxlength="30" placeholder="Voor wie...">
+        <select>
+          <option>Orthodox gelovige</option>
+          <option>Anders</option>
+        </select>
+        <textarea maxlength="160" placeholder="Uw intentie..."></textarea>
+        <div class="kaars-acties">
+          <button class="vinkje" title="Plaatsen">&#10003;</button>
+          <button class="kruisje" title="Wissen">&#10005;</button>
+        </div>
+      </form>
+    </div>
+    <!-- 10 -->
+    <div class="kaarsblok">
+      <svg class="vlam-vorm vlam-transparant" viewBox="0 0 40 45"><path d="M20 7 Q29 22 20 37 Q11 22 20 7 Z" /></svg>
+      <svg class="kaars-svg" viewBox="0 0 90 160">
+        <ellipse cx="45" cy="38" rx="32" ry="14" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
+        <rect x="13" y="38" width="64" height="85" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
+        <ellipse cx="45" cy="123" rx="32" ry="14" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
+        <ellipse cx="45" cy="38" rx="32" ry="14" fill="#f5e9b8" stroke="#ceb27d" stroke-width="3"/>
+        <rect x="41" y="15" width="8" height="16" fill="#8b6f43" rx="2"/>
+      </svg>
+      <form class="kaars-inhoud">
+        <input type="text" maxlength="30" placeholder="Voor wie...">
+        <select>
+          <option>Orthodox gelovige</option>
+          <option>Anders</option>
+        </select>
+        <textarea maxlength="160" placeholder="Uw intentie..."></textarea>
+        <div class="kaars-acties">
+          <button class="vinkje" title="Plaatsen">&#10003;</button>
+          <button class="kruisje" title="Wissen">&#10005;</button>
+        </div>
+      </form>
+    </div>
+    <!-- 11 -->
+    <div class="kaarsblok">
+      <svg class="vlam-vorm vlam-transparant" viewBox="0 0 40 45"><path d="M20 7 Q29 22 20 37 Q11 22 20 7 Z" /></svg>
+      <svg class="kaars-svg" viewBox="0 0 90 160">
+        <ellipse cx="45" cy="38" rx="32" ry="14" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
+        <rect x="13" y="38" width="64" height="85" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
+        <ellipse cx="45" cy="123" rx="32" ry="14" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
+        <ellipse cx="45" cy="38" rx="32" ry="14" fill="#f5e9b8" stroke="#ceb27d" stroke-width="3"/>
+        <rect x="41" y="15" width="8" height="16" fill="#8b6f43" rx="2"/>
+      </svg>
+      <form class="kaars-inhoud">
+        <input type="text" maxlength="30" placeholder="Voor wie...">
+        <select>
+          <option>Orthodox gelovige</option>
+          <option>Anders</option>
+        </select>
+        <textarea maxlength="160" placeholder="Uw intentie..."></textarea>
+        <div class="kaars-acties">
+          <button class="vinkje" title="Plaatsen">&#10003;</button>
+          <button class="kruisje" title="Wissen">&#10005;</button>
+        </div>
+      </form>
+    </div>
+    <!-- 12 -->
+    <div class="kaarsblok">
+      <svg class="vlam-vorm vlam-transparant" viewBox="0 0 40 45"><path d="M20 7 Q29 22 20 37 Q11 22 20 7 Z" /></svg>
+      <svg class="kaars-svg" viewBox="0 0 90 160">
+        <ellipse cx="45" cy="38" rx="32" ry="14" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
+        <rect x="13" y="38" width="64" height="85" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
+        <ellipse cx="45" cy="123" rx="32" ry="14" fill="#fffde9" stroke="#ceb27d" stroke-width="3"/>
+        <ellipse cx="45" cy="38" rx="32" ry="14" fill="#f5e9b8" stroke="#ceb27d" stroke-width="3"/>
+        <rect x="41" y="15" width="8" height="16" fill="#8b6f43" rx="2"/>
+      </svg>
+      <form class="kaars-inhoud">
+        <input type="text" maxlength="30" placeholder="Voor wie...">
+        <select>
+          <option>Orthodox gelovige</option>
+          <option>Anders</option>
+        </select>
+        <textarea maxlength="160" placeholder="Uw intentie..."></textarea>
+        <div class="kaars-acties">
+          <button class="vinkje" title="Plaatsen">&#10003;</button>
+          <button class="kruisje" title="Wissen">&#10005;</button>
+        </div>
       </form>
     </div>
   </div>
-  <script>
-    // Welkomsttekst + avatar
-    const welkomTekst = document.getElementById("welkom-tekst");
-    const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
-    const parochie = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
-    const uur = new Date().getHours();
-    let moment = "Goeiedag";
-    if (uur >= 5 && uur <= 10) moment = "Goeiemorgend";
-    else if (uur >= 11 && uur <= 13) moment = "Goeiemiddag";
-    else if (uur >= 17 && uur <= 22) moment = "Goeienavond";
-    else if (uur > 22 || uur < 5) moment = "Goedenacht";
-    welkomTekst.textContent = `Welkom, ${loginNaam}! U bent ingelogd in de ${parochie}.`;
-    const avatarImg = document.getElementById("menu-avatar-img");
-    const opgeslagenAvatar = localStorage.getItem("avatarURL");
-    if (opgeslagenAvatar) avatarImg.src = opgeslagenAvatar;
-    document.getElementById("uitlogKnop").onclick = () => {
-      localStorage.clear();
-      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
-    };
-  </script>
 </body>
 </html>
-
