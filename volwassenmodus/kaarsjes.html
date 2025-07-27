@@ -3,12 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Kaarsjes plaatsen</title>
+  <title>Kaarsjes plaatsen – Orthodoxeweg</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
     body { background-color: #f5e9b8; color: #6f4e1a; font-family: Arial, sans-serif; margin: 0; padding: 0; }
-
-    /* Topbar en menubalk zoals template */
     .topbar {
       background-color: #6f4e1a;
       color: white;
@@ -39,7 +37,8 @@
       justify-content: center;
       align-items: center;
     }
-    nav.menu a, nav.menu button {
+    nav.menu a,
+    nav.menu button {
       color: #f5e9b8;
       text-decoration: none;
       font-weight: 600;
@@ -77,141 +76,112 @@
       border: 2.2px solid #a06a19;
       box-shadow: 0 2px 8px rgba(160,140,80,0.23);
     }
-    @media (max-width: 650px) {
-      nav.menu { flex-wrap: wrap; gap: 8px;}
-      nav.menu a, nav.menu button { font-size: 1em; padding: 6px 6px;}
-      .menu-avatar img { height: 1.75em; width: 1.75em;}
-    }
-
-    /* KAARSJES OPMAAK */
-    .kaarsen-bak {
+    /* ====== KAARSEN OPSTELLING ====== */
+    .kaarsjes-bord {
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin: 50px 0 0 0;
-      gap: 36px;
+      margin-top: 46px;
+      gap: 22px;
+      min-height: 60vh;
     }
-    .kaars-rij {
+    .kaarsjes-rij {
       display: flex;
+      flex-direction: row;
       justify-content: center;
-      gap: 64px;
+      gap: 34px;
+      width: 100%;
     }
-    .kaars-wrapper {
+    /* ====== KAARS (SVG + TEKST) ====== */
+    .kaars-blok {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 145px; /* veel breder */
+      min-width: 145px;
+      max-width: 155px;
+      margin: 8px 0;
       position: relative;
-      width: 140px;  /* veel groter */
-      height: 240px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 6px;
-      /* licht speels: */
+      transition: box-shadow 0.16s;
     }
-    .kaars-rij:nth-child(1) .kaars-wrapper:nth-child(2) { transform: translateY(12px) rotate(-5deg);}
-    .kaars-rij:nth-child(2) .kaars-wrapper:nth-child(1) { transform: translateY(8px) rotate(4deg);}
-    .kaars-rij:nth-child(2) .kaars-wrapper:nth-child(3) { transform: translateY(-10px) rotate(-4deg);}
-    .kaars-rij:nth-child(3) .kaars-wrapper:nth-child(2) { transform: translateY(9px) rotate(6deg);}
-    .kaars-rij:nth-child(4) .kaars-wrapper:nth-child(1) { transform: translateY(4px) rotate(-6deg);}
-    .kaars-rij:nth-child(4) .kaars-wrapper:nth-child(2) { transform: translateY(-5px) rotate(4deg);}
-    /* SVG-kaars stijl */
     .kaars-svg {
-      width: 128px;
-      height: 220px;
+      width: 120px; height: 180px;
       display: block;
-      z-index: 1;
+      margin: 0 auto;
     }
-    .vlam-svg {
-      position: absolute;
-      left: 50%; top: 10px;
-      transform: translateX(-50%);
-      width: 34px;
-      height: 48px;
-      z-index: 3;
-      pointer-events: none;
+    .kaars-vlam {
+      stroke: #ffd800;
+      stroke-width: 2;
+      fill: transparent;
+      transition: fill 0.25s;
     }
-    .kaars-tekstvak {
+    .kaars-vlam.aan {
+      fill: #fffde0;
+      stroke: #ffd800;
+    }
+    .kaars-vlam.beantwoord {
+      fill: #ffb300;
+      stroke: #c74d00;
+    }
+    .kaars-tekstveld {
       position: absolute;
-      top: 62px; left: 26px; width: 86px; height: 74px;
+      top: 66px;
+      left: 12px;
+      width: 96px;
+      height: 70px;
+      background: none;
       border: none;
-      background: transparent;
       resize: none;
-      font-family: 'Arial Rounded MT Bold', Arial, sans-serif;
-      font-size: 1.25em;
-      color: #55440b;
+      color: #5a471c;
+      font-size: 1em;
+      font-family: inherit;
       text-align: center;
-      vertical-align: middle;
       outline: none;
-      z-index: 2;
+      overflow-y: auto;
+      z-index: 3;
+      font-weight: 500;
       padding: 0;
-      box-sizing: border-box;
-      overflow: hidden;
+    }
+    .kaars-tekstveld:focus {
+      background: #fff9e7a0;
+      border-radius: 9px;
+    }
+    .kaars-acties {
+      margin-top: 6px;
       display: flex;
-      align-items: center;
+      flex-direction: row;
+      gap: 16px;
       justify-content: center;
+      width: 100%;
     }
     .kaars-icoon {
-      position: absolute;
-      bottom: 22px; right: 24px;
-      z-index: 4;
-      font-size: 1.48em;
-      cursor: pointer;
-      opacity: 0.8;
-      background: #fff8;
-      border-radius: 12px;
-      padding: 2px 10px;
-      margin-left: 7px;
-      transition: background 0.16s, opacity 0.15s;
+      font-size: 1.33em;
+      background: none;
       border: none;
+      cursor: pointer;
+      padding: 3px 5px;
+      border-radius: 6px;
+      transition: background 0.16s;
     }
-    .kaars-icoon.kruis { right: 62px; color: #b13a25;}
-    .kaars-icoon.vink { color: #448b2a;}
-    .kaars-icoon:hover { background: #f6eec7; opacity: 1;}
-
-    @media (max-width: 1100px) {
-      .kaarsen-bak { gap: 18px;}
-      .kaars-rij { gap: 14px;}
-      .kaars-wrapper { width: 86px; height: 148px;}
-      .kaars-svg { width: 78px; height: 136px;}
-      .vlam-svg { width: 21px; height: 28px;}
-      .kaars-tekstvak { width: 48px; height: 38px; left: 16px; top: 40px; font-size: 1.01em;}
+    .kaars-icoon:hover {
+      background: #eedcc580;
     }
-    @media (max-width: 700px) {
-      .kaarsen-bak { gap: 7px;}
-      .kaars-rij { gap: 3px;}
-      .kaars-wrapper { width: 55px; height: 92px;}
-      .kaars-svg { width: 52px; height: 82px;}
-      .vlam-svg { width: 12px; height: 14px;}
-      .kaars-tekstvak { width: 23px; height: 17px; left: 7px; top: 16px; font-size: 0.78em;}
+    @media (max-width: 900px){
+      .kaarsjes-rij { gap:14px;}
+      .kaars-blok { width:105px; min-width:100px; }
+      .kaars-svg { width:85px; height:125px;}
+      .kaars-tekstveld { width:60px; left:6px; }
     }
   </style>
-  <!-- ==== FIREBASE ==== -->
+  <!-- FIREBASE -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
-  <script>
-    // ==== VOLWASSENENBESCHERMING ====
-    if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "volwassene") {
-      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
-    }
-    // ==== FIREBASE CONFIGURATIE ====
-    const firebaseConfig = {
-      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
-      authDomain: "orthodoxeweg.firebaseapp.com",
-      projectId: "orthodoxeweg",
-      storageBucket: "orthodoxeweg.appspot.com",
-      messagingSenderId: "408582263618",
-      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb",
-      measurementId: "G-C942F2NYQV"
-    };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-  </script>
 </head>
 <body>
-  <!-- ==== TOPBAR + BEGROETING ==== -->
   <div class="topbar">
     <div id="welkom-tekst"></div>
     <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
   </div>
-  <!-- ==== MENUBALK ==== -->
   <nav class="menu">
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html" title="Home">🏠</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
@@ -222,118 +192,207 @@
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/heiligen.html">👼 Heiligen</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/bijbeldagboek.html">📔 Bijbeldagboek</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/verjaardagskalender.html">🎂 Verjaardagskalender</a>
-    <!-- Avatar-profiel -->
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html" class="menu-avatar" title="Mijn profiel">
       <img id="menu-avatar-img" src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png" alt="Mijn profiel">
     </a>
   </nav>
-
-  <div class="kaarsen-bak">
-    <!-- 4 rijen van 3 grote kaarsen, elk met vlammetje erboven en tekstvak -->
-    <!-- Rijen dynamisch gegenereerd voor overzicht -->
-    <script>
-      // Dynamisch genereren zodat het makkelijker aanpasbaar blijft
-      document.write('<div class="kaars-rij">');
-      for(let i=0;i<3;i++){
-        document.write(`
-          <div class="kaars-wrapper">
-            <svg class="vlam-svg" viewBox="0 0 24 34">
-              <path d="M12 3 Q14 10, 12 22 Q10 10, 12 3"
-                stroke="#ffe564" stroke-width="2.3" fill="none"/>
-            </svg>
-            <svg class="kaars-svg" viewBox="0 0 80 220">
-              <ellipse cx="40" cy="209" rx="36" ry="10" fill="#ede2c8"/>
-              <rect x="12" y="33" width="56" height="176" rx="18" fill="#fff9de" stroke="#ecd8a9" stroke-width="2.8"/>
-              <ellipse cx="40" cy="33" rx="28" ry="18" fill="#fff9de" stroke="#ecd8a9" stroke-width="2.8"/>
-            </svg>
-            <textarea class="kaars-tekstvak" maxlength="44" placeholder="Intentie..."></textarea>
-            <button class="kaars-icoon kruis" title="Verwijderen">✖️</button>
-            <button class="kaars-icoon vink" title="Plaatsen">✅</button>
-          </div>`);
-      }
-      document.write('</div>');
-      document.write('<div class="kaars-rij">');
-      for(let i=0;i<3;i++){
-        document.write(`
-          <div class="kaars-wrapper">
-            <svg class="vlam-svg" viewBox="0 0 24 34">
-              <path d="M12 3 Q14 10, 12 22 Q10 10, 12 3"
-                stroke="#ffe564" stroke-width="2.3" fill="none"/>
-            </svg>
-            <svg class="kaars-svg" viewBox="0 0 80 220">
-              <ellipse cx="40" cy="209" rx="36" ry="10" fill="#ede2c8"/>
-              <rect x="12" y="33" width="56" height="176" rx="18" fill="#fff9de" stroke="#ecd8a9" stroke-width="2.8"/>
-              <ellipse cx="40" cy="33" rx="28" ry="18" fill="#fff9de" stroke="#ecd8a9" stroke-width="2.8"/>
-            </svg>
-            <textarea class="kaars-tekstvak" maxlength="44" placeholder="Intentie..."></textarea>
-            <button class="kaars-icoon kruis" title="Verwijderen">✖️</button>
-            <button class="kaars-icoon vink" title="Plaatsen">✅</button>
-          </div>`);
-      }
-      document.write('</div>');
-      document.write('<div class="kaars-rij">');
-      for(let i=0;i<3;i++){
-        document.write(`
-          <div class="kaars-wrapper">
-            <svg class="vlam-svg" viewBox="0 0 24 34">
-              <path d="M12 3 Q14 10, 12 22 Q10 10, 12 3"
-                stroke="#ffe564" stroke-width="2.3" fill="none"/>
-            </svg>
-            <svg class="kaars-svg" viewBox="0 0 80 220">
-              <ellipse cx="40" cy="209" rx="36" ry="10" fill="#ede2c8"/>
-              <rect x="12" y="33" width="56" height="176" rx="18" fill="#fff9de" stroke="#ecd8a9" stroke-width="2.8"/>
-              <ellipse cx="40" cy="33" rx="28" ry="18" fill="#fff9de" stroke="#ecd8a9" stroke-width="2.8"/>
-            </svg>
-            <textarea class="kaars-tekstvak" maxlength="44" placeholder="Intentie..."></textarea>
-            <button class="kaars-icoon kruis" title="Verwijderen">✖️</button>
-            <button class="kaars-icoon vink" title="Plaatsen">✅</button>
-          </div>`);
-      }
-      document.write('</div>');
-      document.write('<div class="kaars-rij">');
-      for(let i=0;i<3;i++){
-        document.write(`
-          <div class="kaars-wrapper">
-            <svg class="vlam-svg" viewBox="0 0 24 34">
-              <path d="M12 3 Q14 10, 12 22 Q10 10, 12 3"
-                stroke="#ffe564" stroke-width="2.3" fill="none"/>
-            </svg>
-            <svg class="kaars-svg" viewBox="0 0 80 220">
-              <ellipse cx="40" cy="209" rx="36" ry="10" fill="#ede2c8"/>
-              <rect x="12" y="33" width="56" height="176" rx="18" fill="#fff9de" stroke="#ecd8a9" stroke-width="2.8"/>
-              <ellipse cx="40" cy="33" rx="28" ry="18" fill="#fff9de" stroke="#ecd8a9" stroke-width="2.8"/>
-            </svg>
-            <textarea class="kaars-tekstvak" maxlength="44" placeholder="Intentie..."></textarea>
-            <button class="kaars-icoon kruis" title="Verwijderen">✖️</button>
-            <button class="kaars-icoon vink" title="Plaatsen">✅</button>
-          </div>`);
-      }
-      document.write('</div>');
-    </script>
+  <!-- ====== KAARSEN GEBEDSBORD ====== -->
+  <div class="kaarsjes-bord">
+    <div class="kaarsjes-rij">
+      <div class="kaars-blok"><!-- KAARS 1 -->
+        <svg class="kaars-svg" viewBox="0 0 120 180">
+          <!-- Cilinder -->
+          <ellipse cx="60" cy="60" rx="48" ry="22" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <rect x="12" y="60" width="96" height="85" rx="22" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <ellipse cx="60" cy="145" rx="48" ry="20" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <!-- Vlam -->
+          <ellipse class="kaars-vlam" cx="60" cy="37" rx="12" ry="22"/>
+        </svg>
+        <textarea class="kaars-tekstveld" maxlength="80" placeholder="Intentie..."></textarea>
+        <div class="kaars-acties">
+          <button class="kaars-icoon kruis" title="Verwijderen">✖️</button>
+          <button class="kaars-icoon vink" title="Plaatsen">✅</button>
+        </div>
+      </div>
+      <!-- herhaal (copy-paste) voor 3 kaarsen per rij -->
+      <div class="kaars-blok">
+        <svg class="kaars-svg" viewBox="0 0 120 180">
+          <ellipse cx="60" cy="60" rx="48" ry="22" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <rect x="12" y="60" width="96" height="85" rx="22" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <ellipse cx="60" cy="145" rx="48" ry="20" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <ellipse class="kaars-vlam" cx="60" cy="37" rx="12" ry="22"/>
+        </svg>
+        <textarea class="kaars-tekstveld" maxlength="80" placeholder="Intentie..."></textarea>
+        <div class="kaars-acties">
+          <button class="kaars-icoon kruis" title="Verwijderen">✖️</button>
+          <button class="kaars-icoon vink" title="Plaatsen">✅</button>
+        </div>
+      </div>
+      <div class="kaars-blok">
+        <svg class="kaars-svg" viewBox="0 0 120 180">
+          <ellipse cx="60" cy="60" rx="48" ry="22" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <rect x="12" y="60" width="96" height="85" rx="22" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <ellipse cx="60" cy="145" rx="48" ry="20" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <ellipse class="kaars-vlam" cx="60" cy="37" rx="12" ry="22"/>
+        </svg>
+        <textarea class="kaars-tekstveld" maxlength="80" placeholder="Intentie..."></textarea>
+        <div class="kaars-acties">
+          <button class="kaars-icoon kruis" title="Verwijderen">✖️</button>
+          <button class="kaars-icoon vink" title="Plaatsen">✅</button>
+        </div>
+      </div>
+    </div>
+    <div class="kaarsjes-rij">
+      <!-- Rijen 2, 3, 4 (zelfde als boven, evt. iets verschoven met 'margin-top') -->
+      <!-- ... herhaal bovenstaande blok nog 9 keer voor totaal 12 kaarsen ... -->
+      <!-- Hieronder enkel de markup, geen inline logica nog (komt volgende stap!) -->
+      <div class="kaars-blok">
+        <svg class="kaars-svg" viewBox="0 0 120 180">
+          <ellipse cx="60" cy="60" rx="48" ry="22" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <rect x="12" y="60" width="96" height="85" rx="22" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <ellipse cx="60" cy="145" rx="48" ry="20" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <ellipse class="kaars-vlam" cx="60" cy="37" rx="12" ry="22"/>
+        </svg>
+        <textarea class="kaars-tekstveld" maxlength="80" placeholder="Intentie..."></textarea>
+        <div class="kaars-acties">
+          <button class="kaars-icoon kruis" title="Verwijderen">✖️</button>
+          <button class="kaars-icoon vink" title="Plaatsen">✅</button>
+        </div>
+      </div>
+      <div class="kaars-blok">
+        <svg class="kaars-svg" viewBox="0 0 120 180">
+          <ellipse cx="60" cy="60" rx="48" ry="22" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <rect x="12" y="60" width="96" height="85" rx="22" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <ellipse cx="60" cy="145" rx="48" ry="20" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <ellipse class="kaars-vlam" cx="60" cy="37" rx="12" ry="22"/>
+        </svg>
+        <textarea class="kaars-tekstveld" maxlength="80" placeholder="Intentie..."></textarea>
+        <div class="kaars-acties">
+          <button class="kaars-icoon kruis" title="Verwijderen">✖️</button>
+          <button class="kaars-icoon vink" title="Plaatsen">✅</button>
+        </div>
+      </div>
+      <div class="kaars-blok">
+        <svg class="kaars-svg" viewBox="0 0 120 180">
+          <ellipse cx="60" cy="60" rx="48" ry="22" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <rect x="12" y="60" width="96" height="85" rx="22" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <ellipse cx="60" cy="145" rx="48" ry="20" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <ellipse class="kaars-vlam" cx="60" cy="37" rx="12" ry="22"/>
+        </svg>
+        <textarea class="kaars-tekstveld" maxlength="80" placeholder="Intentie..."></textarea>
+        <div class="kaars-acties">
+          <button class="kaars-icoon kruis" title="Verwijderen">✖️</button>
+          <button class="kaars-icoon vink" title="Plaatsen">✅</button>
+        </div>
+      </div>
+    </div>
+    <!-- ... Nog 2 rijen, zelfde blok voor totaal 12 kaarsen ... -->
+    <div class="kaarsjes-rij">
+      <div class="kaars-blok">
+        <svg class="kaars-svg" viewBox="0 0 120 180">
+          <ellipse cx="60" cy="60" rx="48" ry="22" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <rect x="12" y="60" width="96" height="85" rx="22" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <ellipse cx="60" cy="145" rx="48" ry="20" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <ellipse class="kaars-vlam" cx="60" cy="37" rx="12" ry="22"/>
+        </svg>
+        <textarea class="kaars-tekstveld" maxlength="80" placeholder="Intentie..."></textarea>
+        <div class="kaars-acties">
+          <button class="kaars-icoon kruis" title="Verwijderen">✖️</button>
+          <button class="kaars-icoon vink" title="Plaatsen">✅</button>
+        </div>
+      </div>
+      <div class="kaars-blok">
+        <svg class="kaars-svg" viewBox="0 0 120 180">
+          <ellipse cx="60" cy="60" rx="48" ry="22" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <rect x="12" y="60" width="96" height="85" rx="22" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <ellipse cx="60" cy="145" rx="48" ry="20" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <ellipse class="kaars-vlam" cx="60" cy="37" rx="12" ry="22"/>
+        </svg>
+        <textarea class="kaars-tekstveld" maxlength="80" placeholder="Intentie..."></textarea>
+        <div class="kaars-acties">
+          <button class="kaars-icoon kruis" title="Verwijderen">✖️</button>
+          <button class="kaars-icoon vink" title="Plaatsen">✅</button>
+        </div>
+      </div>
+      <div class="kaars-blok">
+        <svg class="kaars-svg" viewBox="0 0 120 180">
+          <ellipse cx="60" cy="60" rx="48" ry="22" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <rect x="12" y="60" width="96" height="85" rx="22" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <ellipse cx="60" cy="145" rx="48" ry="20" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <ellipse class="kaars-vlam" cx="60" cy="37" rx="12" ry="22"/>
+        </svg>
+        <textarea class="kaars-tekstveld" maxlength="80" placeholder="Intentie..."></textarea>
+        <div class="kaars-acties">
+          <button class="kaars-icoon kruis" title="Verwijderen">✖️</button>
+          <button class="kaars-icoon vink" title="Plaatsen">✅</button>
+        </div>
+      </div>
+    </div>
+    <div class="kaarsjes-rij">
+      <div class="kaars-blok">
+        <svg class="kaars-svg" viewBox="0 0 120 180">
+          <ellipse cx="60" cy="60" rx="48" ry="22" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <rect x="12" y="60" width="96" height="85" rx="22" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <ellipse cx="60" cy="145" rx="48" ry="20" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <ellipse class="kaars-vlam" cx="60" cy="37" rx="12" ry="22"/>
+        </svg>
+        <textarea class="kaars-tekstveld" maxlength="80" placeholder="Intentie..."></textarea>
+        <div class="kaars-acties">
+          <button class="kaars-icoon kruis" title="Verwijderen">✖️</button>
+          <button class="kaars-icoon vink" title="Plaatsen">✅</button>
+        </div>
+      </div>
+      <div class="kaars-blok">
+        <svg class="kaars-svg" viewBox="0 0 120 180">
+          <ellipse cx="60" cy="60" rx="48" ry="22" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <rect x="12" y="60" width="96" height="85" rx="22" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <ellipse cx="60" cy="145" rx="48" ry="20" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <ellipse class="kaars-vlam" cx="60" cy="37" rx="12" ry="22"/>
+        </svg>
+        <textarea class="kaars-tekstveld" maxlength="80" placeholder="Intentie..."></textarea>
+        <div class="kaars-acties">
+          <button class="kaars-icoon kruis" title="Verwijderen">✖️</button>
+          <button class="kaars-icoon vink" title="Plaatsen">✅</button>
+        </div>
+      </div>
+      <div class="kaars-blok">
+        <svg class="kaars-svg" viewBox="0 0 120 180">
+          <ellipse cx="60" cy="60" rx="48" ry="22" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <rect x="12" y="60" width="96" height="85" rx="22" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <ellipse cx="60" cy="145" rx="48" ry="20" fill="#fffbe5" stroke="#eeddaa" stroke-width="4"/>
+          <ellipse class="kaars-vlam" cx="60" cy="37" rx="12" ry="22"/>
+        </svg>
+        <textarea class="kaars-tekstveld" maxlength="80" placeholder="Intentie..."></textarea>
+        <div class="kaars-acties">
+          <button class="kaars-icoon kruis" title="Verwijderen">✖️</button>
+          <button class="kaars-icoon vink" title="Plaatsen">✅</button>
+        </div>
+      </div>
+    </div>
   </div>
-
   <script>
-    // Welkomsttekst + avatar uit standaard template
+    // BEGROETING & AVATAR
     const welkomTekst = document.getElementById("welkom-tekst");
     const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
     const parochie = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
-    const uur = new Date().getHours();
-    let moment = "Goeiedag";
-    if (uur >= 5 && uur <= 10) moment = "Goeiemorgend";
-    else if (uur >= 11 && uur <= 13) moment = "Goeiemiddag";
-    else if (uur >= 17 && uur <= 22) moment = "Goeienavond";
-    else if (uur > 22 || uur < 5) moment = "Goedenacht";
     welkomTekst.textContent = `Welkom, ${loginNaam}! U bent ingelogd in de ${parochie}.`;
-
-    // Avatar dynamisch tonen
     const avatarImg = document.getElementById("menu-avatar-img");
-    const opgeslagenAvatar = localStorage.getItem("avatarURL");
-    if (opgeslagenAvatar) avatarImg.src = opgeslagenAvatar;
-
+    if (avatarImg && localStorage.getItem("avatarURL")) avatarImg.src = localStorage.getItem("avatarURL");
     document.getElementById("uitlogKnop").onclick = () => {
       localStorage.clear();
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     };
+    // LOGICA: vlammen aan/uit afhankelijk van tekstveld (simpel voorbeeld)
+    document.querySelectorAll('.kaars-blok').forEach((blok, idx) => {
+      const veld = blok.querySelector('.kaars-tekstveld');
+      const vlam = blok.querySelector('.kaars-vlam');
+      veld.addEventListener('input', () => {
+        if (veld.value.trim().length > 0) vlam.classList.add('aan');
+        else vlam.classList.remove('aan');
+      });
+      blok.querySelector('.kruis').onclick = () => veld.value = '', vlam.classList.remove('aan');
+      // Je Firebase logica kan hier verder toegevoegd worden
+    });
   </script>
 </body>
 </html>
