@@ -139,29 +139,60 @@
       user-select: none;
       opacity: 0.96;
     }
-    /* ---- PRIKBORD KNIPSELS STIJL ---- */
-    .prikbord-knipsel {
-      width: 90px;
-      height: 62px;
-      background: #fcfbf9;
-      border-radius: 8px 8px 18px 18px;
-      border: 1.3px solid #b4a89a;
-      box-shadow: 1.5px 3.5px 10px #bba99a66, 0 1px 0 #e5dccb;
-      font-family: Georgia, 'Times New Roman', serif;
-      font-size: 0.95em;
-      color: #342819;
+    /* --- Krantenknipsel stijl voor zoekertjesbord --- */
+    .krantenknipsel {
+      width: 105px;
+      min-height: 65px;
+      background:
+        repeating-linear-gradient(135deg, #f5f3ed, #eceae3 25px, #f7f5ef 40px),
+        #fcfbf9;
+      border-radius: 8px 8px 23px 23px;
+      box-shadow: 0 2px 10px #cec8b04c, 0 0.7px 0 #a59d8d;
+      border: 1.7px solid #beb7a8;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: flex-start;
+      padding: 9px 10px 21px 12px;
       position: absolute;
-      padding: 8px 6px 10px 9px;
-      box-sizing: border-box;
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 0.93em;
       overflow: hidden;
-      text-overflow: ellipsis;
-      cursor: pointer;
-      user-select: none;
-      opacity: 0.96;
-      transition: transform 0.15s;
       z-index: 1;
     }
-    .prikbord-knipsel:hover { transform: scale(1.06) rotate(-1deg);}
+    .krantenknipsel .titel {
+      font-size: 1em;
+      font-weight: bold;
+      color: #39311d;
+      margin-bottom: 4px;
+      letter-spacing: 0.2px;
+      font-family: inherit;
+      text-shadow: 0 1.2px 0 #e4dfd7;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 85px;
+    }
+    .krantenknipsel .tekst {
+      font-size: 0.98em;
+      color: #3b2c1a;
+      line-height: 1.21;
+      max-width: 90px;
+      overflow: hidden;
+      white-space: normal;
+      font-family: inherit;
+    }
+    .krantenknipsel::after {
+      content: "";
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      height: 19px;
+      pointer-events: none;
+      background: url('data:image/svg+xml;utf8,<svg width="100%" height="19" viewBox="0 0 120 19" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0 9 Q 3 19 10 9 Q 17 0 24 9 Q 31 19 38 9 Q 45 0 52 9 Q 59 19 66 9 Q 73 0 80 9 Q 87 19 94 9 Q 101 0 110 9 Q 115 13 120 9 V19 H0 V9Z" fill="%23eceae3" /></svg>');
+      background-size: 100% 19px;
+      background-repeat: no-repeat;
+      z-index: 2;
+    }
     .bijbel-link {
       display: block;
       text-align: center;
@@ -212,7 +243,7 @@
       </a>
       <a href="zoekertjes.html" class="bord-blok">
         <div class="bord-titel">Zoekertjes</div>
-        <div class="prikbord-knipsels" id="prikbordKnipsels"></div>
+        <div class="postit-container" id="postitsRechts"></div>
       </a>
     </div>
     <a href="kaarsjes.html" class="zandtafel-blok">
@@ -265,63 +296,42 @@
     // Parochie ID gebruiken (uit storage)
     const actieveParochie = localStorage.getItem("ingelogdeParochieId");
 
-    // Mapping voor prikbord-krantknipsels: index → positie
+    // Mapping voor postits: index → kleur & positie
+    const postitMapping = [
+      { kleur: "#fff86b", top: "11%", left: "12%" },  // geel
+      { kleur: "#a6e3ff", top: "10%", left: "43%" },  // blauw
+      { kleur: "#e39aff", top: "10%", left: "74%" },  // roos
+      { kleur: "#c1ff8e", top: "40%", left: "12%" },  // groen
+      { kleur: "#ffc39a", top: "39%", left: "43%" },  // oranje (zalm)
+      { kleur: "#bba5ff", top: "39%", left: "74%" },  // paars
+      { kleur: "#ffa49a", top: "69%", left: "12%" },  // rood
+      { kleur: "#d0ffcc", top: "68%", left: "43%" },  // groen (licht)
+      { kleur: "#ffe2ae", top: "68%", left: "74%" }   // licht oranje
+    ];
+    // Mapping voor zoekertjesbord (vaste posities als de postits)
     const knipselMapping = [
-      {top:"7%", left:"14%"},
-      {top:"8%", left:"54%"},
-      {top:"14%", left:"76%"},
-      {top:"37%", left:"10%"},
-      {top:"34%", left:"43%"},
-      {top:"33%", left:"75%"},
-      {top:"65%", left:"16%"},
-      {top:"65%", left:"46%"},
-      {top:"65%", left:"76%"}
+      { top: "11%", left: "12%" },
+      { top: "10%", left: "43%" },
+      { top: "10%", left: "74%" },
+      { top: "40%", left: "12%" },
+      { top: "39%", left: "43%" },
+      { top: "39%", left: "74%" },
+      { top: "69%", left: "12%" },
+      { top: "68%", left: "43%" },
+      { top: "68%", left: "74%" }
     ];
 
-    // Laad zoekertjes en plaats als krantenknipsels op het prikbord
-    function laadKnipselsPrikbord() {
-      if (!actieveParochie) return;
-      const container = document.getElementById("prikbordKnipsels");
-      container.innerHTML = ""; // Leegmaken
-
-      for (let i = 0; i < 9; i++) {
-        let ref = db.collection("parochies")
-          .doc(actieveParochie)
-          .collection("zoekertjes")
-          .doc("krant"+i);
-
-        ref.get().then(doc => {
-          if (doc.exists) {
-            let titel = doc.data().titel || "";
-            let tekst = doc.data().tekst || "";
-            let preview = titel || tekst.split(/\s+/).slice(0,6).join(" ");
-            if (preview.length > 40) preview = preview.substring(0,40) + "…";
-            const knipsel = document.createElement("div");
-            knipsel.className = "prikbord-knipsel";
-            knipsel.style.top = knipselMapping[i].top;
-            knipsel.style.left = knipselMapping[i].left;
-            knipsel.textContent = preview;
-            container.appendChild(knipsel);
-          }
-        });
-      }
-    }
-
-    // Laad de postits van de priester (ongewijzigd)
+    // Laad postits (priesterbord)
     function laadPostitsPrikbord() {
       if (!actieveParochie) return;
       const container = document.getElementById("postitsLinks");
-      container.innerHTML = ""; // Leegmaken eerst
-
-      // Voor alle 9 postits
+      container.innerHTML = "";
       let promises = [];
       for (let i = 0; i < 9; i++) {
         let ref = db.collection("parochies")
           .doc(actieveParochie)
           .collection("prikbord_priester")
           .doc("postit" + i);
-
-        // Async ophalen, alles verzamelen als promises
         promises.push(ref.get().then(doc => {
           if (doc.exists) {
             const tekst = doc.data().tekst || "";
@@ -331,21 +341,51 @@
             // Maak postit aan
             const postit = document.createElement("div");
             postit.className = "postit";
-            postit.style.backgroundColor = "#fff86b";
-            postit.style.top = "11%";
-            postit.style.left = "12%";
+            postit.style.backgroundColor = postitMapping[i].kleur;
+            postit.style.top = postitMapping[i].top;
+            postit.style.left = postitMapping[i].left;
             postit.textContent = preview;
             container.appendChild(postit);
           }
         }));
       }
-      // Wachten tot alles klaar is (optioneel voor later)
       Promise.all(promises).catch(console.error);
     }
 
-    document.addEventListener("DOMContentLoaded", function() {
-      laadKnipselsPrikbord();
+    // Laad krantenknipsels (zoekertjesbord)
+    function laadKnipselsPrikbord() {
+      if (!actieveParochie) return;
+      const container = document.getElementById("postitsRechts");
+      container.innerHTML = "";
+      let promises = [];
+      for (let i = 0; i < 9; i++) {
+        let ref = db.collection("parochies")
+          .doc(actieveParochie)
+          .collection("zoekertjes_prikbord")
+          .doc("knipsel" + i);
+        promises.push(ref.get().then(doc => {
+          if (doc.exists) {
+            const data = doc.data();
+            const titel = (data.titel || "").slice(0, 22);
+            const tekst = (data.tekst || "").split(/\s+/).slice(0, 8).join(" ") + (data.tekst && data.tekst.split(/\s+/).length > 8 ? "…" : "");
+            // Maak knipsel aan
+            const knipsel = document.createElement("div");
+            knipsel.className = "krantenknipsel";
+            knipsel.style.top = knipselMapping[i].top;
+            knipsel.style.left = knipselMapping[i].left;
+            knipsel.innerHTML =
+              `<div class="titel">${titel}</div>
+               <div class="tekst">${tekst}</div>`;
+            container.appendChild(knipsel);
+          }
+        }));
+      }
+      Promise.all(promises).catch(console.error);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
       laadPostitsPrikbord();
+      laadKnipselsPrikbord();
     });
   </script>
   <!-- === SCRIPT: EINDE === -->
