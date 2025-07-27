@@ -3,10 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Mijn Parochie – Overzicht</title>
+  <title>Orthodoxeweg – Volwassenmodus</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
+    /* ==== ALGEMEEN: BEGIN ==== */
     body { background-color: #f5e9b8; color: #6f4e1a; font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    /* ==== ALGEMEEN: EINDE ==== */
+
+    /* ==== TOPBAR + BEGROETING: BEGIN ==== */
     .topbar {
       background-color: #6f4e1a;
       color: white;
@@ -31,6 +35,9 @@
       font-weight: bold;
       margin-left: 12px;
     }
+    /* ==== TOPBAR + BEGROETING: EINDE ==== */
+
+    /* ==== MENUBALK: BEGIN ==== */
     nav.menu {
       background-color: #7a5f35;
       padding: 10px 15px;
@@ -40,7 +47,8 @@
       justify-content: center;
       align-items: center;
     }
-    nav.menu a, nav.menu button {
+    nav.menu a,
+    nav.menu button {
       color: #f5e9b8;
       text-decoration: none;
       font-weight: 600;
@@ -78,180 +86,44 @@
       border: 2.2px solid #a06a19;
       box-shadow: 0 2px 8px rgba(160,140,80,0.23);
     }
-    /* Bordenraster en prikbordstijl */
-    .borden-raster {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 40px 20px;
-      gap: 30px;
+    @media (max-width: 650px) {
+      nav.menu { flex-wrap: wrap; gap: 8px;}
+      nav.menu a, nav.menu button { font-size: 1em; padding: 6px 6px;}
+      .menu-avatar img { height: 1.75em; width: 1.75em;}
     }
-    .bovenste-rij {
-      display: flex;
-      justify-content: center;
-      gap: 40px;
-      flex-wrap: wrap;
-    }
-    .bord-blok {
-      width: 440px;
-      height: 280px;
-      border: 18px solid #8a663c;
-      border-radius: 18px;
-      box-shadow: 0 6px 16px #00000033;
-      position: relative;
-      display: block;
-      text-decoration: none;
-      overflow: hidden;
-      background: #e2f8d4;
-    }
-    .bord-blok:first-child { background: #dceeff; }
-    .bord-titel {
-      position: absolute;
-      top: -34px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #8a663c;
-      color: #fff;
-      padding: 6px 18px;
-      font-weight: bold;
-      font-size: 1.1em;
-      border-radius: 10px 10px 0 0;
-      box-shadow: 0 2px 6px #0004;
-    }
-    .zandtafel-blok {
-      width: 360px;
-      height: 360px;
-      border-radius: 50%;
-      overflow: hidden;
-      background: radial-gradient(circle, #e9dfc2, #cbb88e);
-      border: 10px solid #8c7344;
-      box-shadow: 0 0 16px #0004;
-      position: relative;
-    }
-    .postit-container, .kaarsjes-op-tafel {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      pointer-events: none;
-    }
-    .postit {
-      width: 60px;
-      height: 60px;
-      border-radius: 6px;
-      box-shadow: 2px 3px 8px #0002;
-      position: absolute;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #222;
-      font-size: 0.96em;
-      font-weight: bold;
-      text-align: center;
-      padding: 7px;
-      overflow: hidden;
-      word-break: break-word;
-      user-select: none;
-      opacity: 0.96;
-    }
-    .bijbel-link {
-      display: block;
-      text-align: center;
-      margin: 50px auto;
-    }
-    .bijbel-link img {
-      width: 160px;
-      border-radius: 12px;
-      border: 2px solid #d2ba86;
-      box-shadow: 0 4px 12px #cbb77750;
-    }
+    /* ==== MENUBALK: EINDE ==== */
   </style>
-  <!-- FIREBASE -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <!-- ==== FIREBASE ==== -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <script>
-    // Bescherming volwassenmodus
+    // ==== VOLWASSENENBESCHERMING ====
     if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "volwassene") {
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     }
-    // Welkomsttekst & avatar
-    const welkomTekst = document.getElementById("welkom-tekst");
-    const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
-    const uur = new Date().getHours();
-    let moment = "Goeiedag";
-    if (uur >= 5 && uur <= 10) moment = "Goeiemorgend";
-    else if (uur >= 11 && uur <= 13) moment = "Goeiemiddag";
-    else if (uur >= 17 && uur <= 22) moment = "Goeienavond";
-    else if (uur > 22 || uur < 5) moment = "Goedenacht";
-    const parochie = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
-    welkomTekst.textContent = `${moment}, ${loginNaam} — u bent ingelogd in de ${parochie}`;
-    // Avatar
-    const avatarImg = document.getElementById("menu-avatar-img");
-    const opgeslagenAvatar = localStorage.getItem("avatarURL");
-    if (opgeslagenAvatar) avatarImg.src = opgeslagenAvatar;
-    document.getElementById("uitlogKnop").onclick = () => {
-      localStorage.clear();
-      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
-    };
-    // Firebase init
+    // ==== FIREBASE CONFIGURATIE ====
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain: "orthodoxeweg.firebaseapp.com",
       projectId: "orthodoxeweg",
       storageBucket: "orthodoxeweg.appspot.com",
       messagingSenderId: "408582263618",
-      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb",
+      measurementId: "G-C942F2NYQV"
     };
-    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const actieveParochie = localStorage.getItem("ingelogdeParochieId");
-    const postitMapping = [
-      { kleur: "#fff86b", top: "11%", left: "12%" },  // geel
-      { kleur: "#a6e3ff", top: "10%", left: "43%" },  // blauw
-      { kleur: "#e39aff", top: "10%", left: "74%" },  // roos
-      { kleur: "#c1ff8e", top: "40%", left: "12%" },  // groen
-      { kleur: "#ffc39a", top: "39%", left: "43%" },  // oranje (zalm)
-      { kleur: "#bba5ff", top: "39%", left: "74%" },  // paars
-      { kleur: "#ffa49a", top: "69%", left: "12%" },  // rood
-      { kleur: "#d0ffcc", top: "68%", left: "43%" },  // groen (licht)
-      { kleur: "#ffe2ae", top: "68%", left: "74%" }   // licht oranje
-    ];
-    function laadPostitsPrikbord() {
-      if (!actieveParochie) return;
-      const container = document.getElementById("postitsLinks");
-      container.innerHTML = "";
-      let promises = [];
-      for (let i = 0; i < 9; i++) {
-        let ref = db.collection("parochies")
-          .doc(actieveParochie)
-          .collection("prikbord_priester")
-          .doc("postit" + i);
-        promises.push(ref.get().then(doc => {
-          if (doc.exists) {
-            const tekst = doc.data().tekst || "";
-            let preview = tekst.split(/\s+/).slice(0, 5).join(" ");
-            if (tekst.split(/\s+/).length > 5) preview += "…";
-            const postit = document.createElement("div");
-            postit.className = "postit";
-            postit.style.backgroundColor = postitMapping[i].kleur;
-            postit.style.top = postitMapping[i].top;
-            postit.style.left = postitMapping[i].left;
-            postit.textContent = preview;
-            container.appendChild(postit);
-          }
-        }));
-      }
-      Promise.all(promises).catch(console.error);
-    }
-    document.addEventListener("DOMContentLoaded", laadPostitsPrikbord);
   </script>
 </head>
 <body>
-  <!-- TOPBAR -->
+  <!-- ==== TOPBAR + BEGROETING: BEGIN ==== -->
   <div class="topbar">
     <div id="welkom-tekst"></div>
     <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
   </div>
-  <!-- MENUBALK -->
+  <!-- ==== TOPBAR + BEGROETING: EINDE ==== -->
+
+  <!-- ==== MENUBALK: BEGIN ==== -->
   <nav class="menu">
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html" title="Home">🏠</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
@@ -262,29 +134,126 @@
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/heiligen.html">👼 Heiligen</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/bijbeldagboek.html">📔 Bijbeldagboek</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/verjaardagskalender.html">🎂 Verjaardagskalender</a>
+    <!-- Avatar-profiel -->
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html" class="menu-avatar" title="Mijn profiel">
       <img id="menu-avatar-img" src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png" alt="Mijn profiel">
     </a>
   </nav>
+  <!-- ==== MENUBALK: EINDE ==== -->
 
-  <!-- INHOUD: PAROCHIEBORDEN -->
-  <div class="borden-raster">
-    <div class="bovenste-rij">
-      <a href="nieuws.html" class="bord-blok">
-        <div class="bord-titel">Parochienieuws</div>
-        <div class="postit-container" id="postitsLinks"></div>
-      </a>
-      <a href="zoekertjes.html" class="bord-blok">
-        <div class="bord-titel">Zoekertjes</div>
-        <div class="postit-container" id="postitsRechts"></div>
-      </a>
-    </div>
-    <a href="kaarsjes.html" class="zandtafel-blok">
-      <div class="kaarsjes-op-tafel" id="kaarsjesOpTafel"></div>
+ <!-- === ZOEKERTJES-PRIKBORD: BEGIN === -->
+<div class="borden-raster">
+  <div class="bovenste-rij">
+    <a href="nieuws.html" class="bord-blok">
+      <div class="bord-titel">Parochienieuws</div>
+      <div class="postit-container" id="postitsLinks"></div>
+    </a>
+    <a href="zoekertjes.html" class="bord-blok">
+      <div class="bord-titel">Zoekertjes</div>
+      <div class="postit-container" id="postitsRechts"></div>
     </a>
   </div>
-  <a class="bijbel-link" href="bijbeldagboek.html">
-    <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/boek.png" alt="Bijbeldagboek">
+  <a href="kaarsjes.html" class="zandtafel-blok">
+    <div class="kaarsjes-op-tafel" id="kaarsjesOpTafel"></div>
   </a>
+</div>
+<a class="bijbel-link" href="bijbeldagboek.html">
+  <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/boek.png" alt="Bijbeldagboek">
+</a>
+<!-- === ZOEKERTJES-PRIKBORD: EINDE === -->
+<script>
+  // Zelfde Firebase-configuratie als in je template
+  // Er wordt nu alleen postitsRechts (zoekertjes) gevuld met ‘krantenknipsels’ (9 stuks)
+  const zoekertjesMapping = [
+    { top: "12%", left: "10%" },
+    { top: "11%", left: "42%" },
+    { top: "10%", left: "74%" },
+    { top: "40%", left: "12%" },
+    { top: "39%", left: "44%" },
+    { top: "39%", left: "75%" },
+    { top: "69%", left: "11%" },
+    { top: "68%", left: "43%" },
+    { top: "67%", left: "74%" }
+  ];
+  function laadZoekertjesPrikbord() {
+    const parochieId = localStorage.getItem("ingelogdeParochieId");
+    if (!parochieId) return;
+    const container = document.getElementById("postitsRechts");
+    if (!container) return;
+    container.innerHTML = "";
+    let promises = [];
+    for (let i = 0; i < 9; i++) {
+      let ref = db.collection("parochies")
+        .doc(parochieId)
+        .collection("zoekertjes_prikbord")
+        .doc("krant" + i);
+      promises.push(ref.get().then(doc => {
+        if (doc.exists) {
+          const data = doc.data();
+          const titel = data.titel || "";
+          const tekst = data.tekst || "";
+          // Combineer titel en eerste regels als preview
+          let preview = titel;
+          if (tekst) preview += ": " + tekst.split(/\s+/).slice(0, 6).join(" ");
+          if (tekst.split(/\s+/).length > 6) preview += "…";
+          // Maak knipsel aan
+          const knipsel = document.createElement("div");
+          knipsel.className = "postit krant-knipsel";
+          knipsel.style.background = "#fcfbf9";
+          knipsel.style.border = "1.6px solid #beb7a8";
+          knipsel.style.fontFamily = "Georgia, 'Times New Roman', serif";
+          knipsel.style.boxShadow = "0 2px 14px #cec8b04c, 0 0.7px 0 #a59d8d";
+          knipsel.style.top = zoekertjesMapping[i].top;
+          knipsel.style.left = zoekertjesMapping[i].left;
+          knipsel.style.color = "#3a2c17";
+          knipsel.style.fontWeight = "normal";
+          knipsel.textContent = preview;
+          container.appendChild(knipsel);
+        }
+      }));
+    }
+    Promise.all(promises).catch(console.error);
+  }
+  document.addEventListener("DOMContentLoaded", laadZoekertjesPrikbord);
+</script>
+<style>
+  .krant-knipsel {
+    border-radius: 7px !important;
+    font-size: 0.97em !important;
+    background: #fcfbf9 !important;
+    border: 1.6px solid #beb7a8 !important;
+    box-shadow: 0 2px 14px #cec8b04c, 0 0.7px 0 #a59d8d !important;
+    font-family: Georgia, 'Times New Roman', serif !important;
+    color: #3a2c17 !important;
+    padding: 8px !important;
+    opacity: 0.99 !important;
+  }
+</style>
+
+
+  <script>
+    // ==== BEGROETING EN AVATAR INLADEN: BEGIN ====
+    const welkomTekst = document.getElementById("welkom-tekst");
+    const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
+    const parochie = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
+    const uur = new Date().getHours();
+    let moment = "Goeiedag";
+    if (uur >= 5 && uur <= 10) moment = "Goeiemorgend";
+    else if (uur >= 11 && uur <= 13) moment = "Goeiemiddag";
+    else if (uur >= 17 && uur <= 22) moment = "Goeienavond";
+    else if (uur > 22 || uur < 5) moment = "Goedenacht";
+    welkomTekst.textContent = `Welkom, ${loginNaam}! U bent ingelogd in de ${parochie}.`;
+
+    // Avatar dynamisch tonen
+    const avatarImg = document.getElementById("menu-avatar-img");
+    const opgeslagenAvatar = localStorage.getItem("avatarURL");
+    if (opgeslagenAvatar) avatarImg.src = opgeslagenAvatar;
+
+    document.getElementById("uitlogKnop").onclick = () => {
+      localStorage.clear();
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    };
+    // ==== BEGROETING EN AVATAR INLADEN: EINDE ====
+  </script>
 </body>
 </html>
