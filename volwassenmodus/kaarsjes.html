@@ -57,7 +57,6 @@
       nav.menu a, nav.menu button { font-size: 1em; padding: 6px 6px;}
       .menu-avatar img { height: 1.75em; width: 1.75em;}
     }
-
     .kaarsen-container {
       margin: 36px auto 48px auto;
       display: flex;
@@ -76,7 +75,6 @@
       position: relative;
       margin-top: 0;
       margin-bottom: 0;
-      /* Verspreid ze wat speelser */
     }
     .kaarsblok:nth-child(1)  { margin-top: 8px;}
     .kaarsblok:nth-child(2)  { margin-top: 22px;}
@@ -90,7 +88,6 @@
     .kaarsblok:nth-child(10) { margin-top: 16px;}
     .kaarsblok:nth-child(11) { margin-top: 41px;}
     .kaarsblok:nth-child(12) { margin-top: 13px;}
-
     .kaars-svg {
       width: 240px;
       height: 400px;
@@ -154,6 +151,7 @@
     }
     .vlam-transparant { opacity: 0.16; stroke: #efd900; fill: transparent;}
     .vlam-wit        { opacity: 0.88; stroke: #efd900; fill: #fff;}
+    .vlam-geel       { opacity: 0.90; stroke: #efd900; fill: #ffe953;} /* toegevoegd */
     .vlam-rood       { opacity: 0.92; stroke: #b6000c; fill: #e92e30;}
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
@@ -195,21 +193,20 @@
       };
 
       // ------ KAARSEN LOGICA ------
-      // Initieer vlammen bij start
       document.querySelectorAll('.kaarsblok').forEach((blok, idx) => {
         const inputs = blok.querySelectorAll('input,select,textarea');
         const vlam = blok.querySelector('.vlam-vorm');
         function updateVlam() {
-          // Als er in 1 van de velden iets staat, wordt de vlam wit
+          // Als er in 1 van de velden iets staat, wordt de vlam geel
           let gevuld = false;
           blok.querySelectorAll('input,textarea').forEach(el => {
             if (el.value.trim().length > 0) gevuld = true;
           });
           if (gevuld) {
-            vlam.classList.remove('vlam-transparant','vlam-rood');
-            vlam.classList.add('vlam-wit');
+            vlam.classList.remove('vlam-transparant','vlam-rood','vlam-wit');
+            vlam.classList.add('vlam-geel');
           } else {
-            vlam.classList.remove('vlam-wit','vlam-rood');
+            vlam.classList.remove('vlam-geel','vlam-rood','vlam-wit');
             vlam.classList.add('vlam-transparant');
           }
         }
@@ -223,7 +220,6 @@
         blok.querySelector('.kaars-acties .vinkje').onclick = function(e) {
           e.preventDefault();
           // TODO: Opslaan in Firestore
-          // Toon evt. animatie of melding
           updateVlam();
         };
       });
@@ -231,12 +227,10 @@
   </script>
 </head>
 <body>
-  <!-- ==== TOPBAR + BEGROETING ==== -->
   <div class="topbar">
     <div id="welkom-tekst"></div>
     <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
   </div>
-  <!-- ==== MENUBALK ==== -->
   <nav class="menu">
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html" title="Home">🏠</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
@@ -251,12 +245,9 @@
       <img id="menu-avatar-img" src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png" alt="Mijn profiel">
     </a>
   </nav>
-  <!-- ==== KAARSEN ==== -->
   <div class="kaarsen-container">
-    <!-- 12 KAARSEN -->
-    <!-- Met speelse margin-top voor elke -->
-    <!-- Je kan het later gerust aanpassen (meer/minder speels) -->
-    <!-- --- KAARS --- -->
+    <!-- 12 identieke kaarsen-blokken -->
+    <!-- KAARS 1 -->
     <div class="kaarsblok">
       <svg class="vlam-vorm vlam-transparant" viewBox="0 0 40 45"><path d="M20 7 Q29 22 20 37 Q11 22 20 7 Z" /></svg>
       <svg class="kaars-svg" viewBox="0 0 90 160">
@@ -279,7 +270,7 @@
         </div>
       </form>
     </div>
-    <!-- 2 -->
+    <!-- KAARS 2 -->
     <div class="kaarsblok">
       <svg class="vlam-vorm vlam-transparant" viewBox="0 0 40 45"><path d="M20 7 Q29 22 20 37 Q11 22 20 7 Z" /></svg>
       <svg class="kaars-svg" viewBox="0 0 90 160">
@@ -302,7 +293,7 @@
         </div>
       </form>
     </div>
-    <!-- 3 -->
+    <!-- KAARS 3 -->
     <div class="kaarsblok">
       <svg class="vlam-vorm vlam-transparant" viewBox="0 0 40 45"><path d="M20 7 Q29 22 20 37 Q11 22 20 7 Z" /></svg>
       <svg class="kaars-svg" viewBox="0 0 90 160">
@@ -325,7 +316,7 @@
         </div>
       </form>
     </div>
-    <!-- 4 -->
+    <!-- KAARS 4 -->
     <div class="kaarsblok">
       <svg class="vlam-vorm vlam-transparant" viewBox="0 0 40 45"><path d="M20 7 Q29 22 20 37 Q11 22 20 7 Z" /></svg>
       <svg class="kaars-svg" viewBox="0 0 90 160">
@@ -348,7 +339,7 @@
         </div>
       </form>
     </div>
-    <!-- 5 -->
+    <!-- KAARS 5 -->
     <div class="kaarsblok">
       <svg class="vlam-vorm vlam-transparant" viewBox="0 0 40 45"><path d="M20 7 Q29 22 20 37 Q11 22 20 7 Z" /></svg>
       <svg class="kaars-svg" viewBox="0 0 90 160">
@@ -371,7 +362,7 @@
         </div>
       </form>
     </div>
-    <!-- 6 -->
+    <!-- KAARS 6 -->
     <div class="kaarsblok">
       <svg class="vlam-vorm vlam-transparant" viewBox="0 0 40 45"><path d="M20 7 Q29 22 20 37 Q11 22 20 7 Z" /></svg>
       <svg class="kaars-svg" viewBox="0 0 90 160">
@@ -394,7 +385,7 @@
         </div>
       </form>
     </div>
-    <!-- 7 -->
+    <!-- KAARS 7 -->
     <div class="kaarsblok">
       <svg class="vlam-vorm vlam-transparant" viewBox="0 0 40 45"><path d="M20 7 Q29 22 20 37 Q11 22 20 7 Z" /></svg>
       <svg class="kaars-svg" viewBox="0 0 90 160">
@@ -417,7 +408,7 @@
         </div>
       </form>
     </div>
-    <!-- 8 -->
+    <!-- KAARS 8 -->
     <div class="kaarsblok">
       <svg class="vlam-vorm vlam-transparant" viewBox="0 0 40 45"><path d="M20 7 Q29 22 20 37 Q11 22 20 7 Z" /></svg>
       <svg class="kaars-svg" viewBox="0 0 90 160">
@@ -440,7 +431,7 @@
         </div>
       </form>
     </div>
-    <!-- 9 -->
+    <!-- KAARS 9 -->
     <div class="kaarsblok">
       <svg class="vlam-vorm vlam-transparant" viewBox="0 0 40 45"><path d="M20 7 Q29 22 20 37 Q11 22 20 7 Z" /></svg>
       <svg class="kaars-svg" viewBox="0 0 90 160">
@@ -463,7 +454,7 @@
         </div>
       </form>
     </div>
-    <!-- 10 -->
+    <!-- KAARS 10 -->
     <div class="kaarsblok">
       <svg class="vlam-vorm vlam-transparant" viewBox="0 0 40 45"><path d="M20 7 Q29 22 20 37 Q11 22 20 7 Z" /></svg>
       <svg class="kaars-svg" viewBox="0 0 90 160">
@@ -486,7 +477,7 @@
         </div>
       </form>
     </div>
-    <!-- 11 -->
+    <!-- KAARS 11 -->
     <div class="kaarsblok">
       <svg class="vlam-vorm vlam-transparant" viewBox="0 0 40 45"><path d="M20 7 Q29 22 20 37 Q11 22 20 7 Z" /></svg>
       <svg class="kaars-svg" viewBox="0 0 90 160">
@@ -509,7 +500,7 @@
         </div>
       </form>
     </div>
-    <!-- 12 -->
+    <!-- KAARS 12 -->
     <div class="kaarsblok">
       <svg class="vlam-vorm vlam-transparant" viewBox="0 0 40 45"><path d="M20 7 Q29 22 20 37 Q11 22 20 7 Z" /></svg>
       <svg class="kaars-svg" viewBox="0 0 90 160">
