@@ -21,8 +21,7 @@
       background-color: #7a5f35; padding: 10px 15px;
       display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; align-items: center;
     }
-    nav.menu a,
-    nav.menu button {
+    nav.menu a, nav.menu button {
       color: #f5e9b8; text-decoration: none; font-weight: 600; font-size: 16px;
       padding: 6px 12px; border-radius: 8px; transition: background-color 0.3s;
       background: none; border: none; display: flex; align-items: center; cursor: pointer;
@@ -103,7 +102,7 @@
       box-shadow: none;
       font-family: inherit;
       box-sizing: border-box;
-      pointer-events: none; /* Gebruiker kan NIET klikken/wijzigen */
+      pointer-events: none;
     }
     .formblok textarea:focus {
       outline: none;
@@ -120,6 +119,15 @@
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script>
+    // === GEEN PRIKBORD ZONDER LOGIN & PAROCHIE-ID EN MODUS ===
+    const parochieId = localStorage.getItem("ingelogdeParochieId");
+    const modus = localStorage.getItem("modus");
+    const loginKeuze = localStorage.getItem("loginKeuze");
+    if (!parochieId || modus !== "volwassene" || !loginKeuze) {
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    }
+  </script>
 </head>
 <body>
   <!-- ==== TOPBAR + BEGROETING ==== -->
@@ -149,50 +157,19 @@
     <div class="prikbord-titel">Prikbord – Mijn Parochie</div>
     <div id="parochieLabel"></div>
     <div class="formcontainer">
-      <div class="formblok kleur1">
-        <textarea id="tekst0" placeholder="Notitie..." readonly></textarea>
-        <div class="feedback" id="feedback0"></div>
-      </div>
-      <div class="formblok kleur2">
-        <textarea id="tekst1" placeholder="Notitie..." readonly></textarea>
-        <div class="feedback" id="feedback1"></div>
-      </div>
-      <div class="formblok kleur3">
-        <textarea id="tekst2" placeholder="Notitie..." readonly></textarea>
-        <div class="feedback" id="feedback2"></div>
-      </div>
-      <div class="formblok kleur4">
-        <textarea id="tekst3" placeholder="Notitie..." readonly></textarea>
-        <div class="feedback" id="feedback3"></div>
-      </div>
-      <div class="formblok kleur5">
-        <textarea id="tekst4" placeholder="Notitie..." readonly></textarea>
-        <div class="feedback" id="feedback4"></div>
-      </div>
-      <div class="formblok kleur6">
-        <textarea id="tekst5" placeholder="Notitie..." readonly></textarea>
-        <div class="feedback" id="feedback5"></div>
-      </div>
-      <div class="formblok kleur7">
-        <textarea id="tekst6" placeholder="Notitie..." readonly></textarea>
-        <div class="feedback" id="feedback6"></div>
-      </div>
-      <div class="formblok kleur8">
-        <textarea id="tekst7" placeholder="Notitie..." readonly></textarea>
-        <div class="feedback" id="feedback7"></div>
-      </div>
-      <div class="formblok kleur9">
-        <textarea id="tekst8" placeholder="Notitie..." readonly></textarea>
-        <div class="feedback" id="feedback8"></div>
-      </div>
+      <div class="formblok kleur1"><textarea id="tekst0" placeholder="Notitie..." readonly></textarea></div>
+      <div class="formblok kleur2"><textarea id="tekst1" placeholder="Notitie..." readonly></textarea></div>
+      <div class="formblok kleur3"><textarea id="tekst2" placeholder="Notitie..." readonly></textarea></div>
+      <div class="formblok kleur4"><textarea id="tekst3" placeholder="Notitie..." readonly></textarea></div>
+      <div class="formblok kleur5"><textarea id="tekst4" placeholder="Notitie..." readonly></textarea></div>
+      <div class="formblok kleur6"><textarea id="tekst5" placeholder="Notitie..." readonly></textarea></div>
+      <div class="formblok kleur7"><textarea id="tekst6" placeholder="Notitie..." readonly></textarea></div>
+      <div class="formblok kleur8"><textarea id="tekst7" placeholder="Notitie..." readonly></textarea></div>
+      <div class="formblok kleur9"><textarea id="tekst8" placeholder="Notitie..." readonly></textarea></div>
     </div>
   </div>
   <script>
-    // Alleen toegankelijk voor ingelogde volwassenen
-    if (!localStorage.getItem("ingelogdeParochieId") || localStorage.getItem("modus") !== "volwassene") {
-      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
-    }
-    // Begroeting
+    // Begroeting, avatar, uitloggen
     const welkomTekst = document.getElementById("welkom-tekst");
     const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
     const parochieMooieNaam = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
@@ -231,16 +208,8 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Altijd correcte parochieId direct uit localStorage!
-    const parochieId = localStorage.getItem("ingelogdeParochieId");
-
     function laadPostits() {
-      if (!parochieId) {
-        for (let i = 0; i < 9; i++) {
-          document.getElementById("tekst" + i).value = "Parochie niet gevonden.";
-        }
-        return;
-      }
+      // parochieId is altijd geldig, anders was je doorgestuurd
       for (let i = 0; i < 9; i++) {
         db.collection("parochies").doc(parochieId).collection("prikbord_priester")
           .doc("postit" + i)
