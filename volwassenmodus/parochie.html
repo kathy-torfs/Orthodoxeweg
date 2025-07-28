@@ -177,10 +177,11 @@
       overflow: hidden;
       word-break: break-word;
     }
+    /* ==== KAARSENTAFEL (ROND) ==== */
     .zandtafel-blok {
-      width: 430px;
-      height: 240px;
-      border-radius: 190px / 105px;
+      width: 350px;
+      height: 350px;
+      border-radius: 50%;
       background: radial-gradient(circle at 60% 60%, #e9dfc2 60%, #cbb88e 100%);
       border: 10px solid #8c7344;
       box-shadow: 0 0 20px #0004;
@@ -189,6 +190,7 @@
       justify-content: center;
       align-items: center;
       margin-top: 32px;
+      overflow: visible;
     }
     .kaarsjes-op-tafel {
       position: absolute;
@@ -196,34 +198,63 @@
       width: 100%; height: 100%;
       pointer-events: none;
     }
-    .kaarsje {
-      width: 22px;
-      height: 44px;
-      background: #f7f1e2;
-      border-radius: 7px 7px 8px 8px;
-      border: 2.4px solid #ccb99d;
-      box-shadow: 0 3px 10px #dbc8a9a6, 0 1.2px 0 #bba376;
+    .kaarsje-rond {
       position: absolute;
-      z-index: 2;
-      display: flex;
-      justify-content: center;
-      align-items: flex-end;
-    }
-    /* SVG-vlam */
-    .vlammetje {
-      width: 20px;
-      height: 28px;
-      position: absolute;
+      width: 56px;
+      height: 100px;
       left: 50%;
-      top: -17px;
-      transform: translateX(-50%);
-      z-index: 10;
-      pointer-events: none;
+      top: 50%;
+      transform: translate(-50%,-50%);
     }
-    .vlam-uit path   { opacity: 0.17; stroke: #efd900; fill: transparent;}
-    .vlam-geel path  { opacity: 0.93; stroke: #efd900; fill: #ffe953;}
-    .vlam-rood path  { opacity: 0.97; stroke: #b6000c; fill: #e92e30;}
-    .vlam-wit path   { opacity: 0.93; stroke: #efd900; fill: #fff;}
+    .kaars {
+      position: absolute;
+      left: 50%; top: 50%;
+      width: 56px;
+      height: 100px;
+      transform: translate(-50%, -50%);
+      background-color: #f7f1e2;
+      border-radius: 22px 22px 12px 12px / 32px 32px 16px 16px;
+      border: 2.2px solid #ccb99d;
+      box-shadow: 0 2px 7px #dbc8a9a6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      z-index: 2;
+    }
+    .vlam {
+      position: absolute;
+      top: -28px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 20px;
+      height: 40px;
+      pointer-events: none;
+      z-index: 10;
+      animation: flikkeren 1.4s infinite ease-in-out;
+    }
+    .vlamgeel {
+      fill: #ffe953;
+      opacity: 0.93;
+      filter: blur(1px) drop-shadow(0 0 6px #fff9b7);
+    }
+    .vlamrood {
+      fill: #e92e30;
+      opacity: 0.85;
+      filter: blur(0.6px) drop-shadow(0 0 8px #ff2424);
+    }
+    .vlamtransp {
+      fill: transparent;
+      opacity: 0.18;
+      filter: none;
+    }
+    @keyframes flikkeren {
+      0%   { transform: translateX(-50%) scaleY(1);}
+      30%  { transform: translateX(-50%) scaleY(1.13);}
+      60%  { transform: translateX(-50%) scaleY(0.98);}
+      80%  { transform: translateX(-50%) scaleY(1.12);}
+      100% { transform: translateX(-50%) scaleY(1);}
+    }
     .bijbel-link {
       display: block;
       text-align: center;
@@ -296,7 +327,7 @@
         <div class="krant-container" id="postitsRechts"></div>
       </a>
     </div>
-    <!-- KAARSJESTAFEL -->
+    <!-- KAARSJESTAFEL (nu rond!) -->
     <a href="kaarsjes.html" class="zandtafel-blok">
       <div class="kaarsjes-op-tafel" id="kaarsjesOpTafel"></div>
     </a>
@@ -329,11 +360,7 @@
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     };
 
-    // ==== PAROCHIE-ID EN LID-ID ====
-    const parochieId = localStorage.getItem("ingelogdeParochie");
-    const lidId = localStorage.getItem("loginKeuze");
-
-    // PRIKBORD PAROCHIENIEUWS (POST-ITS)
+    // ==== PRIKBORDEN ==== (VOLLEDIGE FUNCTIONELE CODE)
     const postitMapping = [
       { kleur: "#fff86b", top: "18%", left: "11%" },
       { kleur: "#a6e3ff", top: "17%", left: "38%" },
@@ -346,6 +373,7 @@
       { kleur: "#ffe2ae", top: "70%", left: "74%" }
     ];
     function laadPostitsPrikbord() {
+      const parochieId = localStorage.getItem("ingelogdeParochie");
       if (!parochieId) return;
       const container = document.getElementById("postitsLinks");
       if (!container) return;
@@ -374,7 +402,6 @@
       Promise.all(promises).catch(console.error);
     }
 
-    // PRIKBORD ZOEKERTJES (KRANTENKNIPSELS, 12 STUKS)
     const krantenMapping = [
       { top: "15%", left: "5%" },   { top: "15%", left: "38%" },   { top: "15%", left: "70%" },
       { top: "36%", left: "8%" },   { top: "34%", left: "41%" },   { top: "36%", left: "73%" },
@@ -382,6 +409,7 @@
       { top: "80%", left: "18%" },  { top: "82%", left: "47%" },   { top: "80%", left: "77%" }
     ];
     function laadZoekertjesPrikbord() {
+      const parochieId = localStorage.getItem("ingelogdeParochie");
       if (!parochieId) return;
       const container = document.getElementById("postitsRechts");
       if (!container) return;
@@ -412,78 +440,56 @@
       Promise.all(promises).catch(console.error);
     }
 
-    // KAARSJES - EIGEN KAARSJES UIT FIRESTORE OPHALEN EN TONEN OP DE ZANDTAFEL
-    async function plaatsKaarsjesVanLid() {
+    // ==== KAARSJES OP DE TAFEL (ROND) ====
+    function plaatsKaarsjesRond() {
       const tafel = document.getElementById("kaarsjesOpTafel");
-      if (!tafel) return;
       tafel.innerHTML = '';
-
+      const n = 12; // Aantal kaarsjes
+      const radius = 130; // Straal van de cirkel
+      const centerX = 175, centerY = 175;
+      // Kaarsjes uit eigen Firestore-collectie ophalen
+      const parochieId = localStorage.getItem("ingelogdeParochie");
+      const lidId = localStorage.getItem("loginKeuze");
       if (!parochieId || !lidId) return;
-
-      // Haal alle kaarsjes op van deze gebruiker
-      let kaarsenSnap = await db
-        .collection("parochies")
+      db.collection("parochies")
         .doc(parochieId)
         .collection("leden")
         .doc(lidId)
         .collection("kaarsjes")
-        .get();
-
-      let kaarsData = [];
-      kaarsenSnap.forEach(doc => {
-        kaarsData.push(doc.data());
-      });
-
-      // Posities: vaste ovale spreiding, steeds 12 plekken
-      const n = 12;
-      const cols = 5, rows = 4;
-      let positions = [];
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          positions.push([r, c]);
-        }
-      }
-      // Sorteer altijd op document-id als je dat wilt (kaars1, kaars2...) 
-      // Zodat dezelfde kaars op dezelfde plek blijft!
-      kaarsData = kaarsData.slice(0, n); // maximaal 12 kaarsjes
-
-      // Ovaal parameters
-      const w = 430, h = 240, rx = (w-60)/2, ry = (h-60)/2, cx = w/2-11, cy = h/2-18;
-      for (let i = 0; i < n; i++) {
-        let [r, c] = positions[i];
-        let xrel = (c / (cols - 1)) * 2 - 1;
-        let yrel = (r / (rows - 1)) * 2 - 1;
-        let x = cx + xrel * rx * (0.95 + Math.random()*0.08);
-        let y = cy + yrel * ry * (0.93 + Math.random()*0.08);
-
-        // Basis kaarsje
-        const el = document.createElement("div");
-        el.className = "kaarsje";
-        el.style.left = `${x}px`;
-        el.style.top = `${y}px`;
-
-        // SVG vlammetje op basis van status
-        let vlamClass = "vlam-uit";
-        if (kaarsData[i] && kaarsData[i].status === "verzonden") vlamClass = "vlam-geel";
-        if (kaarsData[i] && kaarsData[i].status === "gelezen") vlamClass = "vlam-rood";
-        // eventueel extra status...
-
-        // Voeg vlam toe als de kaars er is
-        if (kaarsData[i]) {
-          const vlam = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-          vlam.setAttribute("class", `vlammetje ${vlamClass}`);
-          vlam.setAttribute("viewBox", "0 0 40 45");
-          vlam.innerHTML = '<path d="M20 7 Q29 22 20 37 Q11 22 20 7 Z"/>';
-          el.appendChild(vlam);
-        }
-        tafel.appendChild(el);
-      }
+        .get()
+        .then(snapshot => {
+          for (let i = 0; i < n; i++) {
+            const hoek = (i / n) * 2 * Math.PI - Math.PI/2;
+            const x = centerX + Math.cos(hoek) * radius;
+            const y = centerY + Math.sin(hoek) * radius;
+            // Zoek kaarsje op volgnummer
+            let doc = snapshot.docs.find(d => d.id === "kaars" + (i + 1));
+            // Kaars div maken
+            const wrapper = document.createElement("div");
+            wrapper.className = "kaarsje-rond";
+            wrapper.style.left = (x-28) + "px";
+            wrapper.style.top = (y-50) + "px";
+            // Vlam: standaard transparant
+            let vlamClass = "vlamtransp";
+            if (doc && doc.data().status === "verzonden") vlamClass = "vlamgeel";
+            if (doc && doc.data().status === "gelezen")  vlamClass = "vlamrood";
+            // SVG-kaarsje
+            wrapper.innerHTML = `
+              <div class="kaars">
+                <svg class="vlam ${vlamClass}" viewBox="0 0 36 60">
+                  <path d="M18 6 Q27 30 18 54 Q9 30 18 6 Z"/>
+                </svg>
+              </div>
+            `;
+            tafel.appendChild(wrapper);
+          }
+        });
     }
 
     document.addEventListener("DOMContentLoaded", function() {
       laadPostitsPrikbord();
       laadZoekertjesPrikbord();
-      plaatsKaarsjesVanLid();
+      plaatsKaarsjesRond();
     });
   </script>
 </body>
