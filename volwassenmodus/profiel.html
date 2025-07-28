@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
@@ -53,15 +53,6 @@
     }
     #profielForm button:hover { background: #604926; }
     #melding { color: #a05213; margin: 18px 0 0 0; min-height: 32px; text-align: center;}
-    .kinderlijst { margin-top: 38px; }
-    .kindblok { background: #f6edd8; border-radius: 13px; box-shadow: 0 1px 10px #e7dab3a1; padding: 17px 16px 12px 16px; margin-bottom: 18px; position: relative;}
-    .kindblok .kinder-acties { position: absolute; top: 10px; right: 14px;}
-    .kindblok label { margin-top: 7px;}
-    .kindblok input[type="text"], .kindblok input[type="date"] { margin-bottom: 0;}
-    .kinder-acties button { background: #fff6e7; color: #c13a00; border: 1px solid #a07428; border-radius: 6px;
-      padding: 2px 11px; margin-left: 7px; font-size: 0.99em; font-weight: bold; margin-top:0;}
-    .kinder-acties button:hover { background: #f8ece1;}
-    .toevoegKindBtn { background:#dab97a; color:#664422; margin-top:16px; margin-bottom:10px;}
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
@@ -119,13 +110,6 @@
       <button type="button" onclick="opslaanProfiel()">💾 Wijzigingen opslaan</button>
     </form>
     <div id="melding"></div>
-
-    <!-- Kinderen-blok -->
-    <div class="kinderlijst" id="kinderlijst">
-      <h2>Kinderen</h2>
-      <button class="toevoegKindBtn" onclick="openKindToevoegen()">Kind toevoegen</button>
-      <div id="kinderenContainer"></div>
-    </div>
   </main>
   <script>
     // Statusbar vullen
@@ -146,25 +130,17 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Ophalen juiste leden-docId via query
-    let ledenDocId = null;
-    async function vindLedenDocument() {
-      let q = await db.collection("parochies").doc(parochieId).collection("leden")
-        .where("loginKeuze", "==", loginKeuze).limit(1).get();
-      if (q.empty) return null;
-      ledenDocId = q.docs[0].id;
-      return q.docs[0].data();
-    }
-
     // Ophalen & tonen van profiel
     async function laadProfiel() {
       try {
-        let d = await vindLedenDocument();
-        if (!d) {
+        let docRef = db.collection("parochies").doc(parochieId).collection("leden").doc(loginKeuze);
+        let doc = await docRef.get();
+        if (!doc.exists) {
           document.getElementById("profielForm").style.display = "none";
           document.getElementById("melding").textContent = "Profiel niet gevonden!";
           return;
         }
+        let d = doc.data();
         document.getElementById("voornaam").value = d.voornaam || "";
         document.getElementById("achternaam").value = d.achternaam || "";
         document.getElementById("doopnaam").value = d.doopnaam || "";
@@ -173,7 +149,6 @@
         document.getElementById("loginKeuze").value = d.loginKeuze || "";
         document.getElementById("wachtwoord").value = d.wachtwoord || "";
         document.getElementById("toonVerjaardag").checked = !!d.verjaardagZichtbaar;
-        laadKinderen();
       } catch (e) {
         document.getElementById("melding").textContent = "Fout bij laden profiel.";
       }
@@ -190,70 +165,9 @@
       }
     };
 
-    // Opslaan profiel (vult later aan!)
+    // Opslaan profiel (wordt in volgende stap verder ingevuld)
     function opslaanProfiel() {
       document.getElementById("melding").textContent = "Wijzigen opslaan nog niet geactiveerd.";
-    }
-
-    // Kinderen
-    async function laadKinderen() {
-      const container = document.getElementById("kinderenContainer");
-      container.innerHTML = "<span style='color:#a4925a;'>Kinderen laden...</span>";
-      if (!ledenDocId) { container.innerHTML = ""; return; }
-      let snap = await db.collection("parochies").doc(parochieId)
-        .collection("leden").doc(ledenDocId).collection("kinderen").get();
-      if (snap.empty) {
-        container.innerHTML = "<span style='color:#a4925a;'>Geen kinderen toegevoegd.</span>";
-        return;
-      }
-      container.innerHTML = "";
-      snap.forEach(doc => {
-        let d = doc.data();
-        let id = doc.id;
-        let kindDiv = document.createElement('div');
-        kindDiv.className = "kindblok";
-        kindDiv.innerHTML = `
-          <div class="kinder-acties">
-            <button onclick="bewerkKind('${id}')">✏️</button>
-            <button onclick="verwijderKind('${id}')">🗑️</button>
-          </div>
-          <label>Voornaam: <input type="text" value="${d.voornaam||''}" readonly></label>
-          <label>Achternaam: <input type="text" value="${d.achternaam||''}" readonly></label>
-          <label>Geboortedatum: <input type="date" value="${d.geboortedatum||''}" readonly></label>
-          <label>Kindermodus: <input type="checkbox" ${d.kindermodus ? "checked" : ""} disabled></label>
-        `;
-        container.appendChild(kindDiv);
-      });
-    }
-
-    // Kind toevoegen popup (basis, werk het uit naar wens!)
-    function openKindToevoegen() {
-      let voornaam = prompt("Voornaam van het kind:");
-      if (!voornaam) return;
-      let achternaam = prompt("Achternaam van het kind:");
-      if (!achternaam) return;
-      let geboortedatum = prompt("Geboortedatum (jjjj-mm-dd):");
-      if (!geboortedatum) return;
-      let kindermodus = confirm("Toegang tot kindermodus toestaan?");
-      if (!ledenDocId) return;
-      db.collection("parochies").doc(parochieId).collection("leden").doc(ledenDocId)
-        .collection("kinderen").add({
-          voornaam, achternaam, geboortedatum, kindermodus
-        }).then(laadKinderen);
-    }
-
-    // Kind verwijderen
-    function verwijderKind(id) {
-      if (!ledenDocId) return;
-      if (!confirm("Weet je zeker dat je dit kind wil verwijderen?")) return;
-      db.collection("parochies").doc(parochieId).collection("leden").doc(ledenDocId)
-        .collection("kinderen").doc(id).delete().then(laadKinderen);
-    }
-
-    // Bewerk kind (basisversie, kan je uitbreiden)
-    function bewerkKind(id) {
-      // Je kan deze functie uitbreiden om kindgegevens te bewerken
-      alert("Bewerken nog niet geactiveerd. (Uitbreiden indien gewenst)");
     }
   </script>
 </body>
