@@ -167,66 +167,84 @@
     <div id="melding"></div>
   </main>
   <script>
-    // BEGROETING & AVATAR
-    const welkomTekst = document.getElementById("welkom-tekst");
-    const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
-    const parochieMooieNaam = localStorage.getItem("ingelogdeParochieNaam") || "(onbekend)";
-    welkomTekst.textContent = `Welkom, ${loginNaam}! U bent ingelogd in de ${parochieMooieNaam}.`;
-    const avatarImg = document.getElementById("menu-avatar-img");
-    const opgeslagenAvatar = localStorage.getItem("avatarURL");
-    if (opgeslagenAvatar) avatarImg.src = opgeslagenAvatar;
-    document.getElementById("uitlogKnop").onclick = () => {
-      localStorage.clear();
-      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
-    };
+  // BEGROETING & AVATAR
+  const welkomTekst = document.getElementById("welkom-tekst");
+  const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
+  const parochieMooieNaam = localStorage.getItem("ingelogdeParochieNaam") || "(onbekend)";
+  welkomTekst.textContent = `Welkom, ${loginNaam}! U bent ingelogd in de ${parochieMooieNaam}.`;
+  const avatarImg = document.getElementById("menu-avatar-img");
+  const opgeslagenAvatar = localStorage.getItem("avatarURL");
+  if (opgeslagenAvatar) avatarImg.src = opgeslagenAvatar;
+  document.getElementById("uitlogKnop").onclick = () => {
+    localStorage.clear();
+    window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+  };
 
-    // Firebase koppeling volwassenenprofiel
-    const parochieId = localStorage.getItem("ingelogdeParochieId");
-    const loginKeuze = localStorage.getItem("loginKeuze");
-    let ledenDocId = null;
-    async function vindLedenDocument() {
+  // Debug: toon wat er in localStorage zit
+  console.log("parochieId uit localStorage:", localStorage.getItem("ingelogdeParochieId"));
+  console.log("loginKeuze uit localStorage:", localStorage.getItem("loginKeuze"));
+
+  // Firebase koppeling volwassenenprofiel
+  const parochieId = localStorage.getItem("ingelogdeParochieId");
+  const loginKeuze = localStorage.getItem("loginKeuze");
+  let ledenDocId = null;
+
+  async function vindLedenDocument() {
+    try {
       let q = await db.collection("parochies").doc(parochieId).collection("leden")
         .where("loginKeuze", "==", loginKeuze).limit(1).get();
-      if (q.empty) return null;
+      console.log("Aantal leden gevonden:", q.size);
+      if (q.empty) {
+        console.log("Geen leden gevonden met loginKeuze:", loginKeuze, "in parochieId:", parochieId);
+        return null;
+      }
       ledenDocId = q.docs[0].id;
+      console.log("Gevonden documentId:", ledenDocId, q.docs[0].data());
       return q.docs[0].data();
+    } catch (err) {
+      console.error("Fout in Firestore query:", err);
+      throw err;
     }
-    async function laadProfiel() {
-      try {
-        let d = await vindLedenDocument();
-        if (!d) {
-          document.getElementById("profielForm").style.display = "none";
-          document.getElementById("melding").textContent = "Profiel niet gevonden!";
-          return;
-        }
-        document.getElementById("voornaam").value = d.voornaam || "";
-        document.getElementById("achternaam").value = d.achternaam || "";
-        document.getElementById("doopnaam").value = d.doopnaam || "";
-        document.getElementById("email").value = d.email || "";
-        document.getElementById("geboortedatum").value = d.geboortedatum || "";
-        document.getElementById("loginKeuze").value = d.loginKeuze || "";
-        document.getElementById("wachtwoord").value = d.wachtwoord || "";
-        document.getElementById("toonVerjaardag").checked = !!d.verjaardagZichtbaar;
-      } catch (e) {
-        document.getElementById("melding").textContent = "Fout bij laden profiel.";
-      }
-    }
-    window.addEventListener('DOMContentLoaded', laadProfiel);
+  }
 
-    // Toon/verberg wachtwoord
-    document.getElementById("pwToggle").onclick = function() {
-      let w = document.getElementById("wachtwoord");
-      if (w.type === "password") {
-        w.type = "text"; this.textContent = "🙈";
-      } else {
-        w.type = "password"; this.textContent = "👁️";
+  async function laadProfiel() {
+    try {
+      let d = await vindLedenDocument();
+      if (!d) {
+        document.getElementById("profielForm").style.display = "none";
+        document.getElementById("melding").textContent = "Profiel niet gevonden!";
+        return;
       }
-    };
-
-    // Opslaan profiel (volgende stap!)
-    function opslaanProfiel() {
-      document.getElementById("melding").textContent = "Wijzigen opslaan nog niet geactiveerd.";
+      document.getElementById("voornaam").value = d.voornaam || "";
+      document.getElementById("achternaam").value = d.achternaam || "";
+      document.getElementById("doopnaam").value = d.doopnaam || "";
+      document.getElementById("email").value = d.email || "";
+      document.getElementById("geboortedatum").value = d.geboortedatum || "";
+      document.getElementById("loginKeuze").value = d.loginKeuze || "";
+      document.getElementById("wachtwoord").value = d.wachtwoord || "";
+      document.getElementById("toonVerjaardag").checked = !!d.verjaardagZichtbaar;
+    } catch (e) {
+      document.getElementById("melding").textContent = "Fout bij laden profiel: " + (e.message || e);
+      console.error("Fout bij laden profiel:", e);
     }
-  </script>
+  }
+  window.addEventListener('DOMContentLoaded', laadProfiel);
+
+  // Toon/verberg wachtwoord
+  document.getElementById("pwToggle").onclick = function() {
+    let w = document.getElementById("wachtwoord");
+    if (w.type === "password") {
+      w.type = "text"; this.textContent = "🙈";
+    } else {
+      w.type = "password"; this.textContent = "👁️";
+    }
+  };
+
+  // Opslaan profiel (volgende stap!)
+  function opslaanProfiel() {
+    document.getElementById("melding").textContent = "Wijzigen opslaan nog niet geactiveerd.";
+  }
+</script>
+
 </body>
 </html>
