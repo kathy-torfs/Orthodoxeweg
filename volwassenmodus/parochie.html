@@ -140,7 +140,6 @@
       width: 100%; height: calc(100% - 60px);
       pointer-events: none;
     }
-    /* Post-it style */
     .postit {
       width: 68px;
       height: 68px;
@@ -162,7 +161,6 @@
       background: #fff86b;
       border: 1.5px solid #e6d600;
     }
-    /* Krantenknipsel style */
     .krant-knipsel {
       min-width: 130px;
       max-width: 165px;
@@ -186,7 +184,6 @@
       overflow: hidden;
       word-break: break-word;
     }
-    /* Zandtafel (ovaal) */
     .zandtafel-blok {
       width: 430px;
       height: 240px;
@@ -298,20 +295,18 @@
   </a>
   <!-- === PRIKBORDEN EN KAARSJES: EINDE === -->
 
-  <!-- === LOGICA EN DYNAMIEK: BEGIN === -->
   <script>
     // Welkomtekst en avatar
     const welkomTekst = document.getElementById("welkom-tekst");
-const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
-const parochieMooieNaam = localStorage.getItem("ingelogdeParochieNaam") || "(onbekend)";
-const uur = new Date().getHours();
-let moment = "Goeiedag";
-if (uur >= 5 && uur <= 10) moment = "Goeiemorgend";
-else if (uur >= 11 && uur <= 13) moment = "Goeiemiddag";
-else if (uur >= 17 && uur <= 22) moment = "Goeienavond";
-else if (uur > 22 || uur < 5) moment = "Goedenacht";
-welkomTekst.textContent = `Welkom, ${loginNaam}! U bent ingelogd in de ${parochieMooieNaam}.`;
-
+    const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
+    const parochieMooieNaam = localStorage.getItem("ingelogdeParochieNaam") || "(onbekend)";
+    const uur = new Date().getHours();
+    let moment = "Goeiedag";
+    if (uur >= 5 && uur <= 10) moment = "Goeiemorgend";
+    else if (uur >= 11 && uur <= 13) moment = "Goeiemiddag";
+    else if (uur >= 17 && uur <= 22) moment = "Goeienavond";
+    else if (uur > 22 || uur < 5) moment = "Goedenacht";
+    welkomTekst.textContent = `Welkom, ${loginNaam}! U bent ingelogd in de ${parochieMooieNaam}.`;
 
     // Avatar dynamisch tonen
     const avatarImg = document.getElementById("menu-avatar-img");
@@ -404,30 +399,27 @@ welkomTekst.textContent = `Welkom, ${loginNaam}! U bent ingelogd in de ${parochi
       Promise.all(promises).catch(console.error);
     }
 
-    // KAARSJES-TWEEDE VERSIE: 33 stuks, netjes verspreid over de zandtafel
+    // KAARSJES - EXACT 12 stuks, mooi verdeeld over de zandtafel
     function plaatsKaarsjes() {
       const tafel = document.getElementById("kaarsjesOpTafel");
       if (!tafel) return;
       tafel.innerHTML = '';
-      const n = 12;
-      // Plaats kaarsjes op een mooi grid, rijen en kolommen over ovaal
-      const cols = 2, rows = 2; // 6x6 grid, enkele plaatsen leeg laten
+      const n = 12;           // Aantal kaarsjes
+      const cols = 5, rows = 4; // 5 kolommen x 4 rijen = 20 posities
       let positions = [];
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
           positions.push([r, c]);
         }
       }
-      // Kies 33 posities uit (shuffle)
+      // Kies n random posities uit het grid
       positions = positions.sort(() => Math.random() - 0.5).slice(0, n);
-      // Ovaal parameters
+      // Ovaal parameters (zoals jouw vorige code)
       const w = 430, h = 240, rx = (w-60)/2, ry = (h-60)/2, cx = w/2-11, cy = h/2-18;
-      for (let i = 0; i < n; i++) {
+      for (let i = 0; i < positions.length; i++) {
         let [r, c] = positions[i];
-        // Normale grid naar -1..1
         let xrel = (c / (cols - 1)) * 2 - 1;
         let yrel = (r / (rows - 1)) * 2 - 1;
-        // Maak het ovaal, voeg kleine randoms toe voor spreiding
         let x = cx + xrel * rx * (0.95 + Math.random()*0.08);
         let y = cy + yrel * ry * (0.93 + Math.random()*0.08);
         const el = document.createElement("div");
