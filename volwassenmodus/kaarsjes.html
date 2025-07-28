@@ -7,7 +7,6 @@
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
     body { background-color: #f5e9b8; color: #6f4e1a; font-family: Arial, sans-serif; margin: 0; padding: 0; }
-    /* ==== TOPBAR ==== */
     .topbar {
       background-color: #6f4e1a;
       color: white;
@@ -20,7 +19,6 @@
       background-color: #8722aa; color: white; border: none;
       padding: 8px 18px; border-radius: 18px; cursor: pointer; font-weight: bold; margin-left: 12px;
     }
-    /* ==== MENUBALK ==== */
     nav.menu {
       background-color: #7a5f35;
       padding: 10px 15px;
@@ -59,9 +57,6 @@
       nav.menu a, nav.menu button { font-size: 1em; padding: 6px 6px;}
       .menu-avatar img { height: 1.75em; width: 1.75em;}
     }
-    /* ==== EINDE MENUBALK ==== */
-
-    /* ==== KAARSEN-SECTIE ==== */
     .kaarsen-container {
       margin: 36px auto 48px auto;
       display: flex;
@@ -80,7 +75,6 @@
       position: relative;
       margin-top: 0;
       margin-bottom: 0;
-      /* Verspreid ze wat speelser */
     }
     .kaarsblok:nth-child(1)  { margin-top: 8px;}
     .kaarsblok:nth-child(2)  { margin-top: 22px;}
@@ -94,7 +88,6 @@
     .kaarsblok:nth-child(10) { margin-top: 16px;}
     .kaarsblok:nth-child(11) { margin-top: 41px;}
     .kaarsblok:nth-child(12) { margin-top: 13px;}
-
     .kaars-svg {
       width: 240px;
       height: 400px;
@@ -147,7 +140,6 @@
     .kaars-acties button:hover { transform: scale(1.20);}
     .kaars-acties .kruisje { color: #c13a00; }
     .kaars-acties .vinkje { color: #498b00;}
-    /* Kaars vlam - 3 statussen */
     .vlam-vorm {
       position: absolute;
       top: 27px; left: 50%;
@@ -158,14 +150,12 @@
     }
     .vlam-transparant { opacity: 0.16; stroke: #efd900; fill: transparent;}
     .vlam-wit        { opacity: 0.88; stroke: #efd900; fill: #fff;}
-    .vlam-geel       { opacity: 0.90; stroke: #efd900; fill: #ffe953;} /* toegevoegde geel */
+    .vlam-geel       { opacity: 0.90; stroke: #efd900; fill: #ffe953;}
     .vlam-rood       { opacity: 0.92; stroke: #b6000c; fill: #e92e30;}
-    /* ==== EINDE KAARSEN-SECTIE ==== */
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <script>
-    // ==== TEMPLATE-LOGICA: beveiliging + avatar + welkom ====
     if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "volwassene") {
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     }
@@ -181,17 +171,16 @@
     const db = firebase.firestore();
 
     document.addEventListener('DOMContentLoaded', function() {
-      // ==== BEGIN WELKOM + AVATAR ====
-     const welkomTekst = document.getElementById("welkom-tekst");
-const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
-const parochieMooieNaam = localStorage.getItem("ingelogdeParochieNaam") || "(onbekend)";
-const uur = new Date().getHours();
-let moment = "Goeiedag";
-if (uur >= 5 && uur <= 10) moment = "Goeiemorgend";
-else if (uur >= 11 && uur <= 13) moment = "Goeiemiddag";
-else if (uur >= 17 && uur <= 22) moment = "Goeienavond";
-else if (uur > 22 || uur < 5) moment = "Goedenacht";
-welkomTekst.textContent = `Welkom, ${loginNaam}! U bent ingelogd in de ${parochieMooieNaam}.`;
+      const welkomTekst = document.getElementById("welkom-tekst");
+      const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
+      const parochieMooieNaam = localStorage.getItem("ingelogdeParochieNaam") || "(onbekend)";
+      const uur = new Date().getHours();
+      let moment = "Goeiedag";
+      if (uur >= 5 && uur <= 10) moment = "Goeiemorgend";
+      else if (uur >= 11 && uur <= 13) moment = "Goeiemiddag";
+      else if (uur >= 17 && uur <= 22) moment = "Goeienavond";
+      else if (uur > 22 || uur < 5) moment = "Goedenacht";
+      welkomTekst.textContent = `Welkom, ${loginNaam}! U bent ingelogd in de ${parochieMooieNaam}.`;
 
       const avatarImg = document.getElementById("menu-avatar-img");
       const opgeslagenAvatar = localStorage.getItem("avatarURL");
@@ -200,14 +189,11 @@ welkomTekst.textContent = `Welkom, ${loginNaam}! U bent ingelogd in de ${parochi
         localStorage.clear();
         window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
       };
-      // ==== EINDE WELKOM + AVATAR ====
 
-      // ------ BEGIN KAARSEN LOGICA ------
       document.querySelectorAll('.kaarsblok').forEach((blok, idx) => {
         const inputs = blok.querySelectorAll('input,select,textarea');
         const vlam = blok.querySelector('.vlam-vorm');
         function updateVlam() {
-          // Als er in 1 van de velden iets staat, wordt de vlam geel
           let gevuld = false;
           blok.querySelectorAll('input,textarea').forEach(el => {
             if (el.value.trim().length > 0) gevuld = true;
@@ -239,13 +225,10 @@ welkomTekst.textContent = `Welkom, ${loginNaam}! U bent ingelogd in de ${parochi
             alert("Vul minstens een naam of een intentie in.");
             return;
           }
-          // Ophalen uit localStorage
           const parochieID = localStorage.getItem("ingelogdeParochie");
           const lidID = localStorage.getItem("loginKeuze");
-          // Kaarsnummer (1-12)
           const kaarsNummer = (idx + 1).toString();
           const kaarsID = "kaars" + kaarsNummer;
-          // Wegschrijven naar Firestore
           await db
             .collection("parochies").doc(parochieID)
             .collection("leden").doc(lidID)
@@ -254,21 +237,16 @@ welkomTekst.textContent = `Welkom, ${loginNaam}! U bent ingelogd in de ${parochi
               voorWie: voorWie,
               type: type,
               intentie: intentie,
-              status: "verzonden", // standaard 'geel'
+              status: "verzonden",
               aangemaaktOp: new Date()
             });
-          // Geef feedback (velden blokkeren als teken van verzenden)
           blok.querySelector('input').disabled = true;
           blok.querySelector('select').disabled = true;
           blok.querySelector('textarea').disabled = true;
-          // Kleur de vlam geel (de rest mag zo blijven!)
           vlam.classList.remove('vlam-transparant', 'vlam-rood', 'vlam-wit');
           vlam.classList.add('vlam-geel');
-          // Optioneel: Toon een melding
-          // alert("Intentie is geplaatst!");
         };
       });
-      // ------ EINDE KAARSEN LOGICA ------
     });
   </script>
 </head>
@@ -297,9 +275,6 @@ welkomTekst.textContent = `Welkom, ${loginNaam}! U bent ingelogd in de ${parochi
 
   <!-- ==== KAARSEN ==== -->
   <div class="kaarsen-container">
-    <!-- 12 KAARSEN -->
-    <!-- Met speelse margin-top voor elke -->
-    <!-- Je kan het later gerust aanpassen (meer/minder speels) -->
     <!-- --- KAARS 1 --- -->
     <div class="kaarsblok">
       <svg class="vlam-vorm vlam-transparant" viewBox="0 0 40 45"><path d="M20 7 Q29 22 20 37 Q11 22 20 7 Z" /></svg>
@@ -576,7 +551,6 @@ welkomTekst.textContent = `Welkom, ${loginNaam}! U bent ingelogd in de ${parochi
         </div>
       </form>
     </div>
-    <!-- --- EINDE KAARSEN --- -->
   </div>
   <!-- ==== EINDE KAARSEN ==== -->
 </body>
