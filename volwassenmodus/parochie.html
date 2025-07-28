@@ -177,7 +177,6 @@
       overflow: hidden;
       word-break: break-word;
     }
-    /* ==== KAARSENTAFEL (ROND) ==== */
     .zandtafel-blok {
       width: 350px;
       height: 350px;
@@ -202,9 +201,7 @@
       position: absolute;
       width: 56px;
       height: 100px;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%,-50%);
+      /* left/top wordt dynamisch gezet */
     }
     .kaars {
       position: absolute;
@@ -231,8 +228,8 @@
       height: 40px;
       pointer-events: none;
       z-index: 10;
-      animation: flikkeren 1.4s infinite ease-in-out;
     }
+    .flikker { animation: flikkeren 1.4s infinite ease-in-out; }
     .vlamgeel {
       fill: #ffe953;
       opacity: 0.93;
@@ -267,7 +264,6 @@
       box-shadow: 0 4px 12px #cbb77750;
     }
   </style>
-  <!-- ==== FIREBASE ==== -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script>
@@ -286,81 +282,8 @@
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-  </script>
-</head>
-<body>
-  <!-- ==== TOPBAR + BEGROETING: BEGIN ==== -->
-  <div class="topbar">
-    <div id="welkom-tekst"></div>
-    <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
-  </div>
-  <!-- ==== TOPBAR + BEGROETING: EINDE ==== -->
 
-  <!-- ==== MENUBALK: BEGIN ==== -->
-  <nav class="menu">
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html" title="Home">🏠</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/gebeden.html">🙏 Gebeden</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/heiligen.html">👼 Heiligen</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/bijbeldagboek.html">📔 Bijbeldagboek</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/verjaardagskalender.html">🎂 Verjaardagskalender</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html" class="menu-avatar" title="Mijn profiel">
-      <img id="menu-avatar-img" src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png" alt="Mijn profiel">
-    </a>
-  </nav>
-  <!-- ==== MENUBALK: EINDE ==== -->
-
-  <!-- === PRIKBORDEN EN KAARSJES: BEGIN === -->
-  <div class="borden-raster">
-    <div class="bovenste-rij">
-      <!-- PAROCHIENIEUWS -->
-      <a href="nieuws.html" class="bord-blok">
-        <div class="bord-titel">Parochienieuws</div>
-        <div class="postit-container" id="postitsLinks"></div>
-      </a>
-      <!-- ZOEKERTJES -->
-      <a href="zoekertjes.html" class="bord-blok">
-        <div class="bord-titel">Zoekertjes</div>
-        <div class="krant-container" id="postitsRechts"></div>
-      </a>
-    </div>
-    <!-- KAARSJESTAFEL (nu rond!) -->
-    <a href="kaarsjes.html" class="zandtafel-blok">
-      <div class="kaarsjes-op-tafel" id="kaarsjesOpTafel"></div>
-    </a>
-  </div>
-  <a class="bijbel-link" href="bijbeldagboek.html">
-    <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/boek.png" alt="Bijbeldagboek">
-  </a>
-  <!-- === PRIKBORDEN EN KAARSJES: EINDE === -->
-
-  <script>
-    // Welkomtekst en avatar
-    const welkomTekst = document.getElementById("welkom-tekst");
-    const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
-    const parochieMooieNaam = localStorage.getItem("ingelogdeParochieNaam") || "(onbekend)";
-    const uur = new Date().getHours();
-    let moment = "Goeiedag";
-    if (uur >= 5 && uur <= 10) moment = "Goeiemorgend";
-    else if (uur >= 11 && uur <= 13) moment = "Goeiemiddag";
-    else if (uur >= 17 && uur <= 22) moment = "Goeienavond";
-    else if (uur > 22 || uur < 5) moment = "Goedenacht";
-    welkomTekst.textContent = `Welkom, ${loginNaam}! U bent ingelogd in de ${parochieMooieNaam}.`;
-
-    // Avatar dynamisch tonen
-    const avatarImg = document.getElementById("menu-avatar-img");
-    const opgeslagenAvatar = localStorage.getItem("avatarURL");
-    if (opgeslagenAvatar) avatarImg.src = opgeslagenAvatar;
-
-    document.getElementById("uitlogKnop").onclick = () => {
-      localStorage.clear();
-      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
-    };
-
-    // ==== PRIKBORDEN ==== (VOLLEDIGE FUNCTIONELE CODE)
+    // PRIKBORD PAROCHIENIEUWS (POST-ITS)
     const postitMapping = [
       { kleur: "#fff86b", top: "18%", left: "11%" },
       { kleur: "#a6e3ff", top: "17%", left: "38%" },
@@ -402,6 +325,7 @@
       Promise.all(promises).catch(console.error);
     }
 
+    // PRIKBORD ZOEKERTJES (KRANTENKNIPSELS, 12 STUKS)
     const krantenMapping = [
       { top: "15%", left: "5%" },   { top: "15%", left: "38%" },   { top: "15%", left: "70%" },
       { top: "36%", left: "8%" },   { top: "34%", left: "41%" },   { top: "36%", left: "73%" },
@@ -440,13 +364,13 @@
       Promise.all(promises).catch(console.error);
     }
 
-    // ==== KAARSJES OP DE TAFEL (ROND) ====
-    function plaatsKaarsjesRond() {
+    // KAARSJES - 12 stuks, random verspreid binnen de cirkelvormige zandtafel
+    function plaatsKaarsjesVerspreid() {
       const tafel = document.getElementById("kaarsjesOpTafel");
       tafel.innerHTML = '';
-      const n = 12; // Aantal kaarsjes
-      const radius = 130; // Straal van de cirkel
-      const centerX = 175, centerY = 175;
+      const n = 12; // aantal kaarsjes
+      const centerX = 175, centerY = 175, radius = 135; // max. straal binnen zandtafel
+      const minRadius = 30; // niet helemaal in het midden
       // Kaarsjes uit eigen Firestore-collectie ophalen
       const parochieId = localStorage.getItem("ingelogdeParochie");
       const lidId = localStorage.getItem("loginKeuze");
@@ -458,22 +382,32 @@
         .collection("kaarsjes")
         .get()
         .then(snapshot => {
+          let usedPos = [];
           for (let i = 0; i < n; i++) {
-            const hoek = (i / n) * 2 * Math.PI - Math.PI/2;
-            const x = centerX + Math.cos(hoek) * radius;
-            const y = centerY + Math.sin(hoek) * radius;
-            // Zoek kaarsje op volgnummer
+            // Random hoek en afstand van midden, maar verspreid
+            let hoek, r, x, y, voldoendeAfstand, pogingen = 0;
+            do {
+              hoek = Math.random() * 2 * Math.PI;
+              r = minRadius + Math.random() * (radius - minRadius);
+              x = centerX + Math.cos(hoek) * r;
+              y = centerY + Math.sin(hoek) * r;
+              voldoendeAfstand = true;
+              for (let p of usedPos) {
+                if (Math.sqrt((x - p[0])**2 + (y - p[1])**2) < 48) {
+                  voldoendeAfstand = false; break;
+                }
+              }
+              pogingen++;
+            } while (!voldoendeAfstand && pogingen < 30);
+            usedPos.push([x, y]);
             let doc = snapshot.docs.find(d => d.id === "kaars" + (i + 1));
-            // Kaars div maken
             const wrapper = document.createElement("div");
             wrapper.className = "kaarsje-rond";
-            wrapper.style.left = (x-28) + "px";
-            wrapper.style.top = (y-50) + "px";
-            // Vlam: standaard transparant
+            wrapper.style.left = (x - 28) + "px";
+            wrapper.style.top = (y - 50) + "px";
             let vlamClass = "vlamtransp";
-            if (doc && doc.data().status === "verzonden") vlamClass = "vlamgeel";
-            if (doc && doc.data().status === "gelezen")  vlamClass = "vlamrood";
-            // SVG-kaarsje
+            if (doc && doc.data().status === "verzonden") vlamClass = "vlamgeel flikker";
+            if (doc && doc.data().status === "gelezen")  vlamClass = "vlamrood flikker";
             wrapper.innerHTML = `
               <div class="kaars">
                 <svg class="vlam ${vlamClass}" viewBox="0 0 36 60">
@@ -487,10 +421,72 @@
     }
 
     document.addEventListener("DOMContentLoaded", function() {
+      // Welkomtekst en avatar
+      const welkomTekst = document.getElementById("welkom-tekst");
+      const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
+      const parochieMooieNaam = localStorage.getItem("ingelogdeParochieNaam") || "(onbekend)";
+      const uur = new Date().getHours();
+      let moment = "Goeiedag";
+      if (uur >= 5 && uur <= 10) moment = "Goeiemorgend";
+      else if (uur >= 11 && uur <= 13) moment = "Goeiemiddag";
+      else if (uur >= 17 && uur <= 22) moment = "Goeienavond";
+      else if (uur > 22 || uur < 5) moment = "Goedenacht";
+      welkomTekst.textContent = `Welkom, ${loginNaam}! U bent ingelogd in de ${parochieMooieNaam}.`;
+
+      // Avatar dynamisch tonen
+      const avatarImg = document.getElementById("menu-avatar-img");
+      const opgeslagenAvatar = localStorage.getItem("avatarURL");
+      if (opgeslagenAvatar) avatarImg.src = opgeslagenAvatar;
+
+      document.getElementById("uitlogKnop").onclick = () => {
+        localStorage.clear();
+        window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+      };
+
       laadPostitsPrikbord();
       laadZoekertjesPrikbord();
-      plaatsKaarsjesRond();
+      plaatsKaarsjesVerspreid();
     });
   </script>
+</head>
+<body>
+  <!-- ==== TOPBAR + BEGROETING ==== -->
+  <div class="topbar">
+    <div id="welkom-tekst"></div>
+    <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
+  </div>
+  <!-- ==== MENUBALK ==== -->
+  <nav class="menu">
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html" title="Home">🏠</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/gebeden.html">🙏 Gebeden</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/heiligen.html">👼 Heiligen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/bijbeldagboek.html">📔 Bijbeldagboek</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/verjaardagskalender.html">🎂 Verjaardagskalender</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html" class="menu-avatar" title="Mijn profiel">
+      <img id="menu-avatar-img" src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png" alt="Mijn profiel">
+    </a>
+  </nav>
+  <div class="borden-raster">
+    <div class="bovenste-rij">
+      <a href="nieuws.html" class="bord-blok">
+        <div class="bord-titel">Parochienieuws</div>
+        <div class="postit-container" id="postitsLinks"></div>
+      </a>
+      <a href="zoekertjes.html" class="bord-blok">
+        <div class="bord-titel">Zoekertjes</div>
+        <div class="krant-container" id="postitsRechts"></div>
+      </a>
+    </div>
+    <a href="kaarsjes.html" class="zandtafel-blok">
+      <div class="kaarsjes-op-tafel" id="kaarsjesOpTafel"></div>
+    </a>
+  </div>
+  <a class="bijbel-link" href="bijbeldagboek.html">
+    <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/boek.png" alt="Bijbeldagboek">
+  </a>
 </body>
 </html>
