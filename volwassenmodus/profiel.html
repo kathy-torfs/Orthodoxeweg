@@ -7,146 +7,42 @@
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
     body { background-color: #f5e9b8; color: #6f4e1a; font-family: Arial, sans-serif; margin: 0; padding: 0; }
-    .topbar {
-      background-color: #6f4e1a;
-      color: white;
-      padding: 12px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-weight: bold;
-      flex-wrap: wrap;
-    }
-    #welkom-tekst {
-      font-size: 1.07em;
-      font-weight: normal;
-    }
-    .uitlog-link {
-      background-color: #8722aa;
-      color: white;
-      border: none;
-      padding: 8px 18px;
-      border-radius: 18px;
-      cursor: pointer;
-      font-weight: bold;
-      margin-left: 12px;
-    }
-    nav.menu {
-      background-color: #7a5f35;
-      padding: 10px 15px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      justify-content: center;
-      align-items: center;
-    }
-    nav.menu a,
-    nav.menu button {
-      color: #f5e9b8;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 16px;
-      padding: 6px 12px;
-      border-radius: 8px;
-      transition: background-color 0.3s;
-      background: none;
-      border: none;
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-    }
-    nav.menu a:hover, nav.menu button:hover {
-      background-color: #5d4726;
-      text-decoration: underline;
-    }
-    .menu-avatar {
-      padding: 0 !important;
-      background: none !important;
-      border: none !important;
-      margin-left: 2px;
-    }
-    .menu-avatar img {
-      height: 2.1em;
-      width: 2.1em;
-      border-radius: 50%;
-      border: 2.2px solid #dab97a;
-      background: #fff8eb;
-      transition: box-shadow 0.2s, border 0.2s;
-      box-shadow: 0 1px 4px rgba(160,140,80,0.13);
-      display: block;
-    }
-    .menu-avatar img:hover {
-      border: 2.2px solid #a06a19;
-      box-shadow: 0 2px 8px rgba(160,140,80,0.23);
-    }
+    .topbar { background-color: #6f4e1a; color: white; padding: 12px 20px;
+      display: flex; justify-content: space-between; align-items: center; font-weight: bold; flex-wrap: wrap;}
+    #welkom-tekst { font-size: 1.07em; font-weight: normal;}
+    .uitlog-link { background-color: #8722aa; color: white; border: none;
+      padding: 8px 18px; border-radius: 18px; cursor: pointer; font-weight: bold; margin-left: 12px;}
+    nav.menu { background-color: #7a5f35; padding: 10px 15px; display: flex; flex-wrap: wrap; gap: 12px;
+      justify-content: center; align-items: center;}
+    nav.menu a, nav.menu button { color: #f5e9b8; text-decoration: none; font-weight: 600; font-size: 16px;
+      padding: 6px 12px; border-radius: 8px; transition: background-color 0.3s; background: none; border: none;
+      display: flex; align-items: center; cursor: pointer;}
+    nav.menu a:hover, nav.menu button:hover { background-color: #5d4726; text-decoration: underline;}
+    .menu-avatar { padding: 0 !important; background: none !important; border: none !important; margin-left: 2px;}
+    .menu-avatar img { height: 2.1em; width: 2.1em; border-radius: 50%; border: 2.2px solid #dab97a; background: #fff8eb;
+      transition: box-shadow 0.2s, border 0.2s; box-shadow: 0 1px 4px rgba(160,140,80,0.13); display: block;}
+    .menu-avatar img:hover { border: 2.2px solid #a06a19; box-shadow: 0 2px 8px rgba(160,140,80,0.23);}
     @media (max-width: 650px) {
       nav.menu { flex-wrap: wrap; gap: 8px;}
       nav.menu a, nav.menu button { font-size: 1em; padding: 6px 6px;}
       .menu-avatar img { height: 1.75em; width: 1.75em;}
     }
-
-    /* Profiel-blok */
-    #profiel-container {
-      max-width: 500px;
-      background: #fffef9;
-      margin: 38px auto 38px auto;
-      border-radius: 18px;
-      box-shadow: 0 6px 32px #d7cbb142;
-      padding: 34px 28px 22px 28px;
-      font-size: 1.15em;
-    }
-    #profiel-container h2 { margin-top: 0; }
-    #profiel-lijst dt {
-      font-weight: bold;
-      margin-top: 13px;
-    }
-    #profiel-lijst dd {
-      margin: 0 0 5px 0;
-      padding-bottom: 2px;
-      border-bottom: 1px solid #f3e2b7;
-      font-size: 1em;
-    }
-    #profiel-fout {
-      color: #c83210;
-      margin-top: 25px;
-      font-weight: bold;
-    }
+    .profiel-container { max-width: 540px; margin: 38px auto 40px auto; background: #fffef9; padding: 28px 26px; border-radius: 16px; box-shadow: 0 6px 32px #d7cbb142; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px;}
+    td { padding: 8px 0; border-bottom: 1px solid #eadfc3; }
+    .profiel-label { color: #a08638; font-weight: bold; width: 160px;}
+    #melding { color: #a05213; margin: 18px 0 0 0; min-height: 32px; text-align: center;}
   </style>
-  <!-- ==== FIREBASE ==== -->
+  <!-- FIREBASE -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
- 
-localStorage.setItem("ingelogdeParochieId", "hasselt-drie-hierarchen");
-localStorage.setItem("loginKeuze", "Kathy");
-
- <script>
-    // ==== VOLWASSENENBESCHERMING ====
-    if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "volwassene") {
-      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
-    }
-    // ==== FIREBASE CONFIGURATIE ====
-    const firebaseConfig = {
-      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
-      authDomain: "orthodoxeweg.firebaseapp.com",
-      projectId: "orthodoxeweg",
-      storageBucket: "orthodoxeweg.appspot.com",
-      messagingSenderId: "408582263618",
-      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb",
-      measurementId: "G-C942F2NYQV"
-    };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-  </script>
 </head>
 <body>
-  <!-- ==== TOPBAR + BEGROETING: BEGIN ==== -->
+  <!-- ==== TOPBAR + BEGROETING ==== -->
   <div class="topbar">
     <div id="welkom-tekst"></div>
     <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
   </div>
-  <!-- ==== TOPBAR + BEGROETING: EINDE ==== -->
-
-  <!-- ==== MENUBALK: BEGIN ==== -->
   <nav class="menu">
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html" title="Home">🏠</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
@@ -157,32 +53,29 @@ localStorage.setItem("loginKeuze", "Kathy");
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/heiligen.html">👼 Heiligen</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/bijbeldagboek.html">📔 Bijbeldagboek</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/verjaardagskalender.html">🎂 Verjaardagskalender</a>
-    <!-- Avatar-profiel -->
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html" class="menu-avatar" title="Mijn profiel">
       <img id="menu-avatar-img" src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png" alt="Mijn profiel">
     </a>
   </nav>
-  <!-- ==== MENUBALK: EINDE ==== -->
 
-  <!-- ==== PROFIELINHOUD: BEGIN ==== -->
-  <div id="profiel-container">
-    <h2>Mijn profielgegevens</h2>
-    <dl id="profiel-lijst">
-      <dt>Voornaam</dt><dd id="pf-voornaam">...</dd>
-      <dt>Achternaam</dt><dd id="pf-achternaam">...</dd>
-      <dt>Doopnaam</dt><dd id="pf-doopnaam">...</dd>
-      <dt>Email</dt><dd id="pf-email">...</dd>
-      <dt>Geboortedatum</dt><dd id="pf-geboortedatum">...</dd>
-      <dt>Loginnaam</dt><dd id="pf-login">...</dd>
-      <dt>Status</dt><dd id="pf-status">...</dd>
-      <dt>Zichtbaar op verjaardagskalender</dt><dd id="pf-verjaardag">...</dd>
-    </dl>
-    <div id="profiel-fout"></div>
+  <div class="profiel-container">
+    <h2>Mijn profiel (test)</h2>
+    <div id="melding"></div>
+    <table id="profielTabel" style="display:none;">
+      <tbody>
+        <tr><td class="profiel-label">Voornaam</td><td id="profiel-voornaam"></td></tr>
+        <tr><td class="profiel-label">Achternaam</td><td id="profiel-achternaam"></td></tr>
+        <tr><td class="profiel-label">Doopnaam</td><td id="profiel-doopnaam"></td></tr>
+        <tr><td class="profiel-label">E-mail</td><td id="profiel-email"></td></tr>
+        <tr><td class="profiel-label">Geboortedatum</td><td id="profiel-geboortedatum"></td></tr>
+        <tr><td class="profiel-label">Loginnaam</td><td id="profiel-login"></td></tr>
+        <tr><td class="profiel-label">Status</td><td id="profiel-status"></td></tr>
+      </tbody>
+    </table>
   </div>
-  <!-- ==== PROFIELINHOUD: EINDE ==== -->
 
   <script>
-    // ==== BEGROETING EN AVATAR INLADEN ====
+    // ==== BEGROETING EN AVATAR ==== 
     const welkomTekst = document.getElementById("welkom-tekst");
     const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
     const parochie = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
@@ -195,31 +88,48 @@ localStorage.setItem("loginKeuze", "Kathy");
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     };
 
-    // ==== PROFIEL LADEN UIT FIREBASE ====
+    // FIREBASE INIT
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // ---- PROFIEL OPHALEN ----
     async function laadProfiel() {
       const parochieId = localStorage.getItem("ingelogdeParochieId");
       const loginKeuze = localStorage.getItem("loginKeuze");
-      if (!parochieId || !loginKeuze) {
-        document.getElementById("profiel-fout").textContent = "Niet ingelogd, of profiel niet gevonden.";
-        return;
-      }
+      const melding = document.getElementById("melding");
+      const tabel = document.getElementById("profielTabel");
+
+      melding.textContent = "Profiel laden...";
+
       try {
-        const doc = await db.collection("parochies").doc(parochieId).collection("leden").doc(loginKeuze).get();
+        const docRef = db.collection("parochies").doc(parochieId).collection("leden").doc(loginKeuze);
+        const doc = await docRef.get();
         if (!doc.exists) {
-          document.getElementById("profiel-fout").textContent = "Profiel niet gevonden!";
+          melding.textContent = "Profiel niet gevonden!";
+          tabel.style.display = "none";
           return;
         }
         const d = doc.data();
-        document.getElementById("pf-voornaam").textContent = d.voornaam || "";
-        document.getElementById("pf-achternaam").textContent = d.achternaam || "";
-        document.getElementById("pf-doopnaam").textContent = d.doopnaam || "";
-        document.getElementById("pf-email").textContent = d.email || "";
-        document.getElementById("pf-geboortedatum").textContent = d.geboortedatum || "";
-        document.getElementById("pf-login").textContent = d.loginKeuze || "";
-        document.getElementById("pf-status").textContent = d.status || "";
-        document.getElementById("pf-verjaardag").textContent = d.verjaardagToevoegen ? "Ja" : "Nee";
+        document.getElementById("profiel-voornaam").textContent = d.voornaam || "-";
+        document.getElementById("profiel-achternaam").textContent = d.achternaam || "-";
+        document.getElementById("profiel-doopnaam").textContent = d.doopnaam || "-";
+        document.getElementById("profiel-email").textContent = d.email || "-";
+        document.getElementById("profiel-geboortedatum").textContent = d.geboortedatum || "-";
+        document.getElementById("profiel-login").textContent = d.loginKeuze || "-";
+        document.getElementById("profiel-status").textContent = d.status || "-";
+        tabel.style.display = "";
+        melding.textContent = "";
       } catch (e) {
-        document.getElementById("profiel-fout").textContent = "Fout bij laden profiel.";
+        melding.textContent = "Fout bij laden profiel.";
+        tabel.style.display = "none";
       }
     }
     window.addEventListener('DOMContentLoaded', laadProfiel);
