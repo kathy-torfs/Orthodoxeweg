@@ -3,14 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Orthodoxeweg – Volwassenmodus</title>
+  <title>Mijn profiel – Orthodoxeweg</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
-    /* ==== ALGEMEEN: BEGIN ==== */
     body { background-color: #f5e9b8; color: #6f4e1a; font-family: Arial, sans-serif; margin: 0; padding: 0; }
-    /* ==== ALGEMEEN: EINDE ==== */
-
-    /* ==== TOPBAR + BEGROETING: BEGIN ==== */
     .topbar {
       background-color: #6f4e1a;
       color: white;
@@ -35,9 +31,6 @@
       font-weight: bold;
       margin-left: 12px;
     }
-    /* ==== TOPBAR + BEGROETING: EINDE ==== */
-
-    /* ==== MENUBALK: BEGIN ==== */
     nav.menu {
       background-color: #7a5f35;
       padding: 10px 15px;
@@ -91,7 +84,33 @@
       nav.menu a, nav.menu button { font-size: 1em; padding: 6px 6px;}
       .menu-avatar img { height: 1.75em; width: 1.75em;}
     }
-    /* ==== MENUBALK: EINDE ==== */
+
+    /* Profiel-blok */
+    #profiel-container {
+      max-width: 500px;
+      background: #fffef9;
+      margin: 38px auto 38px auto;
+      border-radius: 18px;
+      box-shadow: 0 6px 32px #d7cbb142;
+      padding: 34px 28px 22px 28px;
+      font-size: 1.15em;
+    }
+    #profiel-container h2 { margin-top: 0; }
+    #profiel-lijst dt {
+      font-weight: bold;
+      margin-top: 13px;
+    }
+    #profiel-lijst dd {
+      margin: 0 0 5px 0;
+      padding-bottom: 2px;
+      border-bottom: 1px solid #f3e2b7;
+      font-size: 1em;
+    }
+    #profiel-fout {
+      color: #c83210;
+      margin-top: 25px;
+      font-weight: bold;
+    }
   </style>
   <!-- ==== FIREBASE ==== -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
@@ -141,31 +160,65 @@
   </nav>
   <!-- ==== MENUBALK: EINDE ==== -->
 
-  <!-- ==== HIER KOMT DE INHOUD VAN DE PAGINA ==== -->
-  <!-- Plaats hier je eigen HTML-blokken / content per pagina -->
+  <!-- ==== PROFIELINHOUD: BEGIN ==== -->
+  <div id="profiel-container">
+    <h2>Mijn profielgegevens</h2>
+    <dl id="profiel-lijst">
+      <dt>Voornaam</dt><dd id="pf-voornaam">...</dd>
+      <dt>Achternaam</dt><dd id="pf-achternaam">...</dd>
+      <dt>Doopnaam</dt><dd id="pf-doopnaam">...</dd>
+      <dt>Email</dt><dd id="pf-email">...</dd>
+      <dt>Geboortedatum</dt><dd id="pf-geboortedatum">...</dd>
+      <dt>Loginnaam</dt><dd id="pf-login">...</dd>
+      <dt>Status</dt><dd id="pf-status">...</dd>
+      <dt>Zichtbaar op verjaardagskalender</dt><dd id="pf-verjaardag">...</dd>
+    </dl>
+    <div id="profiel-fout"></div>
+  </div>
+  <!-- ==== PROFIELINHOUD: EINDE ==== -->
 
   <script>
-    // ==== BEGROETING EN AVATAR INLADEN: BEGIN ====
+    // ==== BEGROETING EN AVATAR INLADEN ====
     const welkomTekst = document.getElementById("welkom-tekst");
     const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
     const parochie = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
-    const uur = new Date().getHours();
-    let moment = "Goeiedag";
-    if (uur >= 5 && uur <= 10) moment = "Goeiemorgend";
-    else if (uur >= 11 && uur <= 13) moment = "Goeiemiddag";
-    else if (uur >= 17 && uur <= 22) moment = "Goeienavond";
-    else if (uur > 22 || uur < 5) moment = "Goedenacht";
     welkomTekst.textContent = `Welkom, ${loginNaam}! U bent ingelogd in de ${parochie}.`;
-
-    // Avatar dynamisch tonen
     const avatarImg = document.getElementById("menu-avatar-img");
     const opgeslagenAvatar = localStorage.getItem("avatarURL");
     if (opgeslagenAvatar) avatarImg.src = opgeslagenAvatar;
-
     document.getElementById("uitlogKnop").onclick = () => {
       localStorage.clear();
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     };
-    // ==== BEGROETING EN AVATAR INLADEN: EINDE ====
+
+    // ==== PROFIEL LADEN UIT FIREBASE ====
+    async function laadProfiel() {
+      const parochieId = localStorage.getItem("ingelogdeParochieId");
+      const loginKeuze = localStorage.getItem("loginKeuze");
+      if (!parochieId || !loginKeuze) {
+        document.getElementById("profiel-fout").textContent = "Niet ingelogd, of profiel niet gevonden.";
+        return;
+      }
+      try {
+        const doc = await db.collection("parochies").doc(parochieId).collection("leden").doc(loginKeuze).get();
+        if (!doc.exists) {
+          document.getElementById("profiel-fout").textContent = "Profiel niet gevonden!";
+          return;
+        }
+        const d = doc.data();
+        document.getElementById("pf-voornaam").textContent = d.voornaam || "";
+        document.getElementById("pf-achternaam").textContent = d.achternaam || "";
+        document.getElementById("pf-doopnaam").textContent = d.doopnaam || "";
+        document.getElementById("pf-email").textContent = d.email || "";
+        document.getElementById("pf-geboortedatum").textContent = d.geboortedatum || "";
+        document.getElementById("pf-login").textContent = d.loginKeuze || "";
+        document.getElementById("pf-status").textContent = d.status || "";
+        document.getElementById("pf-verjaardag").textContent = d.verjaardagToevoegen ? "Ja" : "Nee";
+      } catch (e) {
+        document.getElementById("profiel-fout").textContent = "Fout bij laden profiel.";
+      }
+    }
+    window.addEventListener('DOMContentLoaded', laadProfiel);
   </script>
 </body>
+</html>
