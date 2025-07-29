@@ -2,121 +2,94 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>Gebedsintenties - Priestermodus</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kaarsjesbord – Priester</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
-    body { font-family: Arial, sans-serif; margin:0; padding:0; background-color:#f8f5e9;}
-    nav.menu {
-      background-color: #7a5f35;
-      padding: 12px 20px;
-      display: flex; flex-wrap: wrap; gap: 14px; justify-content: center;
+    body { background: #f5e9b8; color: #6f4e1a; font-family: Arial,sans-serif; margin:0; padding:0; }
+    .bord-container {
+      max-width: 900px;
+      margin: 50px auto 70px auto;
+      background: #fffde7;
+      border: 4px solid #dab64d;
+      border-radius: 22px;
+      box-shadow: 0 6px 30px #0003;
+      padding: 40px 24px 30px 24px;
     }
-    nav.menu a {
-      color: #f8f5e9; text-decoration: none; font-weight: bold; font-size: 16px;
-      padding: 6px 14px; border-radius: 8px; transition: background-color 0.3s;
+    h1 {
+      text-align: center;
+      font-size: 2em;
+      color: #a48418;
+      margin-top: 0;
+      margin-bottom: 30px;
+      text-shadow: 0 2px 10px #ffe9a5a8;
     }
-    nav.menu a:hover { background-color: #5e4724; }
-    header { background-color: #e6d6b8; padding: 2rem 1rem 0.7rem 1rem; text-align: center; }
-    h1 { margin:0; font-size:2rem; color:#5d4c2f;}
-    #parochieLabel {
-      background: #fcf6e2; color: #7a5f35; padding: 10px 0 8px 0; text-align: center;
-      font-weight: bold; letter-spacing: 1px; font-size: 1.08em;
-      box-shadow: 0 2px 8px #cbb96d44; margin-bottom: 10px;
+    .kaarsbord {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
     }
-    .uitlog-link {
-      color: #fff; background: #9a2617; padding: 6px 16px; border-radius: 8px;
-      font-size: 1em; text-decoration: none; font-weight: bold; margin-top: 14px;
-      margin-bottom: 12px; margin-left: 6px; transition: background 0.18s;
-      cursor: pointer; border: none; outline: none; float: right;
+    .kaars-intentie {
+      background: #fff9de;
+      border: 2px solid #eed989;
+      border-radius: 14px;
+      box-shadow: 0 2px 10px #0002;
+      padding: 18px 18px 14px 18px;
+      display: flex;
+      align-items: flex-start;
+      gap: 22px;
+      position: relative;
+      transition: box-shadow 0.15s;
     }
-    .container { max-width: 780px; margin: 30px auto 40px auto; background:#fffef9; border-radius:14px; box-shadow:0 4px 16px #cbb96d32; padding:2rem; }
-    .kaarsjes-lijst { display: flex; flex-direction: column; gap: 1.6rem;}
-    .envelope-item {
-      display: flex; align-items: center; gap: 1.1rem;
-      background: #f7ecd8; border-radius: 13px; box-shadow: 0 2px 6px #d7cbb1aa;
-      padding: 1rem 1.7rem; position: relative;
-      transition: box-shadow 0.2s;
-      cursor: pointer;
+    .kaars-info {
+      flex: 1;
+      min-width: 0;
     }
-    .envelope-item.open { background: #f5efdd; cursor: default;}
-    .envelope-svg { width: 52px; min-width: 52px; height: 44px; display: block;}
-    .envelope-closed { display: block;}
-    .envelope-open { display: none;}
-    .envelope-item.open .envelope-closed { display: none;}
-    .envelope-item.open .envelope-open { display: block;}
-    .envelope-main-content { flex: 1; }
-    .status-label { font-size: 0.97em; margin-bottom: 0.5rem; color: #bba354;}
-    .intentie-tekst { color: #5d4c2f; font-size: 1.07rem; margin-bottom:0.5rem; }
-    .antwoorden-blok { margin-top:0.5rem; }
-    .antwoord { background:#faf7e2; border-radius:7px; padding:8px 12px; color:#55440b; margin-bottom: 0.3rem;}
-    .kaarsje-actions { display: flex; gap: 1rem;}
-    .kaarsje-actions button {
-      background: #7a5f35;
-      color: #fff;
-      padding: 6px 14px;
+    .kaars-info b { color: #b89025;}
+    .kaars-intentie .vinkje-btn {
+      font-size: 2.1em;
+      color: #3ab91d;
+      background: none;
       border: none;
-      border-radius: 8px;
-      font-size: 0.99em;
       cursor: pointer;
-      font-weight: bold;
-      transition: background 0.18s;
+      margin-left: 12px;
+      transition: transform 0.1s;
     }
-    .kaarsje-actions button:hover { background: #a98647;}
-    .envelope-preview { color: #5d4c2f; opacity: 0.54; font-size:1.09em;}
-    .envelope-item.open { box-shadow: 0 2px 14px #e0a94623;}
-    @media (max-width:700px){
-      .container {padding:0.7rem;}
-      .kaarsjes-lijst{gap:0.8rem;}
-      .envelope-item{flex-direction:column;align-items:stretch;}
-      .kaarsje-actions{flex-wrap:wrap;}
+    .kaars-intentie .vinkje-btn:hover {
+      transform: scale(1.18);
+      color: #267713;
+    }
+    .kaars-titel {
+      font-size: 1.12em;
+      font-weight: bold;
+      margin-bottom: 6px;
+      color: #8a7539;
+    }
+    .kaars-ledennaam {
+      font-size: 0.99em;
+      color: #a48633;
+      margin-top: 6px;
+      opacity: 0.93;
+    }
+    .kaars-datum {
+      font-size: 0.89em;
+      color: #9c885c;
+      margin-top: 2px;
+      opacity: 0.84;
+    }
+    @media (max-width: 650px) {
+      .bord-container { padding: 8vw 1vw 9vw 1vw; }
+      .kaars-intentie { flex-direction: column; align-items: stretch; }
+      .kaars-intentie .vinkje-btn { align-self: flex-end; }
     }
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-</head>
-<body>
-  <header>
-    <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
-    <h1 id="welkom-tekst">Gebedsintenties in uw parochie</h1>
-    <div id="parochieLabel"></div>
-  </header>
-<nav class="menu">
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/startpagina.html" title="Startpagina">🏠</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/parochie.html">🛐 Mijn parochie</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/catechese/catechese.html">📖 Catechese</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/gebeden.html">🙏 Gebeden</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/psalmen/psalmen.html">📜 Psalmen</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/heiligen/heiligen.html">👼 Heiligen</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/bijbeldagboek.html">📔 Bijbeldagboek</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/verjaardagskalender.html">🎂 Verjaardagskalender</a>
-  <!-- Kerkje-rechts als profiel/bewerk parochie -->
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/layout.html" class="menu-kerk" title="Bewerk parochie">
-    <span style="font-size:2.1em; display:inline-block; vertical-align:middle;">⛪</span>
-  </a>
-</nav>
-  <div class="container">
-    <div class="kaarsjes-lijst" id="kaarsjesLijst">
-      <!-- Gebedsintenties komen hier dynamisch -->
-    </div>
-  </div>
   <script>
-    // Beveiliging
+    // Enkel toegankelijk voor priesters (pas evt aan indien nodig)
     if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "priester") {
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     }
-    let parochieNaam = localStorage.getItem("ingelogdeParochie");
-    document.getElementById("parochieLabel").textContent = `U bent ingelogd in de parochie van ${parochieNaam}`;
-
-    // Uitloggen
-    document.getElementById("uitlogKnop").onclick = function() {
-      localStorage.removeItem("ingelogdeParochie");
-      localStorage.removeItem("ingelogdeParochieId");
-      localStorage.removeItem("modus");
-      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
-    };
-
-    // FIREBASE INIT (jouw echte config)
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -125,92 +98,75 @@
       messagingSenderId: "408582263618",
       appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
     };
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Laad alle gebedsintenties uit Firestore voor de huidige parochie
-    function laadGebedsintenties() {
-      const lijst = document.getElementById("kaarsjesLijst");
-      lijst.innerHTML = "<em>Gebedsintenties worden geladen...</em>";
-      const parochieId = localStorage.getItem("ingelogdeParochieId");
-      db.collection("parochies")
-        .doc(parochieId)
-        .collection("kaarsjes")
-        .orderBy("createdAt", "desc")
-        .get()
-        .then(snapshot => {
-          if (snapshot.empty) {
-            lijst.innerHTML = "<em>Geen gebedsintenties gevonden.</em>";
-            return;
+    async function laadKaarsjesBord() {
+      const parochieId = localStorage.getItem("ingelogdeParochie");
+      const bord = document.getElementById("kaarsjesBord");
+      bord.innerHTML = "<div style='color:#b3a46b'>Laden...</div>";
+
+      // Eerst alle leden ophalen
+      const ledenSnap = await db.collection("parochies").doc(parochieId).collection("leden").get();
+      let intenties = [];
+      for (let lidDoc of ledenSnap.docs) {
+        const lidId = lidDoc.id;
+        const naam = (lidDoc.data().voornaam || '') + ' ' + (lidDoc.data().achternaam || '');
+        const kaarsSnap = await db.collection("parochies").doc(parochieId)
+          .collection("leden").doc(lidId)
+          .collection("kaarsjes").get();
+        for (let kaarsDoc of kaarsSnap.docs) {
+          const d = kaarsDoc.data();
+          if (d.status !== "gelezen") {
+            intenties.push({
+              lidId,
+              ledennaam: naam.trim(),
+              voorWie: d.voorWie || '',
+              type: d.type || '',
+              intentie: d.intentie || '',
+              datum: d.aangemaaktOp ? (d.aangemaaktOp.toDate ? d.aangemaaktOp.toDate().toLocaleString() : d.aangemaaktOp) : '',
+              docId: kaarsDoc.id
+            });
           }
-          lijst.innerHTML = "";
-          snapshot.forEach(doc => {
-            const d = doc.data();
-            const status = d.status || "nieuw";
-            const antwoord = d.answer || "";
-            let previewText = d.text ? d.text.substr(0, 22) + (d.text.length > 22 ? "..." : "") : "(geen tekst)";
-            // SVG Enveloppen:
-            const envelopeClosed = `<svg class="envelope-svg envelope-closed" viewBox="0 0 60 44"><rect x="4" y="8" width="52" height="32" rx="6" fill="#e9e3da"/><polygon points="30,31 6,11 54,11" fill="#cfbc93"/><polygon points="30,31 6,11 30,16 54,11" fill="#fff9e3" opacity="0.7"/></svg>`;
-            const envelopeOpen = `<svg class="envelope-svg envelope-open" viewBox="0 0 60 44"><rect x="4" y="16" width="52" height="24" rx="6" fill="#e9e3da"/><polygon points="30,10 4,16 56,16" fill="#cfbc93"/><polygon points="30,10 4,16 30,21 56,16" fill="#fff9e3" opacity="0.7"/></svg>`;
-
-            let html = `
-              <div class="envelope-item${status !== 'nieuw' ? ' open' : ''}" id="envelope-${doc.id}" onclick="openEnvelope('${doc.id}')">
-                ${envelopeClosed}
-                ${envelopeOpen}
-                <div class="envelope-main-content">
-                  <div class="status-label"><strong>Status:</strong> ${status === "nieuw" ? "Nieuw (klik om te openen)" : (status === "gelezen" ? "Gelezen" : "Beantwoord")}</div>
-                  ${
-                    status === "nieuw"
-                      ? `<div class="envelope-preview">${previewText}</div>`
-                      : `<div class="intentie-tekst">${d.text || "(geen tekst)"}</div>
-                        <div class="antwoorden-blok" id="antwoord-${doc.id}">
-                          ${
-                            antwoord
-                              ? `<div class="antwoord"><strong>Uw antwoord:</strong><br>${antwoord}</div>`
-                              : ""
-                          }
-                        </div>
-                        <div class="kaarsje-actions">
-                          ${status !== "beantwoord"
-                            ? `<button onclick="event.stopPropagation(); antwoordSturen('${doc.id}', '${d.text.replace(/'/g,"&apos;").replace(/"/g,"&quot;")}')">Antwoord sturen</button>`
-                            : ""
-                          }
-                        </div>`
-                  }
-                </div>
-              </div>
-            `;
-            lijst.innerHTML += html;
-          });
-        });
-    }
-
-    // Kaarsje/enveloppe openen
-    function openEnvelope(id) {
-      const item = document.getElementById("envelope-" + id);
-      // Alleen reageren als hij nog dicht is:
-      if (!item.classList.contains('open')) {
-        const parochieId = localStorage.getItem("ingelogdeParochieId");
-        db.collection("parochies").doc(parochieId).collection("kaarsjes")
-          .doc(id).update({ status: "gelezen" }).then(() => laadGebedsintenties());
+        }
+      }
+      if (!intenties.length) {
+        bord.innerHTML = "<div style='color:#b3a46b;text-align:center'>Geen kaarsjes met nieuwe intenties.</div>";
+        return;
+      }
+      bord.innerHTML = '';
+      for (let int of intenties) {
+        const div = document.createElement("div");
+        div.className = "kaars-intentie";
+        div.innerHTML = `
+          <div class="kaars-info">
+            <div class="kaars-titel"><b>Voor:</b> ${int.voorWie || '<i>onbekend</i>'} (${int.type})</div>
+            <div>${int.intentie ? int.intentie.replace(/\n/g,'<br>') : '<i>geen tekst</i>'}</div>
+            <div class="kaars-ledennaam">Lid: ${int.ledennaam || int.lidId}</div>
+            <div class="kaars-datum">${int.datum ? 'Geplaatst: ' + int.datum : ''}</div>
+          </div>
+          <button class="vinkje-btn" title="Markeer als gelezen">&#10003;</button>
+        `;
+        div.querySelector('.vinkje-btn').onclick = async () => {
+          // Zet status op 'gelezen'
+          await db.collection("parochies").doc(parochieId)
+            .collection("leden").doc(int.lidId)
+            .collection("kaarsjes").doc(int.docId)
+            .update({ status: "gelezen" });
+          div.style.opacity = "0.4";
+          div.querySelector('.vinkje-btn').disabled = true;
+          setTimeout(laadKaarsjesBord, 350);
+        };
+        bord.appendChild(div);
       }
     }
-
-    // Antwoord sturen (popup)
-    function antwoordSturen(id, origineleTekst) {
-      const antwoord = prompt(`Antwoord op deze intentie:\n"${origineleTekst}"`);
-      if (antwoord && antwoord.trim() !== "") {
-        const parochieId = localStorage.getItem("ingelogdeParochieId");
-        db.collection("parochies").doc(parochieId).collection("kaarsjes")
-          .doc(id)
-          .update({ status: "beantwoord", answer: antwoord, answeredAt: new Date() })
-          .then(() => laadGebedsintenties());
-      }
-    }
-
-    window.openEnvelope = openEnvelope;
-    window.antwoordSturen = antwoordSturen;
-    window.onload = laadGebedsintenties;
+    document.addEventListener("DOMContentLoaded", laadKaarsjesBord);
   </script>
+</head>
+<body>
+  <div class="bord-container">
+    <h1>Overzicht kaarsintenties</h1>
+    <div id="kaarsjesBord" class="kaarsbord"></div>
+  </div>
 </body>
 </html>
