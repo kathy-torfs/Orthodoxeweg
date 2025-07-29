@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Orthodoxeweg – Volwassenmodus</title>
+  <title>Mijn profiel – Orthodoxeweg</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
     body { background-color: #f5e9b8; color: #6f4e1a; font-family: Arial, sans-serif; margin: 0; padding: 0; }
@@ -80,11 +80,14 @@
       nav.menu a, nav.menu button { font-size: 1em; padding: 6px 6px;}
       .menu-avatar img { height: 1.75em; width: 1.75em;}
     }
-    /* KLEINE MARGE VOOR ONZE INHOUD */
-    .inhoud { max-width: 550px; margin: 36px auto 0 auto; background: #fffef9; border-radius: 14px; padding: 32px 22px; box-shadow: 0 6px 22px #d7cbb142; font-size:1.19em;}
+    .inhoud { max-width: 550px; margin: 36px auto 0 auto; background: #fffef9; border-radius: 14px; padding: 32px 22px; box-shadow: 0 6px 22px #d7cbb142; font-size:1.15em;}
     .label { font-weight:bold; color:#a0854a; margin-top:18px; }
-    .waarde { background:#f8f6e1; border-radius:6px; padding:8px 14px; margin-bottom:10px; display:inline-block;}
+    .waarde { background:#f8f6e1; border-radius:6px; padding:8px 14px; margin-bottom:10px; display:inline-block; }
+    #melding { color:#b33c1a; margin-top:24px; text-align:center; }
   </style>
+  <!-- FIREBASE -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
   <div class="topbar">
@@ -108,16 +111,13 @@
   </nav>
 
   <!-- ==== INHOUD BEGIN ==== -->
-  <div class="inhoud">
-    <div class="label">LoginKeuze</div>
-    <div class="waarde" id="loginKeuzeWeergave"></div>
-    <div class="label">ingelogdeParochieId</div>
-    <div class="waarde" id="parochieIdWeergave"></div>
+  <div class="inhoud" id="profielData">
+    <div id="melding">Profielgegevens worden geladen...</div>
   </div>
   <!-- ==== INHOUD EINDE ==== -->
 
   <script>
-    // ==== BEGROETING EN AVATAR INLADEN: BEGIN ====
+    // ==== BEGROETING EN AVATAR INLADEN ====
     const welkomTekst = document.getElementById("welkom-tekst");
     const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
     const parochie = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
@@ -125,16 +125,55 @@
     const avatarImg = document.getElementById("menu-avatar-img");
     const opgeslagenAvatar = localStorage.getItem("avatarURL");
     if (opgeslagenAvatar) avatarImg.src = opgeslagenAvatar;
-
     document.getElementById("uitlogKnop").onclick = () => {
       localStorage.clear();
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     };
-    // ==== EINDE ====
 
-    // ==== TOON DE TWEE GEGEVENS IN HET CONTENT-BLOK ====
-    document.getElementById("loginKeuzeWeergave").textContent = localStorage.getItem("loginKeuze") || "(leeg)";
-    document.getElementById("parochieIdWeergave").textContent = localStorage.getItem("ingelogdeParochie") || "(leeg)";
+    // ==== FIREBASE INIT ====
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // ==== PROFIELGEGEVENS OPHALEN EN TONEN ====
+    async function laadProfiel() {
+      const parochieId = localStorage.getItem("ingelogdeParochie");
+      const loginKeuze = localStorage.getItem("loginKeuze");
+      const inhoudDiv = document.getElementById("profielData");
+      const melding = document.getElementById("melding");
+
+      if (!parochieId || !loginKeuze) {
+        melding.textContent = "Niet ingelogd of sessie verlopen.";
+        return;
+      }
+      try {
+        const doc = await db.collection("parochies").doc(parochieId).collection("leden").doc(loginKeuze).get();
+        if (!doc.exists) {
+          melding.textContent = "Profiel niet gevonden!";
+          return;
+        }
+        const d = doc.data();
+        let html = '';
+        html += `<div class="label">Voornaam</div><div class="waarde">${d.voornaam || ""}</div>`;
+        html += `<div class="label">Achternaam</div><div class="waarde">${d.achternaam || ""}</div>`;
+        html += `<div class="label">Doopnaam</div><div class="waarde">${d.doopnaam || ""}</div>`;
+        html += `<div class="label">E-mailadres</div><div class="waarde">${d.email || ""}</div>`;
+        html += `<div class="label">Geboortedatum</div><div class="waarde">${d.geboortedatum || ""}</div>`;
+        html += `<div class="label">Loginnaam</div><div class="waarde">${d.loginKeuze || ""}</div>`;
+        // Je kan hier meer velden toevoegen als nodig
+        inhoudDiv.innerHTML = html;
+      } catch (e) {
+        melding.textContent = "Fout bij laden profiel.";
+      }
+    }
+    window.addEventListener('DOMContentLoaded', laadProfiel);
   </script>
 </body>
 </html>
