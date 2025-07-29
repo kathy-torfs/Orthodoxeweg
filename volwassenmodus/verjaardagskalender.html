@@ -27,53 +27,35 @@
       nav.menu a, nav.menu button { font-size: 1em; padding: 6px 6px;}
       .menu-avatar img { height: 1.75em; width: 1.75em;}
     }
-    .kalender-container { max-width: 790px; margin: 44px auto 34px auto; background: #fffef9;
-      border-radius: 18px; box-shadow: 0 3px 18px #e7dab382; padding: 28px 16px 32px 16px;}
+    .kalender-container { max-width: 670px; margin: 44px auto 34px auto; background: #fffef9;
+      border-radius: 18px; box-shadow: 0 3px 18px #e7dab382; padding: 26px 19px 26px 19px;}
     .kalender-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-    .kalender-header h1 { margin: 0 0 8px 0; font-size: 1.33em; }
+    .kalender-header h1 { margin: 0 0 8px 0; font-size: 1.36em; }
     .maand-select { font-size:1.08em; padding:5px 18px; border-radius:7px; border:1px solid #cbb68a;
       background: #fcfaf5; color:#6f4e1a; margin-left:12px;}
-    .maandrooster { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-top: 21px; background: #f7ecd7; border-radius: 13px; box-shadow: 0 2px 9px #e8d08d42;}
-    .weekdag { padding: 8px 0 7px 0; font-weight: bold; text-align: center; color: #876013; font-size:1.11em;}
-    .kalenderdag { background: #fcf9ec; min-height: 92px; border-radius: 10px; box-shadow: 0 0.6px 3px #e8d08d23;
-      border: 2.2px solid #ead47b33; padding: 3px 3px 2px 8px; position: relative; transition: box-shadow 0.14s;}
-    .kalenderdag .dagnummer { font-size: 1.08em; color: #b8a14e; font-weight: bold; }
-    .verjaardagfeest { margin: 6px 0 0 0; display: flex; flex-direction: column; gap: 3px;}
-    .verjaardagsstoel {
-      display: inline-block; margin-right: 6px; vertical-align: middle;
-      width: 28px; height: 34px;
-      border-radius: 8px; border: 2.5px solid #efd260;
-      background: linear-gradient(120deg, #ffeb8a 70%, #fffdf5 120%);
-      box-shadow: 0 2px 8px #e6c53c44, 0 1.3px 0 #cdb022;
-      position: relative;
-      animation: schommelstoel 1.25s infinite alternate cubic-bezier(.32,.55,.72,1.01);
-    }
-    .verjaardagsstoel-icoon {
-      width: 26px; height: 33px; position: absolute; left: 1px; top: 1px;
-    }
-    @keyframes schommelstoel {
-      0% { transform: rotate(-6deg);}
-      100% { transform: rotate(7deg);}
-    }
-    .verjaardagspersoon { font-weight: bold; color: #af7e0d; font-size: 0.98em;}
-    .rol-badge { background:#f9e7b1; border-radius:5px; font-size:0.85em; color:#a88020; margin-left:5px; padding:2px 6px;}
-    .geenverjaardag { color: #cbb68a; font-size:1.07em; text-align: center; padding:40px 0 40px 0;}
+    .verjaardag-lijst { margin-top: 18px;}
+    .verjaardag-dag { margin-bottom: 24px;}
+    .verjaardag-dag h3 { margin: 0 0 5px 0; font-size: 1.13em; color: #a9802c;}
+    .verjaardag-persoon { background:#f7ecd7; border-radius: 7px; box-shadow:0 1px 4px #e8d08d66;
+      padding: 9px 14px 7px 12px; margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
+    .verjaardag-persoon .badge { font-size: 0.98em; margin-left: 7px; color: #7e733d;}
+    .verjaardag-persoon .rol-badge { font-size: 0.89em; background:#eadca9; border-radius:4px; padding:2px 6px; margin-left:10px; color:#a88020;}
   </style>
+  <!-- ==== FIREBASE ==== -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <script>
-    // ==== VOLWASSENENBESCHERMING ====
     if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "volwassene") {
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     }
-    // ==== FIREBASE CONFIGURATIE ====
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain: "orthodoxeweg.firebaseapp.com",
       projectId: "orthodoxeweg",
       storageBucket: "orthodoxeweg.appspot.com",
       messagingSenderId: "408582263618",
-      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb",
+      measurementId: "G-C942F2NYQV"
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
@@ -108,8 +90,8 @@
         <option value="10">Oktober</option><option value="11">November</option><option value="12">December</option>
       </select>
     </div>
-    <div id="maandRooster" class="maandrooster">
-      <!-- Kalender wordt hier ingevuld -->
+    <div class="verjaardag-lijst" id="verjaardagLijst">
+      <span style="color:#a4925a;">Verjaardagen laden...</span>
     </div>
   </div>
   <script>
@@ -128,32 +110,31 @@
 
     // Kalenderlogica
     const maanden = [null,"Januari","Februari","Maart","April","Mei","Juni","Juli","Augustus","September","Oktober","November","December"];
-    const weekdagen = ["Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo"];
     const maandSelect = document.getElementById('maandSelect');
-    const maandRooster = document.getElementById('maandRooster');
-    const parochieId = localStorage.getItem("ingelogdeParochieId");
+    const verjaardagLijst = document.getElementById('verjaardagLijst');
+    // Belangrijk: zowel ingelogdeParochieId als ingelogdeParochie kunnen het zijn!
+    const parochieId = localStorage.getItem("ingelogdeParochieId") || localStorage.getItem("ingelogdeParochie");
 
     maandSelect.value = (new Date().getMonth() + 1).toString();
-    maandSelect.onchange = laadMaandKalender;
-    window.addEventListener('DOMContentLoaded', laadMaandKalender);
 
-    async function laadMaandKalender() {
+    maandSelect.onchange = laadVerjaardagen;
+    window.addEventListener('DOMContentLoaded', laadVerjaardagen);
+
+    async function laadVerjaardagen() {
       const maand = maandSelect.value.padStart(2,"0");
-      const jaar = (new Date()).getFullYear();
-      maandRooster.innerHTML = weekdagen.map(d=>`<div class="weekdag">${d}</div>`).join("");
-      // Verjaardagen ophalen
+      verjaardagLijst.innerHTML = "<span style='color:#a4925a;'>Verjaardagen laden...</span>";
+      // Data ophalen
       const ledenSnap = await db.collection("parochies").doc(parochieId).collection("leden").get();
-      let verjaardagen = {};
+      let verjaardagen = [];
       ledenSnap.forEach(doc => {
         const d = doc.data();
         if (d.verjaardagToevoegen && d.geboortedatum) {
           const m = d.geboortedatum.substr(5,2);
           if (m === maand) {
-            const dag = d.geboortedatum.substr(8,2).replace(/^0/,'');
-            if (!verjaardagen[dag]) verjaardagen[dag] = [];
-            verjaardagen[dag].push({
+            verjaardagen.push({
+              dag: d.geboortedatum.substr(8,2),
               naam: d.voornaam + (d.doopnaam ? " (" + d.doopnaam + ")" : "") + " " + d.achternaam,
-              rol: "Lid"
+              rol: "lid"
             });
           }
         }
@@ -166,60 +147,40 @@
           if (kind.verjaardagZichtbaar && kind.geboortedatum) {
             const m = kind.geboortedatum.substr(5,2);
             if (m === maand) {
-              const dag = kind.geboortedatum.substr(8,2).replace(/^0/,'');
-              if (!verjaardagen[dag]) verjaardagen[dag] = [];
-              verjaardagen[dag].push({
+              verjaardagen.push({
+                dag: kind.geboortedatum.substr(8,2),
                 naam: kind.voornaam + (kind.achternaam ? " " + kind.achternaam : ""),
-                rol: "Kind"
+                rol: "kind"
               });
             }
           }
         });
       }
-      // Kalenderdata genereren
-      const firstDay = new Date(`${jaar}-${maand}-01`);
-      const lastDay = new Date(jaar, maand, 0).getDate();
-      let startWeekDay = firstDay.getDay(); // 0 = zondag, 1 = maandag, ...
-      if (startWeekDay === 0) startWeekDay = 7; // Zondag = laatste kolom
-      let dagTeller = 1;
-      let kalenderHtml = "";
-      // lege cellen voor de eerste week
-      for(let i=1; i<startWeekDay; i++) {
-        kalenderHtml += `<div class="kalenderdag"></div>`;
+      // Sorteren op dag
+      verjaardagen.sort((a,b) => a.dag.localeCompare(b.dag, 'nl', {numeric:true}));
+      // Groeperen per dag
+      let dagen = {};
+      verjaardagen.forEach(v => {
+        if (!dagen[v.dag]) dagen[v.dag] = [];
+        dagen[v.dag].push(v);
+      });
+      if (verjaardagen.length === 0) {
+        verjaardagLijst.innerHTML = "<span style='color:#a4925a;'>Geen verjaardagen deze maand.</span>";
+        return;
       }
-      // de dagen van de maand
-      for(let dag=1; dag<=lastDay; dag++) {
-        kalenderHtml += `<div class="kalenderdag">
-          <div class="dagnummer">${dag}</div>
-          <div class="verjaardagfeest">` +
-          (verjaardagen[dag] ? verjaardagen[dag].map(v =>
-              `<span title="🎂 ${v.naam} (${v.rol})">
-                <span class="verjaardagsstoel">
-                  <svg class="verjaardagsstoel-icoon" viewBox="0 0 28 34">
-                    <rect x="6" y="12" width="16" height="13" rx="4" fill="#fff6b0" stroke="#e3bc16" stroke-width="2"/>
-                    <rect x="9.5" y="23" width="9" height="5.5" rx="2" fill="#ffec99" stroke="#b1943d" stroke-width="1"/>
-                    <rect x="10.8" y="7" width="6.5" height="9" rx="2.7" fill="#fffaf0" stroke="#cdb022" stroke-width="1"/>
-                    <ellipse cx="14" cy="4.7" rx="4" ry="3.2" fill="#ffe364" stroke="#b79e1f" stroke-width="1.2"/>
-                  </svg>
-                </span>
-                <span class="verjaardagspersoon">${v.naam}</span>
-                <span class="rol-badge">${v.rol}</span>
-              </span>`
-          ).join("") : "") +
-          `</div>
-        </div>`;
-      }
-      // lege cellen om de week te vullen
-      let totaalCellen = lastDay + (startWeekDay-1);
-      let rest = totaalCellen % 7;
-      if(rest!==0){
-        for(let i=0; i<(7-rest); i++) kalenderHtml += `<div class="kalenderdag"></div>`;
-      }
-      maandRooster.innerHTML += kalenderHtml;
-      // Niets te vieren?
-      if (Object.keys(verjaardagen).length === 0) {
-        maandRooster.innerHTML += `<div class="geenverjaardag">Geen verjaardagen deze maand.</div>`;
-      }
+      // Weergave
+      verjaardagLijst.innerHTML = "";
+      Object.keys(dagen).forEach(dag => {
+        verjaardagLijst.innerHTML += `<div class="verjaardag-dag">
+            <h3>${parseInt(dag)} ${maanden[parseInt(maand)]}</h3>
+            ${dagen[dag].map(v =>
+              `<div class="verjaardag-persoon">
+                <span>🎉 <b>${v.naam}</b></span>
+                <span class="rol-badge">${v.rol==="kind"?"Kind":"Lid"}</span>
+              </div>`
+            ).join("")}
+          </div>`;
+      });
     }
   </script>
 </body>
