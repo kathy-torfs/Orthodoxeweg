@@ -175,69 +175,71 @@
       overflow: hidden;
       word-break: break-word;
     }
-    /* === KAARSJES RIJ === */
-    .kaarsen-rij-container {
-      width: 100%;
-      max-width: 1050px;
-      margin: 40px auto 0 auto;
+    /* === KAARSENKADER EN GRID === */
+    .kaarsen-grid-kader {
+      width: 535px;
+      background: #f7ecd7;
+      border: 3px solid #ceb993;
+      border-radius: 26px;
+      box-shadow: 0 2px 16px #b4986740;
+      margin: 45px auto 0 auto;
+      padding: 32px 20px 22px 20px;
       display: flex;
-      justify-content: center;
-      align-items: flex-end;
-      gap: 30px;
-      min-height: 170px;
-      padding-bottom: 18px;
-      background: none;
+      flex-direction: column;
+      align-items: center;
+      min-height: 230px;
     }
-    .kaarsje-rij {
-      display: flex;
-      gap: 32px;
+    .kaarsen-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: 34px 22px;
+      justify-items: center;
+      align-items: end;
       width: 100%;
-      justify-content: center;
-      align-items: flex-end;
-      min-height: 170px;
     }
-    .kaarsje-langs {
+    .kaarsje-kader {
       position: relative;
       display: flex;
       flex-direction: column;
       align-items: center;
-      width: 40px;
-      height: 150px;
-      margin: 0;
+      width: 52px;
+      height: 162px;
+      text-align: center;
     }
     .kaars-lang {
-      width: 22px;
-      height: 124px;
+      width: 18px;
+      height: 118px;
       background: linear-gradient(to bottom, #fffdeb 0%, #f7edd4 100%);
       border-radius: 11px 11px 9px 9px / 15px 15px 9px 9px;
-      border: 1.8px solid #ccb99d;
+      border: 1.6px solid #ccb99d;
       box-shadow: 0 1.8px 6px #dbc8a988;
       margin-bottom: 0;
-      margin-top: 18px;
+      margin-top: 26px;
       position: relative;
       z-index: 2;
     }
     .vlam-langs {
       position: absolute;
-      top: -34px;
+      top: -28px;
       left: 50%;
       transform: translateX(-50%);
-      width: 24px;
-      height: 44px;
+      width: 20px;
+      height: 42px;
       z-index: 4;
       pointer-events: none;
     }
-    .vlamtransp { fill: transparent; opacity: 0.11; }
-    .vlamgeel { fill: #ffe953; opacity: 0.92; filter: blur(0.8px) drop-shadow(0 0 8px #ffe953); }
+    .vlamtransp { fill: transparent; opacity: 0.10; }
+    .vlamgeel { fill: #ffe953; opacity: 0.91; filter: blur(0.8px) drop-shadow(0 0 8px #ffe953); }
     .vlamrood { fill: #e92e30; opacity: 0.88; filter: blur(0.6px) drop-shadow(0 0 8px #ff2424); }
     .flikker {
       animation: flikkeren 1.2s infinite ease-in-out;
     }
     @keyframes flikkeren {
       0%   { transform: translateX(-50%) scaleY(1);}
-      30%  { transform: translateX(-50%) scaleY(1.11);}
-      60%  { transform: translateX(-50%) scaleY(0.94);}
-      80%  { transform: translateX(-50%) scaleY(1.08);}
+      30%  { transform: translateX(-50%) scaleY(1.13);}
+      60%  { transform: translateX(-50%) scaleY(0.95);}
+      80%  { transform: translateX(-50%) scaleY(1.1);}
       100% { transform: translateX(-50%) scaleY(1);}
     }
     .bijbel-link {
@@ -250,6 +252,10 @@
       border-radius: 12px;
       border: 2px solid #d2ba86;
       box-shadow: 0 4px 12px #cbb77750;
+    }
+    @media (max-width: 700px) {
+      .kaarsen-grid-kader { width: 98vw; min-width: 0; }
+      .kaarsen-grid { gap: 22px 8px;}
     }
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -349,9 +355,9 @@
       Promise.all(promises).catch(console.error);
     }
 
-    // KAARSJES IN EEN RIJ, MET JUISTE VLAM
-    function plaatsKaarsjesLangsRij() {
-      const container = document.getElementById("kaarsenRij");
+    // KAARSJES IN 2 RIJEN VAN 6 MET JUISTE VLAM EN LINK
+    function plaatsKaarsjesGrid() {
+      const container = document.getElementById("kaarsenGrid");
       container.innerHTML = '';
       const n = 12;
       const parochieId = localStorage.getItem("ingelogdeParochie");
@@ -369,15 +375,17 @@
             let vlamClass = "vlamtransp";
             if (doc && doc.data().status === "verzonden") vlamClass = "vlamgeel flikker";
             if (doc && doc.data().status === "gelezen")  vlamClass = "vlamrood flikker";
-            const wrapper = document.createElement("div");
-            wrapper.className = "kaarsje-langs";
-            wrapper.innerHTML = `
+            const a = document.createElement("a");
+            a.href = "kaarsjes.html";
+            a.className = "kaarsje-kader";
+            a.setAttribute('title', `Kaarsje ${i + 1}`);
+            a.innerHTML = `
               <svg class="vlam-langs" viewBox="0 0 36 60">
                 <path d="M18 6 Q27 30 18 54 Q9 30 18 6 Z" class="${vlamClass}"/>
               </svg>
               <div class="kaars-lang"></div>
             `;
-            container.appendChild(wrapper);
+            container.appendChild(a);
           }
         });
     }
@@ -407,7 +415,7 @@
 
       laadPostitsPrikbord();
       laadZoekertjesPrikbord();
-      plaatsKaarsjesLangsRij();
+      plaatsKaarsjesGrid();
     });
   </script>
 </head>
@@ -443,9 +451,9 @@
         <div class="krant-container" id="postitsRechts"></div>
       </a>
     </div>
-    <!-- KAARSJES IN RIJ -->
-    <div class="kaarsen-rij-container">
-      <div class="kaarsje-rij" id="kaarsenRij"></div>
+    <!-- KAARSENKADER IN GRID 2 x 6 -->
+    <div class="kaarsen-grid-kader">
+      <div class="kaarsen-grid" id="kaarsenGrid"></div>
     </div>
   </div>
   <a class="bijbel-link" href="bijbeldagboek.html">
