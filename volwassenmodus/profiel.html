@@ -29,6 +29,14 @@
     .melding { color:#a05213; margin:18px 0 0 0; min-height:32px; text-align:center; }
     .verwijder-knop { background: #e24343; color: #fff; border: none; padding: 11px 22px; border-radius: 8px; font-weight: bold; margin-top: 22px; cursor: pointer; float:right;}
     .verwijder-knop:hover { background: #b72828; }
+
+    /* Kinderen-stijl */
+    .kinderen-blok { margin-top:38px; border-top:2px solid #e8e3cc; padding-top:26px;}
+    .kind-item { background:#faf8e4; border-radius:10px; padding:14px 16px 10px 16px; margin-bottom:13px; box-shadow:0 1px 4px #cfc1a430;}
+    .kind-naam { font-weight:bold; font-size:1.05em; color:#8c7429; }
+    .geen-kinderen { color:#a29d7b; font-style:italic; margin-bottom:12px;}
+    #voegKindBtn { background:#dab97a; color:#6b4f15; border-radius:8px; padding:8px 20px; font-size:1em; font-weight:bold; border:none; cursor:pointer;}
+    #voegKindBtn:hover { background:#e8c370;}
   </style>
   <!-- ==== FIREBASE ==== -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
@@ -92,8 +100,13 @@
         </div>
       </label>
       <div class="melding" id="melding"></div>
-      <!-- Opslaan & verwijderen komen later -->
     </form>
+    <!-- Kinderen blok -->
+    <div class="kinderen-blok">
+      <h2>Kinderen</h2>
+      <div id="kinderenLijst"></div>
+      <button id="voegKindBtn" type="button">+ Kind toevoegen</button>
+    </div>
   </div>
   <script>
     // ==== Begroeting & avatar ====
@@ -122,6 +135,7 @@
     const db = firebase.firestore();
 
     // ==== Profiel ophalen ====
+    let kinderenData = [];
     async function laadProfiel() {
       const parochieId = localStorage.getItem("ingelogdeParochie");
       const loginKeuze = localStorage.getItem("loginKeuze");
@@ -143,8 +157,53 @@
       document.getElementById("status").value = d.status || "";
       document.getElementById("verjaardagToevoegen").checked = !!d.verjaardagToevoegen;
       document.getElementById("wachtwoord").value = d.wachtwoord || "";
+
+      // Kinderen ophalen
+      kinderenData = [];
+      const kinderenSnapshot = await docRef.collection("kinderen").get();
+      kinderenSnapshot.forEach(childDoc => {
+        let child = childDoc.data();
+        child.id = childDoc.id;
+        kinderenData.push(child);
+      });
+      toonKinderen();
     }
     window.addEventListener('DOMContentLoaded', laadProfiel);
+
+    // ==== Kinderen tonen ====
+    function toonKinderen() {
+      const lijst = document.getElementById("kinderenLijst");
+      lijst.innerHTML = "";
+      if (!kinderenData.length) lijst.innerHTML = "<div class='geen-kinderen'>Nog geen kinderen toegevoegd.</div>";
+      kinderenData.forEach(kind => {
+        lijst.innerHTML += `<div class="kind-item"><span class="kind-naam">${kind.voornaam || "(geen voornaam)"} ${kind.achternaam || ""}</span></div>`;
+      });
+    }
+
+    // ==== Kind toevoegen (lege invoer) ====
+    document.getElementById("voegKindBtn").onclick = async function() {
+      // Nieuw kind-object
+      let nieuwKind = {
+        voornaam: "",
+        achternaam: "",
+        geboortedatum: "",
+        verjaardagToevoegen: false,
+        kindermodus: false,
+        wachtwoord: ""
+      };
+      // Uniek ID
+      let kindId = "kind_" + Date.now();
+      await opslaanKind(kindId, nieuwKind);
+      laadProfiel();
+    };
+
+    // ==== Kind opslaan ====
+    async function opslaanKind(kindId, kindData) {
+      const parochieId = localStorage.getItem("ingelogdeParochie");
+      const loginKeuze = localStorage.getItem("loginKeuze");
+      if (!parochieId || !loginKeuze) return;
+      await db.collection("parochies").doc(parochieId).collection("leden").doc(loginKeuze).collection("kinderen").doc(kindId).set(kindData);
+    }
 
     // ==== Wachtwoord tonen/verbergen ====
     document.getElementById("pwToggle").onclick = function() {
