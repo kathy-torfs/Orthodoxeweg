@@ -144,7 +144,8 @@
         const kindSnap = await db.collection("parochies").doc(parochieId).collection("leden").doc(doc.id).collection("kinderen").get();
         kindSnap.forEach(kdoc => {
           const kind = kdoc.data();
-          if (kind.verjaardagZichtbaar && kind.geboortedatum) {
+          // ---- HIER IS DE FIX: beide velden mogelijk! ----
+          if ((kind.verjaardagToevoegen || kind.verjaardagZichtbaar) && kind.geboortedatum) {
             const m = kind.geboortedatum.substr(5,2);
             if (m === maand) {
               verjaardagen.push({
