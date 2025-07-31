@@ -3,13 +3,84 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Kathismata van Den Haag – Priestermodus</title>
+  <title>Kathismata van Den Haag – Volwassenmodus</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
     body { background-color: #f5e9b8; color: #6f4e1a; font-family: Arial, sans-serif; margin: 0; padding: 0; }
-    .statusbar { background: #7a5f35; color: #fff; padding: 10px 24px; text-align: left; font-size: 1.07em; display: flex; justify-content: space-between; align-items: center; }
-    nav.menu { background-color: #7a5f35; padding: 10px 15px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
-    nav.menu a { color: #f5e9b8; text-decoration: none; font-weight: 600; font-size: 16px; padding: 6px 12px; border-radius: 8px; transition: background-color 0.3s; }
-    nav.menu a:hover { background-color: #5d4726; text-decoration: underline; }
+    .topbar {
+      background-color: #6f4e1a;
+      color: white;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+      flex-wrap: wrap;
+    }
+    #welkom-tekst { font-size: 1.07em; font-weight: normal; }
+    .uitlog-link {
+      background-color: #8722aa;
+      color: white;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 18px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-left: 12px;
+    }
+    nav.menu {
+      background-color: #7a5f35;
+      padding: 10px 15px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      align-items: center;
+    }
+    nav.menu a,
+    nav.menu button {
+      color: #f5e9b8;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 16px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      transition: background-color 0.3s;
+      background: none;
+      border: none;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+    nav.menu a:hover, nav.menu button:hover {
+      background-color: #5d4726;
+      text-decoration: underline;
+    }
+    .menu-avatar {
+      padding: 0 !important;
+      background: none !important;
+      border: none !important;
+      margin-left: 2px;
+    }
+    .menu-avatar img {
+      height: 2.1em;
+      width: 2.1em;
+      border-radius: 50%;
+      border: 2.2px solid #dab97a;
+      background: #fff8eb;
+      transition: box-shadow 0.2s, border 0.2s;
+      box-shadow: 0 1px 4px rgba(160,140,80,0.13);
+      display: block;
+    }
+    .menu-avatar img:hover {
+      border: 2.2px solid #a06a19;
+      box-shadow: 0 2px 8px rgba(160,140,80,0.23);
+    }
+    @media (max-width: 650px) {
+      nav.menu { flex-wrap: wrap; gap: 8px;}
+      nav.menu a, nav.menu button { font-size: 1em; padding: 6px 6px;}
+      .menu-avatar img { height: 1.75em; width: 1.75em;}
+    }
     main { max-width: 860px; margin: 30px auto 60px auto; padding: 0 15px; }
     h1 { font-size: 28px; margin-bottom: 20px; text-align: center; font-weight: bold; text-decoration: underline; }
     .inleiding { font-size: 1.15em; margin-bottom: 1.5em; text-align: center; color: #74633e; }
@@ -26,25 +97,27 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <div class="statusbar">
-    <span>U bent ingelogd in: <span id="parochieNaam">...</span></span>
+  <!-- ==== TOPBAR + BEGROETING ==== -->
+  <div class="topbar">
+    <div id="welkom-tekst"></div>
+    <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
   </div>
- <nav class="menu">
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/startpagina.html" title="Startpagina">🏠</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/parochie.html">🛐 Mijn parochie</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/catechese/catechese.html">📖 Catechese</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/gebeden.html">🙏 Gebeden</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/psalmen/psalmen.html">📜 Psalmen</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/heiligen/heiligen.html">👼 Heiligen</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/bijbeldagboek.html">📔 Bijbeldagboek</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/verjaardagskalender.html">🎂 Verjaardagskalender</a>
-  <!-- Kerkje-rechts als profiel/bewerk parochie -->
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/layout.html" class="menu-kerk" title="Bewerk parochie">
-    <span style="font-size:2.1em; display:inline-block; vertical-align:middle;">⛪</span>
-  </a>
-</nav>
-
+  <!-- ==== MENUBALK ==== -->
+  <nav class="menu">
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html" title="Home">🏠</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/gebeden.html">🙏 Gebeden</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/heiligen.html">👼 Heiligen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/bijbeldagboek.html">📔 Bijbeldagboek</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/verjaardagskalender.html">🎂 Verjaardagskalender</a>
+    <!-- Avatar rechts als profiel -->
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html" class="menu-avatar" title="Mijn profiel">
+      <img id="menu-avatar-img" src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png" alt="Mijn profiel">
+    </a>
+  </nav>
   <main>
     <h1>Kathismata van Den Haag</h1>
     <div class="inleiding">
@@ -54,11 +127,22 @@
     <div class="kathisma-list" id="kathisma-list"></div>
   </main>
   <script>
-    // Parochie uit localStorage
-    let parochieNaam = localStorage.getItem("ingelogdeParochie");
-    document.getElementById("parochieNaam").textContent = parochieNaam || "[niet ingelogd]";
+    // ==== BEGROETING EN UITLOGGEN ====
+    const welkomTekst = document.getElementById("welkom-tekst");
+    const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
+    const parochie = localStorage.getItem("ingelogdeParochieNaam") || localStorage.getItem("ingelogdeParochie") || "(onbekend)";
+    welkomTekst.textContent = `Welkom, ${loginNaam}! U bent ingelogd in de ${parochie}.`;
+    // Avatar tonen indien ingesteld
+    const avatarImg = document.getElementById("menu-avatar-img");
+    const opgeslagenAvatar = localStorage.getItem("avatarURL");
+    if (opgeslagenAvatar) avatarImg.src = opgeslagenAvatar;
 
-    // Firebase config
+    document.getElementById("uitlogKnop").onclick = function() {
+      localStorage.clear();
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    };
+
+    // ==== FIREBASE CONFIG ====
     const firebaseConfig = {
       apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -70,6 +154,7 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
+    // ==== KATHISMATA LADEN ====
     async function toonKathismata() {
       const lijst = document.getElementById('kathisma-list');
       lijst.innerHTML = '';
@@ -79,13 +164,11 @@
         const doc = await docRef.get();
         let psalmenLabel = '';
         if (doc.exists) {
-          // Haal eerste en laatste psalmnummer uit stases
           const data = doc.data();
           let allePsalmNrs = [];
           (data.stases || []).forEach(stasis => {
             allePsalmNrs.push(...Object.keys(stasis.psalms).map(nr => nr));
           });
-          // Sorteer numeriek (werkt ook met Psalm 118:1-72 etc)
           allePsalmNrs.sort((a, b) => {
             const parseNr = x => parseInt(x.split(':')[0]);
             return parseNr(a) - parseNr(b);
@@ -95,7 +178,7 @@
           psalmenLabel = eerste && laatste ? `<span>Psalmen ${eerste}–${laatste}</span>` : '';
         }
         lijst.innerHTML += `
-          <a class="kathisma-link" href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/psalmen/kathismadh.html?nr=${i}">Kathisma ${i} ${psalmenLabel}</a>
+          <a class="kathisma-link" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/kathismadh.html?nr=${i}">Kathisma ${i} ${psalmenLabel}</a>
         `;
       }
     }
