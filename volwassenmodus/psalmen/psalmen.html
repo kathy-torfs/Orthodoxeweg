@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kathismata van Den Haag – Priestermodus</title>
+  <style>
+    body { background-color: #f5e9b8; color: #6f4e1a; font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    .statusbar { background: #7a5f35; color: #fff; padding: 10px 24px; text-align: left; font-size: 1.07em; display: flex; justify-content: space-between; align-items: center; }
+    nav.menu { background-color: #7a5f35; padding: 10px 15px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+    nav.menu a { color: #f5e9b8; text-decoration: none; font-weight: 600; font-size: 16px; padding: 6px 12px; border-radius: 8px; transition: background-color 0.3s; }
+    nav.menu a:hover { background-color: #5d4726; text-decoration: underline; }
+    main { max-width: 860px; margin: 30px auto 60px auto; padding: 0 15px; }
+    h1 { font-size: 28px; margin-bottom: 20px; text-align: center; font-weight: bold; text-decoration: underline; }
+    .inleiding { font-size: 1.15em; margin-bottom: 1.5em; text-align: center; color: #74633e; }
+    .kathisma-list { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 30px; margin-bottom: 40px; }
+    .kathisma-link { display: block; background: #e5dab2; border-radius: 12px; padding: 14px 20px; box-shadow: 0 1px 4px #8d785533; margin-bottom: 4px; text-decoration: none; color: #705411; font-weight: bold; transition: background 0.15s; }
+    .kathisma-link:hover, .kathisma-link:focus { background: #f5efcf; color: #4b3212; }
+    .kathisma-link span { display: block; font-size: 0.95em; font-weight: normal; color: #85714e; margin-top: 2px; }
+    @media (max-width: 650px) {
+      .kathisma-list { grid-template-columns: 1fr; }
+      main { padding: 0 4px; }
+    }
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <div class="statusbar">
+    <span>U bent ingelogd in: <span id="parochieNaam">...</span></span>
+  </div>
+ <nav class="menu">
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/startpagina.html" title="Startpagina">🏠</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/parochie.html">🛐 Mijn parochie</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/catechese/catechese.html">📖 Catechese</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/gebeden.html">🙏 Gebeden</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/psalmen/psalmen.html">📜 Psalmen</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/heiligen/heiligen.html">👼 Heiligen</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/bijbeldagboek.html">📔 Bijbeldagboek</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/verjaardagskalender.html">🎂 Verjaardagskalender</a>
+  <!-- Kerkje-rechts als profiel/bewerk parochie -->
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/layout.html" class="menu-kerk" title="Bewerk parochie">
+    <span style="font-size:2.1em; display:inline-block; vertical-align:middle;">⛪</span>
+  </a>
+</nav>
+
+  <main>
+    <h1>Kathismata van Den Haag</h1>
+    <div class="inleiding">
+      Hieronder vind je het overzicht van de 20 Kathismata volgens de indeling van het Psalmenboek van Den Haag.<br>
+      Klik op een Kathisma om naar de bijbehorende psalmen te gaan.
+    </div>
+    <div class="kathisma-list" id="kathisma-list"></div>
+  </main>
+  <script>
+    // Parochie uit localStorage
+    let parochieNaam = localStorage.getItem("ingelogdeParochie");
+    document.getElementById("parochieNaam").textContent = parochieNaam || "[niet ingelogd]";
+
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:2e02833fa0d4d8903ceedb"
+    };
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const db = firebase.firestore();
+
+    async function toonKathismata() {
+      const lijst = document.getElementById('kathisma-list');
+      lijst.innerHTML = '';
+      for (let i = 1; i <= 20; i++) {
+        const docId = `kathisma_${i}`;
+        const docRef = db.collection("kathismata_dh").doc(docId);
+        const doc = await docRef.get();
+        let psalmenLabel = '';
+        if (doc.exists) {
+          // Haal eerste en laatste psalmnummer uit stases
+          const data = doc.data();
+          let allePsalmNrs = [];
+          (data.stases || []).forEach(stasis => {
+            allePsalmNrs.push(...Object.keys(stasis.psalms).map(nr => nr));
+          });
+          // Sorteer numeriek (werkt ook met Psalm 118:1-72 etc)
+          allePsalmNrs.sort((a, b) => {
+            const parseNr = x => parseInt(x.split(':')[0]);
+            return parseNr(a) - parseNr(b);
+          });
+          const eerste = allePsalmNrs[0];
+          const laatste = allePsalmNrs[allePsalmNrs.length - 1];
+          psalmenLabel = eerste && laatste ? `<span>Psalmen ${eerste}–${laatste}</span>` : '';
+        }
+        lijst.innerHTML += `
+          <a class="kathisma-link" href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/psalmen/kathismadh.html?nr=${i}">Kathisma ${i} ${psalmenLabel}</a>
+        `;
+      }
+    }
+    toonKathismata();
+  </script>
+</body>
+</html>
