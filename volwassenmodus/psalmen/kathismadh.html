@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kathisma van Den Haag – Volwassenmodus</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
+  <style>
+    body { background-color: #f5e9b8; color: #6f4e1a; font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    .topbar {
+      background-color: #6f4e1a;
+      color: white;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+      flex-wrap: wrap;
+    }
+    #welkom-tekst { font-size: 1.07em; font-weight: normal; }
+    .uitlog-link {
+      background-color: #8722aa;
+      color: white;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 18px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-left: 12px;
+    }
+    nav.menu {
+      background-color: #7a5f35;
+      padding: 10px 15px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      align-items: center;
+    }
+    nav.menu a,
+    nav.menu button {
+      color: #f5e9b8;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 16px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      transition: background-color 0.3s;
+      background: none;
+      border: none;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+    nav.menu a:hover, nav.menu button:hover {
+      background-color: #5d4726;
+      text-decoration: underline;
+    }
+    .menu-avatar {
+      padding: 0 !important;
+      background: none !important;
+      border: none !important;
+      margin-left: 2px;
+    }
+    .menu-avatar img {
+      height: 2.1em;
+      width: 2.1em;
+      border-radius: 50%;
+      border: 2.2px solid #dab97a;
+      background: #fff8eb;
+      transition: box-shadow 0.2s, border 0.2s;
+      box-shadow: 0 1px 4px rgba(160,140,80,0.13);
+      display: block;
+    }
+    .menu-avatar img:hover {
+      border: 2.2px solid #a06a19;
+      box-shadow: 0 2px 8px rgba(160,140,80,0.23);
+    }
+    @media (max-width: 650px) {
+      nav.menu { flex-wrap: wrap; gap: 8px;}
+      nav.menu a, nav.menu button { font-size: 1em; padding: 6px 6px;}
+      .menu-avatar img { height: 1.75em; width: 1.75em;}
+    }
+
+    main { max-width: 860px; margin: 30px auto 60px auto; padding: 0 15px; }
+    h1 { font-size: 28px; margin-bottom: 16px; text-align: center; font-weight: bold; text-decoration: underline; }
+    .stasis-navi, .psalm-navi { text-align: center; margin-bottom: 22px; }
+    .stasis-navi a { margin: 0 8px; color: #8e6a2a; font-weight: bold; text-decoration: none; padding: 4px 12px; border-radius: 7px; background: #f9eac1; transition: background 0.2s; }
+    .stasis-navi a:hover { background: #fff9e5; text-decoration: underline; }
+    .psalm-navi a { margin: 0 3px; color: #7a5f35; font-weight: bold; text-decoration: none; }
+    .psalm-navi a:hover { text-decoration: underline; }
+    .kathisma-blok { background: #fff8e1; border-radius: 12px; padding: 20px 22px; box-shadow: 0 1px 7px #bba96b32; margin-bottom: 30px; }
+    .stasis-blok { margin-bottom: 38px; }
+    .stasis-titel { font-size: 22px; color: #705411; font-weight: bold; margin-bottom: 8px; text-align:left; margin-top: 20px; text-decoration: underline dotted; }
+    .psalm { margin-bottom: 22px; }
+    .psalm h2 { font-size: 20px; color: #705411; margin: 0 0 4px 0; font-weight: bold; text-decoration: none; }
+    .psalm-tekst { margin-left: 16px; font-size: 1.08em; line-height: 1.55; white-space: pre-line; }
+    .error { color: #fff; background: #b42c25; border-radius: 8px; padding: 14px; margin: 30px auto; max-width: 400px; font-size: 1.13em; text-align: center; box-shadow: 0 4px 16px #d98f5d26; }
+    footer.navi { max-width: 860px; margin: 32px auto 20px auto; display: flex; justify-content: space-between; align-items: center; gap: 0; }
+    footer.navi a { background-color: #7a5f35; color: #f5e9b8; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px; box-shadow: 0 4px 4px rgb(0 0 0 / 0.20); transition: background 0.2s; min-width: 120px; display: inline-block; }
+    footer.navi a:hover { background-color: #5d4726; }
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <!-- ==== TOPBAR + BEGROETING ==== -->
+  <div class="topbar">
+    <div id="welkom-tekst"></div>
+    <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
+  </div>
+  <!-- ==== MENUBALK ==== -->
+  <nav class="menu">
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html" title="Home">🏠</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/gebeden.html">🙏 Gebeden</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/heiligen.html">👼 Heiligen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/bijbeldagboek.html">📔 Bijbeldagboek</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/verjaardagskalender.html">🎂 Verjaardagskalender</a>
+    <!-- Avatar rechts als profiel -->
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html" class="menu-avatar" title="Mijn profiel">
+      <img id="menu-avatar-img" src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png" alt="Mijn profiel">
+    </a>
+  </nav>
+  <main>
+    <div style="margin:16px 0 18px 0; background:#f5f1e2; border-radius:8px; padding:12px 18px; color:#775c28;">
+      <b>Let op:</b> Dit is de <b>Kathisma van Den Haag</b>, <br>voor gebruik in parochie, gebed en studie.<br>
+      Deze tekst wijkt soms af van de standaard LXX.
+    </div>
+    <h1 id="kathismaTitel">Kathisma van Den Haag</h1>
+    <div class="stasis-navi" id="stasisNavi"></div>
+    <div class="kathisma-blok" id="kathismaBlok"></div>
+    <div class="error" id="foutmelding" style="display:none;"></div>
+  </main>
+  <footer class="navi">
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/kathismadh.html" id="overzichtBtn">Alle Kathismata</a>
+    <a href="#" id="volgendeBtn">Volgende →</a>
+  </footer>
+  <script>
+    // ==== BEGROETING EN UITLOGGEN ====
+    const welkomTekst = document.getElementById("welkom-tekst");
+    const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
+    const parochie = localStorage.getItem("ingelogdeParochieNaam") || localStorage.getItem("ingelogdeParochie") || "(onbekend)";
+    welkomTekst.textContent = `Welkom, ${loginNaam}! U bent ingelogd in de ${parochie}.`;
+    // Avatar tonen indien ingesteld
+    const avatarImg = document.getElementById("menu-avatar-img");
+    const opgeslagenAvatar = localStorage.getItem("avatarURL");
+    if (opgeslagenAvatar) avatarImg.src = opgeslagenAvatar;
+
+    document.getElementById("uitlogKnop").onclick = function() {
+      localStorage.clear();
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    };
+
+    // ==== FIREBASE CONFIG ====
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:2e02833fa0d4d8903ceedb"
+    };
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const db = firebase.firestore();
+
+    function getKathismaNr() {
+      let url = new URL(window.location.href);
+      let nr = parseInt(url.searchParams.get("nr"));
+      if (isNaN(nr) || nr < 1 || nr > 20) return 1;
+      return nr;
+    }
+
+    function updateNavigatie(nr) {
+      const overzichtBtn = document.getElementById("overzichtBtn");
+      const volgendeBtn = document.getElementById("volgendeBtn");
+      overzichtBtn.href = "https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/kathismadh.html";
+      volgendeBtn.href = nr < 20 ? `https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/kathismadh.html?nr=${nr+1}` : "#";
+      volgendeBtn.style.visibility = nr === 20 ? "hidden" : "";
+      let footer = document.querySelector('footer.navi');
+      let vorige = document.getElementById('vorigeBtn');
+      if (!vorige) {
+        vorige = document.createElement('a');
+        vorige.id = 'vorigeBtn';
+        vorige.textContent = "← Vorige";
+        vorige.style.minWidth = "120px";
+        vorige.style.textAlign = "center";
+        footer.insertBefore(vorige, overzichtBtn);
+      }
+      vorige.href = nr > 1 ? `https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/kathismadh.html?nr=${nr-1}` : "#";
+      vorige.style.visibility = nr === 1 ? "hidden" : "";
+    }
+
+    async function laadKathisma() {
+      const nr = getKathismaNr();
+      updateNavigatie(nr);
+      const docId = "kathisma_" + nr;
+      try {
+        let doc = await db.collection("kathismata_dh").doc(docId).get();
+        if (!doc.exists) throw new Error("Niet gevonden.");
+        const data = doc.data();
+        document.getElementById("kathismaTitel").textContent = `Kathisma ${nr} – Kathisma van Den Haag`;
+
+        // Stasis navigatie bovenaan (Spring naar elke stasis)
+        let stasisNavi = "";
+        data.stases.forEach((stasisObj, idx) => {
+          stasisNavi += `<a href="#stasis${idx+1}">Stasis ${idx+1}</a>`;
+        });
+        document.getElementById("stasisNavi").innerHTML = stasisNavi;
+
+        // Kathisma blok: toon per stasis de psalmen
+        let blok = '';
+        data.stases.forEach((stasisObj, idx) => {
+          blok += `<div class="stasis-blok" id="stasis${idx+1}">
+              <div class="stasis-titel">Stasis ${idx+1}</div>
+              <div class="psalm-navi">`;
+          // Binnen stasis: klikbare psalmnummers
+          Object.keys(stasisObj.psalms).forEach(psnr => {
+            blok += `<a href="#psalm${psnr}">Psalm ${psnr}</a>`;
+          });
+          blok += `</div>`;
+          // Psalmen zelf
+          Object.entries(stasisObj.psalms).forEach(([psnr, tekst]) => {
+            blok += `
+              <div class="psalm" id="psalm${psnr}">
+                <h2>Psalm ${psnr}</h2>
+                <div class="psalm-tekst">${tekst.replace(/\n/g,"<br>")}</div>
+              </div>
+            `;
+          });
+          blok += `</div>`;
+        });
+        document.getElementById("kathismaBlok").innerHTML = blok;
+        document.getElementById("foutmelding").style.display = "none";
+      } catch(e) {
+        document.getElementById("foutmelding").textContent = "Kon kathisma niet laden. Probeer opnieuw.";
+        document.getElementById("foutmelding").style.display = "";
+        document.getElementById("kathismaBlok").innerHTML = "";
+        document.getElementById("stasisNavi").innerHTML = "";
+      }
+    }
+    laadKathisma();
+  </script>
+</body>
+</html>
