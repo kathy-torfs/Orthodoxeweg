@@ -47,27 +47,60 @@
     @keyframes blink {
       to { visibility: hidden; }
     }
+    /* Uitlogknop styling */
+    .uitlog-kind-btn {
+      position: absolute;
+      top: 18px;
+      right: 24px;
+      background: #e24343;
+      color: #fff;
+      border: none;
+      padding: 11px 23px;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 1em;
+      cursor: pointer;
+      z-index: 10;
+      box-shadow: 0 2px 10px #b04141ab;
+    }
+    @media (max-width: 600px) {
+      .photeinos-wrapper {
+        flex-direction: column;
+        gap: 18px;
+      }
+      .photeinos-img {
+        width: 145px;
+      }
+      .tekstballon {
+        font-size: 1em;
+        padding: 13px;
+        min-height: 85px;
+        width: 85vw;
+      }
+      .uitlog-kind-btn {
+        right: 8px;
+        top: 10px;
+        padding: 8px 13px;
+        font-size: 0.97em;
+      }
+    }
   </style>
 </head>
 <body>
+  <button class="uitlog-kind-btn" onclick="uitloggenKind()">Uitloggen</button>
   <div class="photeinos-wrapper">
-    <img src="Photeinos_wave.gif" alt="Photeinos de ster" class="photeinos-img" style="display: block;">
-    
-    <div id="tekstinhoud" class="tekstballon"></div></div>
-
-<div style="margin-top: 30px;">
-  <button onclick="window.location.href='kerkje.html'" style="padding: 15px 30px; font-size: 1em; background-color: #fff176; border: none; border-radius: 10px; cursor: pointer; box-shadow: 0 0 10px rgba(0,0,0,0.3); display: none;" id="startknop">Ja, laten we starten!</button>
-</div>
-
-  
-
+    <img src="images/Photeinos_wave.gif" alt="Photeinos de ster" class="photeinos-img" style="display: block;">
+    <div id="tekstinhoud" class="tekstballon"></div>
+  </div>
+  <div style="margin-top: 30px;">
+    <button onclick="window.location.href='kerkje.html'" style="padding: 15px 30px; font-size: 1em; background-color: #fff176; border: none; border-radius: 10px; cursor: pointer; box-shadow: 0 0 10px rgba(0,0,0,0.3); display: none;" id="startknop">Ja, laten we starten!</button>
+  </div>
   <script>
     const tekst = `Hallo, ik ben Photeinos, dat betekent drager van het licht. Helaas ben ik mijn licht kwijt. Kunnen wij samen op zoek gaan naar het licht?\nAls we veel lezen in de bijbel en de psalmen en samen de catechese leren en de gebruiken van de orthodoxe kerk, samen zingen en spelletjes spelen dan zullen we ons licht wel vinden.\nWat denk je? Ga je mee?`;
-
     let i = 0;
     const snelheid = 40;
     const tekstvak = document.getElementById('tekstinhoud');
-const knop = document.getElementById('startknop');
+    const knop = document.getElementById('startknop');
 
     function typ() {
       if (i < tekst.length) {
@@ -90,7 +123,16 @@ const knop = document.getElementById('startknop');
       knop.style.display = 'none';
       typ();
     }, 1000);
+
+    function uitloggenKind() {
+      // Enkel kindgegevens wissen, NIET de ouder!
+      localStorage.removeItem("kindIngelogd");
+      localStorage.removeItem("ingelogdKindId");
+      localStorage.removeItem("ingelogdKindVoornaam");
+      localStorage.removeItem("kindAvatarURL");
+      localStorage.removeItem("kindPunten");
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html";
+    }
   </script>
 </body>
 </html>
-
