@@ -50,6 +50,7 @@
     .kind-acties button:hover { background: #e8c370;}
     #kinderen-lijst { margin-bottom: 24px;}
     .kind-wachtwoord { font-size: 0.97em; background: #f6f6f6; color: #a9985f; border: 1px solid #bbb; border-radius: 7px; padding: 6px 10px; margin-top: 5px; width: 100%; }
+    .kind-punten { font-size: 1em; background: #f6f6f6; color: #498615; border: 1px solid #bbb; border-radius: 7px; padding: 6px 10px; margin-top: 8px; margin-bottom: 5px; width: 100%; font-weight: bold; }
     .verwijder-profiel-knop { background: #e24343; color: #fff; border: none; padding: 11px 26px; border-radius: 8px; font-weight: bold; margin-top: 45px; cursor: pointer; float: right;}
     .verwijder-profiel-knop:hover { background: #b72828; }
     /* Kinderavatars */
@@ -287,6 +288,7 @@
           <label><input type="checkbox" ${kind.verjaardagToevoegen ? "checked" : ""} data-veld="verjaardagToevoegen" style="width:auto;margin-right:7px;"> Zichtbaar op verjaardagskalender</label>
           <label>Toegang tot kindermodus: <input type="checkbox" ${kind.kindermodus ? "checked" : ""} data-veld="kindermodus" style="width:auto;margin-left:7px;"></label>
           <label>Wachtwoord kind: <input class="kind-wachtwoord" type="text" value="${kind.wachtwoord || ""}" readonly></label>
+          ${typeof kind.punten !== 'undefined' && kind.punten !== null ? `<label>Punten: <input class="kind-punten" type="text" value="${kind.punten}" readonly></label>` : ''}
           <div class="avatar-selectie-kid">
             ${kinderAvatars.map(url =>
               `<img src="${url}" ${kind.avatarURL === url ? 'class="selected"' : ''} onclick="bewaarKindAvatar(${idx},'${url}')">`
@@ -310,6 +312,7 @@
         verjaardagToevoegen: false,
         kindermodus: false,
         wachtwoord: "",
+        punten: 0,
         avatarURL: kinderAvatars[0]
       };
       kinderenData.push(nieuwKind);
