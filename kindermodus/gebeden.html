@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Ik bid – Orthodoxe Kinderpagina</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
+  <style>
+    body {
+      background: #fffde6;
+      font-family: 'Comic Sans MS', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+    .punten-box {
+      display: flex;
+      align-items: center;
+      font-size: 1.5em;
+      margin-bottom: 22px;
+      margin-top: 16px;
+    }
+    .punten-box img {
+      width: 40px;
+      height: 40px;
+      margin-right: 9px;
+    }
+    .gebed-card {
+      background: #fff6e2;
+      border-radius: 22px;
+      box-shadow: 0 2px 8px #0002;
+      margin-bottom: 22px;
+      padding: 20px 18px;
+      opacity: 1;
+      transition: opacity 0.4s, max-height 0.4s;
+      position: relative;
+    }
+    .gebed-card.fade {
+      opacity: 0;
+      max-height: 0 !important;
+      padding: 0 18px;
+      margin-bottom: 0;
+      overflow: hidden;
+    }
+    .gebed-titel {
+      color: #795020;
+      font-size: 1.13em;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    .gebed-tekst {
+      color: #46351F;
+      font-size: 1em;
+      line-height: 1.45;
+      margin-bottom: 15px;
+    }
+    .gebed-punten {
+      display: inline-block;
+      background: #d8ffdf;
+      color: #20641e;
+      border-radius: 8px;
+      padding: 2px 11px;
+      font-size: 0.95em;
+      margin-right: 10px;
+      margin-bottom: 7px;
+    }
+    .gebed-btn {
+      background: #7bb235;
+      color: white;
+      border: none;
+      border-radius: 13px;
+      padding: 11px 0;
+      width: 100%;
+      font-size: 1em;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .gebed-btn:disabled {
+      background: #d8ffdf;
+      color: #888;
+      cursor: default;
+    }
+    .photeinos-gif {
+      position: fixed;
+      left: 0;
+      bottom: 50px;
+      width: 110px;
+      height: 110px;
+      z-index: 1000;
+      display: none;
+      pointer-events: none;
+      animation: photeinosInOut 2.2s linear forwards;
+    }
+    @keyframes photeinosInOut {
+      0%   { transform: translateX(-120%);}
+      15%  { transform: translateX(12%);}
+      80%  { transform: translateX(10%);}
+      100% { transform: translateX(-120%);}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="punten-box">
+      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_vlam.png" alt="Vlam">
+      <span id="puntenTeller">0</span> punten
+    </div>
+    <div id="gebedenLijst">
+      <!-- Gebeden worden hier gegenereerd -->
+    </div>
+  </div>
+  <img id="photeinosGif" class="photeinos-gif" src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_kiekeboeduim.gif" alt="Photeinos duim">
+
+  <script>
+    // Voorbeeld-gebeden, kan je dynamisch vervangen met JSON/Firebase
+    const gebedenData = [
+      {
+        id: "01-kruisteken",
+        titel: "Kruisteken",
+        tekst: "Wanneer je ’s morgens wakker wordt, ga dan zonder eerst andere dingen te doen met eerbied voor de ikonen staan, maak het kruisteken en zeg: In de Naam van de Vader, de Zoon, en de Heilige Geest. Amen.",
+        punten: 1
+      },
+      {
+        id: "02-tollenaar",
+        titel: "Gebed van de Tollenaar",
+        tekst: "O God, wees mij, zondaar, genadig.",
+        punten: 1
+      },
+      {
+        id: "03-jezusgebed",
+        titel: "Jezusgebed",
+        tekst: "Heer Jezus Christus, Zoon van God, ontferm U over mij, zondaar.",
+        punten: 3
+      }
+      // Voeg meer gebeden toe!
+    ];
+
+    let punten = 0;
+
+    function updatePunten(aantal) {
+      punten += aantal;
+      document.getElementById('puntenTeller').textContent = punten;
+    }
+
+    function toonPhoteinosGif() {
+      const gif = document.getElementById('photeinosGif');
+      gif.style.display = 'block';
+      gif.style.animation = 'none'; // reset animation
+      // Truc om reflow te forceren:
+      void gif.offsetWidth;
+      gif.style.animation = 'photeinosInOut 2.2s linear forwards';
+      setTimeout(() => {
+        gif.style.display = 'none';
+      }, 2200);
+    }
+
+    function maakGebedCard(gebed) {
+      const card = document.createElement('div');
+      card.className = 'gebed-card';
+      card.id = gebed.id;
+
+      // Puntenbadge
+      const puntenBadge = document.createElement('span');
+      puntenBadge.className = 'gebed-punten';
+      puntenBadge.textContent = `+${gebed.punten} punt${gebed.punten > 1 ? 'en' : ''}`;
+      card.appendChild(puntenBadge);
+
+      // Titel
+      const titel = document.createElement('div');
+      titel.className = 'gebed-titel';
+      titel.textContent = gebed.titel;
+      card.appendChild(titel);
+
+      // Tekst
+      const tekst = document.createElement('div');
+      tekst.className = 'gebed-tekst';
+      tekst.textContent = gebed.tekst;
+      card.appendChild(tekst);
+
+      // Button
+      const btn = document.createElement('button');
+      btn.className = 'gebed-btn';
+      btn.textContent = 'Ik heb gebeden!';
+      btn.onclick = function() {
+        btn.disabled = true;
+        card.classList.add('fade');
+        updatePunten(gebed.punten);
+        toonPhoteinosGif();
+        setTimeout(() => card.remove(), 550);
+      };
+      card.appendChild(btn);
+
+      return card;
+    }
+
+    // Vul de lijst
+    const lijst = document.getElementById('gebedenLijst');
+    gebedenData.forEach(gebed => {
+      lijst.appendChild(maakGebedCard(gebed));
+    });
+
+    // Beginwaarde punten ophalen kan later uit backend
+    updatePunten(0);
+
+  </script>
+</body>
+</html>
