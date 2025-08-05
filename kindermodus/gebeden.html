@@ -1,453 +1,304 @@
-<!DOCTYPE html>
-<html lang="nl">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Welkom – Orthodoxe Kinderpagina</title>
-  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
-  <style>
-    :root {
-      --primair: #7bb235;
-      --donker: #67510C;
-      --pastel1: #fff6e5;
-      --pastel2: #fffde6;
-      --pastel3: #ffe8ec;
-      --pastel4: #e7f8ff;
-      --pastel5: #e6ffe5;
-      --pastel6: #fff2fb;
-      --pastel7: #f5ffe5;
-      --pastel8: #f5e8ff;
-    }
-    body {
-      margin: 0;
-      font-family: 'Comic Sans MS', Arial, sans-serif;
-      color: #333;
-      min-height: 100vh;
-      background: var(--pastel1);
-      transition: background 0.6s;
-      overflow-x: hidden;
-    }
-    .bovenrij {
-      width: 100%;
-      max-width: 1280px;
-      margin: 0 auto 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0;
-      padding: 22px 2vw 8px 2vw;
-      box-sizing: border-box;
-    }
-    .bovenrij .links {
-      display: flex;
-      align-items: center;
-      gap: 18px;
-    }
-    .photeinos-wave-img {
-      width: 92px;
-      min-width: 54px;
-      max-width: 18vw;
-      height: auto;
-      border-radius: 50%;
-      background: #fff;
-      border: 2.2px solid #dab97a;
-      box-shadow: 0 2px 12px #dab97a2a;
-      object-fit: contain;
-      margin-right: 0;
-      user-drag: none;
-      -webkit-user-drag: none;
-      display: block;
-    }
-    .begroeting {
-      font-size: 2.2em;
-      font-weight: bold;
-      color: var(--primair);
-      text-shadow: 0 2px 8px #b3d9ff44;
-      letter-spacing: 0.01em;
-      line-height: 1.04;
-      margin-top: 0;
-      margin-bottom: 0;
-      text-align: left;
-      white-space: nowrap;
-    }
-    .bovenrij .rechts {
-      margin-left: 24px;
-    }
-    .uitlog-kind-btn {
-      background: #e24343;
-      color: #fff;
-      border: none;
-      padding: 11px 24px;
-      border-radius: 9px;
-      font-weight: bold;
-      font-size: 1.1em;
-      cursor: pointer;
-      box-shadow: 0 2px 10px #b04141ab;
-      transition: background 0.2s;
-      z-index: 10;
-      margin-left: 12px;
-    }
-    .uitlog-kind-btn:hover { background: #b72828; }
+package be.orthodoxeweg.mijnorthodoxeweg
 
-    /* Menubalk (AANGEPAST KLEINE KNOPPEN) */
-    nav.kinder-menu {
-      width: 100vw;
-      max-width: 1280px;
-      margin: 0 auto 0 auto;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 18px;
-      padding: 0 0 15px 0;
-      box-sizing: border-box;
-      min-height: 62px;
-      flex-wrap: wrap;
+import android.content.Context
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.asPaddingValues
+import coil.compose.AsyncImage
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
+import com.google.firebase.firestore.FieldValue
+import kotlinx.coroutines.tasks.await
+import java.text.SimpleDateFormat
+import java.util.*
+
+data class PrayerBlockKind(
+    val id: String = "",
+    val titel: String = "",
+    val tekst: String = "",
+    val punten: Int = 1
+)
+
+@Composable
+fun IkBidKindScreen(navController: NavController) {
+    val context = LocalContext.current
+    // GIF loader met Coil (nodig voor animatie)
+    val imageLoader = remember {
+        coil.ImageLoader.Builder(context)
+            .components { add(coil.decode.GifDecoder.Factory()) }
+            .build()
     }
-    nav.kinder-menu a {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: none;
-      border: none;
-      box-shadow: none;
-      padding: 0;
-      cursor: pointer;
-      outline: none;
-      border-radius: 12px;
-      transition: transform 0.13s;
-    }
-    nav.kinder-menu a:focus, nav.kinder-menu a:hover {
-      transform: scale(1.10);
-    }
-    .menu-icoon {
-      width: 56px;
-      height: 56px;
-      object-fit: contain;
-      border-radius: 12px;
-      background: #fff9d5;
-      box-shadow: 0 2px 7px #ffe17e25;
-      border: 2px solid #ffe05e;
-      transition: box-shadow 0.13s, border-color 0.13s;
-      display: block;
-    }
-    nav.kinder-menu a:focus .menu-icoon,
-    nav.kinder-menu a:hover .menu-icoon {
-      box-shadow: 0 5px 16px #ffe17e55;
-      border-color: #ffbe23;
-    }
-    @media (max-width: 900px) {
-      .menu-icoon { width: 38px; height: 38px;}
-      nav.kinder-menu { gap: 8px;}
-    }
-    @media (max-width: 600px) {
-      .menu-icoon { width: 29px; height: 29px;}
-      nav.kinder-menu { gap: 4px;}
+    val sharedPrefs = context.getSharedPreferences("prefs", Context.MODE_PRIVATE)
+    val kindNaam = sharedPrefs.getString("ingelogdKindVoornaam", "Kind")
+    val pastelKleuren = listOf(
+        Color(0xFFFFF6E5), Color(0xFFFFFDE6), Color(0xFFFFE8EC), Color(0xFFE7F8FF),
+        Color(0xFFE6FFE5), Color(0xFFFFF2FB), Color(0xFFF5FFE5), Color(0xFFF5E8FF)
+    )
+    val bgColor = remember { pastelKleuren[kotlin.random.Random.nextInt(pastelKleuren.size)] }
+
+    // FIRESTORE: info ophalen
+    val parochieId = sharedPrefs.getString("ingelogdeParochie", "") ?: ""
+    val ouderLogin = sharedPrefs.getString("loginKeuze", "") ?: ""
+    val kindId = sharedPrefs.getString("ingelogdKindId", "") ?: ""
+    val db = FirebaseFirestore.getInstance()
+    val today = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()) }
+
+    // ==== PUNTEN OPHALEN UIT FIRESTORE ====
+    var punten by remember { mutableStateOf<Int?>(null) }
+    LaunchedEffect(parochieId, ouderLogin, kindId) {
+        if (parochieId.isNotBlank() && ouderLogin.isNotBlank() && kindId.isNotBlank()) {
+            db.collection("parochies")
+                .document(parochieId)
+                .collection("leden")
+                .document(ouderLogin)
+                .collection("kinderen")
+                .document(kindId)
+                .get()
+                .addOnSuccessListener { doc ->
+                    punten = doc.getLong("punten")?.toInt() ?: 0
+                }
+                .addOnFailureListener {
+                    punten = null
+                }
+        }
     }
 
-    /* Welkomsttekst */
-    .welkom-blok {
-      background: #fffce7;
-      border-radius: 23px;
-      box-shadow: 0 6px 32px #d7cbb144;
-      color: var(--donker);
-      font-size: 1.36em;
-      padding: 30px 44px 30px 44px;
-      margin: 28px auto 28px auto;
-      line-height: 1.62;
-      max-width: 850px;
-      width: 93vw;
-      white-space: pre-line;
-      text-align: center;
-    }
-    .photeinos-vlam-blok {
-      position: relative;
-      display: inline-block;
-      width: 330px;
-      max-width: 85vw;
-      margin: 22px auto 16px auto;
-    }
-    .photeinos-vlam-img {
-      width: 100%;
-      display: block;
-      user-drag: none;
-      -webkit-user-drag: none;
-    }
-    .punten-teller {
-      position: absolute;
-      left: 0; right: 0;
-      top: 63%;
-      text-align: center;
-      font-family: 'Comic Sans MS', Arial, sans-serif;
-      font-size: 2.8em;
-      color: #bf5300;
-      font-weight: bold;
-      text-shadow: 0 2px 10px #fffef9, 0 1px 0 #ffecb3;
-      pointer-events: none;
-      letter-spacing: 0.03em;
-      filter: drop-shadow(0 2px 2px #fffef9);
-      transition: transform 0.14s;
-    }
-    @media (max-width: 900px) {
-      .bovenrij { padding-top: 10px; }
-      .photeinos-wave-img { width: 12vw; min-width: 34px; }
-      .begroeting { font-size: 1.2em;}
-      .welkom-blok { font-size: 1.03em; padding: 15px 2vw; }
-      .photeinos-vlam-blok { width: 54vw; min-width: 120px;}
-    }
-    @media (max-width: 550px) {
-      .bovenrij { padding: 6px 1vw 4px 1vw; }
-      .photeinos-wave-img { width: 19vw; min-width: 23px; }
-      .begroeting { font-size: 0.99em;}
-      nav.kinder-menu { gap: 4px; min-height: 32px;}
-      .welkom-blok { font-size: 0.91em; padding: 7px 1vw; }
-      .photeinos-vlam-blok { width: 86vw; min-width: 69px;}
-      .punten-teller { font-size: 1.15em;}
-      .uitlog-kind-btn { padding: 7px 11px; font-size: 0.91em;}
-      .menu-icoon { width: 25px; height: 25px;}
-    }
-  </style>
-  <!-- FIREBASE SCRIPTS -->
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
-</head>
-<body>
-  <!-- Bovenste rij: ster, begroeting, uitloggen -->
-  <div class="bovenrij">
-    <div class="links">
-      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_wave.gif" alt="Photeinos zwaait" class="photeinos-wave-img" draggable="false">
-      <span class="begroeting" id="groet-tekst">Hallo, kind!</span>
-    </div>
-    <div class="rechts">
-      <button class="uitlog-kind-btn" onclick="uitloggenKind()">Uitloggen</button>
-    </div>
-  </div>
+    // ==== GEBEDEN LADEN UIT FIRESTORE ====
+    var gebeden by remember { mutableStateOf<List<PrayerBlockKind>>(emptyList()) }
+    var gebedenStatus by remember { mutableStateOf<Map<String, Boolean>>(emptyMap()) }
+    var loading by remember { mutableStateOf(true) }
+    var error by remember { mutableStateOf<String?>(null) }
 
-  <!-- Menubalk (kleine iconen, vaste urls) -->
-  <nav class="kinder-menu">
-    <a href="startpagina.html" title="Startpagina">
-      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_home.png" alt="Startpagina" class="menu-icoon">
-    </a>
-      <a href="gebeden.html" title="Ik bid">
-      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_bid.png" alt="Ik bid" class="menu-icoon">
-    </a>
-    <a href="bijbelverhalen.html" title="Bijbelverhalen">
-      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_bijbel.png" alt="Bijbelverhalen" class="menu-icoon">
-    </a>
-    <a href="heiligen.html" title="Heiligen verhalen">
-      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_heiligen.png" alt="Heiligen verhalen" class="menu-icoon">
-    </a>
-    <a href="catechese.html" title="Catechese">
-      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/catechese.png" alt="Catechese" class="menu-icoon">
-    </a>
-    <a href="spelletjes.html" title="Spelletjes">
-      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_spelletjes.png" alt="Spelletjes" class="menu-icoon">
-    </a>
-    <a href="school.html" title="School">
-      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_school.png" alt="School" class="menu-icoon">
-    </a>
-  </nav>
-  <style>
-    body {
-      background: #fffde6;
-      font-family: 'Comic Sans MS', Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-    }
-    .container {
-      max-width: 560px;
-      margin: 0 auto;
-      padding: 16px;
-    }
-    .punten-box {
-      display: flex;
-      align-items: center;
-      font-size: 1.5em;
-      margin-bottom: 22px;
-      margin-top: 16px;
-    }
-    .punten-box img {
-      width: 40px;
-      height: 40px;
-      margin-right: 9px;
-    }
-    .gebed-card {
-      background: #fff6e2;
-      border-radius: 22px;
-      box-shadow: 0 2px 8px #0002;
-      margin-bottom: 22px;
-      padding: 20px 18px;
-      opacity: 1;
-      transition: opacity 0.4s, max-height 0.4s;
-      position: relative;
-    }
-    .gebed-card.fade {
-      opacity: 0;
-      max-height: 0 !important;
-      padding: 0 18px;
-      margin-bottom: 0;
-      overflow: hidden;
-    }
-    .gebed-titel {
-      color: #795020;
-      font-size: 1.13em;
-      font-weight: bold;
-      margin-bottom: 8px;
-    }
-    .gebed-tekst {
-      color: #46351F;
-      font-size: 1em;
-      line-height: 1.45;
-      margin-bottom: 15px;
-    }
-    .gebed-punten {
-      display: inline-block;
-      background: #d8ffdf;
-      color: #20641e;
-      border-radius: 8px;
-      padding: 2px 11px;
-      font-size: 0.95em;
-      margin-right: 10px;
-      margin-bottom: 7px;
-    }
-    .gebed-btn {
-      background: #7bb235;
-      color: white;
-      border: none;
-      border-radius: 13px;
-      padding: 11px 0;
-      width: 100%;
-      font-size: 1em;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .gebed-btn:disabled {
-      background: #d8ffdf;
-      color: #888;
-      cursor: default;
-    }
-    .photeinos-gif {
-      position: fixed;
-      left: 0;
-      bottom: 50px;
-      width: 110px;
-      height: 110px;
-      z-index: 1000;
-      display: none;
-      pointer-events: none;
-      animation: photeinosInOut 2.2s linear forwards;
-    }
-    @keyframes photeinosInOut {
-      0%   { transform: translateX(-120%);}
-      15%  { transform: translateX(12%);}
-      80%  { transform: translateX(10%);}
-      100% { transform: translateX(-120%);}
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="punten-box">
-      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_vlam.png" alt="Vlam">
-      <span id="puntenTeller">0</span> punten
-    </div>
-    <div id="gebedenLijst">
-      <!-- Gebeden worden hier gegenereerd -->
-    </div>
-  </div>
-  <img id="photeinosGif" class="photeinos-gif" src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_kiekeboeduim.gif" alt="Photeinos duim">
+    // Voor de GIF-animatie:
+    var showGif by remember { mutableStateOf(false) }
+    var gifTrigger by remember { mutableStateOf(0L) }
 
-  <script>
-    // Voorbeeld-gebeden, kan je dynamisch vervangen met JSON/Firebase
-    const gebedenData = [
-      {
-        id: "01-kruisteken",
-        titel: "Kruisteken",
-        tekst: "Wanneer je ’s morgens wakker wordt, ga dan zonder eerst andere dingen te doen met eerbied voor de ikonen staan, maak het kruisteken en zeg: In de Naam van de Vader, de Zoon, en de Heilige Geest. Amen.",
-        punten: 1
-      },
-      {
-        id: "02-tollenaar",
-        titel: "Gebed van de Tollenaar",
-        tekst: "O God, wees mij, zondaar, genadig.",
-        punten: 1
-      },
-      {
-        id: "03-jezusgebed",
-        titel: "Jezusgebed",
-        tekst: "Heer Jezus Christus, Zoon van God, ontferm U over mij, zondaar.",
-        punten: 3
-      }
-      // Voeg meer gebeden toe!
-    ];
-
-    let punten = 0;
-
-    function updatePunten(aantal) {
-      punten += aantal;
-      document.getElementById('puntenTeller').textContent = punten;
+    // Trigger de GIF-animatie via één centrale LaunchedEffect:
+    LaunchedEffect(gifTrigger) {
+        if (gifTrigger != 0L) {
+            showGif = true
+            kotlinx.coroutines.delay(2500)
+            showGif = false
+        }
     }
 
-    function toonPhoteinosGif() {
-      const gif = document.getElementById('photeinosGif');
-      gif.style.display = 'block';
-      gif.style.animation = 'none'; // reset animation
-      // Truc om reflow te forceren:
-      void gif.offsetWidth;
-      gif.style.animation = 'photeinosInOut 2.2s linear forwards';
-      setTimeout(() => {
-        gif.style.display = 'none';
-      }, 2200);
+    // Dagschema laden (inclusief puntenveld)
+    LaunchedEffect(Unit) {
+        loading = true
+        try {
+            val doc = db.collection("gebedenboek").document("dagschema").get().await()
+            val blocks = doc["blocks"] as? List<Map<String, Any>> ?: emptyList()
+            gebeden = blocks.map { blok ->
+                PrayerBlockKind(
+                    id = blok["id"] as? String ?: "",
+                    titel = blok["titel"] as? String ?: "",
+                    tekst = blok["tekst"] as? String ?: "",
+                    punten = when (val p = blok["punten"]) {
+                        is String -> p.toIntOrNull() ?: 1
+                        is Number -> p.toInt()
+                        else -> 1
+                    }
+                )
+            }
+        } catch (e: Exception) {
+            error = "Kan gebeden niet laden: ${e.message}"
+        }
+        loading = false
     }
 
-    function maakGebedCard(gebed) {
-      const card = document.createElement('div');
-      card.className = 'gebed-card';
-      card.id = gebed.id;
+    // Gebedenstatus laden uit Firestore (per kind, per dag)
+    val gebedenStatusDocRef = db
+        .collection("parochies").document(parochieId)
+        .collection("leden").document(ouderLogin)
+        .collection("kinderen").document(kindId)
+        .collection("gebeden_status").document(today)
 
-      // Puntenbadge
-      const puntenBadge = document.createElement('span');
-      puntenBadge.className = 'gebed-punten';
-      puntenBadge.textContent = `+${gebed.punten} punt${gebed.punten > 1 ? 'en' : ''}`;
-      card.appendChild(puntenBadge);
-
-      // Titel
-      const titel = document.createElement('div');
-      titel.className = 'gebed-titel';
-      titel.textContent = gebed.titel;
-      card.appendChild(titel);
-
-      // Tekst
-      const tekst = document.createElement('div');
-      tekst.className = 'gebed-tekst';
-      tekst.textContent = gebed.tekst;
-      card.appendChild(tekst);
-
-      // Button
-      const btn = document.createElement('button');
-      btn.className = 'gebed-btn';
-      btn.textContent = 'Ik heb gebeden!';
-      btn.onclick = function() {
-        btn.disabled = true;
-        card.classList.add('fade');
-        updatePunten(gebed.punten);
-        toonPhoteinosGif();
-        setTimeout(() => card.remove(), 550);
-      };
-      card.appendChild(btn);
-
-      return card;
+    LaunchedEffect(parochieId, ouderLogin, kindId, today) {
+        if (parochieId.isNotBlank() && ouderLogin.isNotBlank() && kindId.isNotBlank()) {
+            try {
+                val snapshot = gebedenStatusDocRef.get().await()
+                @Suppress("UNCHECKED_CAST")
+                gebedenStatus = snapshot.data as? Map<String, Boolean> ?: emptyMap()
+            } catch (e: Exception) {
+                gebedenStatus = emptyMap()
+            }
+        }
     }
 
-    // Vul de lijst
-    const lijst = document.getElementById('gebedenLijst');
-    gebedenData.forEach(gebed => {
-      lijst.appendChild(maakGebedCard(gebed));
-    });
+    // === ALLES in één scrolbare Column ===
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(bgColor)
+    ) {
+        Column(
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(
+                    top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 8.dp,
+                    start = 18.dp,
+                    end = 18.dp,
+                    bottom = 18.dp
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
+        ) {
+            // Bovenaan: begroeting en menubalk
+            KinderAppBegroeting(punten=punten)
+            KinderAppMenuBalk(navController = navController)
 
-    // Beginwaarde punten ophalen kan later uit backend
-    updatePunten(0);
+            // Titel
+            Text(
+                text = "Vandaag bidden we samen!",
+                style = MaterialTheme.typography.titleLarge,
+                color = Color(0xFF67510C),
+                modifier = Modifier.padding(top = 18.dp, bottom = 4.dp)
+            )
 
-  </script>
-</body>
-</html>
+            // Laadindicator of foutmelding
+            when {
+                loading -> {
+                    CircularProgressIndicator(modifier = Modifier.padding(32.dp))
+                }
+                error != null -> {
+                    Text(
+                        text = error!!,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(24.dp)
+                    )
+                }
+                else -> {
+                    gebeden.forEach { blokje ->
+                        val checked = gebedenStatus[blokje.id] == true
+                        var visible by remember(blokje.id, checked) { mutableStateOf(!checked) }
+
+                        LaunchedEffect(checked) {
+                            if (checked) {
+                                kotlinx.coroutines.delay(350)
+                                visible = false
+                            } else {
+                                visible = true
+                            }
+                        }
+
+                        AnimatedVisibility(
+                            visible = visible,
+                            exit = fadeOut()
+                        ) {
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 9.dp, horizontal = 3.dp),
+                                shape = RoundedCornerShape(22.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = if (checked) Color(0xFFD8FFDF) else Color(0xFFFFF6E2)
+                                ),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .padding(16.dp)
+                                        .fillMaxWidth(),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        blokje.titel,
+                                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                                        fontSize = 19.sp,
+                                        color = Color(0xFF795020)
+                                    )
+                                    Spacer(Modifier.height(8.dp))
+                                    Text(
+                                        blokje.tekst,
+                                        fontSize = 16.sp,
+                                        color = Color(0xFF46351F),
+                                        lineHeight = 22.sp
+                                    )
+                                    Spacer(Modifier.height(15.dp))
+                                    Button(
+                                        onClick = {
+                                            gebedenStatus = gebedenStatus.toMutableMap().apply {
+                                                put(blokje.id, true)
+                                            }
+                                            gebedenStatusDocRef.set(
+                                                mapOf(blokje.id to true),
+                                                SetOptions.merge()
+                                            )
+
+                                            // Punten exact uit blokje pakken
+                                            val puntenToevoegen = blokje.punten
+
+                                            // Punten atomair optellen in Firestore
+                                            db.collection("parochies")
+                                                .document(parochieId)
+                                                .collection("leden")
+                                                .document(ouderLogin)
+                                                .collection("kinderen")
+                                                .document(kindId)
+                                                .update("punten", FieldValue.increment(puntenToevoegen.toLong()))
+
+                                            // Lokaal ook verhogen voor directe feedback
+                                            punten = (punten ?: 0) + puntenToevoegen
+
+                                            // GIF-animatie: update trigger
+                                            gifTrigger = System.currentTimeMillis()
+                                        },
+                                        enabled = !checked,
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = if (!checked) Color(0xFF7bb235) else Color(0xFFD8FFDF),
+                                            contentColor = Color.White
+                                        ),
+                                        shape = RoundedCornerShape(13.dp),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(45.dp)
+                                    ) {
+                                        Text(
+                                            if (!checked) "Ik heb gebeden!" else "✔ Gedaan",
+                                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                                            fontSize = 17.sp
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(32.dp))
+        }
+
+        // ---- GIF: kiekeboeduim springt van LINKS in beeld en verdwijnt vanzelf ----
+        AnimatedVisibility(
+            visible = showGif,
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .padding(bottom = 80.dp, start = 0.dp) // Helemaal links!
+        ) {
+            AsyncImage(
+                model = coil.request.ImageRequest.Builder(context)
+                    .data(R.drawable.photeinos_kiekeboeduim)
+                    .build(),
+                imageLoader = imageLoader,
+                contentDescription = "Photeinos kiekeboe",
+                modifier = Modifier.size(110.dp)
+            )
+        }
+    }
+}
