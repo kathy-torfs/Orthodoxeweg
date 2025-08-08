@@ -5,14 +5,7 @@
   <title>Registratieaanvragen - Priestermodus</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    /* ==== ALGEMEEN: BEGIN ==== */
-    body {
-      font-family: Arial, sans-serif; background: #f8f5e9;
-      margin: 0; padding: 0;
-    }
-    /* ==== ALGEMEEN: EINDE ==== */
-
-    /* ==== TOPBAR + BEGROETING: BEGIN ==== */
+    body { font-family: Arial, sans-serif; background: #f8f5e9; margin: 0; padding: 0; }
     .statusbar {
       background: #7a5f35; color: #fff; padding: 10px 24px;
       display: flex; justify-content: space-between; align-items: center;
@@ -25,9 +18,6 @@
       transition: background 0.18s;
     }
     .uitlog-link:hover { background: #bd2e23; }
-    /* ==== TOPBAR + BEGROETING: EINDE ==== */
-
-    /* ==== MENUBALK: BEGIN ==== */
     nav.menu {
       background: #7a5f35; padding: 12px 20px;
       display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; align-items: center;
@@ -38,9 +28,6 @@
       transition: background-color 0.3s;
     }
     nav.menu a:hover { background: #5e4724; }
-    /* ==== MENUBALK: EINDE ==== */
-
-    /* ==== LIJST EN REGISTRATIE: BEGIN ==== */
     h1 { text-align: center; color: #5d4c2f; margin-top: 32px; }
     .aanvragen-lijst {
       max-width: 750px; margin: 30px auto 0 auto; background: #fffef9;
@@ -72,7 +59,6 @@
       color: #aa8e4a; text-align: center; margin-top: 42px; font-size: 1.15em;
     }
     @media (max-width: 800px) { .aanvragen-lijst { padding: 8vw 2vw; } }
-    /* ==== LIJST EN REGISTRATIE: EINDE ==== */
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
@@ -93,23 +79,21 @@
   <!-- ==== TOPBAR + BEGROETING: EINDE ==== -->
 
   <!-- ==== MENUBALK PRIESTER: BEGIN ==== -->
-<nav class="menu">
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/startpagina.html" title="Startpagina">🏠</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/parochie.html">🛐 Mijn parochie</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/catechese/catechese.html">📖 Catechese</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/gebeden.html">🙏 Gebeden</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/psalmen/psalmen.html">📜 Psalmen</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/heiligen/heiligen.html">👼 Heiligen</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/bijbeldagboek.html">📔 Bijbeldagboek</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/verjaardagskalender.html">🎂 Verjaardagskalender</a>
-  <!-- Kerkje-rechts als profiel/bewerk parochie -->
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/layout.html" class="menu-kerk" title="Bewerk parochie">
-    <span style="font-size:2.1em; display:inline-block; vertical-align:middle;">⛪</span>
-  </a>
-</nav>
-<!-- ==== MENUBALK PRIESTER: EINDE ==== -->
-
+  <nav class="menu">
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/startpagina.html" title="Startpagina">🏠</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/parochie.html">🛐 Mijn parochie</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/catechese/catechese.html">📖 Catechese</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/gebeden.html">🙏 Gebeden</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/psalmen/psalmen.html">📜 Psalmen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/heiligen/heiligen.html">👼 Heiligen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/bijbeldagboek.html">📔 Bijbeldagboek</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/verjaardagskalender.html">🎂 Verjaardagskalender</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/layout.html" class="menu-kerk" title="Bewerk parochie">
+      <span style="font-size:2.1em; display:inline-block; vertical-align:middle;">⛪</span>
+    </a>
+  </nav>
+  <!-- ==== MENUBALK PRIESTER: EINDE ==== -->
 
   <!-- ==== LIJST EN REGISTRATIE: BEGIN ==== -->
   <h1>Registratieaanvragen</h1>
@@ -134,30 +118,34 @@
     // ==== FIREBASE INIT: EINDE ====
 
     // ==== PAROCHIE-ID EN UITLOGGEN: BEGIN ====
-    let parochieNaam = localStorage.getItem("ingelogdeParochie");
-    document.getElementById("parochieNaam").textContent = parochieNaam || "...";
+    let parochieId = localStorage.getItem("ingelogdeParochie");
+    if (!parochieId) {
+      alert("Fout: geen parochie gevonden in je sessie. Log opnieuw in.");
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    }
+    // Haal officiële parochienaam op voor de begroeting
+    db.collection("parochies").doc(parochieId).get().then(doc => {
+      if (!doc.exists) {
+        document.getElementById("parochieNaam").textContent = "(niet gevonden)";
+        alert("Parochie niet gevonden in de database! Controleer je login.");
+        window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+        return;
+      }
+      document.getElementById("parochieNaam").textContent = doc.data().naam || parochieId;
+    });
+
     document.getElementById("uitlogKnop").onclick = function() {
       localStorage.removeItem("ingelogdeParochie");
-      localStorage.removeItem("ingelogdeParochieId");
       localStorage.removeItem("modus");
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     };
-    let parochieIdPromise = db.collection("parochies")
-      .where("naam", "==", parochieNaam)
-      .limit(1)
-      .get()
-      .then(snap => snap.empty ? null : snap.docs[0].id);
     // ==== PAROCHIE-ID EN UITLOGGEN: EINDE ====
 
     // ==== AANVRAGEN LADEN: BEGIN ====
     async function laadAanvragen() {
       const container = document.getElementById("aanvragenLijst");
       container.innerHTML = '<div class="geen-aanvragen">Bezig met laden...</div>';
-      const parochieId = await parochieIdPromise;
-      if (!parochieId) {
-        container.innerHTML = '<div class="geen-aanvragen">Parochie niet gevonden. Probeer opnieuw in te loggen.</div>';
-        return;
-      }
+      // zoek direct op parochieId
       db.collection("parochies").doc(parochieId).collection("registraties")
         .where("status", "==", "in afwachting")
         .get()
@@ -204,8 +192,6 @@
 
     // ==== GOEDKEUREN/WEIGEREN: BEGIN ====
     async function goedkeurAanvraag(id) {
-      const parochieId = await parochieIdPromise;
-      if (!parochieId) return alert("Fout: parochie niet gevonden.");
       const regRef = db.collection("parochies").doc(parochieId).collection("registraties").doc(id);
       const doc = await regRef.get();
       if (!doc.exists) return alert("Registratie niet gevonden!");
@@ -271,15 +257,12 @@ Orthodoxeweg`
     }
 
     async function weigerAanvraag(id) {
-      const parochieId = await parochieIdPromise;
-      if (!parochieId) return alert("Fout: parochie niet gevonden.");
       const regRef = db.collection("parochies").doc(parochieId).collection("registraties").doc(id);
       await regRef.delete();
       alert("Registratie geweigerd en verwijderd.");
       laadAanvragen();
     }
 
-    // Maak knoppen global
     window.goedkeurAanvraag = goedkeurAanvraag;
     window.weigerAanvraag = weigerAanvraag;
     // ==== GOEDKEUREN/WEIGEREN: EINDE ====
