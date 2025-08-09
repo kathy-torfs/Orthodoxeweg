@@ -313,7 +313,14 @@
     function toonOpdracht(i) {
       const op = opdrachten[i];
       const titel = op.titel || ("Dag " + (i+1));
-      const uitleg = op.uitleg || op.intro || op.tekst || "";
+
+      // ▼▼ AANGEPAST: toon lezing + intro + volledige tekst ▼▼
+      const parts = [];
+      if (op.lezing) parts.push(`Lezing: ${op.lezing}`);
+      if (op.intro)  parts.push(op.intro);
+      if (op.tekst)  parts.push(op.tekst);
+      const uitleg = parts.join("\n\n");
+      // ▲▲ AANGEPAST ▲▲
 
       document.getElementById("hoofdstukTitel").textContent = titel;
       document.getElementById("hoofdstukUitleg").textContent = uitleg;
