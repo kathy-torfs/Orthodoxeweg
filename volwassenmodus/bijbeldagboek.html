@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
@@ -107,8 +107,18 @@
       padding: 38px 28px 28px 28px; position: relative; min-height: 440px;
     }
     h1 { text-align: center; color: #7a5f35; font-size: 2em; margin-bottom: 0.8em;}
-    .hoofdstuk-titel { font-size:1.19em; font-weight:bold; color:#7a5f35; margin-bottom: 0.3em;}
-    .hoofdstuk-uitleg { margin-bottom: 1.2em; font-size: 1.07em; color: #4d3c1d; white-space: pre-wrap;}
+    .hoofdstuk-titel { font-size:1.19em; font-weight:bold; color:#7a5f35; margin-bottom: 0.3em; position: relative; padding-bottom: 6px; }
+    .hoofdstuk-titel::after{
+      content:"";
+      display:block;
+      height:2px;
+      width:64px;
+      background:#decaa1;
+      border-radius:2px;
+      margin-top:8px;
+      opacity:.8;
+    }
+    .hoofdstuk-uitleg { margin-bottom: 1.2em; font-size: 1.07em; color: #4d3c1d; }
     .reflectieblok { margin-top: 1em; }
     textarea {
       width:98%; min-height: 84px; padding: 9px; border-radius: 10px;
@@ -120,7 +130,16 @@
     .boeknr { text-align:center; font-size:0.97em; color:#b29444; margin-top:1.3em;}
     .opslaan-feedback {color:#a68415; margin-top:0.4em; text-align:left;}
 
-    /* ==== Intro als blockquote + Vragen-blok ==== */
+    /* --- Mini-typografie voor lezing/intro/bijbeltekst/vragen --- */
+    .lezing-regel{
+      background:#eef6ff;
+      border:1px solid #cddcf4;
+      border-radius:10px;
+      padding:10px 12px;
+      margin:8px 0 14px 0;
+      color:#214b77;
+      font-size:0.98em;
+    }
     blockquote.intro-quote{
       background:#fffbe7;
       border-left:4px solid #decaa1;
@@ -130,15 +149,21 @@
       color:#6f4e1a;
       font-style:italic;
     }
-    .lezing-regel{
-      background:#eef6ff;
-      border:1px solid #cddcf4;
-      border-radius:8px;
-      padding:8px 10px;
-      margin:6px 0 12px 0;
-      color:#214b77;
-      font-size:0.98em;
+    .bijbeltekst{
+      background:#fffdfa;
+      border:1px solid #eadbb2;
+      border-radius:12px;
+      padding:14px 16px;
+      margin:10px 0 14px 0;
+      color:#4a3a1c;
+      line-height:1.72;
+      letter-spacing:0.15px;
     }
+    .bijbeltekst p{
+      margin:0 0 10px 0;
+      text-indent:1.1em;
+    }
+    .bijbeltekst p + p{ margin-top:6px; }
     .vragen-blok{
       display:none;
       margin-top:16px;
@@ -200,18 +225,18 @@
     <div class="hoofdstuk-titel" id="hoofdstukTitel"></div>
     <div class="hoofdstuk-uitleg" id="hoofdstukUitleg"></div>
 
+    <!-- Vragen -->
+    <div class="vragen-blok" id="vragenBlok">
+      <h3>Vragen voor vandaag</h3>
+      <ol id="vragenLijst"></ol>
+    </div>
+
     <form id="reflectieForm" class="reflectieblok">
       <label for="reflectieTekst"><b>Mijn reflectie:</b></label><br>
       <textarea id="reflectieTekst" maxlength="600" placeholder="Schrijf hier jouw ervaring of gedachte..."></textarea>
       <div class="opslaan-feedback" id="reflectieFormFeedback"></div>
       <button type="submit" style="margin-top:0.5em;">Bewaren</button>
     </form>
-
-    <!-- Vragen-blok -->
-    <div id="vragenBlok" class="vragen-blok">
-      <h3>Vragen</h3>
-      <ol id="vragenLijst"></ol>
-    </div>
 
     <div class="knoppenboek">
       <button id="vorigeBtn">&laquo; Vorige</button>
@@ -253,6 +278,19 @@
 
     let opdrachten = [];
     let index = 0;
+
+    // Helpers
+    const esc = (s='') => String(s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+
+    function renderParagraphs(txt=''){
+      const norm = String(txt).replace(/\r\n/g,'\n').trim();
+      if(!norm) return '';
+      const blocks = norm.split(/\n\s*\n/);
+      const html = blocks.map(b => `<p>${esc(b).replace(/\n/g,'<br>')}</p>`).join('');
+      return `<div class="bijbeltekst">${html}</div>`;
+    }
 
     // Haal templates op (voorkeur: vlaamseOrthodoxeBijbelstudie ; fallback: vlaamseOrthodoxeBijbelstudie_Genesis)
     async function getTemplateSnapshot() {
@@ -330,13 +368,6 @@
       await memberRef.set({ dagboekCurrentId: currentId }, { merge: true });
     }
 
-    // Kleine helper om veilig te injecteren
-    function esc(s){
-      const d=document.createElement('div');
-      d.textContent = String(s ?? '');
-      return d.innerHTML;
-    }
-
     // Laad dagboek-items van DEZE gebruiker
     async function laadOpdrachten() {
       const userDagColl = db.collection("parochies").doc(parochieId).collection("leden").doc(userId).collection("dagboek");
@@ -367,28 +398,24 @@
       const op = opdrachten[i];
       const titel = op.titel || ("Dag " + (i+1));
 
-      // HTML opbouwen: Lezing -> Intro (blockquote) -> Tekst (volledige tekst)
-      const blok = [];
-      if (op.lezing) {
-        blok.push(`<div class="lezing-regel"><b>Lezing:</b> ${esc(op.lezing)}</div>`);
-      }
-      if (op.intro) {
-        blok.push(`<blockquote class="intro-quote">${esc(op.intro)}</blockquote>`);
-      }
-      if (op.tekst) {
-        // pre-wrap stijl op container zorgt voor nieuwe regels
-        blok.push(`<div>${esc(op.tekst)}</div>`);
-      }
+      // Lezing (bovenaan)
+      let html = '';
+      if (op.lezing) html += `<div class="lezing-regel"><b>Lezing:</b> ${esc(op.lezing)}</div>`;
+      // Intro als blockquote
+      if (op.intro)  html += `<blockquote class="intro-quote">${esc(op.intro)}</blockquote>`;
+      // Volledige bijbeltekst als alinea's
+      if (op.tekst)  html += renderParagraphs(op.tekst);
 
       document.getElementById("hoofdstukTitel").textContent = titel;
-      document.getElementById("hoofdstukUitleg").innerHTML = blok.join("\n");
+      document.getElementById("hoofdstukUitleg").innerHTML = html;
 
-      // Vragen tonen (indien aanwezig)
+      // Vragenlijst onderaan
+      const vragen = Array.isArray(op.vragen) ? op.vragen : [];
       const vragenBlok = document.getElementById("vragenBlok");
       const vragenLijst = document.getElementById("vragenLijst");
       vragenLijst.innerHTML = "";
-      if (Array.isArray(op.vragen) && op.vragen.length) {
-        op.vragen.forEach(v => {
+      if (vragen.length) {
+        vragen.forEach(v => {
           const li = document.createElement("li");
           li.textContent = v;
           vragenLijst.appendChild(li);
@@ -469,7 +496,7 @@
 
         Promise.all(lookups).then(async () => {
           if (gelukt && gevondenDoc) {
-            userId = gevondenDoc.id;           
+            userId = gevondenDoc.id;
             parochieId = gevondenParochieId;
             memberRef = db.collection("parochies").doc(parochieId).collection("leden").doc(userId);
 
