@@ -7,84 +7,84 @@
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
     body { background:#f5e9b8; font-family: Arial, sans-serif; color:#6f4e1a; margin:0; padding:0; }
-    /* Topbar */
-    .topbar{background:#6f4e1a;color:#fff;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;font-weight:bold}
+
+    /* Topbar & menu */
+    .topbar{background:#6f4e1a;color:#fff;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;font-weight:bold;flex-wrap:wrap;}
     #welkom-tekst{font-size:1.07em;font-weight:normal}
     .uitlog-link{background:#8722aa;color:#fff;border:none;padding:8px 18px;border-radius:18px;cursor:pointer;font-weight:bold;margin-left:12px}
-
-    /* Menu */
     nav.menu{background:#7a5f35;padding:10px 15px;display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:center}
-    nav.menu a,nav.menu button{color:#f5e9b8;text-decoration:none;font-weight:600;font-size:16px;padding:6px 12px;border-radius:8px;transition:.3s;background:none;border:none;display:flex;align-items:center;cursor:pointer}
+    nav.menu a,nav.menu button{color:#f5e9b8;text-decoration:none;font-weight:600;font-size:16px;padding:6px 12px;border-radius:8px;transition:background-color .3s;background:none;border:none;display:flex;align-items:center;cursor:pointer}
     nav.menu a:hover,nav.menu button:hover{background:#5d4726;text-decoration:underline}
     .menu-avatar{padding:0!important;background:none!important;border:none!important;margin-left:2px}
-    .menu-avatar img{height:2.1em;width:2.1em;border-radius:50%;border:2.2px solid #dab97a;background:#fff8eb;transition:.2s;box-shadow:0 1px 4px rgba(160,140,80,.13)}
+    .menu-avatar img{height:2.1em;width:2.1em;border-radius:50%;border:2.2px solid #dab97a;background:#fff8eb;transition:box-shadow .2s,border .2s;box-shadow:0 1px 4px rgba(160,140,80,.13)}
     .menu-avatar img:hover{border:2.2px solid #a06a19;box-shadow:0 2px 8px rgba(160,140,80,.23)}
     @media (max-width:650px){nav.menu{gap:8px}nav.menu a,nav.menu button{font-size:1em;padding:6px 6px}.menu-avatar img{height:1.75em;width:1.75em}}
 
-    /* Login */
-    .loginblok{max-width:370px;margin:70px auto 30px;background:#fffef6;padding:2.5em 2.2em 1.4em;border-radius:13px;box-shadow:0 2px 14px #dccfa725}
-    .loginblok label{font-weight:bold;color:#8a641f}
-    .loginblok input{width:98%;font-size:1em;margin-bottom:1.2em;border-radius:8px;border:1.2px solid #dbc592;padding:9px;background:#faf5e1}
-    .loginblok button{background:#7a5f35;color:#fff;padding:10px 28px;border-radius:10px;border:none;font-size:1.1em;cursor:pointer}
-    .loginblok button:hover{background:#b09765}
-    #loginFeedback{color:#b9311e;margin-top:7px;min-height:26px}
+    /* Login modal */
+    .modal-backdrop{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;z-index:9999}
+    .modal{background:#fffef6;border-radius:14px;box-shadow:0 10px 50px #0004;max-width:420px;width:92vw;padding:22px 22px 16px 22px;border:1px solid #e9ddb8}
+    .modal h2{margin:0 0 10px 0;color:#6f4e1a}
+    .modal p{margin:0 0 14px 0;color:#755a2a}
+    .modal label{display:block;font-weight:bold;color:#8a641f;margin-top:6px}
+    .modal input{width:100%;font-size:1em;margin-top:6px;margin-bottom:12px;border-radius:8px;border:1.2px solid #dbc592;padding:9px;background:#faf5e1}
+    .modal .row{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
+    .btn{background:#7a5f35;color:#fff;padding:9px 20px;border-radius:10px;border:none;font-size:1em;cursor:pointer}
+    .btn.secondary{background:#b09765}
+    #loginFeedback{color:#b9311e;min-height:22px;margin-top:6px}
 
-    /* Pagina container */
-    .boek-container{display:none;max-width:1000px;margin:30px auto 40px;background:#fffef9;border-radius:18px;box-shadow:0 8px 48px #ccb65b25;padding:18px 18px 26px;position:relative}
-    h1{text-align:center;color:#7a5f35;font-size:2em;margin:0.3em 0 0.6em}
+    /* Container */
+    .page-wrap{max-width:1100px;margin:26px auto 60px auto;padding:0 14px}
+    h1{ text-align:center; color:#7a5f35; font-size:2em; margin:10px 0 16px 0;}
 
     /* Intro boven het boek */
-    .intro-top{max-width:940px;margin:0 auto 16px}
-    .intro-top blockquote{background:#fffbe7;border-left:4px solid #decaa1;border-radius:10px;padding:12px 14px;margin:0;color:#6f4e1a;font-style:italic}
+    .intro-quote{background:#fffbe7;border:1px solid #decaa1;border-left:5px solid #d3b274;border-radius:12px;padding:14px 16px;margin:12px 0 16px 0;color:#6f4e1a;font-style:italic}
 
-    /* Boek lay-out (twee kolommen) */
-    .boek-flex{display:grid;grid-template-columns:1.2fr .8fr;gap:18px;align-items:start;max-width:940px;margin:0 auto}
-    @media (max-width:900px){.boek-flex{grid-template-columns:1fr;gap:12px}}
+    /* Open-boek lay-out */
+    .boek{display:grid;grid-template-columns:1fr 1fr;gap:18px;background:#fffef9;border-radius:18px;border:1px solid #e9ddb8;box-shadow:0 8px 40px #ccb65b25;padding:24px 20px}
+    .kolom{min-width:0}
+    .kolomtitel{font-weight:bold;color:#7a5f35;margin:0 0 10px 0}
+    .regel{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;padding:10px 8px;border-bottom:1px dashed #eadbb2}
+    .regel:last-child{border-bottom:none}
+    .vers{background:#fffdfa;border:1px solid #eadbb2;border-radius:10px;padding:10px 12px;color:#4a3a1c;line-height:1.6}
+    .note{min-height:54px;background:#faf5e1;border:1.2px solid #dbc592;border-radius:10px;padding:8px 10px;font-size:.98em;width:100%;resize:vertical}
+    .regel-meta{grid-column:1 / -1;display:flex;justify-content:space-between;align-items:center;color:#b29444;font-size:.92em;margin-top:6px}
 
-    .pane{background:linear-gradient(110deg,#ede4ca 90%,#fff7e2 100%);border:2px solid #ceb27d;border-radius:16px;padding:16px;box-shadow:0 6px 24px #a88b5425}
-    .pane.right{background:linear-gradient(-110deg,#fff9e1 90%,#ede4ca 100%)}
+    /* Lezing badge */
+    .lezing-badge{background:#eef6ff;border:1px solid #cddcf4;border-radius:10px;padding:9px 12px;margin:10px 0;color:#214b77;font-size:.96em}
 
-    .hoofdstuk-kop{font-weight:bold;color:#7a5f35;font-size:1.12em;margin:0 0 6px}
-    .subtle{color:#936d2b;margin:0 0 10px}
+    /* Onder het boek: vragen + reflectie */
+    .vragen{background:#f3ece1;border:1.2px solid #dfc789;border-radius:12px;padding:14px 16px;margin:18px 0}
+    .vragen h3{margin:0 0 8px 0;color:#7a5f35}
+    .vragen ol{margin:0;padding-left:20px}
+    .reflectie{background:#fffef6;border:1px solid #e9ddb8;border-radius:12px;padding:14px 16px}
+    .reflectie label{font-weight:bold;color:#7a5f35}
+    .reflectie textarea{width:100%;min-height:110px;background:#faf5e1;border:1.2px solid #dbc592;border-radius:10px;padding:10px}
 
-    /* Bijbeltekst (genummerd) */
-    .lezing-tekst{background:#fffef9;border:1.3px solid #e6d49f;border-radius:12px;padding:12px}
-    .lezing-tekst .ln{display:flex;gap:8px;align-items:flex-start;margin:6px 0}
-    .lezing-tekst .nr{min-width:2.2em;color:#9a7a33;font-weight:bold;text-align:right}
-    .lezing-tekst .tx{white-space:pre-wrap}
+    .navrow{display:flex;gap:10px;justify-content:space-between;align-items:center;margin-top:14px}
+    .boeknr{color:#b29444;font-size:.95em}
 
-    /* Notities naast tekst */
-    .notities-box label{display:block;font-weight:bold;color:#6a4f1f;margin-bottom:6px}
-    .notities-box textarea{width:100%;min-height:420px;border:1.2px solid #dbc592;border-radius:10px;background:#faf5e1;padding:10px;resize:vertical}
-
-    /* Onder het boek: vragen & reflectie */
-    .onderdelen{max-width:940px;margin:18px auto 0;display:flex;flex-direction:column;gap:16px}
-    .vragen-blok{background:#f3ece1;border:1.2px solid #dfc789;border-radius:12px;padding:14px 16px}
-    .vragen-blok .vraag{background:#fffef9;border:1.2px solid #e6d49f;border-radius:12px;padding:10px 12px;margin:8px 0}
-    .vragen-blok .vraag label{display:block;font-weight:bold;color:#6a4f1f;margin-bottom:6px}
-    .vragen-blok .vraag textarea{width:100%;min-height:72px;border:1.2px solid #dbc592;border-radius:8px;background:#faf5e1;padding:8px}
-
-    .reflectieblok{background:#fffdf8;border:1.2px solid #e6d49f;border-radius:12px;padding:14px 16px}
-    .reflectieblok label{display:block;font-weight:bold;color:#6a4f1f;margin-bottom:6px}
-    .reflectieblok textarea{width:100%;min-height:100px;border:1.2px solid #dbc592;border-radius:8px;background:#faf5e1;padding:8px}
-
-    .actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .actions button{background:#7a5f35;color:#fff;padding:9px 16px;border-radius:10px;border:none;cursor:pointer}
-    .actions button:disabled{opacity:.7;background:#ccb58d}
-    .opslaan-feedback{color:#a68415}
-    .boeknr{text-align:center;font-size:.97em;color:#b29444;margin-top:8px}
+    /* Kleine schermen */
+    @media (max-width:900px){
+      .boek{grid-template-columns:1fr}
+      .regel{grid-template-columns:1fr;gap:8px}
+    }
   </style>
+
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <!-- Topbar -->
+  <!-- TOPBAR -->
   <div class="topbar">
     <div id="welkom-tekst"></div>
-    <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
+    <div>
+      <button class="uitlog-link" id="openIndexBtn" title="Index">📚 Index</button>
+      <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
+    </div>
   </div>
 
-  <!-- Menu -->
+  <!-- MENU -->
   <nav class="menu">
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html" title="Home">🏠</a>
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
@@ -100,65 +100,74 @@
     </a>
   </nav>
 
-  <!-- Login -->
-  <div class="loginblok" id="loginblok">
-    <form id="dagboekLoginForm">
-      <label for="dagboekEmail">E-mailadres</label><br>
-      <input type="email" id="dagboekEmail" required autocomplete="username"><br>
-      <label for="dagboekWachtwoord">Wachtwoord</label><br>
-      <input type="password" id="dagboekWachtwoord" required autocomplete="current-password"><br>
-      <button type="submit">Dagboek openen</button>
+  <!-- LOGIN MODAL -->
+  <div class="modal-backdrop" id="loginModal">
+    <div class="modal">
+      <h2>Bijbeldagboek openen</h2>
+      <p>Log 1× in per sessie. Daarna blijf je ingelogd zolang dit venster open is.</p>
+      <label for="email">E-mailadres</label>
+      <input id="email" type="email" autocomplete="username" />
+      <label for="wachtwoord">Wachtwoord</label>
+      <input id="wachtwoord" type="password" autocomplete="current-password" />
       <div id="loginFeedback"></div>
-    </form>
+      <div class="row">
+        <button class="btn secondary" id="annuleerLogin">Annuleren</button>
+        <button class="btn" id="bevestigLogin">Dagboek openen</button>
+      </div>
+    </div>
   </div>
 
-  <!-- Dagboek -->
-  <div class="boek-container" id="boekContainer">
+  <!-- PAGINA -->
+  <div class="page-wrap">
     <h1>📖 Mijn bijbeldagboek</h1>
 
-    <!-- Intro boven het boek -->
-    <div class="intro-top">
-      <blockquote id="introQuoteTop"></blockquote>
-    </div>
+    <!-- Lezing + Intro -->
+    <div id="lezingBadge" class="lezing-badge" style="display:none;"></div>
+    <blockquote id="intro" class="intro-quote" style="display:none;"></blockquote>
 
-    <!-- Boek (links tekst, rechts notities) -->
-    <div class="boek-flex">
-      <div class="pane">
-        <div class="hoofdstuk-kop" id="hoofdstukTitel">Titel</div>
-        <div class="subtle" id="lezingKop"></div>
-        <div class="lezing-tekst" id="lezingTekstNumeriek"></div>
+    <!-- Open boek -->
+    <div class="boek" id="boek" style="display:none;">
+      <!-- Linker kolom: bijbelregels -->
+      <div class="kolom">
+        <div class="kolomtitel">Bijbeltekst</div>
+        <div id="regels"></div>
       </div>
-      <div class="pane right">
-        <div class="notities-box">
-          <label for="notitiesAlgemeen">Notities</label>
-          <textarea id="notitiesAlgemeen" placeholder="Schrijf hier je notities naast de tekst…"></textarea>
-        </div>
+      <!-- Rechter kolom: notities per regel -->
+      <div class="kolom">
+        <div class="kolomtitel">Mijn notities per regel</div>
+        <div id="notities"></div>
       </div>
     </div>
 
-    <!-- Onder het boek: vragen & reflectie -->
-    <div class="onderdelen">
-      <div class="vragen-blok" id="vragenBlok" style="display:none">
-        <div class="hoofdstuk-kop">Vragen voor vandaag</div>
-        <div id="vragenLijst"></div>
-      </div>
+    <!-- Vragen -->
+    <div class="vragen" id="vragen" style="display:none;">
+      <h3>Vragen voor vandaag</h3>
+      <ol id="vragenLijst"></ol>
+    </div>
 
-      <div class="reflectieblok">
-        <label for="reflectieTekst">Mijn reflectie</label>
-        <textarea id="reflectieTekst" maxlength="1000" placeholder="Wat raakte je? Wat neem je mee?"></textarea>
-        <div class="actions">
-          <button id="saveBtn" type="button">Alles bewaren</button>
-          <button id="vorigeBtn" type="button">&laquo; Vorige</button>
-          <button id="volgendeBtn" type="button">Volgende &raquo;</button>
-          <span class="opslaan-feedback" id="opslaanFeedback"></span>
-        </div>
-        <div class="boeknr" id="boeknr"></div>
+    <!-- Reflectie -->
+    <div class="reflectie" id="reflectieBlok" style="display:none;">
+      <label for="reflectieTekst">Mijn reflectie</label>
+      <textarea id="reflectieTekst" placeholder="Schrijf hier jouw reflectie..."></textarea>
+      <div class="navrow" style="margin-top:10px;">
+        <span id="saveFeedback" style="color:#a68415;"></span>
+        <button class="btn" id="saveReflectie">Bewaren</button>
+      </div>
+    </div>
+
+    <!-- Navigatie -->
+    <div class="navrow">
+      <button class="btn secondary" id="indexNav">⬅️ Terug naar index</button>
+      <div class="boeknr" id="boeknr"></div>
+      <div>
+        <button class="btn secondary" id="vorigeBtn">&laquo; Vorige</button>
+        <button class="btn" id="volgendeBtn">Volgende &raquo;</button>
       </div>
     </div>
   </div>
 
   <script>
-    // Begroeting / avatar
+    /* ==== Begroeting & avatar ==== */
     const welkomTekst = document.getElementById("welkom-tekst");
     const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
     const parochieMooieNaam = localStorage.getItem("ingelogdeParochieNaam") || localStorage.getItem("ingelogdeParochie") || "(onbekend)";
@@ -166,9 +175,16 @@
     const avatarImg = document.getElementById("menu-avatar-img");
     const opgeslagenAvatar = localStorage.getItem("avatarURL");
     if (opgeslagenAvatar) avatarImg.src = opgeslagenAvatar;
-    document.getElementById("uitlogKnop").onclick = ()=>{ localStorage.clear(); window.location.href="https://kathy-torfs.github.io/Orthodoxeweg/index.html"; };
 
-    // Firebase
+    document.getElementById("uitlogKnop").onclick = () => {
+      sessionStorage.removeItem("dagboekSession");
+      localStorage.clear();
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    };
+    document.getElementById("openIndexBtn").onclick = () => { window.location.href = "bijbeldagboek_index.html"; };
+    document.getElementById("indexNav").onclick = () => { window.location.href = "bijbeldagboek_index.html"; };
+
+    /* ==== Firebase ==== */
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -180,189 +196,325 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // State
-    let userId=null, parochieId=null, memberRef=null;
-    let opdrachten=[]; let index=0;
+    /* ==== Staat ==== */
+    let parochieId = null;
+    let userId = null;
+    let memberRef = null;
+    let opdrachten = [];
+    let index = 0; // positie in user's dagboek
+    let debounceTimer = null;
 
-    // Helpers
-    const esc = (s='') => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-                                   .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
-    const splitRegels = (t='') => String(t).replace(/\r\n/g,'\n').split('\n').map(r=>r.trim()).filter(Boolean);
+    /* ==== Utils ==== */
+    const esc = (s='') => String(s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
 
-    function vraagItem(i, vraag, antwoord){
-      const wrap = document.createElement('div'); wrap.className='vraag';
-      const id = `vraag_${i}`;
-      wrap.innerHTML = `<label for="${id}">${esc(vraag)}</label>
-                        <textarea id="${id}" data-index="${i}" placeholder="Antwoord..."></textarea>`;
-      if (antwoord) wrap.querySelector('textarea').value = antwoord;
-      return wrap;
+    function splitTekstToLines(tekst=''){
+      // Bewaar lege regels als scheiding; toon geen notities voor echt lege "blokken"
+      const raw = String(tekst).replace(/\r\n/g, '\n').split('\n');
+      // we houden ook lege regels bij om de structuur te respecteren
+      return raw;
     }
 
+    function debounceSave(fn, wait=800){
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(fn, wait);
+    }
+
+    /* ==== Templates ophalen ==== */
     async function getTemplateSnapshot(){
       const primary = await db.collection("vlaamseOrthodoxeBijbelstudie")
-        .orderBy(firebase.firestore.FieldPath.documentId(),"asc").get().catch(()=>({empty:true,docs:[]}));
+        .orderBy(firebase.firestore.FieldPath.documentId(), "asc")
+        .get().catch(()=>({empty:true,docs:[]}));
       if (!primary.empty) return primary;
+
       const fallback = await db.collection("vlaamseOrthodoxeBijbelstudie_Genesis")
-        .orderBy(firebase.firestore.FieldPath.documentId(),"asc").get().catch(()=>({empty:true,docs:[]}));
+        .orderBy(firebase.firestore.FieldPath.documentId(), "asc")
+        .get().catch(()=>({empty:true,docs:[]}));
       return fallback;
     }
 
     async function syncTemplatesToUser(){
       if (!parochieId || !userId) return;
       const userDagColl = db.collection("parochies").doc(parochieId).collection("leden").doc(userId).collection("dagboek");
-      const [tplSnap, userSnap] = await Promise.all([getTemplateSnapshot(), userDagColl.get()]);
-      const heeft = new Set(userSnap.docs.map(d=>d.id));
-      const batch = db.batch(); let toWrite=0;
-      tplSnap.docs.forEach(doc=>{
-        if(!heeft.has(doc.id)){
-          const d = doc.data()||{};
-          batch.set(userDagColl.doc(doc.id),{
-            templateId:doc.id,
-            titel:d.titel||d.titelNL||("Dag "+doc.id),
-            intro:d.intro||d.inleiding||"",
-            lezing:d.lezing||d.lezen||"",
-            tekst:d.tekst||"",
-            vragen:Array.isArray(d.vragen)?d.vragen:[],
-            vragenAntwoorden:{},
-            notitiesAlgemeen:"",
-            reflectie:"",
-            voltooid:false,
+
+      const [tplSnap, userSnap] = await Promise.all([ getTemplateSnapshot(), userDagColl.get() ]);
+      const heeft = new Set(userSnap.docs.map(d => d.id));
+      const batch = db.batch();
+      let toWrite = 0;
+
+      tplSnap.docs.forEach(doc => {
+        if (!heeft.has(doc.id)) {
+          const d = doc.data() || {};
+          batch.set(userDagColl.doc(doc.id), {
+            templateId: doc.id,
+            titel: d.titel || d.titelNL || ("Dag " + doc.id),
+            intro: d.intro || d.inleiding || "",
+            lezing: d.lezing || d.lezen || "",
+            tekst: d.tekst || "",
+            vragen: Array.isArray(d.vragen) ? d.vragen : [],
+            reflectie: "",
+            notities: [],             // array per regel
+            voltooid: false,
             gestartOp: firebase.firestore.FieldValue.serverTimestamp(),
-            voltooidOp:null,
-            lastEdit:null
-          },{merge:true});
+            voltooidOp: null,
+            lastEdit: null
+          }, { merge: true });
           toWrite++;
         }
       });
-      if (toWrite>0) await batch.commit();
+
+      if (toWrite > 0) await batch.commit();
     }
 
     async function getEersteDagId(){
-      const snap = await db.collection("parochies").doc(parochieId).collection("leden").doc(userId)
-        .collection("dagboek").orderBy(firebase.firestore.FieldPath.documentId(),"asc").limit(1).get();
+      const snap = await db.collection("parochies").doc(parochieId)
+        .collection("leden").doc(userId).collection("dagboek")
+        .orderBy(firebase.firestore.FieldPath.documentId(),"asc").limit(1).get();
       return snap.empty ? null : snap.docs[0].id;
     }
     async function ensureProgressStart(){
-      if(!memberRef) return;
-      const m = await memberRef.get(); const data = m.exists?m.data():{};
+      const m = await memberRef.get();
+      const data = m.exists ? m.data() : {};
       if (data && data.dagboekCurrentId) return;
-      const firstId = await getEersteDagId();
-      if (firstId) await memberRef.set({dagboekCurrentId:firstId},{merge:true});
+      const first = await getEersteDagId();
+      if (first) await memberRef.set({ dagboekCurrentId:first }, { merge:true });
     }
     async function updateProgressCurrent(id){
-      if(!memberRef) return; await memberRef.set({dagboekCurrentId:id},{merge:true});
+      await memberRef.set({ dagboekCurrentId:id }, { merge:true });
     }
 
     async function laadOpdrachten(){
-      const userDagColl = db.collection("parochies").doc(parochieId).collection("leden").doc(userId).collection("dagboek");
-      const [snap, memberSnap] = await Promise.all([
-        userDagColl.orderBy(firebase.firestore.FieldPath.documentId(),"asc").get(),
+      const coll = db.collection("parochies").doc(parochieId).collection("leden").doc(userId).collection("dagboek");
+      const [snap, m] = await Promise.all([
+        coll.orderBy(firebase.firestore.FieldPath.documentId(),"asc").get(),
         memberRef.get()
       ]);
-      opdrachten = snap.docs.map(d=>({id:d.id, ...d.data()}));
-      if(!opdrachten.length){
-        document.getElementById("hoofdstukTitel").textContent="Nog geen dagboek-items.";
+      opdrachten = snap.docs.map(d => ({ id:d.id, ref: d.ref, ...d.data() }));
+      if (!opdrachten.length){
+        document.getElementById("intro").style.display="none";
+        document.getElementById("boek").style.display="none";
+        document.getElementById("vragen").style.display="none";
+        document.getElementById("reflectieBlok").style.display="none";
+        document.getElementById("boeknr").textContent = "Geen dagboek-items gevonden.";
         return;
       }
-      const currentId = (memberSnap.exists && memberSnap.data().dagboekCurrentId) ? memberSnap.data().dagboekCurrentId : null;
-      const pos = currentId ? opdrachten.findIndex(o=>o.id===currentId) : -1;
-      index = pos>=0 ? pos : 0;
+      const currentId = (m.exists && m.data().dagboekCurrentId) ? m.data().dagboekCurrentId : null;
+      const pos = currentId ? opdrachten.findIndex(o => o.id === currentId) : -1;
+      index = pos >= 0 ? pos : 0;
       toonOpdracht(index);
     }
 
-    function renderLezing(tekst){
-      const cont = document.getElementById("lezingTekstNumeriek");
-      cont.innerHTML = "";
-      splitRegels(tekst).forEach((r,i)=>{
-        const el=document.createElement('div');
-        el.className='ln';
-        el.innerHTML=`<div class="nr">${i+1}</div><div class="tx">${esc(r)}</div>`;
-        cont.appendChild(el);
+    function renderBoek(op){
+      const lezingBadge = document.getElementById("lezingBadge");
+      const intro = document.getElementById("intro");
+      const boek = document.getElementById("boek");
+      const regelsDiv = document.getElementById("regels");
+      const notitiesDiv = document.getElementById("notities");
+
+      // Lezing + intro
+      if (op.lezing){ lezingBadge.style.display="block"; lezingBadge.textContent = `Lezing: ${op.lezing}`; }
+      else lezingBadge.style.display="none";
+
+      if (op.intro){ intro.style.display="block"; intro.textContent = op.intro; }
+      else intro.style.display="none";
+
+      // Bijbeltekst -> regels
+      const lines = splitTekstToLines(op.tekst || "");
+      const existing = Array.isArray(op.notities) ? op.notities : [];
+      // Re-size notities array naar aantal regels (zodat indexen kloppen)
+      const notes = lines.map((_,i)=> existing[i] ?? "");
+      op._computedNotes = notes; // cache in state
+
+      regelsDiv.innerHTML = "";
+      notitiesDiv.innerHTML = "";
+
+      lines.forEach((ln, i) => {
+        // Linker: tekst (ook lege regels tonen als scheiding)
+        const r = document.createElement("div");
+        r.className = "regel";
+        const left = document.createElement("div");
+        left.className = "vers";
+        left.innerHTML = esc(ln || ""); // lege regel blijft leeg blokje
+        r.appendChild(left);
+
+        // Rechter: noteveld
+        const note = document.createElement("textarea");
+        note.className = "note";
+        note.value = notes[i] || "";
+        note.placeholder = ln ? "Mijn noot bij deze regel…" : "—";
+        note.disabled = !ln; // lege tekstregel: notitie niet nodig
+        note.dataset.row = String(i);
+        note.addEventListener("input", () => {
+          op._computedNotes[i] = note.value;
+          debounceSave(async () => {
+            await op.ref.set({ notities: op._computedNotes, lastEdit: firebase.firestore.FieldValue.serverTimestamp() }, { merge:true });
+            showSaveBlink();
+          });
+        });
+
+        const rightWrap = document.createElement("div");
+        rightWrap.appendChild(note);
+        r.appendChild(rightWrap);
+
+        // Onderste regel-meta (optioneel, nu lichtweg gelaten)
+        // const meta = document.createElement("div"); meta.className="regel-meta"; meta.textContent = `Regel ${i+1}`;
+        // r.appendChild(meta);
+
+        // Voeg r toe aan grid door hem in linker kolom te plaatsen en parallel note in rechter kolom
+        // We plaatsen dezelfde r zowel links als rechts door de grid van .regel:
+        // Maar we willen 2 kolommen totaal (boek) en in elke regel links tekst, rechts notitie.
+        // Daarom voegen we de samengestelde .regel in BEIDE kolommen? Nee, we hebben al 2 kolommen buiten.
+        // We zullen de samengestelde .regel slechts één keer renderen maar opgesplitst:
+        // Simpeler: we renderen 2 gescheiden kolommen. Dus hier alternatief:
+        // In plaats van r te gebruiken, maken we 2 lijsten: één voor tekst, één voor notitie.
+
+        // Voor eenvoud: voeg de linker en rechter aparte containers:
+        const leftOnly = document.createElement("div");
+        leftOnly.className = "vers";
+        leftOnly.innerHTML = esc(ln || "");
+        regelsDiv.appendChild(leftOnly);
+
+        const rightOnly = document.createElement("textarea");
+        rightOnly.className = "note";
+        rightOnly.value = notes[i] || "";
+        rightOnly.placeholder = ln ? "Mijn noot bij deze regel…" : "—";
+        rightOnly.disabled = !ln;
+        rightOnly.dataset.row = String(i);
+        rightOnly.addEventListener("input", () => {
+          op._computedNotes[i] = rightOnly.value;
+          debounceSave(async () => {
+            await op.ref.set({ notities: op._computedNotes, lastEdit: firebase.firestore.FieldValue.serverTimestamp() }, { merge:true });
+            showSaveBlink();
+          });
+        });
+        notitiesDiv.appendChild(rightOnly);
       });
+
+      boek.style.display = "grid";
     }
 
-    function renderVragen(vragenArr, antwoordenMap){
-      const blok = document.getElementById("vragenBlok");
-      const lijst = document.getElementById("vragenLijst");
-      lijst.innerHTML = "";
-      if(!Array.isArray(vragenArr) || !vragenArr.length){ blok.style.display="none"; return; }
-      vragenArr.forEach((v,i)=> lijst.appendChild( vraagItem(i,v, antwoordenMap && antwoordenMap[i] ? antwoordenMap[i] : "") ));
-      blok.style.display="block";
+    function renderVragen(op){
+      const vWrap = document.getElementById("vragen");
+      const vList = document.getElementById("vragenLijst");
+      vList.innerHTML = "";
+      const arr = Array.isArray(op.vragen) ? op.vragen : [];
+      if (!arr.length){ vWrap.style.display="none"; return; }
+      arr.forEach(v => {
+        const li = document.createElement("li");
+        li.textContent = v;
+        vList.appendChild(li);
+      });
+      vWrap.style.display="block";
+    }
+
+    function renderReflectie(op){
+      const refWrap = document.getElementById("reflectieBlok");
+      const refText = document.getElementById("reflectieTekst");
+      refText.value = op.reflectie || "";
+      refWrap.style.display = "block";
+      document.getElementById("saveReflectie").onclick = async () => {
+        const txt = refText.value.trim();
+        await op.ref.set({
+          reflectie: txt,
+          lastEdit: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge:true });
+        showSaveBlink("Opgeslagen!");
+      };
+    }
+
+    function showSaveBlink(msg="Opgeslagen!"){
+      const el = document.getElementById("saveFeedback");
+      el.textContent = msg;
+      setTimeout(()=>{ el.textContent = ""; }, 1200);
     }
 
     function toonOpdracht(i){
       const op = opdrachten[i];
-      document.getElementById("hoofdstukTitel").textContent = op.titel || ("Dag "+(i+1));
-      document.getElementById("lezingKop").textContent = op.lezing ? `Lezing: ${op.lezing}` : "";
-      document.getElementById("introQuoteTop").textContent = op.intro || "";
-      renderLezing(op.tekst || "");
-      renderVragen(op.vragen || [], op.vragenAntwoorden || {});
-      document.getElementById("notitiesAlgemeen").value = op.notitiesAlgemeen || "";
-      document.getElementById("reflectieTekst").value = op.reflectie || "";
       document.getElementById("boeknr").textContent = `Dag ${i+1} van ${opdrachten.length}`;
       document.getElementById("vorigeBtn").disabled = (i===0);
       document.getElementById("volgendeBtn").disabled = (i===opdrachten.length-1);
-      document.getElementById("opslaanFeedback").textContent="";
+
+      // Titel bovenaan topbar al aanwezig, hier alleen inhoud
+      renderBoek(op);
+      renderVragen(op);
+      renderReflectie(op);
+      updateProgressCurrent(op.id);
     }
 
-    async function saveAlles(){
-      if(!opdrachten.length) return;
-      const opId = opdrachten[index].id;
-      const docRef = db.collection("parochies").doc(parochieId).collection("leden").doc(userId).collection("dagboek").doc(opId);
+    document.getElementById("vorigeBtn").onclick = () => { if (index>0){ index--; toonOpdracht(index);} };
+    document.getElementById("volgendeBtn").onclick = () => { if (index<opdrachten.length-1){ index++; toonOpdracht(index);} };
 
-      const antwoorden = {};
-      document.querySelectorAll('#vragenLijst textarea[data-index]').forEach(t=>{
-        const k=t.getAttribute('data-index'); antwoorden[k]=(t.value||"").trim();
+    /* ==== Login workflow (1× per sessie) ==== */
+    const loginModal = document.getElementById("loginModal");
+    const emailEl = document.getElementById("email");
+    const wwEl = document.getElementById("wachtwoord");
+    const feedback = document.getElementById("loginFeedback");
+
+    function openLogin(){ loginModal.style.display="flex"; emailEl.focus(); }
+    function closeLogin(){ loginModal.style.display="none"; }
+
+    document.getElementById("annuleerLogin").onclick = () => closeLogin();
+    document.getElementById("bevestigLogin").onclick = doLogin;
+
+    async function doLogin(){
+      feedback.textContent = "";
+      const email = (emailEl.value||"").trim().toLowerCase();
+      const wachtwoord = (wwEl.value||"").trim();
+      if (!email || !wachtwoord){ feedback.textContent = "Vul e-mail en wachtwoord in."; return; }
+
+      const parSnap = await db.collection("parochies").get();
+      if (parSnap.empty){ feedback.textContent = "Geen parochies gevonden."; return; }
+
+      let ok=false, lidDoc=null, pId=null;
+      const lookups = [];
+      parSnap.forEach(p => {
+        const ledenRef = db.collection("parochies").doc(p.id).collection("leden");
+        lookups.push(
+          ledenRef.where("email","==",email).limit(1).get().then(ls=>{
+            if (!ls.empty){
+              const d = ls.docs[0].data();
+              if ((d.wachtwoord||"") === wachtwoord){
+                ok=true; lidDoc=ls.docs[0]; pId=p.id;
+              }
+            }
+          })
+        );
       });
+      await Promise.all(lookups);
 
-      const payload = {
-        vragenAntwoorden: antwoorden,
-        notitiesAlgemeen: (document.getElementById("notitiesAlgemeen").value||"").trim(),
-        reflectie: (document.getElementById("reflectieTekst").value||"").trim(),
-        lastEdit: firebase.firestore.FieldValue.serverTimestamp()
-      };
-      await docRef.set(payload,{merge:true});
-      Object.assign(opdrachten[index], payload);
-      const fb = document.getElementById("opslaanFeedback");
-      fb.textContent="Opgeslagen!";
-      setTimeout(()=>fb.textContent="",1300);
+      if (!ok){ feedback.textContent = "Onjuiste inloggegevens."; return; }
+
+      parochieId = pId;
+      userId = lidDoc.id;
+      memberRef = db.collection("parochies").doc(parochieId).collection("leden").doc(userId);
+
+      // Bewaar sessie
+      sessionStorage.setItem("dagboekSession", JSON.stringify({ parochieId, userId, t: Date.now() }));
+
+      closeLogin();
+      await syncTemplatesToUser();
+      await ensureProgressStart();
+      await laadOpdrachten();
     }
 
-    document.getElementById("saveBtn").onclick = saveAlles;
-    document.getElementById("vorigeBtn").onclick = async ()=>{ if(index>0){ index--; await updateProgressCurrent(opdrachten[index].id); toonOpdracht(index);} };
-    document.getElementById("volgendeBtn").onclick = async ()=>{ if(index<opdrachten.length-1){ index++; await updateProgressCurrent(opdrachten[index].id); toonOpdracht(index);} };
-
-    // Login
-    document.getElementById("dagboekLoginForm").onsubmit = function(e){
-      e.preventDefault();
-      document.getElementById("loginFeedback").textContent="";
-      const email=(document.getElementById("dagboekEmail").value||"").trim().toLowerCase();
-      const wachtwoord=(document.getElementById("dagboekWachtwoord").value||"").trim();
-
-      db.collection("parochies").get().then(snapshot=>{
-        if(snapshot.empty){ document.getElementById("loginFeedback").textContent="Geen parochies gevonden."; return; }
-        const lookups=[]; let ok=false, lidDoc=null, pId=null;
-        snapshot.forEach(p=>{
-          const leden=db.collection("parochies").doc(p.id).collection("leden");
-          lookups.push( leden.where("email","==",email).limit(1).get().then(s=>{
-            if(!s.empty){ const d=s.docs[0].data(); if((d.wachtwoord||"")===wachtwoord){ ok=true; lidDoc=s.docs[0]; pId=p.id; } }
-          }));
-        });
-        Promise.all(lookups).then(async ()=>{
-          if(ok && lidDoc){
-            userId=lidDoc.id; parochieId=pId;
-            memberRef=db.collection("parochies").doc(parochieId).collection("leden").doc(userId);
-            await syncTemplatesToUser();
-            await ensureProgressStart();
-            document.getElementById("loginblok").style.display="none";
-            document.getElementById("boekContainer").style.display="block";
-            laadOpdrachten();
-          }else{
-            document.getElementById("loginFeedback").textContent="Geen lid gevonden met dit e-mailadres of fout wachtwoord.";
-          }
-        });
-      });
-    };
+    // Autologin indien sessie bestaat
+    (async function init(){
+      const sess = sessionStorage.getItem("dagboekSession");
+      if (sess){
+        try{
+          const s = JSON.parse(sess);
+          parochieId = s.parochieId; userId = s.userId;
+          memberRef = db.collection("parochies").doc(parochieId).collection("leden").doc(userId);
+          await syncTemplatesToUser();
+          await ensureProgressStart();
+          await laadOpdrachten();
+          return;
+        }catch(e){ /* sessie ongeldig */ }
+      }
+      // geen sessie -> login popup
+      openLogin();
+    })();
   </script>
 </body>
 </html>
