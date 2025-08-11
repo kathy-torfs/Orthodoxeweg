@@ -87,7 +87,8 @@
       margin-left: 12px;
     }
     .uitlog-kind-btn:hover { background: #b72828; }
-    /* Photeinos vlam naast begroeting, kleiner dan op startpagina */
+
+    /* Photeinos vlam naast begroeting */
     .puntenvlam-balk {
       display: flex;
       flex-direction: column;
@@ -134,7 +135,8 @@
       .photeinos-wave-img { width: 24vw; height: 24vw; min-width: 28px;}
       .puntenvlam-balk, .puntenvlam-img { width: 27px; height: 35px;}
     }
-    /* Menubalk GROTER & meer ruimte */
+
+    /* Menubalk */
     nav.kinder-menu {
       width: 100vw;
       max-width: 1280px;
@@ -181,7 +183,9 @@
       box-shadow: 0 5px 16px #ffe17e55;
       border-color: #ffbe23;
     }
+
     .spacer-begroeting-menu { height: 38px; }
+
     /* Gebeden cards */
     .container-gebeden {
       max-width: 650px;
@@ -244,6 +248,7 @@
       color: #888;
       cursor: default;
     }
+
     .photeinos-gif {
       position: fixed;
       left: 0;
@@ -280,7 +285,9 @@
       <button class="uitlog-kind-btn" onclick="uitloggenKind()">Uitloggen</button>
     </div>
   </div>
+
   <div class="spacer-begroeting-menu"></div>
+
   <!-- Menubalk -->
   <nav class="kinder-menu">
     <a href="startpagina.html" title="Startpagina">
@@ -305,10 +312,12 @@
       <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_school.png" alt="School" class="menu-icoon">
     </a>
   </nav>
+
   <div class="container-gebeden" id="gebedenLijst">
     <!-- Gebeden worden hier geladen -->
     <div id="loadingMsg" style="font-size:1.2em;color:#888;text-align:center;margin:28px 0;">Laden...</div>
   </div>
+
   <img id="photeinosGif" class="photeinos-gif" src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_kiekeboeduim.gif" alt="Photeinos duim">
 
   <script>
@@ -333,7 +342,8 @@
       if (uur >= 17 && uur <= 22) return "Goeieavond";
       return "Hallo";
     }
-    document.getElementById("groet-tekst").textContent = ${welkomstGroet()}, ${kindNaam}!;
+    // FIX: backticks gebruiken
+    document.getElementById("groet-tekst").textContent = `${welkomstGroet()}, ${kindNaam}!`;
 
     function uitloggenKind() {
       localStorage.removeItem("kindIngelogd");
@@ -438,16 +448,19 @@
       const card = document.createElement('div');
       card.className = 'gebed-card';
       card.id = gebed.id;
-      // Puntenbadge
+
+      // Puntenbadge (FIX: backticks)
       const puntenBadge = document.createElement('span');
       puntenBadge.className = 'gebed-punten';
-      puntenBadge.textContent = +${gebed.punten} punt${gebed.punten > 1 ? 'en' : ''};
+      puntenBadge.textContent = `+${gebed.punten} punt${gebed.punten > 1 ? 'en' : ''}`;
       card.appendChild(puntenBadge);
+
       // Titel
       const titel = document.createElement('div');
       titel.className = 'gebed-titel';
       titel.textContent = gebed.titel;
       card.appendChild(titel);
+
       // Tekst
       const tekst = document.createElement('div');
       tekst.className = 'gebed-tekst';
@@ -481,6 +494,7 @@
         setTimeout(() => card.remove(), 600);
       };
       card.appendChild(btn);
+
       // Automatisch wegfade als al gedaan
       if (checked) {
         setTimeout(() => card.remove(), 1100);
