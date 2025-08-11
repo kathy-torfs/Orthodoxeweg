@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Kindercatechese – Les</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
+  <style>
+    :root{
+      --primair:#7bb235; --donker:#67510C;
+      --bg:#fff9e6; --kaart:#ffffff; --rand:#f1e6c8;
+      --text:#4b3a18; --accent:#ffd480; --err:#c62828; --ok:#2e7d32;
+      --headerH:64px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:'Comic Sans MS', Arial, sans-serif;
+      background:var(--bg); color:var(--text);
+      display:flex; flex-direction:column;
+    }
+
+    /* Sticky begroeting */
+    header{
+      position:sticky; top:0; z-index:1000;
+      height:var(--headerH);
+      background:linear-gradient(90deg,#ffcc66,#ffe098);
+      display:flex; justify-content:space-between; align-items:center;
+      padding:8px 14px; box-shadow:0 2px 6px rgba(0,0,0,.12);
+    }
+    header .left{display:flex; align-items:center; gap:8px}
+    header .right{display:flex; align-items:center; gap:10px; font-weight:bold}
+    header img.wave{height:40px}
+    header img.vlam{height:32px}
+
+    /* Sticky menubalk */
+    .kinder-menu{
+      position:sticky; top:var(--headerH); z-index:999;
+      background:#ffedcc;
+      display:flex; align-items:center; justify-content:center;
+      gap:12px; flex-wrap:wrap;
+      padding:8px; box-shadow:0 2px 4px rgba(0,0,0,0.08);
+    }
+    .kinder-menu a{ display:inline-flex; align-items:center; justify-content:center }
+    .menu-icoon{ height:40px; width:auto; display:block }
+    @media (max-width:520px){ .menu-icoon{ height:34px } }
+
+    /* Scrolbare inhoud */
+    main{ flex:1; overflow:auto; padding:16px }
+    .container{ max-width:900px; margin:0 auto }
+
+    .card{
+      background:var(--kaart); border:1px solid var(--rand); border-radius:16px;
+      padding:16px; box-shadow:0 2px 4px rgba(0,0,0,0.05);
+    }
+    .title{ font-size:1.4rem; font-weight:800; color:#3c2e0f; margin:6px 0 2px }
+    .meta{ color:#6a5a34; font-size:.95rem; margin-bottom:10px }
+    .story img{ max-width:100%; border-radius:12px; border:1px solid var(--rand); margin:6px 0 12px }
+    .story p{ margin:8px 0; line-height:1.45 }
+
+    .bar{ height:10px; background:#f3ead2; border:1px solid #ead7a6; border-radius:999px; overflow:hidden }
+    .bar>span{ display:block; height:100%; background:var(--primair); width:0% }
+
+    .qa{ margin-top:16px }
+    .qtitle{ font-weight:800; margin:6px 0 10px }
+    .question-box{
+      background:#fff; border:1px solid var(--rand); border-radius:14px; padding:14px; margin:10px 0;
+    }
+    .question-text{ font-weight:700; margin-bottom:10px }
+    .options{ display:grid; gap:8px }
+    .opt{
+      background:#fff9ea; border:1px solid #f0dfbd; border-radius:10px; padding:8px 10px; cursor:pointer;
+    }
+    .opt input{ margin-right:8px }
+    .yn{ display:flex; gap:10px; flex-wrap:wrap }
+    .btn{
+      border:1px solid var(--rand); background:#fff; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:700
+    }
+    .btn.primary{ background:var(--primair); color:#fff; border-color:#6aa32a }
+    .btn.ghost{ background:#fff }
+    .btn[disabled]{ opacity:.6; cursor:not-allowed }
+    .feedback{ margin-top:8px; font-weight:700 }
+    .ok{ color:var(--ok) } .err{ color:var(--err) }
+    .actions-row{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px }
+
+    .endcard{ text-align:center; padding:16px; border:2px dashed #f0e2be; border-radius:16px; background:#fff }
+    .endbig{ font-size:1.2rem; font-weight:800; margin-bottom:6px }
+    .hint{ color:#6a5a34; font-size:.95rem }
+
+    .top-actions{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin:6px 0 12px }
+    a.link{ color:#3d4c9e; text-decoration:none; font-weight:700 }
+    a.link:hover{ text-decoration:underline }
+  </style>
+</head>
+<body>
+
+  <!-- Begroetingsbalk -->
+  <header>
+    <div class="left">
+      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_wave.gif" alt="Photeinos zwaait" class="wave">
+      <span>Hallo <b id="greetingName">vriend</b>!</span>
+    </div>
+    <div class="right">
+      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_vlam.gif" alt="Photeinos vlam" class="vlam">
+      <span id="totalPoints">⭐ 0 punten</span>
+    </div>
+  </header>
+
+  <!-- JOUW MENUBALK (exact) -->
+  <nav class="kinder-menu">
+    <a href="startpagina.html" title="Startpagina"><img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_home.png" class="menu-icoon" alt=""></a>
+    <a href="gebeden.html"     title="Ik bid"><img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_bid.png" class="menu-icoon" alt=""></a>
+    <a href="catechese.html"   title="Catechese"><img src="https://kathy-torfs.github.io/Orthodoxeweg/images/catechese.png" class="menu-icoon" alt=""></a>
+    <a href="heiligen.html"    title="Heiligen"><img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_heiligen.png" class="menu-icoon" alt=""></a>
+    <a href="bijbelverhalen.html" title="Bijbelverhalen"><img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_bijbel.png" class="menu-icoon" alt=""></a>
+    <a href="spelletjes.html"  title="Spelletjes"><img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_spelletjes.png" class="menu-icoon" alt=""></a>
+    <a href="school.html"      title="School"><img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_school.png" class="menu-icoon" alt=""></a>
+  </nav>
+
+  <!-- Inhoud -->
+  <main>
+    <div class="container">
+      <div class="top-actions">
+        <a class="link" href="catechese.html">← Terug naar overzicht</a>
+        <div class="bar" style="width:240px" aria-label="Voortgang"><span id="progressBar" style="width:0%"></span></div>
+      </div>
+
+      <div class="card" id="lessonCard">
+        <div class="title" id="lessonTitle">Les laden…</div>
+        <div class="meta" id="lessonMeta"></div>
+        <div class="story" id="lessonStory"></div>
+
+        <div class="qa" id="qaWrap" style="display:none">
+          <div class="qtitle"><span id="qCounter">Vraag 1</span> / <span id="qTotal">5</span></div>
+          <div class="question-box" id="questionBox">
+            <!-- vraag + invoer -->
+          </div>
+          <div class="actions-row">
+            <button class="btn" id="btnCheck">Controleer</button>
+            <button class="btn primary" id="btnNext" disabled>Volgende</button>
+            <button class="btn ghost" id="btnReset">Herstart les</button>
+          </div>
+          <div class="feedback" id="feedback"></div>
+        </div>
+
+        <div class="endcard" id="endCard" style="display:none">
+          <div class="endbig">Goed gedaan! 🎉</div>
+          <div>Je scoorde <b id="scoreText">0/0</b> — dat is <b id="scorePct">0%</b>.</div>
+          <div class="hint">Je voortgang werd bewaard. Wil je nog eentje doen?</div>
+          <div class="actions-row" id="endActions">
+            <a class="btn" href="catechese.html">Naar overzicht</a>
+            <a class="btn primary" id="nextLessonBtn" href="#">Volgende les</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Firebase SDKs (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore-compat.js"></script>
+
+  <script>
+    // ==== FIREBASE CONFIG ====
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
+    };
+    const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    // ==== HEADER: naam + punten ====
+    const els = {
+      greetingName: document.getElementById("greetingName"),
+      totalPoints: document.getElementById("totalPoints"),
+      progressBar: document.getElementById("progressBar"),
+      qCounter: document.getElementById("qCounter"),
+      qTotal: document.getElementById("qTotal"),
+      questionBox: document.getElementById("questionBox"),
+      feedback: document.getElementById("feedback"),
+      btnCheck: document.getElementById("btnCheck"),
+      btnNext: document.getElementById("btnNext"),
+      btnReset: document.getElementById("btnReset"),
+      lessonTitle: document.getElementById("lessonTitle"),
+      lessonMeta: document.getElementById("lessonMeta"),
+      lessonStory: document.getElementById("lessonStory"),
+      qaWrap: document.getElementById("qaWrap"),
+      endCard: document.getElementById("endCard"),
+      scoreText: document.getElementById("scoreText"),
+      scorePct: document.getElementById("scorePct"),
+      nextLessonBtn: document.getElementById("nextLessonBtn"),
+    };
+
+    function localPointsSum(){
+      let sum = 0;
+      for (const key of Object.keys(localStorage)) {
+        if (key.startsWith('catechese-progress:')) {
+          const v = parseInt(localStorage.getItem(key) || "0", 10);
+          sum += Math.floor(v / 10);
+        }
+      }
+      return sum;
+    }
+
+    async function loadHeaderForUser(user){
+      try {
+        const doc = await db.collection('leden').doc(user.uid).get();
+        const data = doc.exists ? (doc.data() || {}) : {};
+        const displayName = (data.naam || user.displayName || 'vriend').toString();
+        els.greetingName.textContent = displayName.split(' ')[0];
+        const punten = (typeof data.punten === 'number') ? data.punten : localPointsSum();
+        els.totalPoints.textContent = `⭐ ${punten} punten`;
+      } catch (e) {
+        els.greetingName.textContent = (user.displayName || 'vriend').split(' ')[0];
+        els.totalPoints.textContent = `⭐ ${localPointsSum()} punten`;
+      }
+    }
+    auth.onAuthStateChanged(user=>{
+      if(user){ loadHeaderForUser(user); }
+      else{
+        els.greetingName.textContent = 'vriend';
+        els.totalPoints.textContent = `⭐ ${localPointsSum()} punten`;
+      }
+    });
+
+    // ==== HULP ====
+    function getParam(name){ return new URLSearchParams(location.search).get(name); }
+    function normalize(str){
+      return (str||"").toString().trim().toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g,''); // strip accenten
+    }
+    function setProgress(id, pct){
+      localStorage.setItem(`catechese-progress:${id}`, String(pct));
+      if(!auth.currentUser){
+        els.totalPoints.textContent = `⭐ ${localPointsSum()} punten`;
+      }
+    }
+    function getProgress(id){
+      const raw = localStorage.getItem(`catechese-progress:${id}`);
+      return raw ? Math.max(0, Math.min(100, parseInt(raw,10))) : 0;
+    }
+    function paraRender(tekst){
+      if(Array.isArray(tekst)){
+        return tekst.map(p => `<p>${p}</p>`).join('');
+      }
+      if(!tekst) return '';
+      const parts = tekst.split(/\n\s*\n/);
+      return parts.map(p => `<p>${p}</p>`).join('');
+    }
+    function padDag(n){
+      const s = String(n||0);
+      return s.length>=3 ? s : ('000'+s).slice(-3);
+    }
+
+    // ==== LES LADEN ====
+    const lessonId = getParam('id') || 'dag001';
+    let currentLesson = null;
+    let vragen = [];
+    let answers = [];       // user answers
+    let correctFlags = [];  // booleans per vraag
+    let idx = 0;
+
+    async function loadLesson(){
+      const snap = await db.collection('kindercatechese').doc(lessonId).get();
+      if(!snap.exists){
+        els.lessonTitle.textContent = 'Les niet gevonden';
+        els.lessonMeta.textContent = `ID: ${lessonId}`;
+        return;
+      }
+      const d = snap.data() || {};
+      currentLesson = { id: snap.id, ...d };
+      els.lessonTitle.textContent = d.titel || `(zonder titel)`;
+      els.lessonMeta.textContent = [
+        d.type ? d.type.charAt(0).toUpperCase()+d.type.slice(1) : '',
+        (typeof d.volgnummer==='number' ? `Dag ${d.volgnummer}` : '')
+      ].filter(Boolean).join(' • ');
+
+      let storyHTML = '';
+      if(d.afbeelding){
+        storyHTML += `<img src="${d.afbeelding}" alt="">`;
+      }
+      storyHTML += paraRender(d.tekst);
+      els.lessonStory.innerHTML = storyHTML;
+
+      vragen = Array.isArray(d.vragen) ? d.vragen : [];
+      answers = new Array(vragen.length).fill(null);
+      correctFlags = new Array(vragen.length).fill(false);
+      els.qTotal.textContent = String(vragen.length||0);
+
+      if(vragen.length){
+        els.qaWrap.style.display = '';
+        idx = 0;
+        renderQuestion();
+        // begin-voortgang (indien eerder)
+        const prevPct = getProgress(lessonId);
+        els.progressBar.style.width = prevPct + '%';
+      }else{
+        els.qaWrap.style.display = 'none';
+      }
+
+      // volgende les opzoeken via volgnummer +1
+      if(typeof d.volgnummer === 'number'){
+        const nextNr = d.volgnummer + 1;
+        const q = await db.collection('kindercatechese').where('volgnummer','==', nextNr).limit(1).get();
+        if(!q.empty){
+          const nextId = q.docs[0].id;
+          els.nextLessonBtn.href = `les.html?id=${encodeURIComponent(nextId)}`;
+        }else{
+          // fallback: gok 'dagXYZ'
+          els.nextLessonBtn.href = `les.html?id=dag${padDag(nextNr)}`;
+        }
+      }
+    }
+
+    // ==== VRAGEN RENDEREN ====
+    function renderQuestion(){
+      const q = vragen[idx];
+      els.qCounter.textContent = `Vraag ${idx+1}`;
+      els.feedback.textContent = '';
+      els.feedback.className = 'feedback';
+      els.btnNext.disabled = true;
+      els.btnCheck.disabled = false;
+
+      const saved = answers[idx];
+      let html = `<div class="question-text">${q.vraag||''}</div>`;
+
+      if(q.type === 'meerkeuze'){
+        const opties = Array.isArray(q.opties) ? q.opties : [];
+        html += `<div class="options">` +
+          opties.map((opt, i)=>`
+            <label class="opt">
+              <input type="radio" name="opt" value="${i}" ${saved==i?'checked':''}>
+              <span>${opt}</span>
+            </label>
+          `).join('') +
+        `</div>`;
+      } else if(q.type === 'jaofnee'){
+        html += `
+          <div class="yn">
+            <button class="btn" data-yn="true">Ja</button>
+            <button class="btn" data-yn="false">Nee</button>
+          </div>
+        `;
+      } else if(q.type === 'open'){
+        html += `
+          <input id="openInput" type="text" placeholder="Typ je antwoord…" style="width:100%;padding:10px;border:1px solid var(--rand);border-radius:10px" />
+        `;
+        if(typeof saved === 'string'){
+          // herstel vorige invoer
+          setTimeout(()=>{ const el = document.getElementById('openInput'); if(el) el.value = saved; },0);
+        }
+      } else {
+        html += `<div class="hint">Onbekend vraagtype.</div>`;
+      }
+
+      els.questionBox.innerHTML = html;
+
+      // events
+      if(q.type === 'jaofnee'){
+        els.questionBox.querySelectorAll('[data-yn]').forEach(btn=>{
+          btn.addEventListener('click', ()=>{
+            answers[idx] = (btn.getAttribute('data-yn') === 'true');
+            // highlight keuze
+            els.questionBox.querySelectorAll('[data-yn]').forEach(b=>b.classList.remove('primary'));
+            btn.classList.add('primary');
+          });
+        });
+      } else if(q.type === 'meerkeuze'){
+        els.questionBox.querySelectorAll('input[name="opt"]').forEach(r=>{
+          r.addEventListener('change', ()=>{ answers[idx] = parseInt(r.value,10); });
+        });
+      } else if(q.type === 'open'){
+        const input = document.getElementById('openInput');
+        input && input.addEventListener('input', ()=>{ answers[idx] = input.value; });
+      }
+    }
+
+    function checkAnswer(){
+      const q = vragen[idx];
+      let correct = false;
+
+      if(q.type === 'meerkeuze'){
+        const sel = answers[idx];
+        correct = (typeof sel === 'number') && (sel === q.juist);
+      } else if(q.type === 'jaofnee'){
+        correct = (typeof answers[idx] === 'boolean') && (answers[idx] === !!q.juist);
+      } else if(q.type === 'open'){
+        const val = normalize(answers[idx]||'');
+        const good = Array.isArray(q.juistAntwoorden) ? q.juistAntwoorden : [];
+        correct = good.some(ans => normalize(ans) === val);
+      }
+
+      if(correct){
+        correctFlags[idx] = true;
+        els.feedback.textContent = q.uitleg ? `Juist! ${q.uitleg}` : 'Juist!';
+        els.feedback.className = 'feedback ok';
+      }else{
+        els.feedback.textContent = q.uitleg ? `Nog niet. Tip: ${q.uitleg}` : 'Nog niet, probeer nog eens.';
+        els.feedback.className = 'feedback err';
+      }
+
+      // voortgang = percentage juiste vragen
+      const total = vragen.length || 1;
+      const right = correctFlags.filter(Boolean).length;
+      const pct = Math.round((right / total) * 100);
+      els.progressBar.style.width = pct + '%';
+      setProgress(lessonId, pct);
+
+      els.btnNext.disabled = false;
+      els.btnCheck.disabled = true;
+    }
+
+    function nextStep(){
+      if(idx < vragen.length - 1){
+        idx++;
+        renderQuestion();
+      }else{
+        // klaar
+        const total = vragen.length || 1;
+        const right = correctFlags.filter(Boolean).length;
+        const pct = Math.round((right / total) * 100);
+        els.scoreText.textContent = `${right}/${total}`;
+        els.scorePct.textContent = `${pct}%`;
+        els.qaWrap.style.display = 'none';
+        els.endCard.style.display = '';
+        els.progressBar.style.width = pct + '%';
+        setProgress(lessonId, pct);
+      }
+    }
+
+    function resetLesson(){
+      answers = new Array(vragen.length).fill(null);
+      correctFlags = new Array(vragen.length).fill(false);
+      idx = 0;
+      els.endCard.style.display = 'none';
+      els.qaWrap.style.display = '';
+      els.feedback.textContent='';
+      els.progressBar.style.width = '0%';
+      setProgress(lessonId, 0);
+      renderQuestion();
+    }
+
+    // Knoppen
+    els.btnCheck.addEventListener('click', checkAnswer);
+    els.btnNext.addEventListener('click', nextStep);
+    els.btnReset.addEventListener('click', resetLesson);
+
+    // Start
+    loadLesson().catch(err=>{
+      els.lessonTitle.textContent = 'Fout bij laden';
+      els.lessonMeta.textContent = lessonId;
+      els.lessonStory.innerHTML = `<div class="hint">Controleer de Firestore-rechten of je internetverbinding.</div>`;
+      console.error(err);
+    });
+  </script>
+</body>
+</html>
