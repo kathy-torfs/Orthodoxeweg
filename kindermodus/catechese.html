@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Kindercatechese – Index</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
+  <style>
+    :root{
+      --primair:#7bb235; --donker:#67510C;
+      --bg:#fff9e6; --kaart:#ffffff; --rand:#f1e6c8;
+      --chip:#ffe8b3; --chipOn:#ffd480; --text:#4b3a18;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    header{
+      position:sticky;top:0;z-index:10;background:linear-gradient(90deg,#ffcc66,#ffe098);
+      padding:14px 16px;box-shadow:0 2px 6px rgba(0,0,0,.12)
+    }
+    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+    .brand{font-weight:800;color:#663300;font-size:1.25rem;letter-spacing:.2px}
+    .greet{margin-left:auto;display:flex;align-items:center;gap:8px;font-weight:600}
+    .greet .points{background:#fff;padding:6px 10px;border-radius:999px;border:1px solid #f2d9a6}
+    main{max-width:1100px;margin:18px auto;padding:0 16px}
+    .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+    .search{flex:1 1 260px;display:flex;align-items:center;background:#fff;border:1px solid var(--rand);border-radius:12px;padding:8px 10px}
+    .search input{border:none;outline:none;flex:1;font-size:16px}
+    .chips{display:flex;flex-wrap:wrap;gap:8px}
+    .chip{background:var(--chip);border:1px solid #f2d9a6;border-radius:999px;padding:7px 12px;cursor:pointer;user-select:none}
+    .chip.active{background:var(--chipOn)}
+    select, .btn{
+      background:#fff;border:1px solid var(--rand);border-radius:10px;padding:8px 10px;font-size:14px
+    }
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+    .card{
+      background:var(--kaart);border:1px solid var(--rand);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px;
+      box-shadow:0 2px 4px rgba(0,0,0,.05)
+    }
+    .badge{display:inline-block;font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid #eeddb6;background:#fff}
+    .title{font-weight:700;color:#3c2e0f}
+    .meta{font-size:13px;color:#6a5a34}
+    .progress{
+      height:8px;border-radius:999px;background:#f3ead2;overflow:hidden;border:1px solid #ead7a6
+    }
+    .progress>span{display:block;height:100%;background:var(--primair);width:0%}
+    .card .actions{display:flex;gap:8px;align-items:center;margin-top:4px}
+    .btn{cursor:pointer}
+    .btn.primary{background:var(--primair);border-color:#6aa32a;color:#fff;font-weight:700}
+    .empty{padding:30px;text-align:center;border:2px dashed #f0e2be;border-radius:16px;background:#fff}
+    .pager{display:flex;gap:8px;justify-content:center;align-items:center;margin:18px 0}
+    .pager .btn[disabled]{opacity:.5;cursor:not-allowed}
+    footer{padding:24px 16px;text-align:center;color:#775c24;font-size:13px}
+    @media (hover:hover){ .card:hover{transform:translateY(-2px);transition:transform .12s ease} }
+  </style>
+</head>
+<body>
+<header>
+  <div class="row">
+    <div class="brand">🌟 Kindercatechese – Lesoverzicht</div>
+    <div class="greet">
+      <span>Hallo!</span>
+      <span class="points" id="totalPoints">⭐ 0 punten</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="toolbar">
+    <div class="search">
+      <input id="q" type="search" placeholder="Zoek op titel, type of dagnummer…"/>
+    </div>
+    <div class="chips" id="chips">
+      <div class="chip active" data-type="alle">Alle</div>
+      <div class="chip" data-type="bijbelverhaal">Bijbelverhaal</div>
+      <div class="chip" data-type="heiligenverhaal">Heiligenverhaal</div>
+      <div class="chip" data-type="traditie">Traditie</div>
+    </div>
+    <select id="sort">
+      <option value="volgnummer-asc">Sorteer: Volgnummer ↑</option>
+      <option value="volgnummer-desc">Sorteer: Volgnummer ↓</option>
+      <option value="datum-desc">Sorteer: Datum ↓ (nieuwst eerst)</option>
+      <option value="datum-asc">Sorteer: Datum ↑ (oudst eerst)</option>
+      <option value="titel-asc">Sorteer: Titel A→Z</option>
+    </select>
+  </div>
+
+  <div id="results" class="grid" aria-live="polite"></div>
+  <div id="empty" class="empty" style="display:none">Geen lessen gevonden. Pas je filters of zoekterm aan.</div>
+
+  <div class="pager">
+    <button class="btn" id="prev">Vorige</button>
+    <span id="pageLabel">Pagina 1</span>
+    <button class="btn" id="next">Volgende</button>
+  </div>
+</main>
+
+<footer>
+  © Orthodoxeweg – Kindermodus • Dagelijkse lessen, quizjes en heiligenverhalen
+</footer>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore-compat.js"></script>
+
+<script>
+  // === 1) Firebase initialiseren ===
+  // VUL HIER JE EIGEN CONFIG IN (van jouw projectinstellingen).
+  // Dit is de enige plek die je moet aanpassen.
+  const firebaseConfig = {
+    apiKey: "JE_API_KEY_HIER",
+    authDomain: "JE_PROJECTID.firebaseapp.com",
+    projectId: "JE_PROJECTID",
+    storageBucket: "JE_PROJECTID.appspot.com",
+    messagingSenderId: "JE_SENDER_ID",
+    appId: "JE_APP_ID"
+  };
+  try {
+    firebase.initializeApp(firebaseConfig);
+  } catch (e) {
+    console.warn("Firebase init: controleer je config.", e);
+  }
+  const db = firebase.firestore();
+
+  // === 2) UI & State ===
+  const PAGE_SIZE = 20;
+  let allLessons = [];   // alle lessen uit Firestore
+  let viewLessons = [];  // gefilterde+gesorteerde lijst
+  let currentPage = 1;
+  let activeType = "alle";
+
+  const els = {
+    q: document.getElementById('q'),
+    chips: document.getElementById('chips'),
+    sort: document.getElementById('sort'),
+    results: document.getElementById('results'),
+    empty: document.getElementById('empty'),
+    prev: document.getElementById('prev'),
+    next: document.getElementById('next'),
+    pageLabel: document.getElementById('pageLabel'),
+    totalPoints: document.getElementById('totalPoints')
+  };
+
+  // === 3) Helpers ===
+  function normalize(str){ return (str||"").toString().toLowerCase().trim(); }
+  function fmtDate(dStr){
+    if(!dStr) return "";
+    try {
+      const d = new Date(dStr);
+      if(isNaN(d.getTime())) return dStr;
+      return d.toLocaleDateString('nl-BE',{year:'numeric',month:'short',day:'2-digit'});
+    } catch { return dStr; }
+  }
+  function getProgress(id){
+    const raw = localStorage.getItem(`catechese-progress:${id}`);
+    return raw ? Math.max(0, Math.min(100, parseInt(raw,10))) : 0;
+  }
+  function setProgress(id, pct){
+    localStorage.setItem(`catechese-progress:${id}`, String(pct));
+    updateTotalPoints();
+  }
+  function updateTotalPoints(){
+    // eenvoudig: 1 punt per 10% → max 10 p/les
+    let sum = 0;
+    for(const key of Object.keys(localStorage)){
+      if(key.startsWith('catechese-progress:')){
+        const v = parseInt(localStorage.getItem(key),10) || 0;
+        sum += Math.floor(v/10);
+      }
+    }
+    els.totalPoints.textContent = `⭐ ${sum} punten`;
+  }
+
+  function applyFilters(){
+    const q = normalize(els.q.value);
+    const type = activeType;
+    let list = allLessons.slice();
+
+    if(type !== 'alle'){
+      list = list.filter(x => (x.type||'').toLowerCase() === type);
+    }
+    if(q){
+      list = list.filter(x => {
+        const hay = `${x.titel||''} ${x.type||''} ${x.id||''}`.toLowerCase();
+        return hay.includes(q);
+      });
+    }
+
+    // sorting
+    const [field, dir] = els.sort.value.split('-'); // bijv. 'volgnummer-asc'
+    list.sort((a,b)=>{
+      let av = a[field] ?? '';
+      let bv = b[field] ?? '';
+      if(field === 'volgnummer'){
+        av = Number(av)||0; bv = Number(bv)||0;
+      }
+      if(field === 'datum'){
+        av = new Date(av||'1970-01-01').getTime();
+        bv = new Date(bv||'1970-01-01').getTime();
+      }
+      if(av < bv) return dir==='asc' ? -1 : 1;
+      if(av > bv) return dir==='asc' ? 1 : -1;
+      return 0;
+    });
+
+    viewLessons = list;
+    currentPage = 1;
+    render();
+  }
+
+  function paginate(list, page, size){
+    const start = (page-1)*size;
+    return list.slice(start, start+size);
+  }
+
+  function render(){
+    updateTotalPoints();
+    const pageItems = paginate(viewLessons, currentPage, PAGE_SIZE);
+    els.results.innerHTML = '';
+
+    if(pageItems.length === 0){
+      els.empty.style.display = 'block';
+    } else {
+      els.empty.style.display = 'none';
+      for(const item of pageItems){
+        const prog = getProgress(item.id);
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <div class="badge">${(item.type||'').charAt(0).toUpperCase() + (item.type||'').slice(1)}</div>
+          <div class="title">${item.titel||'(zonder titel)'} </div>
+          <div class="meta">
+            <span>Dag: <b>${item.volgnummer ?? '-'}</b></span>
+            ${item.datum ? ` • <span>${fmtDate(item.datum)}</span>` : ``}
+          </div>
+          <div class="progress" title="Voortgang: ${prog}%"><span style="width:${prog}%"></span></div>
+          <div class="actions">
+            <button class="btn primary">Openen</button>
+            <button class="btn" data-boost>+10%</button>
+            <button class="btn" data-reset>Reset</button>
+          </div>
+        `;
+        // acties
+        card.querySelector('.btn.primary').addEventListener('click', ()=>{
+          // Ga naar detailpagina; we bouwen les.html later
+          location.href = `les.html?id=${encodeURIComponent(item.id)}`;
+        });
+        card.querySelector('[data-boost]').addEventListener('click', ()=>{
+          const cur = getProgress(item.id);
+          setProgress(item.id, Math.min(100, cur+10));
+          render();
+        });
+        card.querySelector('[data-reset]').addEventListener('click', ()=>{
+          setProgress(item.id, 0);
+          render();
+        });
+        els.results.appendChild(card);
+      }
+    }
+
+    // pager
+    const totalPages = Math.max(1, Math.ceil(viewLessons.length / PAGE_SIZE));
+    els.pageLabel.textContent = `Pagina ${currentPage} / ${totalPages}`;
+    els.prev.disabled = currentPage <= 1;
+    els.next.disabled = currentPage >= totalPages;
+  }
+
+  // === 4) Events ===
+  els.q.addEventListener('input', ()=>applyFilters());
+  els.sort.addEventListener('change', ()=>applyFilters());
+  els.chips.addEventListener('click', (e)=>{
+    const chip = e.target.closest('.chip');
+    if(!chip) return;
+    for(const c of els.chips.children) c.classList.remove('active');
+    chip.classList.add('active');
+    activeType = chip.dataset.type;
+    applyFilters();
+  });
+  els.prev.addEventListener('click', ()=>{ if(currentPage>1){ currentPage--; render(); }});
+  els.next.addEventListener('click', ()=>{
+    const totalPages = Math.max(1, Math.ceil(viewLessons.length / PAGE_SIZE));
+    if(currentPage<totalPages){ currentPage++; render(); }
+  });
+
+  // === 5) Data laden uit Firestore ===
+  async function loadLessons(){
+    // Verwacht collectie: kindercatechese
+    // Document ID bijvoorbeeld "dag001", "dag002", ...
+    try{
+      const snap = await db.collection('kindercatechese').get();
+      const list = [];
+      snap.forEach(doc=>{
+        const d = doc.data() || {};
+        list.push({
+          id: doc.id,
+          titel: d.titel || '',
+          type: (d.type || '').toLowerCase(),         // "bijbelverhaal" | "heiligenverhaal" | "traditie"
+          datum: d.datum || null,                     // "YYYY-MM-DD" (optioneel)
+          volgnummer: Number(d.volgnummer)||null      // 1..N
+        });
+      });
+      allLessons = list;
+      applyFilters();
+    }catch(err){
+      console.error('Kon lessen niet laden:', err);
+      els.results.innerHTML = '';
+      els.empty.style.display = 'block';
+      els.empty.textContent = 'Kon geen verbinding maken met de database. Controleer je Firebase-configuratie.';
+    }
+  }
+
+  // Start
+  loadLessons();
+</script>
+</body>
+</html>
