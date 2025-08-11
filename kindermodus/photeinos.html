@@ -1,0 +1,366 @@
+import React, { useEffect, useMemo, useRef, useState } from "react";
+
+// =============================================
+// PHOTEINOS WEB SPRINGSPEL (React + Canvas)
+// BEGIN BESTAND
+// =============================================
+
+// ---------- Blok 1. Types & helpers ----------
+const rand = (a = 0, b = 1) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+const SPEL_KOST = 20; // optioneel voor puntenlogica
+
+// Kleuren per level (lichte pastels voor lucht)
+const LEVELS = [
+  { wings: 10, sky: "#B3E5FC" },
+  { wings: 10, sky: "#E6EE9C" },
+  { wings: 10, sky: "#F8BBD0" },
+  { wings: 10, sky: "#C5CAE9" },
+  { wings: 10, sky: "#E1F5FE" },
+];
+
+// Catechetische vragen (voorbeeld – vul gerust aan)
+const LIGHT_QUESTIONS = [
+  { q: "Iemand is verdrietig. Wat doe je?", opts: ["Troosten", "Uitlachen"], ok: 0 },
+  { q: "Je ziet rommel op straat. Wat doe je?", opts: ["Oprapen", "Laten liggen"], ok: 0 },
+  { q: "Gods naam gebruik je…", opts: ["Met eerbied", "Voor grapjes"], ok: 0 },
+  { q: "Voor het eten…", opts: ["Bidden", "Niets zeggen"], ok: 0 },
+  { q: "Een nieuw kind in de klas. Wat doe je?", opts: ["Welkom heten", "Negeren"], ok: 0 },
+];
+const SIN_QUESTIONS = [
+  { q: "Iemand uitschelden is…", ok: 1 }, // 1 = Nee (mag niet)
+  { q: "Stiekem iets nemen is…", ok: 1 },
+  { q: "Pesten is…", ok: 1 },
+  { q: "Liegt God graag?", ok: 1 },
+];
+
+// Hoogte-lanes per level (0..1 waarbij 1 onderaan is)
+function lanesForLevel(level) {
+  const L = Math.min(level, 4);
+  switch (L) {
+    case 0:
+      return { easy: [0.56, 0.5], mix: [0.865] };
+    case 1:
+      return { easy: [0.58, 0.5, 0.44], mix: [0.84, 0.78] };
+    case 2:
+      return { easy: [0.6, 0.52, 0.46], mix: [0.86, 0.8, 0.74, 0.38] };
+    case 3:
+      return { easy: [0.62, 0.54, 0.48], mix: [0.88, 0.84, 0.78, 0.72, 0.36] };
+    default:
+      return { easy: [0.64, 0.56, 0.5], mix: [0.88, 0.84, 0.8, 0.74, 0.7, 0.34] };
+  }
+}
+const jitter = (base, j = 0.016) => clamp(base + rand(-j, j), 0.14, 0.98);
+const snapNearGrass = (y) => (y > 0.9 ? 0.885 : y);
+
+function speedForLevel(level) {
+  const base = 0.0011;
+  const per = 0.00038;
+  return base + per * Math.min(level, 6);
+}
+const skySpeed = (lvl) => speedForLevel(lvl) * 0.45;
+const groundSpeed = (lvl) => speedForLevel(lvl) * 0.95;
+const playerXForLevel = (lvl) => clamp(0.44 + 0.035 * lvl, 0.44, 0.58);
+
+// ---------- Blok 2. Component ----------
+export default function PhoteinosGame() {
+  // Canvas refs
+  const canvasRef = useRef(null);
+  const rafRef = useRef();
+  const lastRef = useRef(performance.now());
+
+  // UI state
+  const [started, setStarted] = useState(false);
+  const [level, setLevel] = useState(0);
+  const [scoreLevel, setScoreLevel] = useState(0);
+  const [scoreTotal, setScoreTotal] = useState(0);
+  const [feedback, setFeedback] = useState("");
+  const [showQuestion, setShowQuestion] = useState(false);
+  const [question, setQuestion] = useState(null); // { type: 'light'|'sin', data: {...} }
+  const [awaitLastWing, setAwaitLastWing] = useState(false);
+
+  // Player physics (flappy)
+  const [py, setPy] = useState(1.0); // 0..1 (1 = bottom)
+  const velRef = useRef(0);
+  const prevPyRef = useRef(1.0);
+  const gravity = 0.0092;
+  const flapImpulse = -0.10;
+  const maxUp = -0.16, maxDown = 0.155;
+
+  // Scrollers
+  const [clouds, setClouds] = useState([]);
+  const [flowers, setFlowers] = useState([]);
+  const [obstacles, setObstacles] = useState([]); // {x,y,type,active}
+  const [wingsCaught, setWingsCaught] = useState(0);
+  const [wingsTarget, setWingsTarget] = useState(0);
+
+  // Generate sprites per level
+  const regenClouds = (lvl) => {
+    const r = []; for (let i = 0; i < 6; i++) r.push({ x: Math.random(), y: 0.06 + Math.random()*0.28, s: 18 + (Math.random()*16)|0 });
+    return r;
+  };
+  const flowerGlyphs = ["🌷","🌹","🌻","🌼","🌺","🌸","🌾","🌿","🍀","🌱"];
+  const regenFlowers = (lvl) => {
+    const out = []; const minDx = 0.07;
+    for (let i = 0; i < 90 && out.length < 28; i++) {
+      const fx = Math.random();
+      const fy = 0.81 + Math.random()*0.15;
+      const fs = 12 + (Math.random()*9)|0;
+      const g = flowerGlyphs[(Math.random()*flowerGlyphs.length)|0];
+      if (!out.some(o => Math.abs(o.x - fx) < minDx && Math.abs(o.y - fy) < 0.045)) out.push({ x: fx, y: fy, s: fs, g });
+    }
+    return out;
+  };
+
+  // Level init
+  const loadLevel = (lvl) => {
+    setScoreLevel(0);
+    setWingsCaught(0);
+    setAwaitLastWing(false);
+    setPy(1.0); velRef.current = 0; prevPyRef.current = 1.0;
+    setClouds(regenClouds(lvl));
+    setFlowers(regenFlowers(lvl));
+
+    const lanes = lanesForLevel(lvl);
+    const wingsNeeded = LEVELS[lvl].wings;
+    setWingsTarget(wingsNeeded);
+
+    const total = wingsNeeded + Math.max(2, Math.floor(wingsNeeded * (0.55 + 0.1 * Math.min(lvl,4))));
+    const minDelta = 0.22 - 0.02 * Math.min(lvl, 4);
+    const lanesAll = [...lanes.easy, ...lanes.mix];
+
+    const pLight = lvl<=0?0.72:lvl===1?0.64:lvl===2?0.56:lvl===3?0.50:0.46;
+
+    const items = [];
+    let lastX = 1.10; let wingsInARow = 0;
+    for (let i=0;i<total;i++){
+      const forceSkull = wingsInARow>=2;
+      const isLight = forceSkull?false:Math.random()<pLight;
+      wingsInARow = isLight? wingsInARow+1 : 0;
+      const baseLane = lvl<2 ? (isLight? lanes.easy[(Math.random()*lanes.easy.length)|0] : lanes.mix[(Math.random()*lanes.mix.length)|0]) : lanesAll[(Math.random()*lanesAll.length)|0];
+      const y = snapNearGrass(jitter(baseLane));
+      lastX += minDelta + Math.random()*0.10;
+      items.push({ x:lastX, y, type:isLight?"light":"skull", active:true });
+    }
+    // ensure minimum wings
+    let have = items.filter(i=>i.type==="light").length;
+    for (let i=0;i<items.length && have<wingsNeeded;i++){
+      if (items[i].type!=="light"){ items[i].type="light"; have++; }
+    }
+    setObstacles(items);
+  };
+
+  // Start/Restart
+  const startGame = () => {
+    setScoreTotal(0);
+    setLevel(0);
+    setStarted(true);
+    loadLevel(0);
+  };
+
+  // Advance level
+  const nextLevel = () => {
+    setScoreTotal(s => s + scoreLevel);
+    setLevel(l => {
+      const nl = l + 1;
+      if (nl < LEVELS.length) { loadLevel(nl); return nl; }
+      // klaar
+      setStarted(false);
+      return l;
+    });
+  };
+
+  // Input: tap / click / space
+  useEffect(() => {
+    const onKey = (e) => { if (e.code === "Space") flap(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+  const flap = () => { if (!showQuestion) velRef.current = Math.max(maxUp, velRef.current + flapImpulse); };
+
+  // Canvas resize
+  useEffect(() => {
+    const cvs = canvasRef.current; if (!cvs) return;
+    const resize = () => {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = cvs.getBoundingClientRect();
+      cvs.width = rect.width * dpr;
+      cvs.height = rect.height * dpr;
+    };
+    resize();
+    const ro = new ResizeObserver(resize); ro.observe(cvs);
+    return () => ro.disconnect();
+  }, []);
+
+  // Game loop
+  useEffect(() => {
+    if (!started) return;
+    let running = true;
+    const step = (t) => {
+      if (!running) return;
+      const dt = Math.min(40, t - lastRef.current); // ms cap
+      lastRef.current = t;
+
+      const ctx = canvasRef.current?.getContext("2d");
+      if (!ctx) { rafRef.current = requestAnimationFrame(step); return; }
+      const W = ctx.canvas.width, H = ctx.canvas.height;
+
+      // physics (flappy)
+      const prevPy = py; prevPyRef.current = prevPy;
+      let v = velRef.current;
+      v *= 0.985; v += gravity; v = clamp(v, maxUp, maxDown);
+      let np = clamp(py + v, 0.1, 1.0);
+      velRef.current = v; setPy(np);
+
+      // scroll speeds
+      const dx = speedForLevel(level);
+
+      // move clouds/flowers
+      setClouds(clouds => clouds.map(c => ({ ...c, x: c.x - skySpeed(level) < -0.1 ? 1.1 : c.x - skySpeed(level) })));
+      setFlowers(flowers => flowers.map(f => ({ ...f, x: f.x - groundSpeed(level) < -0.05 ? 1.05 : f.x - groundSpeed(level) })));
+
+      // move obstacles (wrap)
+      setObstacles(items => items.map(o => {
+        if (!o.active) return { ...o, x: -1 };
+        let nx = o.x - dx; if (nx <= -0.1) nx += 1.4; // wrap
+        return { ...o, x: nx };
+      }));
+
+      // collisions
+      const xCenter = playerXForLevel(level);
+      const halfLight = 0.060, halfSkull = 0.038;
+      const phY = clamp(np + 0.032, 0, 1);
+      const prevPhY = clamp(prevPy + 0.032, 0, 1);
+      const segMin = Math.min(prevPhY, phY), segMax = Math.max(prevPhY, phY);
+
+      setObstacles(items => items.map((o, idx) => {
+        if (!o.active) return o;
+        const xMin = (o.type === "light" ? xCenter - halfLight : xCenter - halfSkull);
+        const xMax = (o.type === "light" ? xCenter + halfLight : xCenter + halfSkull);
+        const binnenX = o.x >= xMin && o.x <= xMax;
+        const wingPad = (o.type === "light" && o.y >= 0.84) ? 0.07 : 0.042;
+        const skullPad = 0.03;
+        const raak = o.type === "light"
+          ? (binnenX && (o.y >= segMin - wingPad && o.y <= segMax + wingPad))
+          : (binnenX && (o.y >= segMin - skullPad && o.y <= segMax + skullPad));
+        if (raak) {
+          if (o.type === "light") {
+            setWingsCaught(w => w + 1);
+            // vraag eerst, zeker bij laatste vleugel
+            const isLast = wingsCaught + 1 >= wingsTarget;
+            setAwaitLastWing(isLast);
+            setQuestion({ type: "light", data: LIGHT_QUESTIONS[(Math.random()*LIGHT_QUESTIONS.length)|0] });
+            setShowQuestion(true);
+          } else {
+            setQuestion({ type: "sin", data: SIN_QUESTIONS[(Math.random()*SIN_QUESTIONS.length)|0] });
+            setShowQuestion(true);
+          }
+          return { ...o, active: false, x: -1 };
+        }
+        return o;
+      }));
+
+      // auto next level als alle vleugels gepakt en we niet wachten op vraag
+      if (!showQuestion && !awaitLastWing && wingsCaught >= wingsTarget) {
+        nextLevel();
+      }
+
+      // ---- RENDER ----
+      // achtergrond lucht
+      ctx.fillStyle = LEVELS[level].sky; ctx.fillRect(0,0,W,H);
+      // wolkjes
+      ctx.font = `${24}px system-ui`;
+      clouds.forEach(c => { ctx.font = `${c.s * window.devicePixelRatio}px serif`; ctx.fillText("☁️", c.x*W, c.y*H); });
+      // gras
+      const grassH = 0.22*H; ctx.fillStyle = "#9CCC65"; ctx.fillRect(0,H-grassH,W,grassH);
+      // bloemen
+      flowers.forEach(f => { ctx.font = `${f.s * window.devicePixelRatio}px serif`; ctx.fillText(f.g, f.x*W, f.y*H); });
+      // obstakels
+      obstacles.forEach(o => { ctx.font = `${(H*0.08)}px serif`; ctx.fillText(o.type === "light"?"🪽":"💀", o.x*W, o.y*H); });
+      // speler (ster als placeholder)
+      const px = playerXForLevel(level)*W, pyPix = (0.10 + 0.70*np)*H;
+      ctx.save(); ctx.translate(px, pyPix);
+      ctx.font = `${(H*0.11)}px serif`; ctx.fillText("⭐", - (H*0.055), 0);
+      ctx.restore();
+
+      rafRef.current = requestAnimationFrame(step);
+    };
+    rafRef.current = requestAnimationFrame(step);
+    return () => { running = false; cancelAnimationFrame(rafRef.current); };
+  }, [started, level, showQuestion, awaitLastWing, wingsCaught, wingsTarget, py]);
+
+  // Vraag beantwoorden
+  const answer = (i) => {
+    if (!question) return;
+    if (question.type === "light") {
+      const ok = i === question.data.ok; setScoreLevel(s => s + (ok?1:0));
+    } else {
+      const ok = i === 1; // 0=Ja,1=Nee (mag niet)
+      if (!ok) { // game over
+        setStarted(false);
+      }
+    }
+    setShowQuestion(false); setQuestion(null);
+    if (awaitLastWing) { setAwaitLastWing(false); nextLevel(); }
+  };
+
+  // ---------- UI ----------
+  return (
+    <div className="w-full h-full min-h-[420px] flex flex-col items-center justify-center p-2">
+      <div className="mb-2 flex items-center gap-4 text-slate-700">
+        <div className="text-xl font-semibold">Photeinos Springspel (web)</div>
+        {started && <div className="text-sm">Level {level+1}/{LEVELS.length} · Vleugels {wingsCaught}/{wingsTarget} · Score level {scoreLevel} · Totaal {scoreTotal}</div>}
+      </div>
+
+      <div
+        className="relative w-full max-w-[1024px] aspect-[16/9] rounded-2xl overflow-hidden shadow"
+        onMouseDown={flap}
+        onTouchStart={(e)=>{ e.preventDefault(); flap(); }}
+      >
+        <canvas ref={canvasRef} className="w-full h-full block" />
+
+        {!started && (
+          <div className="absolute inset-0 grid place-items-center bg-white/70">
+            <div className="bg-white rounded-xl p-6 shadow-md text-center">
+              <div className="text-lg font-semibold text-sky-700 mb-2">Welkom!</div>
+              <p className="text-slate-700 mb-4">Tik/klik om te flappen (omhoog). Laat los om te dalen.
+                Vang alle 🪽 en ontwijk 💀. Na elke 🪽 krijg je een korte vraag.</p>
+              <button className="px-4 py-2 rounded-lg bg-sky-600 text-white" onClick={startGame}>Start spel</button>
+            </div>
+          </div>
+        )}
+
+        {showQuestion && question && (
+          <div className="absolute inset-0 grid place-items-center bg-black/50">
+            <div className="bg-black text-white rounded-xl p-6 w-[min(90%,560px)]">
+              {question.type === "light" ? (
+                <>
+                  <div className="text-lg mb-4">{question.data.q}</div>
+                  <div className="grid gap-2">
+                    {question.data.opts.map((o,idx)=> (
+                      <button key={idx} className="px-3 py-2 rounded bg-white/10 border border-white/20" onClick={()=>answer(idx)}>{o}</button>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-lg mb-4">{question.data.q}</div>
+                  <div className="grid gap-2 grid-cols-2">
+                    {(["Ja","Nee"]).map((o,idx)=> (
+                      <button key={idx} className="px-3 py-2 rounded bg-white/10 border border-white/20" onClick={()=>answer(idx)}>{o}</button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// =============================================
+// EINDE BESTAND
+// =============================================
