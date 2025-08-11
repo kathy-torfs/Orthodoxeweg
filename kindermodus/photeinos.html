@@ -4,107 +4,107 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Photeinos Springspel (web)</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
+
   <style>
     :root{
-      --sky:#eef6ff;
-      --ink:#0f172a;
-      --blue-700:#1d4ed8;
-      --blue-800:#1e40af;
-      --blue-900:#1e3a8a;
-      --panel:#ffffff;
-      --glass:rgba(255,255,255,.7);
-      --ok:#065f46;
-      --bad:#7f1d1d;
-      --grass:#9CCC65;
+      --primair:#7bb235; --donker:#67510C;
+      --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
+      --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
+      --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
+      --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
     }
     html,body{height:100%;margin:0}
     body{
-      display:flex;align-items:center;justify-content:center;
-      background:var(--sky);
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif
+      display:flex; flex-direction:column; align-items:center;
+      background:var(--pastel1);
+      font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
     }
-    .wrap{
-      width:min(100vw,1100px);aspect-ratio:16/9;position:relative;
-      border-radius:18px;overflow:hidden;
-      box-shadow:0 10px 30px rgba(0,0,0,.12);
-      background:#fff
-    }
-    header.top{
-      position:absolute;left:0;right:0;top:0;z-index:5;
-      display:flex;gap:10px;align-items:flex-start;
-      padding:10px 12px;
-      pointer-events:none; /* header niet klikbaar, spel wel */
-    }
-    .welkom-blok{
-      background:var(--glass);backdrop-filter:blur(4px);
-      color:#0b2a5e;border-radius:12px;
-      padding:10px 12px;max-width:60%;
-      font-size:14px;line-height:1.35;
-      pointer-events:auto;
-    }
-    .welkom-blok strong{color:var(--blue-800)}
-    .photeinos-vlam-blok{
-      margin-left:auto;display:flex;align-items:center;gap:8px;
-      background:var(--glass);backdrop-filter:blur(4px);
-      border-radius:999px;padding:6px 10px;
-      pointer-events:auto;
-    }
-    .photeinos-vlam-img{
-      height:48px;width:auto;user-select:none
-    }
+    /* Header blok (begroeting) */
+    .bovenrij{width:100%;max-width:1280px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:0;padding:22px 2vw 8px 2vw;box-sizing:border-box}
+    .bovenrij .links{display:flex;align-items:center;gap:18px}
+    .photeinos-wave-img{width:120px;height:120px;border-radius:50%;background:#fff;border:2.2px solid #dab97a;box-shadow:0 2px 12px #dab97a2a;object-fit:cover;user-drag:none;-webkit-user-drag:none}
+    .begroeting{font-size:2.2em;font-weight:bold;color:var(--primair);text-shadow:0 2px 8px #b3d9ff44;letter-spacing:.01em;line-height:1.04;margin:0;white-space:nowrap}
+    .spacer-begroeting-menu{height:10px}
+
+    /* Welkomtekst */
+    .welkom-blok{background:#fffce7;border-radius:23px;box-shadow:0 6px 32px #d7cbb144;color:var(--donker);font-size:1.2em;padding:18px 22px;margin:10px auto 10px auto;line-height:1.62;max-width:900px;width:93vw;text-align:center}
+
+    /* Photeinos met vlam en punten */
+    .photeinos-vlam-blok{position:relative;display:flex;flex-direction:column;align-items:center;width:330px;max-width:85vw;margin:10px auto 16px auto}
+    .photeinos-vlam-img{width:100%;display:block;user-drag:none;-webkit-user-drag:none}
     .punten-teller{
-      font-weight:800;color:var(--blue-900);font-size:18px
+      position:absolute;left:0;right:0;top:70%;text-align:center;
+      font-size:2.6em;color:#bf5300;font-weight:bold;
+      text-shadow:0 2px 10px #fffef9, 0 1px 0 #ffecb3;pointer-events:none;letter-spacing:.03em;
+      transition:transform .14s;
     }
 
+    /* Spel container */
+    .wrap{width:min(100vw,1100px);aspect-ratio:16/9;position:relative;border-radius:18px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.12);background:#fff;margin:10px 0 36px}
     canvas{display:block;width:100%;height:100%}
 
-    .hud{
-      position:absolute;left:12px;bottom:10px;
-      background:var(--glass);backdrop-filter:blur(4px);
-      padding:8px 10px;border-radius:10px;
-      font-size:14px;color:var(--blue-900);z-index:4;
-    }
-    .start, .end, .modal{position:absolute;inset:0;display:grid;place-items:center;z-index:6}
-    .card{
-      background:var(--panel);color:var(--ink);
-      border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.2);
-      padding:20px 22px;max-width:min(90%,560px);text-align:center
-    }
-    .title{font-weight:700;color:var(--blue-800);margin:6px 0 6px}
-    .btn{appearance:none;border:0;border-radius:10px;background:#0ea5e9;color:#fff;
-      padding:10px 14px;font-weight:600;cursor:pointer}
+    .hud{position:absolute;left:12px;top:10px;background:rgba(255,255,255,.7);backdrop-filter:blur(4px);padding:8px 10px;border-radius:10px;font-size:14px;color:#1e3a8a}
+    .start, .end, .modal{position:absolute;inset:0;display:grid;place-items:center}
+    .card{background:#fff;color:#0f172a;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.2);padding:20px 22px;max-width:min(90%,560px);text-align:center}
+    .title{font-weight:700;color:#1e40af;margin:6px 0 6px}
+    .btn{appearance:none;border:0;border-radius:10px;background:#0ea5e9;color:#fff;padding:10px 14px;font-weight:600;cursor:pointer}
     .btn:active{transform:translateY(1px)}
-    .ghost{background:#eff6ff;color:var(--blue-800)}
+    .ghost{background:#eff6ff;color:#1e40af}
     .answers{display:grid;gap:8px;margin-top:10px}
     .answers.two{grid-template-columns:repeat(2,minmax(0,1fr))}
     .answers .btn{background:#111827;color:#fff;border:1px solid #374151}
     .badge{display:inline-block;background:#ecfeff;color:#0c4a6e;border:1px solid #a5f3fc;border-radius:999px;padding:3px 8px;font-size:12px;margin:6px 0}
-    .feedback{position:absolute;left:50%;top:12%;transform:translateX(-50%);
-      background:rgba(255,255,255,.85);padding:8px 12px;border-radius:999px;
-      color:var(--ok);font-weight:700;z-index:7}
-    .warn{color:var(--bad)}
+    .feedback{position:absolute;left:50%;top:12%;transform:translateX(-50%);background:rgba(255,255,255,.8);padding:8px 12px;border-radius:999px;color:#065f46;font-weight:700}
+
+    @media (max-width:900px){
+      .photeinos-wave-img{width:16vw;height:16vw;min-width:44px}
+      .begroeting{font-size:1.4em}
+      .welkom-blok{font-size:1.05em}
+      .photeinos-vlam-blok{width:54vw}
+      .punten-teller{font-size:1.6em}
+    }
+    @media (max-width:550px){
+      .photeinos-vlam-blok{width:84vw}
+      .punten-teller{font-size:1.2em}
+    }
   </style>
+
+  <!-- Firebase compat (zoals je startpagina) -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
+
+  <!-- Bovenste rij: ster + begroeting -->
+  <div class="bovenrij">
+    <div class="links">
+      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_wave.gif" alt="Photeinos zwaait" class="photeinos-wave-img" draggable="false">
+      <span class="begroeting" id="groet-tekst">Hallo, kind!</span>
+    </div>
+    <div style="width:120px"></div>
+  </div>
+  <div class="spacer-begroeting-menu"></div>
+
+  <!-- Welkomtekst -->
+  <div class="welkom-blok">
+Welkom in jouw Orthodoxe Kinderpagina, <span id="kind-naam-blok"></span>! 🎉
+
+🌟 Hier mag je elke dag op avontuur: ontdek mooie verhalen, leer bidden, en speel leuke spelletjes!
+
+Hoe meer jij bidt of leert, hoe meer punten je verdient en hoe meer spelletjes je kan spelen.
+
+Veel plezier vandaag, en vergeet niet: Photeinos is altijd jouw vriendje onderweg! 🤩
+  </div>
+
+  <!-- Grote Photeinos met vlam en punten -->
+  <div class="photeinos-vlam-blok">
+    <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_vlam.png" alt="Photeinos met vlam" class="photeinos-vlam-img" draggable="false">
+    <div id="punten-teller" class="punten-teller">…</div>
+  </div>
+
+  <!-- Spel -->
   <div class="wrap" id="gameRoot">
-    <!-- Header met welkom + Photeinos vlam -->
-    <header class="top">
-      <!-- Welkomsttekst -->
-      <div class="welkom-blok">
-        Welkom in jouw Orthodoxe Kinderpagina, <strong><span id="kind-naam-blok"></span></strong>! 🎉<br/><br/>
-        🌟 Hier mag je elke dag op avontuur: ontdek mooie verhalen, leer bidden, en speel leuke spelletjes!<br/>
-        Hoe meer jij bidt of leert, hoe meer punten je verdient en hoe meer spelletjes je kan spelen.<br/>
-        Veel plezier vandaag, en vergeet niet: Photeinos is altijd jouw vriendje onderweg! 🤩
-      </div>
-
-      <!-- Grote Photeinos met vlam en puntenaantal -->
-      <div class="photeinos-vlam-blok">
-        <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_vlam.png"
-             alt="Photeinos met vlam" class="photeinos-vlam-img" draggable="false">
-        <div id="punten-teller" class="punten-teller">...</div>
-      </div>
-    </header>
-
     <canvas id="game"></canvas>
 
     <div class="hud" id="hud">Level 1/5 • Vleugels 0/0 • Score 0 • Totaal 0</div>
@@ -117,10 +117,9 @@
           Tik/klik of druk <strong>spatie</strong> om te flappen (omhoog). Laat los om te dalen.<br/>
           Vang alle 🪽 en ontwijk 💀. Na een 🪽 krijg je een korte vraag.
         </div>
-        <div class="badge">5 levels • van traag naar sneller • kost <strong>20 punten</strong> • +2 punten per level</div>
-        <div id="punten-waarschuwing" class="warn" style="display:none;margin-top:8px">Niet genoeg punten om te starten.</div>
+        <div class="badge">5 levels • van traag naar sneller</div>
         <div style="margin-top:12px;display:flex;gap:10px;justify-content:center">
-          <button class="btn" id="startBtn">Start spel</button>
+          <button class="btn" id="startBtn">Start spel (20 lichtjes)</button>
         </div>
       </div>
     </div>
@@ -137,16 +136,84 @@
         <div class="title">Goed gespeeld!</div>
         <div id="endText" style="color:#14532d;margin:8px 0 12px"></div>
         <button class="btn" id="again">Speel opnieuw</button>
-        <button class="btn ghost" id="back" style="margin-left:8px">Terug</button>
+        <a class="btn ghost" href="spelletjes.html" style="margin-left:8px;text-decoration:none">Terug</a>
       </div>
     </div>
   </div>
 
 <script>
 (() => {
-  // ================================
-  // BEGIN: configuratie & helpers
-  // ================================
+  // ===== Achtergrondkleur random pastel =====
+  (function(){
+    const pastel = ['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
+    document.body.style.background = pastel[(Math.random()*pastel.length)|0];
+  })();
+
+  // ===== Header: naam & begroeting =====
+  const kindNaam = localStorage.getItem("ingelogdKindVoornaam") || "Kind";
+  document.getElementById('kind-naam-blok').textContent = kindNaam;
+  const groet = (()=>{ const h=new Date().getHours(); if(h>=6&&h<=11)return"Goedemorgen"; if(h>=12&&h<=16)return"Goeiemiddag"; if(h>=17&&h<=22)return"Goeieavond"; return"Hallo";})();
+  document.getElementById("groet-tekst").textContent = `${groet}, ${kindNaam}!`;
+
+  // ===== Firebase & punten =====
+  const firebaseConfig = {
+    apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+    authDomain: "orthodoxeweg.firebaseapp.com",
+    projectId: "orthodoxeweg",
+    storageBucket: "orthodoxeweg.appspot.com",
+    messagingSenderId: "408582263618",
+    appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
+  };
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  const parochieId = localStorage.getItem("ingelogdeParochie");
+  const ouderLogin = localStorage.getItem("loginKeuze");
+  const kindId     = localStorage.getItem("ingelogdKindId");
+
+  const puntenTellerEl = document.getElementById("punten-teller");
+  let huidigePunten = 0;
+
+  async function haalPunten(){
+    try{
+      if(!parochieId || !ouderLogin || !kindId){ puntenTellerEl.textContent = "…"; return 0; }
+      const snap = await db.collection("parochies").doc(parochieId).collection("leden").doc(ouderLogin).collection("kinderen").doc(kindId).get();
+      const p = snap.exists ? (snap.data().punten || 0) : 0;
+      huidigePunten = p;
+      puntenTellerEl.textContent = p;
+      return p;
+    }catch(e){
+      console.warn("Punten laden mislukt:", e);
+      puntenTellerEl.textContent = "…";
+      return 0;
+    }
+  }
+  function bumpTeller(){
+    puntenTellerEl.style.transform = 'scale(1.18)';
+    setTimeout(()=> puntenTellerEl.style.transform = 'scale(1)', 180);
+  }
+  async function updatePunten(delta){
+    // Optimistisch updaten in UI
+    huidigePunten += delta;
+    if(huidigePunten < 0) huidigePunten = 0;
+    puntenTellerEl.textContent = huidigePunten;
+    bumpTeller();
+    try{
+      if(parochieId && ouderLogin && kindId){
+        await db.collection("parochies").doc(parochieId).collection("leden").doc(ouderLogin).collection("kinderen").doc(kindId)
+          .update({ punten: firebase.firestore.FieldValue.increment(delta) });
+      }
+    }catch(e){
+      // rollback bij fout
+      console.error("Punten updaten mislukt:", e);
+      await haalPunten();
+    }
+  }
+
+  // Init punten bij laden
+  haalPunten();
+
+  // ====== Spelconfig & helpers (zoals vorige versie) ======
   const cvs = document.getElementById('game');
   const ctx = cvs.getContext('2d');
   const hud = document.getElementById('hud');
@@ -156,43 +223,14 @@
   const feedback = document.getElementById('feedback');
   const startBtn = document.getElementById('startBtn');
   const againBtn = document.getElementById('again');
-  const backBtn = document.getElementById('back');
-  const warnPunten = document.getElementById('punten-waarschuwing');
 
   const qModal = document.getElementById('question');
   const qText  = document.getElementById('qText');
   const qAns   = document.getElementById('qAnswers');
 
-  const puntenEl = document.getElementById('punten-teller');
-  const naamEl = document.getElementById('kind-naam-blok');
-
   const rand = (a=0,b=1)=> a + Math.random()*(b-a);
   const clamp = (v,a,b)=> Math.max(a, Math.min(b, v));
 
-  // eenvoudige "storage" voor punten & naam
-  function getNaam(){
-    return localStorage.getItem('kindNaam') || '';
-  }
-  function getPunten(){
-    const v = Number(localStorage.getItem('punten'));
-    if(Number.isFinite(v)) return v;
-    localStorage.setItem('punten', '100'); // starttegoed
-    return 100;
-  }
-  function setPunten(v){
-    localStorage.setItem('punten', String(Math.max(0, Math.floor(v))));
-    puntenEl.textContent = localStorage.getItem('punten') + ' ✨';
-  }
-
-  // UI: naam & punten
-  function refreshHeader(){
-    const n = getNaam();
-    naamEl.textContent = n || 'vriendje';
-    setPunten(getPunten()); // zet ook teller text
-  }
-  refreshHeader();
-
-  // levels: #wings en luchtkleur
   const LEVELS = [
     { wings: 10, sky: '#B3E5FC' },
     { wings: 10, sky: '#E6EE9C' },
@@ -201,7 +239,7 @@
     { wings: 10, sky: '#E1F5FE' },
   ];
 
- // --- CATECHETISCHE VRAGEN (volledige set) ---
+// --- CATECHETISCHE VRAGEN (volledige set) ---
 
 const LIGHT_QUESTIONS = [
   // Liefde tot God & gebed
@@ -331,7 +369,6 @@ const SIN_QUESTIONS = [
 ];
 
 
-  // lanes (0..1; 1 = onderaan)
   function lanesForLevel(level){
     const L = Math.min(level, 4);
     switch(L){
@@ -344,59 +381,47 @@ const SIN_QUESTIONS = [
   }
   const jitter = (base, j=0.016)=> clamp(base + rand(-j,j), 0.14, 0.98);
   const snapNearGrass = y => (y>0.90 ? 0.885 : y);
-
   function speedForLevel(level){ const base=0.0011, per=0.00038; return base + per*Math.min(level,6); }
   const skySpeed    = lvl => speedForLevel(lvl) * 0.45;
   const groundSpeed = lvl => speedForLevel(lvl) * 0.95;
   const playerXForLevel = lvl => clamp(0.44 + 0.035*lvl, 0.44, 0.58);
 
-  // assets
   const playerImg = new Image();
   playerImg.src = "https://github.com/kathy-torfs/Orthodoxeweg/raw/main/images/photeinos_walk.png";
 
-  // flowers glyphs
   const FLOWERS = ["🌷","🌹","🌻","🌼","🌺","🌸","🌾","🌿","🍀","🌱"];
 
-  // resize
   function fit(){
     const dpr = window.devicePixelRatio || 1;
     const rect = cvs.getBoundingClientRect();
     cvs.width  = rect.width * dpr;
     cvs.height = rect.height * dpr;
-    ctx.setTransform(dpr,0,0,dpr,0,0); // schaal terug voor coords in CSS pixels
+    ctx.setTransform(dpr,0,0,dpr,0,0);
   }
-  new ResizeObserver(fit).observe(cvs);
-  fit();
+  new ResizeObserver(fit).observe(cvs); fit();
 
-  // ================================
-  // EINDE configuratie & helpers
-  // BEGIN: spel-state
-  // ================================
+  // ===== Spel-state =====
   let started = false;
   let level = 0;
-  let scoreLevel = 0; // intern "lichtjes" in level
-  let scoreTotal = 0; // optioneel apart scoreboard (blijft in HUD)
-  let awaitingLastWing = false;
+  let scoreLevel = 0;
+  let scoreTotal = 0;
 
-  // speler (flappy)
+  let showQuestion = false;
+  let awaitLastWing = false;
+
   let pY = 1.0, prevPY = 1.0, vY = 0;
   const gravity = 0.0092, flapImpulse = -0.10, maxUp=-0.16, maxDown=0.155;
 
-  // achtergrond-actors
-  let clouds = []; // {x,y,s}
-  let flowers = []; // {x,y,s,g}
-  // obstakels
-  let obstacles = []; // {x,y,type,active}
+  let clouds = [];
+  let flowers = [];
+  let obstacles = [];
   let wingsCaught = 0, wingsTarget = 0;
 
-  // ================================
-  // helpers genereren
-  // ================================
-  function regenClouds(lvl){
+  function regenClouds(){
     const r=[]; for(let i=0;i<6;i++) r.push({x:Math.random(), y:0.06+Math.random()*0.28, s:18+((Math.random()*16)|0)});
     return r;
   }
-  function regenFlowers(lvl){
+  function regenFlowers(){
     const out=[]; const minDx=0.07;
     for(let i=0;i<90 && out.length<28;i++){
       const fx=Math.random(), fy=0.81+Math.random()*0.15, fs=12+((Math.random()*9)|0);
@@ -406,14 +431,24 @@ const SIN_QUESTIONS = [
     return out;
   }
 
+  function updateHud(){
+    hud.textContent = `Level ${level+1}/${LEVELS.length} • Vleugels ${wingsCaught}/${wingsTarget} • Score ${scoreLevel} • Totaal ${scoreTotal}`;
+  }
+  function showFeedback(text, ok=true){
+    feedback.textContent = text;
+    feedback.style.display = 'block';
+    feedback.style.color = ok ? '#065f46' : '#7f1d1d';
+    setTimeout(()=> feedback.style.display='none', 900);
+  }
+
   function loadLevel(lvl){
     scoreLevel = 0;
     wingsCaught = 0;
-    awaitingLastWing = false;
+    awaitLastWing = false;
     pY = 1.0; prevPY = 1.0; vY = 0;
 
-    clouds  = regenClouds(lvl);
-    flowers = regenFlowers(lvl);
+    clouds  = regenClouds();
+    flowers = regenFlowers();
 
     const lanes = lanesForLevel(lvl);
     const wingsNeeded = LEVELS[lvl].wings;
@@ -429,7 +464,7 @@ const SIN_QUESTIONS = [
     let wingsInARow = 0;
 
     for(let i=0;i<total;i++){
-      const forceSkull = wingsInARow>=2;                    // nooit 3 vleugels na elkaar
+      const forceSkull = wingsInARow>=2;
       const isLight = forceSkull ? false : Math.random()<pLight;
       wingsInARow = isLight? wingsInARow+1 : 0;
 
@@ -447,30 +482,31 @@ const SIN_QUESTIONS = [
     for(let i=0;i<obstacles.length && have<wingsNeeded;i++){
       if(obstacles[i].type!=="light"){ obstacles[i].type="light"; have++; }
     }
-
     updateHud();
   }
 
-  // puntenlogica: starten kost 20, per level +2
-  function canStart(){
-    return getPunten() >= 20;
+  // ---- PUNTEN: start kost 20, per level +2 ----
+  async function tryStartWithCost(){
+    // zorg dat punten geladen zijn
+    const punten = await haalPunten();
+    if(punten < 20){
+      alert("Je hebt niet genoeg lichtjes om te starten. (20 nodig)");
+      return false;
+    }
+    // trek 20 af (optimistisch + Firestore)
+    await updatePunten(-20);
+    return true;
   }
-  function payStart(){
-    const p = getPunten();
-    setPunten(p - 20);
-  }
-  function rewardLevel(){
-    setPunten(getPunten() + 2);
+  async function rewardLevel(){
+    await updatePunten(+2);
   }
 
-  function startGame(){
-    // check punten
-    if(!canStart()){
-      warnPunten.style.display = 'block';
-      return;
-    }
-    warnPunten.style.display = 'none';
-    payStart();
+  async function startGame(){
+    // check & betaal
+    startBtn.disabled = true;
+    const ok = await tryStartWithCost();
+    startBtn.disabled = false;
+    if(!ok) return;
 
     scoreTotal = 0;
     level = 0;
@@ -481,35 +517,19 @@ const SIN_QUESTIONS = [
   }
 
   function nextLevel(){
-    // interne score optellen naar totaal (optioneel voor HUD)
     scoreTotal += scoreLevel;
-    rewardLevel(); // +2 punten naar teller
+    rewardLevel(); // +2 punten bij elk gehaald level
     if(level + 1 < LEVELS.length){
       level += 1;
       loadLevel(level);
     } else {
-      // klaar
       started = false;
-      endText.textContent = `Je totale score: ${scoreTotal} lichtjes! (+${2*LEVELS.length} punten verdiend)`;
+      endText.textContent = `Je totale score: ${scoreTotal} lichtjes!`;
       endOverlay.style.display = 'grid';
-      refreshHeader(); // toon actuele punten bovenaan
     }
   }
 
-  function updateHud(){
-    hud.textContent = `Level ${level+1}/${LEVELS.length} • Vleugels ${wingsCaught}/${wingsTarget} • Score ${scoreLevel} • Totaal ${scoreTotal}`;
-  }
-
-  function showFeedback(text, ok=true){
-    feedback.textContent = text;
-    feedback.style.display = 'block';
-    feedback.style.color = ok ? '#065f46' : '#7f1d1d';
-    setTimeout(()=> feedback.style.display='none', 900);
-  }
-
-  // ================================
-  // vragen (modal)
-  // ================================
+  // ===== Vragen =====
   function askLight(){
     const item = LIGHT_QUESTIONS[(Math.random()*LIGHT_QUESTIONS.length)|0];
     qText.textContent = item.q;
@@ -527,9 +547,7 @@ const SIN_QUESTIONS = [
       qAns.appendChild(b);
     });
     qModal.style.display = 'grid';
-    // verberg HUD clicks onder modal
-    started && (document.body.style.pointerEvents='none'); // blokkeer game klikken onder modal
-    qModal.style.pointerEvents='auto';
+    showQuestion = true;
   }
   function askSin(){
     const item = SIN_QUESTIONS[(Math.random()*SIN_QUESTIONS.length)|0];
@@ -545,84 +563,58 @@ const SIN_QUESTIONS = [
           showFeedback('Juist! Dat mag niet.', true);
           closeQuestion();
         } else {
-          // game over
           showFeedback('Helaas, dat was fout! Probeer opnieuw.', false);
           closeQuestion();
           started = false;
           endText.textContent = `Je totale score: ${scoreTotal} lichtjes!`;
           endOverlay.style.display = 'grid';
-          refreshHeader();
         }
       };
       qAns.appendChild(b);
     });
     qModal.style.display = 'grid';
-    started && (document.body.style.pointerEvents='none');
-    qModal.style.pointerEvents='auto';
+    showQuestion = true;
   }
   function closeQuestion(){
     qModal.style.display = 'none';
-    document.body.style.pointerEvents='auto';
-    // als dit de laatste vleugel was: nu pas door
+    showQuestion = false;
     if(!started) return;
-    if(!qModal.offsetParent && awaitingLastWing && wingsCaught >= wingsTarget){
-      awaitingLastWing = false;
+    if(!showQuestion && awaitLastWing && wingsCaught >= wingsTarget){
+      awaitLastWing = false;
       nextLevel();
     }
     updateHud();
   }
 
-  // ================================
-  // input
-  // ================================
-  function flap(){
-    if(!started || qModal.style.display==='grid') return;
-    vY = Math.max(maxUp, vY + flapImpulse);
-  }
-  window.addEventListener('keydown', e=>{
-    if(e.code === 'Space'){ e.preventDefault(); flap(); }
-  }, {passive:false});
-  // klik/tap
+  // ===== Input =====
+  function flap(){ if(!started || showQuestion) return; vY = Math.max(maxUp, vY + flapImpulse); }
+  window.addEventListener('keydown', e=>{ if(e.code==='Space'){ e.preventDefault(); flap(); } }, {passive:false});
   document.getElementById('gameRoot').addEventListener('mousedown', flap);
   document.getElementById('gameRoot').addEventListener('touchstart', e=>{ e.preventDefault(); flap(); }, {passive:false});
 
   startBtn.onclick = startGame;
   againBtn.onclick = startGame;
-  backBtn.onclick = ()=>{ /* eventueel navigatie */ };
 
-  // ================================
-  // hoofdloop
-  // ================================
-  let last = performance.now();
+  // ===== Loop =====
   function loop(t){
-    const dt = Math.min(40, t - last); last = t;
-
-    // tekenen
     const W = cvs.clientWidth, H = cvs.clientHeight;
-    // achtergrond lucht
     ctx.fillStyle = LEVELS[level]?.sky || '#B3E5FC';
     ctx.fillRect(0,0,W,H);
 
-    if(started && qModal.style.display!=='grid'){
-      // fysica
+    if(started && !showQuestion){
       prevPY = pY;
       vY *= 0.985; vY += gravity; vY = clamp(vY, maxUp, maxDown);
       pY = clamp(pY + vY, 0.10, 1.00);
 
-      // schuiven
       const dx = speedForLevel(level);
-      // wolken
       for(const c of clouds){ c.x -= skySpeed(level); if(c.x < -0.10) c.x = 1.10; }
-      // bloemen
       for(const f of flowers){ f.x -= groundSpeed(level); if(f.x < -0.05) f.x = 1.05; }
-      // obstakels
       for(const o of obstacles){
         if(!o.active){ o.x = -1; continue; }
         o.x -= dx;
-        if(o.x <= -0.10) o.x += 1.40; // wrap zodat gemist item later terugkomt
+        if(o.x <= -0.10) o.x += 1.40;
       }
 
-      // botsingen
       const xCenter = playerXForLevel(level);
       const halfLight = 0.060, halfSkull = 0.038;
       const phY = clamp(pY + 0.032, 0, 1);
@@ -644,29 +636,24 @@ const SIN_QUESTIONS = [
           if(o.type === 'light'){
             wingsCaught++;
             const isLast = wingsCaught >= wingsTarget;
-            awaitingLastWing = isLast;
+            awaitLastWing = isLast;
             askLight();
           } else {
             askSin();
           }
-          break; // één per frame is voldoende
+          break;
         }
       }
 
-      // auto-next als alle vleugels en geen vraag open
-      if(qModal.style.display!=='grid' && !awaitingLastWing && wingsCaught >= wingsTarget){
+      if(!showQuestion && !awaitLastWing && wingsCaught >= wingsTarget){
         nextLevel();
       }
       updateHud();
     }
 
-    // Lucht/wolken
+    // Wolken
     ctx.save();
-    ctx.textBaseline = 'alphabetic';
-    for(const c of clouds){
-      ctx.font = `${c.s}px serif`;
-      ctx.fillText('☁️', c.x*W, c.y*H);
-    }
+    for(const c of clouds){ ctx.font = `${c.s}px serif`; ctx.fillText('☁️', c.x*W, c.y*H); }
     ctx.restore();
 
     // Gras
@@ -676,19 +663,13 @@ const SIN_QUESTIONS = [
 
     // Bloemen
     ctx.save();
-    for(const f of flowers){
-      ctx.font = `${f.s}px serif`;
-      ctx.fillText(f.g, f.x*W, f.y*H);
-    }
+    for(const f of flowers){ ctx.font = `${f.s}px serif`; ctx.fillText(f.g, f.x*W, f.y*H); }
     ctx.restore();
 
     // Obstakels
     ctx.save();
     ctx.font = `${H*0.08}px serif`;
-    for(const o of obstacles){
-      const emoji = o.type==='light' ? '🪽' : '💀';
-      ctx.fillText(emoji, o.x*W, o.y*H);
-    }
+    for(const o of obstacles){ const emoji = o.type==='light' ? '🪽' : '💀'; ctx.fillText(emoji, o.x*W, o.y*H); }
     ctx.restore();
 
     // Speler
@@ -697,17 +678,14 @@ const SIN_QUESTIONS = [
     if(playerImg.complete){
       ctx.drawImage(playerImg, px - size*0.5, pyPix - size*0.5, size, size);
     } else {
-      ctx.save();
-      ctx.fillStyle = '#1e293b';
-      ctx.beginPath(); ctx.arc(px, pyPix, size*0.35, 0, Math.PI*2); ctx.fill();
-      ctx.restore();
+      ctx.save(); ctx.fillStyle = '#1e293b'; ctx.beginPath(); ctx.arc(px, pyPix, size*0.35, 0, Math.PI*2); ctx.fill(); ctx.restore();
     }
 
     requestAnimationFrame(loop);
   }
   requestAnimationFrame(loop);
 
-  // init overlays
+  // Overlays init
   startOverlay.style.display = 'grid';
   endOverlay.style.display = 'none';
   updateHud();
