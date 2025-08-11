@@ -2,462 +2,372 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Kindercatechese – Les</title>
-  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Spelletjes – Orthodoxe Kinderpagina</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
   <style>
     :root{
       --primair:#7bb235; --donker:#67510C;
-      --bg:#fff9e6; --kaart:#ffffff; --rand:#f1e6c8;
-      --text:#4b3a18; --accent:#ffd480; --err:#c62828; --ok:#2e7d32;
-      --headerH:64px;
+      --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
+      --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
+      --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
+      --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
     body{
-      margin:0; font-family:'Comic Sans MS', Arial, sans-serif;
-      background:var(--bg); color:var(--text);
-      display:flex; flex-direction:column;
+      margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
+      min-height:100vh; background:var(--pastel1); transition:background .6s; overflow-x:hidden;
     }
 
-    /* Sticky begroeting */
-    header{
-      position:sticky; top:0; z-index:1000;
-      height:var(--headerH);
-      background:linear-gradient(90deg,#ffcc66,#ffe098);
-      display:flex; justify-content:space-between; align-items:center;
-      padding:8px 14px; box-shadow:0 2px 6px rgba(0,0,0,.12);
+    /* Bovenste rij */
+    .bovenrij{
+      width:100%; max-width:1280px; margin:0 auto;
+      display:flex; align-items:center; justify-content:space-between; gap:0;
+      padding:22px 2vw 8px 2vw; box-sizing:border-box;
     }
-    header .left{display:flex; align-items:center; gap:8px}
-    header .right{display:flex; align-items:center; gap:10px; font-weight:bold}
-    header img.wave{height:40px}
-    header img.vlam{height:32px}
-
-    /* Sticky menubalk */
-    .kinder-menu{
-      position:sticky; top:var(--headerH); z-index:999;
-      background:#ffedcc;
-      display:flex; align-items:center; justify-content:center;
-      gap:12px; flex-wrap:wrap;
-      padding:8px; box-shadow:0 2px 4px rgba(0,0,0,0.08);
+    .bovenrij .links{ display:flex; align-items:center; gap:18px; }
+    .photeinos-wave-img{
+      width:120px; min-width:54px; max-width:26vw; height:120px; border-radius:50%;
+      background:#fff; border:2.2px solid #dab97a; box-shadow:0 2px 12px #dab97a2a;
+      object-fit:cover; user-drag:none; -webkit-user-drag:none; display:block;
     }
-    .kinder-menu a{ display:inline-flex; align-items:center; justify-content:center }
-    .menu-icoon{ height:40px; width:auto; display:block }
-    @media (max-width:520px){ .menu-icoon{ height:34px } }
-
-    /* Scrolbare inhoud */
-    main{ flex:1; overflow:auto; padding:16px }
-    .container{ max-width:900px; margin:0 auto }
-
-    .card{
-      background:var(--kaart); border:1px solid var(--rand); border-radius:16px;
-      padding:16px; box-shadow:0 2px 4px rgba(0,0,0,0.05);
+    .begroeting{
+      font-size:2.2em; font-weight:bold; color:var(--primair);
+      text-shadow:0 2px 8px #b3d9ff44; letter-spacing:.01em; line-height:1.04;
+      margin:0; white-space:nowrap;
     }
-    .title{ font-size:1.4rem; font-weight:800; color:#3c2e0f; margin:6px 0 2px }
-    .meta{ color:#6a5a34; font-size:.95rem; margin-bottom:10px }
-    .story img{ max-width:100%; border-radius:12px; border:1px solid var(--rand); margin:6px 0 12px }
-    .story p{ margin:8px 0; line-height:1.45 }
-
-    .bar{ height:10px; background:#f3ead2; border:1px solid #ead7a6; border-radius:999px; overflow:hidden }
-    .bar>span{ display:block; height:100%; background:var(--primair); width:0% }
-
-    .qa{ margin-top:16px }
-    .qtitle{ font-weight:800; margin:6px 0 10px }
-    .question-box{
-      background:#fff; border:1px solid var(--rand); border-radius:14px; padding:14px; margin:10px 0;
+    .bovenrij .rechts{ display:flex; align-items:center; gap:18px; margin-left:24px; }
+    .uitlog-kind-btn{
+      background:#e24343; color:#fff; border:none; padding:11px 24px; border-radius:9px;
+      font-weight:bold; font-size:1.1em; cursor:pointer; box-shadow:0 2px 10px #b04141ab;
+      transition:background .2s; z-index:10; margin-left:12px;
     }
-    .question-text{ font-weight:700; margin-bottom:10px }
-    .options{ display:grid; gap:8px }
-    .opt{
-      background:#fff9ea; border:1px solid #f0dfbd; border-radius:10px; padding:8px 10px; cursor:pointer;
+    .uitlog-kind-btn:hover{ background:#b72828; }
+
+    /* Kleine vlam met punten in rechterbovenhoek */
+    .puntenvlam-balk{
+      display:flex; flex-direction:column; align-items:center; position:relative;
+      width:58px; min-width:44px; height:74px; margin-left:22px;
     }
-    .opt input{ margin-right:8px }
-    .yn{ display:flex; gap:10px; flex-wrap:wrap }
+    .puntenvlam-img{ width:58px; height:74px; display:block; user-drag:none; -webkit-user-drag:none; }
+    .punten-teller-balk{
+      position:absolute; left:0; right:0; top:63%; text-align:center;
+      font-family:'Comic Sans MS', Arial, sans-serif; font-size:1.33em; color:#bf5300; font-weight:bold;
+      text-shadow:0 2px 10px #fffef9, 0 1px 0 #ffecb3; pointer-events:none; letter-spacing:.03em;
+      filter:drop-shadow(0 2px 2px #fffef9); transition:transform .14s;
+    }
+
+    /* Menubalk (consistent met andere pagina’s) */
+    nav.kinder-menu{
+      width:100vw; max-width:1280px; margin:0 auto;
+      display:flex; justify-content:center; align-items:center; gap:32px;
+      padding:36px 0 25px 0; min-height:88px; flex-wrap:wrap; transition:gap .2s;
+    }
+    nav.kinder-menu a{ display:flex; align-items:center; justify-content:center; border-radius:12px; transition:transform .13s; }
+    nav.kinder-menu a:focus, nav.kinder-menu a:hover{ transform:scale(1.12); }
+    .menu-icoon{
+      width:72px; height:72px; object-fit:contain; border-radius:16px; background:#fff9d5;
+      box-shadow:0 2px 7px #ffe17e25; border:2.2px solid #ffe05e; transition:box-shadow .13s, border-color .13s;
+      display:block;
+    }
+    nav.kinder-menu a:focus .menu-icoon, nav.kinder-menu a:hover .menu-icoon{
+      box-shadow:0 5px 16px #ffe17e55; border-color:#ffbe23;
+    }
+
+    .spacer-begroeting-menu{ height:38px; }
+
+    /* Container spelkaarten */
+    .container-spellen{
+      max-width:850px; margin:0 auto; padding:0 12px 44px 12px;
+    }
+    .intro-titel{
+      color:#67510C; font-size:1.6em; font-weight:bold; margin:18px 0 6px 0; text-align:center;
+    }
+    .spel-card{
+      background:#fff6e2; border-radius:22px; box-shadow:0 2px 8px #0002;
+      margin: 16px 0; padding:18px; display:grid; grid-template-columns:88px 1fr auto; gap:14px; align-items:center;
+    }
+    .spel-card .icoon{
+      width:72px; height:72px; border-radius:16px; object-fit:contain; background:#fff; border:1px solid #ffe0b5;
+      display:block;
+    }
+    .spel-card .titel{
+      color:#4A3B20; font-size:1.15em; font-weight:bold; margin-bottom:6px;
+    }
+    .badge{
+      display:inline-block; background:#d8ffdf; color:#20641e; border-radius:8px; padding:3px 10px; font-size:.95em; margin-right:8px;
+    }
+    .badge.kost{ background:#fff1c7; color:#7a4d00; }
+    .actie{
+      display:flex; flex-direction:column; gap:8px; align-items:flex-end;
+    }
     .btn{
-      border:1px solid var(--rand); background:#fff; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:700
+      appearance:none; border:0; border-radius:13px; padding:11px 16px; font-weight:bold; cursor:pointer; color:#fff; background:#7bb235;
+      min-width:180px; box-shadow:0 2px 6px #0001;
     }
-    .btn.primary{ background:var(--primair); color:#fff; border-color:#6aa32a }
-    .btn.ghost{ background:#fff }
-    .btn[disabled]{ opacity:.6; cursor:not-allowed }
-    .feedback{ margin-top:8px; font-weight:700 }
-    .ok{ color:var(--ok) } .err{ color:var(--err) }
-    .actions-row{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px }
+    .btn:disabled{ background:#d8ffdf; color:#888; cursor:default; }
+    .note{ font-size:.9em; color:#6b7280; }
 
-    .endcard{ text-align:center; padding:16px; border:2px dashed #f0e2be; border-radius:16px; background:#fff }
-    .endbig{ font-size:1.2rem; font-weight:800; margin-bottom:6px }
-    .hint{ color:#6a5a34; font-size:.95rem }
+    /* Pop-up (eenvoudig) */
+    .modal{ position:fixed; inset:0; background:rgba(0,0,0,.35); display:none; align-items:center; justify-content:center; z-index:9999; }
+    .modal .card{
+      background:#fff; border-radius:16px; padding:18px 18px 14px 18px; max-width:min(92vw,420px); box-shadow:0 10px 30px rgba(0,0,0,.25);
+    }
+    .modal .title{ font-weight:700; font-size:1.2em; margin:0 0 8px 0; display:flex; align-items:center; gap:10px; color:#1f2937; }
+    .modal .text{ color:#374151; margin-bottom:12px; }
+    .modal .row{ display:flex; gap:10px; justify-content:flex-end; }
+    .ghost{ background:#eff6ff; color:#1e40af; }
 
-    .top-actions{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin:6px 0 12px }
-    a.link{ color:#3d4c9e; text-decoration:none; font-weight:700 }
-    a.link:hover{ text-decoration:underline }
+    /* Photeinos GIF */
+    .photeinos-gif{
+      position:fixed; left:0; bottom:50px; width:110px; height:110px; z-index:1000; display:none; pointer-events:none;
+      animation:photeinosInOut 2.2s linear forwards;
+    }
+    @keyframes photeinosInOut{
+      0%{transform:translateX(-120%);} 15%{transform:translateX(12%);} 80%{transform:translateX(10%);} 100%{transform:translateX(-120%);}
+    }
+
+    /* Responsief */
+    @media (max-width:1100px){ .photeinos-wave-img{width:17vw;height:17vw;min-width:60px;max-width:120px} .puntenvlam-balk,.puntenvlam-img{width:44px;height:60px} }
+    @media (max-width:900px){
+      .bovenrij{padding-top:10px} .photeinos-wave-img{width:16vw;height:16vw;min-width:44px}
+      .begroeting{font-size:1.2em} .puntenvlam-balk,.puntenvlam-img{width:36px;height:48px}
+      .spel-card{ grid-template-columns:70px 1fr; grid-auto-rows:auto; }
+      .actie{ align-items:stretch; }
+      .btn{ min-width:unset; width:100%; }
+    }
+    @media (max-width:600px){ .photeinos-wave-img{width:24vw;height:24vw;min-width:28px} .puntenvlam-balk,.puntenvlam-img{width:27px;height:35px} }
   </style>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-
-  <!-- Begroetingsbalk -->
-  <header>
-    <div class="left">
-      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_wave.gif" alt="Photeinos zwaait" class="wave">
-      <span>Hallo <b id="greetingName">vriend</b>!</span>
+  <!-- Bovenste rij -->
+  <div class="bovenrij">
+    <div class="links">
+      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_wave.gif" alt="Photeinos zwaait" class="photeinos-wave-img" draggable="false" />
+      <span class="begroeting" id="groet-tekst">Hallo, kind!</span>
     </div>
-    <div class="right">
-      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_vlam.gif" alt="Photeinos vlam" class="vlam">
-      <span id="totalPoints">⭐ 0 punten</span>
+    <div class="rechts">
+      <div class="puntenvlam-balk">
+        <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_vlam.png" alt="Vlam" class="puntenvlam-img" draggable="false" />
+        <div id="punten-teller" class="punten-teller-balk">…</div>
+      </div>
+      <button class="uitlog-kind-btn" id="uitlogBtn">Uitloggen</button>
     </div>
-  </header>
+  </div>
 
-  <!-- JOUW MENUBALK (exact) -->
+  <div class="spacer-begroeting-menu"></div>
+
+  <!-- Menubalk -->
   <nav class="kinder-menu">
-    <a href="startpagina.html" title="Startpagina"><img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_home.png" class="menu-icoon" alt=""></a>
-    <a href="gebeden.html"     title="Ik bid"><img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_bid.png" class="menu-icoon" alt=""></a>
-    <a href="catechese.html"   title="Catechese"><img src="https://kathy-torfs.github.io/Orthodoxeweg/images/catechese.png" class="menu-icoon" alt=""></a>
-    <a href="heiligen.html"    title="Heiligen"><img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_heiligen.png" class="menu-icoon" alt=""></a>
-    <a href="bijbelverhalen.html" title="Bijbelverhalen"><img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_bijbel.png" class="menu-icoon" alt=""></a>
-    <a href="spelletjes.html"  title="Spelletjes"><img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_spelletjes.png" class="menu-icoon" alt=""></a>
-    <a href="school.html"      title="School"><img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_school.png" class="menu-icoon" alt=""></a>
+    <a href="startpagina.html" title="Startpagina">
+      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_home.png" class="menu-icoon" alt="Startpagina" />
+    </a>
+    <a href="gebeden.html" title="Ik bid">
+      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_bid.png" class="menu-icoon" alt="Ik bid" />
+    </a>
+    <a href="catechese.html" title="Catechese">
+      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/catechese.png" class="menu-icoon" alt="Catechese" />
+    </a>
+    <a href="heiligen.html" title="Heiligen">
+      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_heiligen.png" class="menu-icoon" alt="Heiligen" />
+    </a>
+    <a href="bijbelverhalen.html" title="Bijbelverhalen">
+      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_bijbel.png" class="menu-icoon" alt="Bijbelverhalen" />
+    </a>
+    <a href="spelletjes.html" title="Spelletjes">
+      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_spelletjes.png" class="menu-icoon" alt="Spelletjes" />
+    </a>
+    <a href="school.html" title="School">
+      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_school.png" class="menu-icoon" alt="School" />
+    </a>
   </nav>
 
-  <!-- Inhoud -->
-  <main>
-    <div class="container">
-      <div class="top-actions">
-        <a class="link" href="catechese.html">← Terug naar overzicht</a>
-        <div class="bar" style="width:240px" aria-label="Voortgang"><span id="progressBar" style="width:0%"></span></div>
+  <!-- Spellen -->
+  <div class="container-spellen">
+    <div class="intro-titel">Kies een spelletje om te spelen:</div>
+    <div id="spellenLijst"></div>
+  </div>
+
+  <!-- Photeinos GIF -->
+  <img id="photeinosGif" class="photeinos-gif" src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_kiekeboeduim.gif" alt="Photeinos duim" />
+
+  <!-- Popup -->
+  <div class="modal" id="popup">
+    <div class="card">
+      <div class="title">
+        <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_klok.png" alt="" style="width:34px;height:34px" />
+        <span>Niet genoeg punten</span>
       </div>
-
-      <div class="card" id="lessonCard">
-        <div class="title" id="lessonTitle">Les laden…</div>
-        <div class="meta" id="lessonMeta"></div>
-        <div class="story" id="lessonStory"></div>
-
-        <div class="qa" id="qaWrap" style="display:none">
-          <div class="qtitle"><span id="qCounter">Vraag 1</span> / <span id="qTotal">5</span></div>
-          <div class="question-box" id="questionBox">
-            <!-- vraag + invoer -->
-          </div>
-          <div class="actions-row">
-            <button class="btn" id="btnCheck">Controleer</button>
-            <button class="btn primary" id="btnNext" disabled>Volgende</button>
-            <button class="btn ghost" id="btnReset">Herstart les</button>
-          </div>
-          <div class="feedback" id="feedback"></div>
-        </div>
-
-        <div class="endcard" id="endCard" style="display:none">
-          <div class="endbig">Goed gedaan! 🎉</div>
-          <div>Je scoorde <b id="scoreText">0/0</b> — dat is <b id="scorePct">0%</b>.</div>
-          <div class="hint">Je voortgang werd bewaard. Wil je nog eentje doen?</div>
-          <div class="actions-row" id="endActions">
-            <a class="btn" href="catechese.html">Naar overzicht</a>
-            <a class="btn primary" id="nextLessonBtn" href="#">Volgende les</a>
-          </div>
-        </div>
+      <div class="text" id="popupText">Je hebt niet genoeg lichtjes voor dit spel. Kom later terug!</div>
+      <div class="row">
+        <button class="btn ghost" id="popupOk">Oké</button>
       </div>
     </div>
-  </main>
-
-  <!-- Firebase SDKs (compat) -->
-  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore-compat.js"></script>
+  </div>
 
   <script>
-    // ==== FIREBASE CONFIG ====
+    // Pastel achtergrond random
+    (function(){
+      const p = ['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
+      document.body.style.background = p[Math.floor(Math.random()*p.length)];
+    })();
+
+    // Begroeting
+    const kindNaam = localStorage.getItem("ingelogdKindVoornaam") || "Kind";
+    function welkomstGroet(){
+      const u = new Date().getHours();
+      if (u>=6 && u<=11) return "Goeiemorgen";
+      if (u>=12 && u<=16) return "Goeiemiddag";
+      if (u>=17 && u<=22) return "Goeieavond";
+      return "Hallo";
+    }
+    document.getElementById("groet-tekst").textContent = `${welkomstGroet()}, ${kindNaam}!`;
+
+    // Uitloggen
+    document.getElementById("uitlogBtn").onclick = function(){
+      localStorage.removeItem("kindIngelogd");
+      localStorage.removeItem("ingelogdKindId");
+      localStorage.removeItem("ingelogdKindVoornaam");
+      localStorage.removeItem("kindAvatarURL");
+      localStorage.removeItem("kindPunten");
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html";
+    };
+
+    // Firebase
     const firebaseConfig = {
-      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
-      authDomain: "orthodoxeweg.firebaseapp.com",
-      projectId: "orthodoxeweg",
-      storageBucket: "orthodoxeweg.appspot.com",
-      messagingSenderId: "408582263618",
-      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
+      apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain:"orthodoxeweg.firebaseapp.com",
+      projectId:"orthodoxeweg",
+      storageBucket:"orthodoxeweg.appspot.com",
+      messagingSenderId:"408582263618",
+      appId:"1:408582263618:web:0a20f4bf0704989d3ceedb"
     };
-    const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const auth = firebase.auth();
 
-    // ==== HEADER: naam + punten ====
-    const els = {
-      greetingName: document.getElementById("greetingName"),
-      totalPoints: document.getElementById("totalPoints"),
-      progressBar: document.getElementById("progressBar"),
-      qCounter: document.getElementById("qCounter"),
-      qTotal: document.getElementById("qTotal"),
-      questionBox: document.getElementById("questionBox"),
-      feedback: document.getElementById("feedback"),
-      btnCheck: document.getElementById("btnCheck"),
-      btnNext: document.getElementById("btnNext"),
-      btnReset: document.getElementById("btnReset"),
-      lessonTitle: document.getElementById("lessonTitle"),
-      lessonMeta: document.getElementById("lessonMeta"),
-      lessonStory: document.getElementById("lessonStory"),
-      qaWrap: document.getElementById("qaWrap"),
-      endCard: document.getElementById("endCard"),
-      scoreText: document.getElementById("scoreText"),
-      scorePct: document.getElementById("scorePct"),
-      nextLessonBtn: document.getElementById("nextLessonBtn"),
-    };
+    const parochieId = localStorage.getItem("ingelogdeParochie");
+    const ouderLogin = localStorage.getItem("loginKeuze");
+    const kindId     = localStorage.getItem("ingelogdKindId");
 
-    function localPointsSum(){
-      let sum = 0;
-      for (const key of Object.keys(localStorage)) {
-        if (key.startsWith('catechese-progress:')) {
-          const v = parseInt(localStorage.getItem(key) || "0", 10);
-          sum += Math.floor(v / 10);
-        }
-      }
-      return sum;
-    }
+    // Spellenlijst (zelfde logica als in de app)
+    const spellen = [
+      // betaalde
+      { id:"vierop1rij",  titel:"Vier op een rij", kost:20, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/vier.png",        link:"vierop1rij.html" },
+      { id:"molenspel",   titel:"Molenspel",      kost:20, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/molenspel.png", link:"molenspel.html" },
+      { id:"memory",      titel:"Noah’s Ark",     kost:20, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/noah.png",       link:"memory.html" },
+      { id:"patience",    titel:"Patience",       kost:20, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/patience.png",   link:"patience.html" },
+      { id:"kerk",        titel:"Kerk bouwen",    kost:20, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/kerk.png",       link:"kerkbouwen.html" },
+      { id:"photeinos",   titel:"Springspel",     kost:20, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos.png",  link:"springspel.html" },
+      // educatief (gratis)
+      { id:"catechesequiz", titel:"Catechesequiz", kost:0, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/catechese.png",  link:"catechesequiz.html" },
+      { id:"trivia",        titel:"Bijbeltrivia",  kost:0, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/trivia.png",     link:"bijbeltrivia.html" },
+      { id:"leesschat",     titel:"Lees-schat",    kost:0, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/boek.png",       link:"leesschat.html" },
+      { id:"wiskunde",      titel:"Wiskundespel",  kost:0, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/wiskunde.png",   link:"wiskunde.html" },
+    ];
 
-    async function loadHeaderForUser(user){
-      try {
-        const doc = await db.collection('leden').doc(user.uid).get();
-        const data = doc.exists ? (doc.data() || {}) : {};
-        const displayName = (data.naam || user.displayName || 'vriend').toString();
-        els.greetingName.textContent = displayName.split(' ')[0];
-        const punten = (typeof data.punten === 'number') ? data.punten : localPointsSum();
-        els.totalPoints.textContent = `⭐ ${punten} punten`;
-      } catch (e) {
-        els.greetingName.textContent = (user.displayName || 'vriend').split(' ')[0];
-        els.totalPoints.textContent = `⭐ ${localPointsSum()} punten`;
-      }
-    }
-    auth.onAuthStateChanged(user=>{
-      if(user){ loadHeaderForUser(user); }
-      else{
-        els.greetingName.textContent = 'vriend';
-        els.totalPoints.textContent = `⭐ ${localPointsSum()} punten`;
-      }
-    });
-
-    // ==== HULP ====
-    function getParam(name){ return new URLSearchParams(location.search).get(name); }
-    function normalize(str){
-      return (str||"").toString().trim().toLowerCase()
-        .normalize('NFD').replace(/[\u0300-\u036f]/g,''); // strip accenten
-    }
-    function setProgress(id, pct){
-      localStorage.setItem(`catechese-progress:${id}`, String(pct));
-      if(!auth.currentUser){
-        els.totalPoints.textContent = `⭐ ${localPointsSum()} punten`;
-      }
-    }
-    function getProgress(id){
-      const raw = localStorage.getItem(`catechese-progress:${id}`);
-      return raw ? Math.max(0, Math.min(100, parseInt(raw,10))) : 0;
-    }
-    function paraRender(tekst){
-      if(Array.isArray(tekst)){
-        return tekst.map(p => `<p>${p}</p>`).join('');
-      }
-      if(!tekst) return '';
-      const parts = tekst.split(/\n\s*\n/);
-      return parts.map(p => `<p>${p}</p>`).join('');
-    }
-    function padDag(n){
-      const s = String(n||0);
-      return s.length>=3 ? s : ('000'+s).slice(-3);
-    }
-
-    // ==== LES LADEN ====
-    const lessonId = getParam('id') || 'dag001';
-    let currentLesson = null;
-    let vragen = [];
-    let answers = [];       // user answers
-    let correctFlags = [];  // booleans per vraag
-    let idx = 0;
-
-    async function loadLesson(){
-      const snap = await db.collection('kindercatechese').doc(lessonId).get();
-      if(!snap.exists){
-        els.lessonTitle.textContent = 'Les niet gevonden';
-        els.lessonMeta.textContent = `ID: ${lessonId}`;
-        return;
-      }
-      const d = snap.data() || {};
-      currentLesson = { id: snap.id, ...d };
-      els.lessonTitle.textContent = d.titel || `(zonder titel)`;
-      els.lessonMeta.textContent = [
-        d.type ? d.type.charAt(0).toUpperCase()+d.type.slice(1) : '',
-        (typeof d.volgnummer==='number' ? `Dag ${d.volgnummer}` : '')
-      ].filter(Boolean).join(' • ');
-
-      let storyHTML = '';
-      if(d.afbeelding){
-        storyHTML += `<img src="${d.afbeelding}" alt="">`;
-      }
-      storyHTML += paraRender(d.tekst);
-      els.lessonStory.innerHTML = storyHTML;
-
-      vragen = Array.isArray(d.vragen) ? d.vragen : [];
-      answers = new Array(vragen.length).fill(null);
-      correctFlags = new Array(vragen.length).fill(false);
-      els.qTotal.textContent = String(vragen.length||0);
-
-      if(vragen.length){
-        els.qaWrap.style.display = '';
-        idx = 0;
-        renderQuestion();
-        // begin-voortgang (indien eerder)
-        const prevPct = getProgress(lessonId);
-        els.progressBar.style.width = prevPct + '%';
-      }else{
-        els.qaWrap.style.display = 'none';
-      }
-
-      // volgende les opzoeken via volgnummer +1
-      if(typeof d.volgnummer === 'number'){
-        const nextNr = d.volgnummer + 1;
-        const q = await db.collection('kindercatechese').where('volgnummer','==', nextNr).limit(1).get();
-        if(!q.empty){
-          const nextId = q.docs[0].id;
-          els.nextLessonBtn.href = `les.html?id=${encodeURIComponent(nextId)}`;
-        }else{
-          // fallback: gok 'dagXYZ'
-          els.nextLessonBtn.href = `les.html?id=dag${padDag(nextNr)}`;
-        }
+    // punten laden
+    let puntenCache = 0;
+    async function laadPunten(){
+      const teller = document.getElementById("punten-teller");
+      if (!parochieId || !ouderLogin || !kindId){ teller.textContent = "…"; return; }
+      try{
+        const doc = await db.collection("parochies").doc(parochieId)
+          .collection("leden").doc(ouderLogin)
+          .collection("kinderen").doc(kindId).get();
+        puntenCache = (doc.exists && doc.data().punten) ? doc.data().punten : 0;
+        teller.textContent = puntenCache;
+        teller.style.transform = 'scale(1.18)'; setTimeout(()=>teller.style.transform='scale(1)', 180);
+        tekenSpellen(); // update knoppen enabled/disabled
+      }catch(e){
+        teller.textContent = "…";
       }
     }
 
-    // ==== VRAGEN RENDEREN ====
-    function renderQuestion(){
-      const q = vragen[idx];
-      els.qCounter.textContent = `Vraag ${idx+1}`;
-      els.feedback.textContent = '';
-      els.feedback.className = 'feedback';
-      els.btnNext.disabled = true;
-      els.btnCheck.disabled = false;
+    // auto refresh punten
+    laadPunten();
+    const puntenAutoRefresh = setInterval(laadPunten, 10000);
+    document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) laadPunten(); });
+    window.addEventListener('beforeunload', ()=> clearInterval(puntenAutoRefresh));
 
-      const saved = answers[idx];
-      let html = `<div class="question-text">${q.vraag||''}</div>`;
+    // teken kaarten
+    function tekenSpellen(){
+      const root = document.getElementById('spellenLijst');
+      root.innerHTML = '';
+      for(const s of spellen){
+        const kaart = document.createElement('div');
+        kaart.className = 'spel-card';
 
-      if(q.type === 'meerkeuze'){
-        const opties = Array.isArray(q.opties) ? q.opties : [];
-        html += `<div class="options">` +
-          opties.map((opt, i)=>`
-            <label class="opt">
-              <input type="radio" name="opt" value="${i}" ${saved==i?'checked':''}>
-              <span>${opt}</span>
-            </label>
-          `).join('') +
-        `</div>`;
-      } else if(q.type === 'jaofnee'){
-        html += `
-          <div class="yn">
-            <button class="btn" data-yn="true">Ja</button>
-            <button class="btn" data-yn="false">Nee</button>
-          </div>
-        `;
-      } else if(q.type === 'open'){
-        html += `
-          <input id="openInput" type="text" placeholder="Typ je antwoord…" style="width:100%;padding:10px;border:1px solid var(--rand);border-radius:10px" />
-        `;
-        if(typeof saved === 'string'){
-          // herstel vorige invoer
-          setTimeout(()=>{ const el = document.getElementById('openInput'); if(el) el.value = saved; },0);
-        }
+        const img = document.createElement('img');
+        img.className = 'icoon';
+        img.src = s.icon;
+        img.alt = s.titel;
+
+        const midden = document.createElement('div');
+        const titel = document.createElement('div');
+        titel.className = 'titel';
+        titel.textContent = s.titel;
+
+        const badges = document.createElement('div');
+        const badgeKost = document.createElement('span');
+        badgeKost.className = 'badge kost';
+        badgeKost.textContent = s.kost ? `Kost: ${s.kost} lichtjes` : 'Gratis';
+        badges.appendChild(badgeKost);
+
+        midden.appendChild(titel);
+        midden.appendChild(badges);
+
+        const rechts = document.createElement('div');
+        rechts.className = 'actie';
+        const btn = document.createElement('button');
+        btn.className = 'btn';
+        const genoeg = puntenCache >= s.kost;
+        btn.disabled = !genoeg;
+        btn.textContent = genoeg ? 'Ik speel dit!' : 'Niet genoeg lichtjes';
+        btn.onclick = () => startSpelOfPopup(s);
+        const note = document.createElement('div');
+        note.className = 'note';
+        note.textContent = genoeg ? '' : 'Verdien eerst wat lichtjes met bidden/catechese.';
+
+        rechts.appendChild(btn);
+        if(!genoeg) rechts.appendChild(note);
+
+        kaart.appendChild(img);
+        kaart.appendChild(midden);
+        kaart.appendChild(rechts);
+        root.appendChild(kaart);
+      }
+    }
+
+    // gif helper
+    function toonPhoteinosGif(){
+      const gif = document.getElementById('photeinosGif');
+      gif.style.display='block'; gif.style.animation='none'; void gif.offsetWidth;
+      gif.style.animation='photeinosInOut 2.2s linear forwards';
+      setTimeout(()=> gif.style.display='none', 2200);
+    }
+
+    // popup helper
+    const popup = document.getElementById('popup');
+    const popupText = document.getElementById('popupText');
+    document.getElementById('popupOk').onclick = ()=> popup.style.display='none';
+
+    // start / popup
+    function startSpelOfPopup(spel){
+      if (puntenCache >= spel.kost){
+        toonPhoteinosGif();
+        // Navigeren naar spelpagina (puntenaftrek gebeurt in het spel zelf of bij start van het spel)
+        setTimeout(()=>{ window.location.href = spel.link; }, 350);
       } else {
-        html += `<div class="hint">Onbekend vraagtype.</div>`;
-      }
-
-      els.questionBox.innerHTML = html;
-
-      // events
-      if(q.type === 'jaofnee'){
-        els.questionBox.querySelectorAll('[data-yn]').forEach(btn=>{
-          btn.addEventListener('click', ()=>{
-            answers[idx] = (btn.getAttribute('data-yn') === 'true');
-            // highlight keuze
-            els.questionBox.querySelectorAll('[data-yn]').forEach(b=>b.classList.remove('primary'));
-            btn.classList.add('primary');
-          });
-        });
-      } else if(q.type === 'meerkeuze'){
-        els.questionBox.querySelectorAll('input[name="opt"]').forEach(r=>{
-          r.addEventListener('change', ()=>{ answers[idx] = parseInt(r.value,10); });
-        });
-      } else if(q.type === 'open'){
-        const input = document.getElementById('openInput');
-        input && input.addEventListener('input', ()=>{ answers[idx] = input.value; });
+        popupText.textContent = "Je hebt niet genoeg lichtjes voor dit spel. Kom later terug!";
+        popup.style.display = 'flex';
       }
     }
 
-    function checkAnswer(){
-      const q = vragen[idx];
-      let correct = false;
-
-      if(q.type === 'meerkeuze'){
-        const sel = answers[idx];
-        correct = (typeof sel === 'number') && (sel === q.juist);
-      } else if(q.type === 'jaofnee'){
-        correct = (typeof answers[idx] === 'boolean') && (answers[idx] === !!q.juist);
-      } else if(q.type === 'open'){
-        const val = normalize(answers[idx]||'');
-        const good = Array.isArray(q.juistAntwoorden) ? q.juistAntwoorden : [];
-        correct = good.some(ans => normalize(ans) === val);
-      }
-
-      if(correct){
-        correctFlags[idx] = true;
-        els.feedback.textContent = q.uitleg ? `Juist! ${q.uitleg}` : 'Juist!';
-        els.feedback.className = 'feedback ok';
-      }else{
-        els.feedback.textContent = q.uitleg ? `Nog niet. Tip: ${q.uitleg}` : 'Nog niet, probeer nog eens.';
-        els.feedback.className = 'feedback err';
-      }
-
-      // voortgang = percentage juiste vragen
-      const total = vragen.length || 1;
-      const right = correctFlags.filter(Boolean).length;
-      const pct = Math.round((right / total) * 100);
-      els.progressBar.style.width = pct + '%';
-      setProgress(lessonId, pct);
-
-      els.btnNext.disabled = false;
-      els.btnCheck.disabled = true;
-    }
-
-    function nextStep(){
-      if(idx < vragen.length - 1){
-        idx++;
-        renderQuestion();
-      }else{
-        // klaar
-        const total = vragen.length || 1;
-        const right = correctFlags.filter(Boolean).length;
-        const pct = Math.round((right / total) * 100);
-        els.scoreText.textContent = `${right}/${total}`;
-        els.scorePct.textContent = `${pct}%`;
-        els.qaWrap.style.display = 'none';
-        els.endCard.style.display = '';
-        els.progressBar.style.width = pct + '%';
-        setProgress(lessonId, pct);
-      }
-    }
-
-    function resetLesson(){
-      answers = new Array(vragen.length).fill(null);
-      correctFlags = new Array(vragen.length).fill(false);
-      idx = 0;
-      els.endCard.style.display = 'none';
-      els.qaWrap.style.display = '';
-      els.feedback.textContent='';
-      els.progressBar.style.width = '0%';
-      setProgress(lessonId, 0);
-      renderQuestion();
-    }
-
-    // Knoppen
-    els.btnCheck.addEventListener('click', checkAnswer);
-    els.btnNext.addEventListener('click', nextStep);
-    els.btnReset.addEventListener('click', resetLesson);
-
-    // Start
-    loadLesson().catch(err=>{
-      els.lessonTitle.textContent = 'Fout bij laden';
-      els.lessonMeta.textContent = lessonId;
-      els.lessonStory.innerHTML = `<div class="hint">Controleer de Firestore-rechten of je internetverbinding.</div>`;
-      console.error(err);
-    });
+    // init
+    tekenSpellen();
   </script>
 </body>
 </html>
