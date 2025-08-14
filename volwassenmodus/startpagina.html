@@ -37,14 +37,16 @@
       --boek-shadow: #a88b5488;
       --text-main:#6f4e1a;
     }
+    *{box-sizing:border-box}
     body { background:#f5e9b8; color:var(--text-main); font-family:Arial,sans-serif; margin:0; }
 
     /* ==== TAALKNOPPEN ==== */
-    .taalkeuze { text-align:center; margin: 18px 0 6px; }
+    .taalkeuze { text-align:center; margin: 18px 0 8px; }
     .taalkeuze button{
       background:#eee3c6; color:#6f4e1a; border:1.5px solid #b29467; border-radius:6px;
-      padding:7px 20px; font-size:1em; font-weight:bold; cursor:pointer; margin:0 6px; transition:background .2s;
+      padding:7px 20px; font-size:1em; font-weight:bold; cursor:pointer; margin:0 6px; transition:background .2s, transform .05s;
     }
+    .taalkeuze button:active{ transform: translateY(1px) }
     .taalkeuze button.selected{ background:#d3b87c; color:#3a2c17; border:2px solid #85652a; }
 
     /* ==== BOEK CONTAINER ==== */
@@ -54,7 +56,7 @@
     }
     .boek {
       position: relative;
-      width: 940px; max-width: 100vw; min-height: 590px;
+      width: 940px; max-width: 100%; min-height: 590px;
       margin: 0 auto;
       border: 3px solid var(--boek-edge);
       border-radius: 24px;
@@ -62,37 +64,40 @@
       background: linear-gradient(90deg, #ede4ca 48%, #fff9e1 52%);
       overflow: visible;
       transform-style: preserve-3d;
+
+      /* BELANGRIJK: flex i.p.v. floats, dan blijft alles naast elkaar */
+      display: flex;
+      align-items: stretch;
     }
 
     /* Linker- en rechterpagina (huidige inhoud) */
     .pagina {
       position: relative;
-      width: 50%;
+      flex: 0 0 50%;
       min-height: 510px;
       padding: 44px 28px 38px 28px;
       font-size: 1.15em;
     }
     .links {
-      float: left;
       border-right: 2px dashed var(--boek-line);
       background: var(--boek-bg-left);
       box-shadow: 2px 0 12px #d2bc908a inset;
     }
     .rechts {
-      float: right;
       background: var(--boek-bg-right);
       box-shadow: -2px 0 12px #e5dab58a inset;
     }
 
     /* Hoekknoppen */
     .hoek-linksonder, .hoek-rechtsonder {
-      width: 52px; height: 44px; position: absolute; bottom: 2px; z-index: 8;
+      width: 52px; height: 44px; position: absolute; bottom: 2px; z-index: 9;
       opacity: .34; cursor: pointer; transition: opacity .2s, color .2s; font-size: 2.7em; color: #9c834a;
       background: none; border: none; display: flex; align-items: flex-end; justify-content: flex-start; user-select: none; font-family: Georgia, serif;
     }
     .hoek-linksonder { left: 2px; }
     .hoek-rechtsonder { right: 2px; }
     .hoek-linksonder:hover, .hoek-rechtsonder:hover { opacity: .8; color: #caa146; }
+    .hoek-btn-disabled{ opacity:.25 !important; cursor:not-allowed !important; }
 
     /* Typografie blokken */
     .boek h2 { font-family: Georgia, serif; font-size: 2em; margin: 0 0 10px; color: #745d35; text-align: center; letter-spacing: 2px; }
@@ -122,7 +127,7 @@
       transform-origin: left center;
       transform-style: preserve-3d;
       pointer-events: none; /* overlay klikt niet */
-      z-index: 6;
+      z-index: 8; /* boven de pagina's, onder knoppen */
       perspective: 2000px;
     }
     .turn-overlay.prev{ left: 0; transform-origin: right center; }
@@ -146,17 +151,22 @@
       backface-visibility: hidden;
     }
 
-    /* animaties */
-    .turn-overlay.anim-next .leaf{ transition: transform .75s cubic-bezier(.25,.8,.3,1); }
-    .turn-overlay.anim-prev .leaf{ transition: transform .75s cubic-bezier(.25,.8,.3,1); }
+    /* animaties: iets langzamer en vloeiend */
+    .turn-overlay.anim-next .leaf,
+    .turn-overlay.anim-prev .leaf{
+      transition: transform .9s cubic-bezier(.22,.61,.36,1);
+    }
 
     /* Responsief */
     @media (max-width:1024px){
       .boek-wrapper, .boek { width: 99vw; max-width: 100vw; }
     }
     @media (max-width:900px){
-      .pagina{ min-height: 240px; padding: 24px 7vw 32px; }
+      .boek { flex-direction: column; } /* onder elkaar bij smal */
+      .pagina{ flex: 1 1 auto; min-height: 240px; padding: 24px 7vw 32px; }
       .tip-blok{ left:12vw; right:12vw; bottom:16px; }
+      .turn-overlay{ display:none; } /* animatie uit op heel smal voor stabiliteit */
+      .hoek-linksonder, .hoek-rechtsonder{ font-size: 2.2em; }
     }
     @media (max-width:650px){
       .pagina{ font-size: .93em; padding: 10px 2vw 14px; }
@@ -178,8 +188,8 @@
   <div class="boek-wrapper">
     <div class="boek" id="boek">
       <!-- Hoekknoppen -->
-      <button class="hoek-linksonder" id="vorigeDag" title="Vorige dag">&lt;</button>
-      <button class="hoek-rechtsonder" id="volgendeDag" title="Volgende dag">&gt;</button>
+      <button class="hoek-linksonder" id="vorigeDag" title="Vorige dag" aria-label="Vorige dag">&lt;</button>
+      <button class="hoek-rechtsonder" id="volgendeDag" title="Volgende dag" aria-label="Volgende dag">&gt;</button>
 
       <!-- Linkerpagina: Heilige van de dag -->
       <div class="pagina links">
@@ -201,7 +211,7 @@
   </div>
 
   <script>
-    /* ==== DAGKALENDER LOGICA (ongewijzigd qua data) ==== */
+    /* ==== DAGKALENDER LOGICA ==== */
     let huidigeTaal = "vlaams";
     let actieveDatum = new Date();
     const boek = document.getElementById('boek');
@@ -330,8 +340,10 @@
     /* ==== OMSLA-ANIMATIE ==== */
     const btnPrev = document.getElementById('vorigeDag');
     const btnNext = document.getElementById('volgendeDag');
+    let isTurning = false; // anti-dubbelklik
 
     btnNext.addEventListener('click', () => {
+      if (isTurning) return;
       pageTurn('next', () => {
         actieveDatum.setDate(actieveDatum.getDate()+1);
         laadAlles();
@@ -339,13 +351,24 @@
     });
 
     btnPrev.addEventListener('click', () => {
+      if (isTurning) return;
       pageTurn('prev', () => {
         actieveDatum.setDate(actieveDatum.getDate()-1);
         laadAlles();
       });
     });
 
+    function setButtons(disabled){
+      [btnPrev, btnNext].forEach(b=>{
+        b.disabled = disabled;
+        b.classList.toggle('hoek-btn-disabled', disabled);
+      });
+    }
+
     function pageTurn(direction, afterTurn){
+      isTurning = true;
+      setButtons(true);
+
       // Maak overlay
       const overlay = document.createElement('div');
       overlay.className = 'turn-overlay ' + (direction==='next' ? 'anim-next' : 'prev anim-prev');
@@ -356,8 +379,14 @@
 
       const front = document.createElement('div');
       front.className = 'leaf-content';
-      // Neem huidige rechterpagina‑inhoud als “voorzijde”
-      front.innerHTML = document.getElementById('boek-rechts').innerHTML;
+
+      // Neem huidige rechterpagina‑inhoud als “voorzijde” (clone, zodat tekst zichtbaar blijft tijdens flip)
+      const right = document.getElementById('boek-rechts');
+      const clone = right.cloneNode(true);
+      // enkel de inhoud tonen, geen id‑conflict:
+      const tmp = document.createElement('div');
+      tmp.innerHTML = clone.innerHTML;
+      front.appendChild(tmp);
 
       const back = document.createElement('div');
       back.className = 'leaf-back';
@@ -369,7 +398,6 @@
       // Positionering links/rechts
       if (direction==='prev'){
         overlay.classList.add('prev');
-        // bij terugbladeren lijkt de linkerkant te draaien
         leaf.style.transformOrigin = 'right center';
       } else {
         leaf.style.transformOrigin = 'left center';
@@ -389,6 +417,8 @@
       const onDone = () => {
         overlay.remove();
         afterTurn && afterTurn();
+        // kleine cooldown om "double fire" te vermijden op trage devices
+        setTimeout(()=>{ isTurning = false; setButtons(false); }, 80);
       };
       leaf.addEventListener('transitionend', onDone, { once:true });
     }
