@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Orthodoxeweg – LXX (tijdelijk)</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
+  <style>
+    :root{
+      --bg:#f5e9b8; --text:#6f4e1a; --bar:#6f4e1a; --menu:#7a5f35; --chip:#f5e9b8;
+      --btn:#eee3c6; --btn-border:#b29467; --btn-active:#d3b87c;
+    }
+    body{ background:var(--bg); color:var(--text); font-family:Arial, sans-serif; margin:0; }
+    .wrap{ max-width:1200px; margin:18px auto; padding:0 16px 22px; }
+    .controls{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:center; margin-bottom:10px;
+    }
+    .controls button{
+      background:var(--btn); color:var(--text); border:1.5px solid var(--btn-border);
+      border-radius:8px; padding:8px 14px; font-weight:700; cursor:pointer;
+    }
+    .controls button.active{ background:var(--btn-active); border-width:2px; }
+    .note{
+      font-size:.95em; opacity:.85; text-align:center; margin:6px 0 12px;
+    }
+    .frame-box{
+      background:#fffdf4; border:2px solid #ceb27d; border-radius:12px; box-shadow:0 6px 22px rgba(168,139,84,.25);
+      overflow:hidden;
+    }
+    iframe{
+      width:100%; height:78vh; border:0; background:#fffef8;
+    }
+    @media (max-width:700px){
+      iframe{ height:72vh; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Topbar + menubalk/uitloggen -->
+  <script src="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/common/layout.js"></script>
+
+  <div class="wrap">
+    <h1 style="text-align:center; margin:6px 0 10px;">Septuagint (LXX) – Exodus 18 (tijdelijk)</h1>
+
+    <div class="controls">
+      <button id="btn-gr" class="active" type="button">🇬🇷 Grieks (origineel)</button>
+      <button id="btn-nl" type="button">🇳🇱 Nederlands (automatisch)</button>
+    </div>
+
+    <p class="note">
+      De Nederlandse weergave wordt tijdelijk geleverd via Google Translate.  
+      Kwaliteit kan variëren; jouw eigen vertaling komt later op deze plaats.
+    </p>
+
+    <div class="frame-box">
+      <iframe id="lxxFrame"
+        title="LXX Exodus 18"
+        referrerpolicy="no-referrer-when-downgrade"
+        loading="lazy"
+        sandbox="allow-same-origin allow-forms allow-scripts allow-popups allow-popups-to-escape-sandbox">
+      </iframe>
+    </div>
+  </div>
+
+  <script>
+    // Bron-URL van de LXX (Exodus 18) op septuagint.bible
+    const SRC_ORIGINAL = "https://www.septuagint.bible/exodus/-/asset_publisher/08B6gAdPFYLY/content/kephalai-18?inheritRedirect=false&redirect=https%3A%2F%2Fwww.septuagint.bible%2Fexodus%3Fp_p_id%3D101_INSTANCE_08B6gAdPFYLY%26p_p_lifecycle%3D0%26p_p_state%3Dnormal%26p_p_mode%3Dview%26p_p_col_id%3Dcolumn-1%26p_p_col_pos%3D1%26p_p_col_count%3D2";
+
+    // Google-Translate proxy-URL voor NL (let op: sommige sites blokkeren iframes; dan openen we in nieuw tabblad)
+    function toGoogleTranslate(url, {from="auto", to="nl"} = {}){
+      const enc = encodeURIComponent(url);
+      return `https://translate.google.com/translate?hl=${to}&sl=${from}&tl=${to}&u=${enc}`;
+    }
+    const SRC_NL = toGoogleTranslate(SRC_ORIGINAL, { from:"auto", to:"nl" });
+
+    const iframe = document.getElementById("lxxFrame");
+    const btnGR  = document.getElementById("btn-gr");
+    const btnNL  = document.getElementById("btn-nl");
+
+    // Standaard: Grieks origineel
+    iframe.src = SRC_ORIGINAL;
+
+    function setActive(btn){
+      [btnGR, btnNL].forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+    }
+
+    // Probeer URL in iframe te laden; als X-Frame-Options blokkeert, val terug naar nieuw tabblad
+    function trySetIframe(url, fallbackNewTab=true){
+      return new Promise(resolve=>{
+        let timer = null;
+        const onLoad = () => {
+          clearTimeout(timer);
+          iframe.removeEventListener("load", onLoad);
+          resolve(true);
+        };
+        iframe.addEventListener("load", onLoad, { once:true });
+        iframe.src = url;
+        // Als binnen 2.2s geen load-event → waarschijnlijk geblokkeerd
+        timer = setTimeout(()=>{
+          iframe.removeEventListener("load", onLoad);
+          if (fallbackNewTab){
+            window.open(url, "_blank", "noopener");
+          }
+          resolve(false);
+        }, 2200);
+      });
+    }
+
+    btnGR.addEventListener("click", async ()=>{
+      setActive(btnGR);
+      await trySetIframe(SRC_ORIGINAL, false);
+    });
+
+    btnNL.addEventListener("click", async ()=>{
+      setActive(btnNL);
+      // probeer in iframe; zo niet, open nieuwe tab
+      const ok = await trySetIframe(SRC_NL, true);
+      if (!ok) {
+        // Zet iframe terug op origineel (zodat kader niet “leeg” blijft)
+        iframe.src = SRC_ORIGINAL;
+      }
+    });
+  </script>
+</body>
+</html>
