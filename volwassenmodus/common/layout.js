@@ -9,19 +9,16 @@ try {
   console.warn("Kon localStorage niet lezen voor modus-check:", e);
 }
 
-// 1) Probeerpaden voor header.html (absolute + relatieve varianten)
+// 1) Probeerpaden voor header.html
 const CANDIDATES = [
-  // absolute (GitHub Pages)
   "https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/common/header.html",
-  // pad vanaf site-root
   "/Orthodoxeweg/volwassenmodus/common/header.html",
-  // relatief t.o.v. huidige pagina
   "../common/header.html",
   "./common/header.html",
   "common/header.html"
 ];
 
-// 2) Fallback header (volledige markup) – wordt gebruikt als fetch nergens lukt
+// 2) Fallback header
 const FALLBACK_HEADER = `
 <div id="ow-topbar-and-menu">
   <style>
@@ -44,28 +41,19 @@ const FALLBACK_HEADER = `
     @media (max-width:650px){ .menu-item{font-size:14px; padding:7px 9px; gap:7px} .ico{width:17px; height:17px} .menu-avatar img{height:1.8em; width:1.8em} .label{display:none} }
   </style>
 
+  <!-- TOPBAR -->
   <div class="topbar">
     <div id="welkom-tekst"></div>
     <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
   </div>
 
+  <!-- MENUBALK — Rij 1 -->
   <nav class="menu" aria-label="Hoofdmenu">
-    <!-- Rij 1 — Algemeen -->
-    <div class="menu-row">
-      <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html" title="Home">🏠 <span class="label">Home</span></a>
-      <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/menu.html" title="Menu">🍲 <span class="label">Menu</span></a>
-      <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/bijbel.html">📔 <span class="label">Bijbel</span></a>
-      <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 <span class="label">Catechese</span></a>
-      <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/gebeden.html">🙏 <span class="label">Gebeden</span></a>
-      <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/geloofsbelijdenis.html">✝ <span class="label">Geloofsbelijdenis</span></a>
-      <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 <span class="label">Psalmen</span></a>
-      <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/heiligen.html">👼 <span class="label">Heiligen</span></a>
-    </div>
-    <!-- Rij 2 — Persoonlijk -->
     <div class="menu-row">
       <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 <span class="label">Mijn parochie</span></a>
       <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/ikbid.html">🙏 <span class="label">Ik bid</span></a>
       <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/bijbeldagboek.html">📔 <span class="label">Bijbeldagboek</span></a>
+      <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/kookboek.html">🍲 <span class="label">Kookboek</span></a>
       <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/verjaardagskalender.html">🎂 <span class="label">Verjaardagskalender</span></a>
       <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/orthodoxe_tuin.html" title="Orthodoxe Tuin">🌻🌻🌻 <span class="label">Tuin</span></a>
       <a class="menu-item menu-avatar" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html" title="Mijn profiel">
@@ -77,7 +65,7 @@ const FALLBACK_HEADER = `
 </div>
 `;
 
-// 3) Header laden (eerste succesvolle fetch wint), anders fallback
+// 3) Header laden (fetch) of fallback gebruiken
 (async () => {
   let html = null;
   for (const url of CANDIDATES) {
@@ -87,8 +75,6 @@ const FALLBACK_HEADER = `
         html = await resp.text();
         console.info("[layout] header geladen van:", url);
         break;
-      } else {
-        console.warn("[layout] header niet ok:", url, resp.status);
       }
     } catch (e) {
       console.warn("[layout] header fetch mislukt:", url, e);
@@ -99,12 +85,11 @@ const FALLBACK_HEADER = `
     html = FALLBACK_HEADER;
   }
 
-  // 4) Injecteer bovenaan body
   const wrapper = document.createElement("div");
   wrapper.innerHTML = html;
   document.body.prepend(wrapper);
 
-  // 5) Begroeting
+  // Begroeting
   try {
     const welkomEl = document.getElementById("welkom-tekst");
     const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
@@ -117,7 +102,7 @@ const FALLBACK_HEADER = `
     console.warn("Kon begroeting niet zetten:", e);
   }
 
-  // 6) Avatar
+  // Avatar
   try {
     const avatarImg = document.getElementById("menu-avatar-img");
     const opgeslagenAvatar = localStorage.getItem("avatarURL");
@@ -126,7 +111,7 @@ const FALLBACK_HEADER = `
     console.warn("Kon avatar niet zetten:", e);
   }
 
-  // 7) Uitloggen (handmatig)
+  // Uitloggen
   const uitlogKnop = document.getElementById("uitlogKnop");
   if (uitlogKnop) {
     uitlogKnop.addEventListener("click", () => {
@@ -135,6 +120,5 @@ const FALLBACK_HEADER = `
     });
   }
 
-  // 8) Persistentie marker (optioneel)
   try { localStorage.setItem("sessie_persistent", "true"); } catch {}
 })();
