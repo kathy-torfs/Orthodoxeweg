@@ -10,7 +10,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <script>
-    // Volwassenenbescherming — blijft ingelogd tot handmatig uitloggen via header
     if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "volwassene") {
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     }
@@ -35,10 +34,17 @@
       --boek-edge: #ceb27d;
       --boek-shadow: #a88b5488;
       --text-main:#6f4e1a;
-      --turn-duration: 1.4s; /* ANIMATIE DUUR (pas gerust aan) */
+
+      --turn-duration: 1.5s;   /* totale blad-animatie */
+      --fade-duration: 380ms;  /* duur van fade in/out */
+      --fade-ease: cubic-bezier(.22,.61,.36,1);
     }
     *{box-sizing:border-box}
     body { background:#f5e9b8; color:var(--text-main); font-family:Arial,sans-serif; margin:0; }
+
+    /* ==== FADEABLE ==== */
+    .fadeable{ opacity:1; transition: opacity var(--fade-duration) var(--fade-ease); }
+    .fade-out{ opacity:0 !important; } /* geforceerd tijdens crossfade */
 
     /* ==== TAALKNOPPEN ==== */
     .taalkeuze { text-align:center; margin: 18px 0 8px; }
@@ -64,7 +70,6 @@
       background: linear-gradient(90deg, #ede4ca 48%, #fff9e1 52%);
       transform-style: preserve-3d;
 
-      /* Flex: stabiel naast elkaar */
       display: flex;
       align-items: stretch;
     }
@@ -97,11 +102,11 @@
     .hoek-linksonder:hover, .hoek-rechtsonder:hover { opacity: .8; color: #caa146; }
     .hoek-btn-disabled{ opacity:.25 !important; cursor:not-allowed !important; }
 
-    /* Linkerpagina: foto groot (± halve pagina) */
+    /* Linkerpagina: grote icoon + verhaal */
     .heilige-naam { font-weight: bold; color:#664b1c; text-align:center; margin-bottom:10px; font-size:1.2em; letter-spacing:1px; }
     .heilige-foto {
       width: 80%;
-      max-height: 50vh; /* visueel halve pagina, afhankelijk van schermhoogte */
+      max-height: 50vh;
       height: auto;
       object-fit: contain;
       display:block;
@@ -113,7 +118,7 @@
     }
     .heilige-levensverhaal {
       font-size:.98em; line-height:1.38; color:#3a2c17; text-align:left;
-      max-height: calc(100% - 16px - 2em - 50vh); /* ruimte onder de foto */
+      max-height: calc(100% - 16px - 2em - 50vh);
       overflow:auto; padding-right:6px;
     }
 
@@ -172,14 +177,11 @@
     }
 
     /* Responsief */
-    @media (max-width:1024px){
-      .boek-wrapper, .boek { width: 99vw; max-width: 100vw; }
-    }
     @media (max-width:900px){
       .boek { flex-direction: column; }
       .pagina{ flex: 1 1 auto; min-height: 240px; padding: 24px 7vw 32px; }
       .tip-blok{ left:12vw; right:12vw; bottom:16px; }
-      .turn-overlay{ display:none; } /* animatie uit op smal voor stabiliteit */
+      .turn-overlay{ display:none; } /* animatie uit op heel smal voor stabiliteit */
       .hoek-linksonder, .hoek-rechtsonder{ font-size: 2.2em; }
       .heilige-foto{ max-height: 38vh; width: 88%; }
     }
@@ -190,7 +192,7 @@
   </style>
 </head>
 <body>
-  <!-- Topbar + menubalk komen automatisch via layout.js -->
+  <!-- Topbar + menubalk worden geladen via /volwassenmodus/common/layout.js -->
 
   <!-- ==== TAALKEUZE ==== -->
   <div class="taalkeuze">
@@ -208,17 +210,17 @@
 
       <!-- Linkerpagina -->
       <div class="pagina links">
-        <div id="heilige-inhoud">
+        <div id="heilige-inhoud" class="fadeable">
           <div style="color:#a6a5a4;text-align:center;">Bezig met laden...</div>
         </div>
       </div>
 
       <!-- Rechterpagina -->
       <div class="pagina rechts" id="boek-rechts">
-        <div id="dagkalender-inhoud">
+        <div id="dagkalender-inhoud" class="fadeable">
           <div style="color:#a6a5a4;text-align:center;">Bezig met laden...</div>
         </div>
-        <div class="tip-blok" id="dagkalender-tip"></div>
+        <div class="tip-blok fadeable" id="dagkalender-tip"></div>
       </div>
     </div>
   </div>
@@ -226,8 +228,14 @@
   <script>
     /* ===== Helpers ===== */
     const pad = n => (n<10 ? '0'+n : ''+n);
-    const TURN_MS = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--turn-duration')) * 1000 || 1400;
-    const MID_MS  = Math.round(TURN_MS * 0.5); // halverwege wisselen
+    const TURN_MS = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--turn-duration')) * 1000 || 1500;
+    const START_FADE_MS = Math.round(TURN_MS * 0.45); // 45%
+    const MID_MS   = Math.round(TURN_MS * 0.50);      // 50%
+    const FADE_MS  = 380; // sync met --fade-duration
+
+    const heiligeEl = document.getElementById('heilige-inhoud');
+    const dagEl     = document.getElementById('dagkalender-inhoud');
+    const tipEl     = document.getElementById('dagkalender-tip');
 
     function ids(d){
       const y=d.getFullYear(), m=pad(d.getMonth()+1), dd=pad(d.getDate());
@@ -270,6 +278,7 @@
           return;
         }
         const data = doc.data();
+
         let vasten = data[`Vastenregel NL`] || "";
         if (taal==="engels") vasten = data[`Vastenregel EN`] || (vasten ? "Fasting Free" : "");
         if (taal==="grieks") vasten = data[`Vastenregel EL`] || (vasten ? "Νηστεία ελεύθερη" : "");
@@ -330,16 +339,16 @@
       document.getElementById("btn-vlaams").classList.toggle('selected', huidigeTaal === "vlaams");
       document.getElementById("btn-engels").classList.toggle('selected', huidigeTaal === "engels");
       document.getElementById("btn-grieks").classList.toggle('selected', huidigeTaal === "grieks");
-      laadAlles(); // taalwissel
+      laadAlles();
     }
 
     // init
     laadAlles();
     async function laadAlles(){
       const next = await bouwHTMLVoorDatum(actieveDatum, huidigeTaal);
-      document.getElementById('heilige-inhoud').innerHTML      = next.leftHTML;
-      document.getElementById('dagkalender-inhoud').innerHTML   = next.rightMain;
-      document.getElementById('dagkalender-tip').innerHTML      = next.rightTip;
+      heiligeEl.innerHTML = next.leftHTML;
+      dagEl.innerHTML     = next.rightMain;
+      tipEl.innerHTML     = next.rightTip;
     }
 
     // navigatie
@@ -361,15 +370,15 @@
       });
     }
 
-    // Omslaan met preload + HALFWAY swap
+    // Omslaan met preload + 45% fade-out + 50% swap + fade-in
     async function pageTurn(direction, targetDate){
       isTurning = true;
       toggleButtons(true);
 
-      // 1) Preload nieuwe content
+      // Preload nieuwe content
       const nextHTML = await bouwHTMLVoorDatum(targetDate, huidigeTaal);
 
-      // 2) Overlay-blad bouwen
+      // Overlay-blad bouwen
       const overlay = document.createElement('div');
       overlay.className = 'turn-overlay ' + (direction==='next' ? 'anim-next' : 'prev anim-prev');
 
@@ -384,7 +393,7 @@
       frontWrap.innerHTML = rightNow.innerHTML;
       front.appendChild(frontWrap);
 
-      // Back = NIEUWE rechterpagina (zodat je hem tijdens draaien ziet)
+      // Back = NIEUWE rechterpagina (zichtbaar tijdens draaien)
       const back = document.createElement('div');
       back.className = 'leaf-back';
       const backContent = document.createElement('div');
@@ -409,21 +418,36 @@
 
       boek.appendChild(overlay);
 
-      // 3) Start animatie
+      // Start animatie
       void leaf.offsetWidth;
       requestAnimationFrame(()=>{
         leaf.style.transform = (direction==='next') ? 'rotateY(-180deg)' : 'rotateY(180deg)';
       });
 
-      // 4) HALFWAY: échte pagina’s al vervangen
+      // 45%: fade-out huidige content (links én rechts)
       setTimeout(()=>{
-        document.getElementById('heilige-inhoud').innerHTML      = nextHTML.leftHTML;
-        document.getElementById('dagkalender-inhoud').innerHTML   = nextHTML.rightMain;
-        document.getElementById('dagkalender-tip').innerHTML      = nextHTML.rightTip || '';
-        actieveDatum = targetDate; // state vooruitzetten
+        heiligeEl.classList.add('fade-out');
+        dagEl.classList.add('fade-out');
+        tipEl.classList.add('fade-out');
+      }, START_FADE_MS);
+
+      // 50%: swap naar nieuwe content en direct fade-in (door fade-out te verwijderen)
+      setTimeout(()=>{
+        heiligeEl.innerHTML = nextHTML.leftHTML;
+        dagEl.innerHTML     = nextHTML.rightMain;
+        tipEl.innerHTML     = nextHTML.rightTip || '';
+
+        // force reflow zodat volgende transition zeker triggert
+        void heiligeEl.offsetWidth; void dagEl.offsetWidth; void tipEl.offsetWidth;
+
+        heiligeEl.classList.remove('fade-out');
+        dagEl.classList.remove('fade-out');
+        tipEl.classList.remove('fade-out');
+
+        actieveDatum = targetDate; // state vooruit
       }, MID_MS);
 
-      // 5) Einde animatie: overlay weg
+      // Einde animatie: overlay weg en knoppen aan
       leaf.addEventListener('transitionend', () => {
         overlay.remove();
         setTimeout(()=>{ isTurning = false; toggleButtons(false); }, 40);
@@ -431,7 +455,7 @@
     }
   </script>
 
-  <!-- Gedeelde topbar/menubalk/uitloggen -->
+  <!-- Gemeenschappelijke header/menu/uitloggen -->
   <script src="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/common/layout.js"></script>
 </body>
 </html>
