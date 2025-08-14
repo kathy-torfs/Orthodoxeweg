@@ -9,7 +9,7 @@ try {
   console.warn("Kon localStorage niet lezen voor modus-check:", e);
 }
 
-// 1) Probeerpaden voor header.html
+// 1) Probeerpaden voor header.html (absolute + relatieve varianten)
 const CANDIDATES = [
   "https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/common/header.html",
   "/Orthodoxeweg/volwassenmodus/common/header.html",
@@ -18,27 +18,68 @@ const CANDIDATES = [
   "common/header.html"
 ];
 
-// 2) Fallback header
+// 2) Fallback header (emoji + tekst desktop, enkel emoji mobiel) — exact gelijk aan header.html
 const FALLBACK_HEADER = `
 <div id="ow-topbar-and-menu">
   <style>
-    :root{ --bg:#f5e9b8; --text:#6f4e1a; --bar:#6f4e1a; --menu:#7a5f35; --menu-hover:#5d4726; --chip:#f5e9b8; --accent:#8722aa; --ring:#dab97a; }
+    :root{
+      --bg:#f5e9b8; --text:#6f4e1a; --bar:#6f4e1a; --menu:#7a5f35;
+      --menu-hover:#5d4726; --chip:#f5e9b8; --accent:#8722aa; --ring:#dab97a;
+      --active-bg:#5b4525; --focus:#e9d39a;
+    }
     *{box-sizing:border-box}
-    .topbar{background-color:var(--bar); color:#fff; padding:12px 20px; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;}
-    #welkom-tekst{font-size:1.05em; font-weight:normal}
-    .uitlog-link{background-color:var(--accent); color:#fff; border:none; padding:8px 18px; border-radius:18px; cursor:pointer; font-weight:bold;}
 
-    nav.menu{background-color:var(--menu); padding:10px 14px; display:flex; flex-direction:column; gap:6px; align-items:center;}
-    .menu-row{display:flex; flex-wrap:wrap; justify-content:center; gap:10px;}
-    .menu-item{display:inline-flex; align-items:center; gap:8px; text-decoration:none; color:var(--chip); font-weight:600; font-size:15px; line-height:1; padding:8px 10px; border-radius:10px; transition:background-color .2s ease, transform .05s ease;}
-    .menu-item:hover{background-color:var(--menu-hover); text-decoration:none}
+    /* Topbar */
+    .topbar{
+      background-color:var(--bar); color:#fff; padding:12px 20px;
+      display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;
+    }
+    #welkom-tekst{font-size:1.05em; font-weight:normal}
+    .uitlog-link{
+      background-color:var(--accent); color:#fff; border:none; padding:8px 18px;
+      border-radius:18px; cursor:pointer; font-weight:bold;
+    }
+
+    /* Menubalk */
+    nav.menu{
+      background-color:var(--menu); padding:12px 14px 14px; display:flex; flex-direction:column; gap:8px;
+      align-items:center; box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+    }
+    .menu-row{
+      display:flex; flex-wrap:wrap; justify-content:center; gap:10px;
+      width:100%; max-width:1100px;
+    }
+    .menu-row + .menu-row{
+      border-top:1px dashed rgba(255,255,255,.18);
+      padding-top:8px;
+      margin-top:2px;
+    }
+
+    .menu-item{
+      display:inline-flex; align-items:center; gap:8px; text-decoration:none; color:var(--chip);
+      font-weight:600; font-size:15px; line-height:1; padding:9px 12px; border-radius:12px;
+      transition:background-color .2s ease, transform .05s ease, box-shadow .2s ease;
+      position:relative;
+    }
+    .menu-item:hover{background-color:var(--menu-hover); text-decoration:none; box-shadow:0 2px 10px rgba(0,0,0,.15) inset;}
     .menu-item:active{transform:translateY(1px)}
-    .ico{width:18px; height:18px; display:inline-block; flex:0 0 18px; stroke:currentColor; fill:none; stroke-width:2}
+    .menu-item:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+    .menu-item.active{background:var(--active-bg); box-shadow:0 0 0 2px rgba(233,211,154,.35) inset;}
     .label{white-space:nowrap}
+
     .menu-avatar{padding:0!important; background:none!important; border:none!important; margin-left:2px; display:inline-flex; align-items:center}
-    .menu-avatar img{height:2.05em; width:2.05em; border-radius:50%; border:2.2px solid var(--ring); background:#fff8eb; transition:box-shadow .2s, border .2s; box-shadow:0 1px 4px rgba(160,140,80,0.13); display:block;}
+    .menu-avatar img{
+      height:2.05em; width:2.05em; border-radius:50%; border:2.2px solid var(--ring); background:#fff8eb;
+      transition:box-shadow .2s, border .2s; box-shadow:0 1px 4px rgba(160,140,80,0.13); display:block;
+    }
     .menu-avatar img:hover{border:2.2px solid #a06a19; box-shadow:0 2px 8px rgba(160,140,80,0.23)}
-    @media (max-width:650px){ .menu-item{font-size:14px; padding:7px 9px; gap:7px} .ico{width:17px; height:17px} .menu-avatar img{height:1.8em; width:1.8em} .label{display:none} }
+
+    /* Mobiel: alleen tekst verbergen, grotere tap targets blijven */
+    @media (max-width:650px){
+      .menu-item{font-size:14px; padding:8px 10px; gap:7px}
+      .menu-avatar img{height:1.8em; width:1.8em}
+      .label{display:none}
+    }
   </style>
 
   <!-- TOPBAR -->
@@ -47,13 +88,25 @@ const FALLBACK_HEADER = `
     <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
   </div>
 
-  <!-- MENUBALK — Rij 1 -->
+  <!-- MENUBALK -->
   <nav class="menu" aria-label="Hoofdmenu">
+    <!-- Rij 1 — Algemeen -->
+    <div class="menu-row">
+      <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html" title="Home">🏠 <span class="label">Home</span></a>
+      <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/bijbel.html">📔 <span class="label">Bijbel</span></a>
+      <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 <span class="label">Catechese</span></a>
+      <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/gebeden.html">🙏 <span class="label">Gebeden</span></a>
+      <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/geloofsbelijdenis.html">✝ <span class="label">Geloofsbelijdenis</span></a>
+      <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 <span class="label">Psalmen</span></a>
+      <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/heiligen.html">👼 <span class="label">Heiligen</span></a>
+    </div>
+
+    <!-- Rij 2 — Persoonlijk -->
     <div class="menu-row">
       <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 <span class="label">Mijn parochie</span></a>
       <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/ikbid.html">🙏 <span class="label">Ik bid</span></a>
       <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/bijbeldagboek.html">📔 <span class="label">Bijbeldagboek</span></a>
-      <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/kookboek.html">🍲 <span class="label">Kookboek</span></a>
+      <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/menu.html">🍲 <span class="label">Kookboek</span></a>
       <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/verjaardagskalender.html">🎂 <span class="label">Verjaardagskalender</span></a>
       <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/orthodoxe_tuin.html" title="Orthodoxe Tuin">🌻🌻🌻 <span class="label">Tuin</span></a>
       <a class="menu-item menu-avatar" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html" title="Mijn profiel">
@@ -65,7 +118,7 @@ const FALLBACK_HEADER = `
 </div>
 `;
 
-// 3) Header laden (fetch) of fallback gebruiken
+// 3) Header laden (fetch) of fallback gebruiken + init scripts
 (async () => {
   let html = null;
   for (const url of CANDIDATES) {
@@ -73,15 +126,13 @@ const FALLBACK_HEADER = `
       const resp = await fetch(url, { cache: "no-store" });
       if (resp.ok) {
         html = await resp.text();
-        console.info("[layout] header geladen van:", url);
         break;
       }
     } catch (e) {
-      console.warn("[layout] header fetch mislukt:", url, e);
+      // stilhouden; we hebben fallback
     }
   }
   if (!html) {
-    console.error("[layout] header niet gevonden via fetch — gebruik FALLBACK_HEADER");
     html = FALLBACK_HEADER;
   }
 
@@ -89,7 +140,7 @@ const FALLBACK_HEADER = `
   wrapper.innerHTML = html;
   document.body.prepend(wrapper);
 
-  // Begroeting
+  // Begroeting invullen
   try {
     const welkomEl = document.getElementById("welkom-tekst");
     const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
@@ -98,27 +149,45 @@ const FALLBACK_HEADER = `
       localStorage.getItem("ingelogdeParochie") ||
       "(onbekend)";
     if (welkomEl) welkomEl.textContent = `Welkom, ${loginNaam}! U bent ingelogd in de ${parochieNaam}.`;
-  } catch (e) {
-    console.warn("Kon begroeting niet zetten:", e);
-  }
+  } catch (e) {}
 
-  // Avatar
+  // Avatar inladen
   try {
     const avatarImg = document.getElementById("menu-avatar-img");
     const opgeslagenAvatar = localStorage.getItem("avatarURL");
     if (avatarImg && opgeslagenAvatar) avatarImg.src = opgeslagenAvatar;
-  } catch (e) {
-    console.warn("Kon avatar niet zetten:", e);
-  }
+  } catch (e) {}
 
   // Uitloggen
   const uitlogKnop = document.getElementById("uitlogKnop");
   if (uitlogKnop) {
     uitlogKnop.addEventListener("click", () => {
-      try { localStorage.clear(); } catch {}
+      try { localStorage.clear(); } catch (e) {}
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     });
   }
 
-  try { localStorage.setItem("sessie_persistent", "true"); } catch {}
+  // Actieve menu‑item markeren (padvergelijking zonder trailing slash + index.html)
+  try {
+    const here = normalizePath(location.href);
+    document.querySelectorAll('nav.menu a.menu-item').forEach(a => {
+      const target = normalizePath(a.href);
+      if (here === target) {
+        a.classList.add('active');
+        a.setAttribute('aria-current', 'page');
+      }
+    });
+
+    function normalizePath(u){
+      const url = new URL(u, window.location.origin);
+      let p = url.pathname.toLowerCase();
+      // strip repo-prefix varianten
+      p = p.replace(/\/+$/,'');                         // trailing slash weg
+      p = p.replace(/\/index\.html$/,'');               // index.html weg
+      return p;
+    }
+  } catch (e) {}
+
+  // Persistentie marker (optioneel)
+  try { localStorage.setItem("sessie_persistent", "true"); } catch (e) {}
 })();
