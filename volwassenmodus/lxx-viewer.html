@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Orthodoxeweg – LXX viewer (tijdelijk)</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
+  <style>
+    :root{
+      --bg:#f5e9b8; --text:#6f4e1a; --bar:#6f4e1a; --menu:#7a5f35; --chip:#f5e9b8;
+      --btn:#eee3c6; --btn-border:#b29467; --btn-active:#d3b87c;
+      --card:#fffdf4; --card-border:#ceb27d;
+    }
+    *{box-sizing:border-box}
+    body{ background:var(--bg); color:var(--text); font-family:Arial, sans-serif; margin:0; }
+    .wrap{ max-width:1200px; margin:18px auto 28px; padding:0 16px; }
+    h1{ text-align:center; margin:6px 0 12px; }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:center; }
+    .bar{
+      background:var(--card); border:2px solid var(--card-border); border-radius:12px;
+      box-shadow:0 6px 22px rgba(168,139,84,.18); padding:12px; margin-bottom:12px;
+    }
+    .url-input{
+      flex: 1 1 520px; min-width:280px; display:flex; gap:8px; align-items:center;
+    }
+    .url-input input{
+      width:100%; padding:10px 12px; border:1.5px solid var(--btn-border); border-radius:8px; background:#fffef8;
+      font-size:16px; color:var(--text);
+    }
+    .btn{
+      background:var(--btn); color:var(--text); border:1.5px solid var(--btn-border);
+      border-radius:8px; padding:10px 14px; font-weight:700; cursor:pointer;
+    }
+    .btn.primary{ background:var(--btn-active); border-width:2px; }
+    .presets{ gap:8px; }
+    .note{ text-align:center; font-size:.95em; opacity:.85; margin:6px 0 12px; }
+    .frame-box{
+      background:#fffef8; border:2px solid var(--card-border); border-radius:12px; overflow:hidden;
+      box-shadow:0 6px 22px rgba(168,139,84,.25);
+    }
+    iframe{ width:100%; height:78vh; border:0; background:#fff; }
+    @media (max-width:700px){ iframe{ height:72vh; } }
+  </style>
+</head>
+<body>
+  <!-- Topbar + menubalk/uitloggen -->
+  <script src="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/common/layout.js"></script>
+
+  <div class="wrap">
+    <h1>Septuagint (LXX) – tijdelijke weergave</h1>
+
+    <!-- URL invoer + knoppen -->
+    <div class="bar">
+      <div class="row url-input">
+        <input id="srcInput" type="url" placeholder="Plak hier een LXX-hoofdstuk-URL, bv. https://www.septuagint.bible/exodus/…"
+               inputmode="url" autocomplete="on" />
+        <button id="btnGR" class="btn primary" type="button" title="Griekse originele pagina tonen">🇬🇷 Toon Grieks</button>
+        <button id="btnNL" class="btn" type="button" title="Automatische Nederlandse vertaling inladen (Google Translate)">🇳🇱 Vertaal</button>
+      </div>
+      <div class="row presets" style="margin-top:8px;">
+        <span style="opacity:.75;">Voorbeeld:</span>
+        <button class="btn" data-url="https://www.septuagint.bible/exodus/-/asset_publisher/08B6gAdPFYLY/content/kephalai-18?inheritRedirect=false&redirect=https%3A%2F%2Fwww.septuagint.bible%2Fexodus%3Fp_p_id%3D101_INSTANCE_08B6gAdPFYLY%26p_p_lifecycle%3D0%26p_p_state%3Dnormal%26p_p_mode%3Dview%26p_p_col_id%3Dcolumn-1%26p_p_col_pos%3D1%26p_p_col_count%3D2">Exodus 18</button>
+        <button class="btn" data-url="https://www.septuagint.bible/genesis">Genesis (overzicht)</button>
+        <button class="btn" data-url="https://www.septuagint.bible/exodus">Exodus (overzicht)</button>
+      </div>
+    </div>
+
+    <p class="note">
+      De NL‑weergave gebruikt tijdelijk Google Translate. Sommige sites blokkeren iframes; dan wordt de pagina in een <b>nieuw tabblad</b> geopend.
+      Je laatste URL wordt onthouden.
+    </p>
+
+    <!-- Viewer -->
+    <div class="frame-box">
+      <iframe id="lxxFrame" title="LXX weergave" referrerpolicy="no-referrer-when-downgrade"
+              loading="lazy"
+              sandbox="allow-same-origin allow-forms allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+    </div>
+  </div>
+
+  <script>
+    // Helper: bouw Google Translate URL (NL)
+    function toGoogleTranslate(url, {from="auto", to="nl"} = {}){
+      const enc = encodeURIComponent(url);
+      return `https://translate.google.com/translate?hl=${to}&sl=${from}&tl=${to}&u=${enc}`;
+    }
+
+    const input  = document.getElementById("srcInput");
+    const btnGR  = document.getElementById("btnGR");
+    const btnNL  = document.getElementById("btnNL");
+    const frame  = document.getElementById("lxxFrame");
+
+    // Preset-buttons
+    document.querySelectorAll(".presets .btn[data-url]").forEach(b=>{
+      b.addEventListener("click", ()=>{
+        input.value = b.getAttribute("data-url");
+        localStorage.setItem("lxx_last_url", input.value);
+        setMode("gr"); // laad meteen Grieks
+      });
+    });
+
+    // Laad laatste URL of fallback op Exodus 18
+    const FALLBACK = "https://www.septuagint.bible/exodus/-/asset_publisher/08B6gAdPFYLY/content/kephalai-18?inheritRedirect=false&redirect=https%3A%2F%2Fwww.septuagint.bible%2Fexodus%3Fp_p_id%3D101_INSTANCE_08B6gAdPFYLY%26p_p_lifecycle%3D0%26p_p_state%3Dnormal%26p_p_mode%3Dview%26p_p_col_id%3Dcolumn-1%26p_p_col_pos%3D1%26p_p_col_count%3D2";
+    input.value = localStorage.getItem("lxx_last_url") || FALLBACK;
+
+    // Aktieve knop styling
+    function setActive(grIsActive){
+      if (grIsActive){ btnGR.classList.add("primary"); btnNL.classList.remove("primary"); }
+      else { btnNL.classList.add("primary"); btnGR.classList.remove("primary"); }
+    }
+
+    // Probeer iframe; als na timeout geen 'load', open in nieuw tabblad (X-Frame-Options)
+    function trySetIframe(url, fallbackNewTab=true){
+      return new Promise(resolve=>{
+        let timer = null;
+        const onLoad = () => {
+          clearTimeout(timer);
+          frame.removeEventListener("load", onLoad);
+          resolve(true);
+        };
+        frame.addEventListener("load", onLoad, { once:true });
+        frame.src = url;
+
+        timer = setTimeout(()=>{
+          frame.removeEventListener("load", onLoad);
+          if (fallbackNewTab){ window.open(url, "_blank", "noopener"); }
+          resolve(false);
+        }, 2200); // 2.2s heuristiek
+      });
+    }
+
+    async function setMode(mode){
+      const raw = input.value.trim();
+      if (!raw){ alert("Plak eerst een LXX‑URL."); return; }
+      localStorage.setItem("lxx_last_url", raw);
+
+      if (mode === "gr"){
+        setActive(true);
+        await trySetIframe(raw, false);
+      } else {
+        setActive(false);
+        const ok = await trySetIframe(toGoogleTranslate(raw), true);
+        if (!ok){
+          // Zet iframe terug naar Grieks zodat het kader niet leeg blijft
+          await trySetIframe(raw, false);
+        }
+      }
+    }
+
+    btnGR.addEventListener("click", ()=> setMode("gr"));
+    btnNL.addEventListener("click", ()=> setMode("nl"));
+
+    // Start in Grieks
+    setMode("gr");
+  </script>
+
+  <!-- Gemeenschappelijke header/menu/uitloggen -->
+  <script src="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/common/layout.js"></script>
+</body>
+</html>
