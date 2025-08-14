@@ -1,96 +1,22 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Kindermodus inloggen</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
-    body {
-      background-color: #f8f6e1;
-      color: #6f4e1a;
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-    }
-    .topbar {
-      background-color: #6f4e1a;
-      color: white;
-      padding: 14px 28px;
-      font-size: 1.13em;
-      font-weight: bold;
-      text-align: center;
-      letter-spacing: 0.04em;
-    }
-    main {
-      max-width: 410px;
-      margin: 60px auto 0 auto;
-      background: #fffef9;
-      padding: 33px 28px 28px 28px;
-      border-radius: 20px;
-      box-shadow: 0 6px 32px #d7cbb122;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    h1 {
-      margin-bottom: 24px;
-      color: #7bb235;
-      font-size: 1.9em;
-    }
-    label {
-      display: block;
-      margin-top: 22px;
-      font-weight: bold;
-      font-size: 1.05em;
-    }
-    select, input[type="password"] {
-      width: 100%;
-      padding: 10px 13px;
-      margin-top: 7px;
-      border: 1.2px solid #bba868;
-      border-radius: 7px;
-      background: #fcfaf5;
-      font-size: 1.06em;
-    }
-    button {
-      margin-top: 28px;
-      width: 100%;
-      padding: 13px 0;
-      background: #7bb235;
-      color: #fff;
-      font-weight: bold;
-      font-size: 1.12em;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.15s;
-      box-shadow: 0 1.5px 9px #b3db8d45;
-    }
-    button:hover {
-      background: #5e8f1c;
-    }
-    #melding {
-      margin-top: 18px;
-      color: #e24343;
-      font-weight: bold;
-      min-height: 30px;
-      text-align: center;
-    }
-    .kinder-avatar {
-      margin: 20px auto 5px auto;
-      display: block;
-      width: 70px;
-      height: 70px;
-      border-radius: 50%;
-      border: 2.5px solid #dab97a;
-      background: #fff8eb;
-      box-shadow: 0 1.5px 7px #dab97a22;
-      object-fit: cover;
-    }
-    @media (max-width: 480px) {
-      main { max-width: 98vw; padding: 15px 4vw; }
-    }
+    body{background:#f8f6e1;color:#6f4e1a;font-family:Arial,sans-serif;margin:0}
+    .topbar{background:#6f4e1a;color:#fff;padding:14px 28px;font-size:1.13em;font-weight:bold;text-align:center;letter-spacing:.04em}
+    main{max-width:410px;margin:60px auto 0;background:#fffef9;padding:33px 28px;border-radius:20px;box-shadow:0 6px 32px #d7cbb122;display:flex;flex-direction:column;align-items:center}
+    h1{margin-bottom:24px;color:#7bb235;font-size:1.9em}
+    label{display:block;margin-top:22px;font-weight:bold;font-size:1.05em}
+    select,input[type=password]{width:100%;padding:10px 13px;margin-top:7px;border:1.2px solid #bba868;border-radius:7px;background:#fcfaf5;font-size:1.06em}
+    button{margin-top:28px;width:100%;padding:13px 0;background:#7bb235;color:#fff;font-weight:bold;font-size:1.12em;border:none;border-radius:8px;cursor:pointer;transition:background .15s;box-shadow:0 1.5px 9px #b3db8d45}
+    button:hover{background:#5e8f1c}
+    #melding{margin-top:18px;color:#e24343;font-weight:bold;min-height:30px;text-align:center}
+    .kinder-avatar{margin:20px auto 5px;display:block;width:70px;height:70px;border-radius:50%;border:2.5px solid #dab97a;background:#fff8eb;box-shadow:0 1.5px 7px #dab97a22;object-fit:cover}
+    @media (max-width:480px){main{max-width:98vw;padding:15px 4vw}}
   </style>
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
@@ -98,20 +24,26 @@
 </head>
 <body>
   <div class="topbar">Kindermodus – Inloggen</div>
+
   <main>
     <h1>Kindermodus</h1>
+
     <form id="kinderLoginForm" autocomplete="off">
       <label for="kindSelect">Kies je naam:</label>
       <select id="kindSelect" required>
         <option value="">-- Kies je naam --</option>
       </select>
-      <img id="kindAvatar" class="kinder-avatar" src="" style="display:none;" alt="Avatar kind">
+
+      <img id="kindAvatar" class="kinder-avatar" src="" style="display:none" alt="Avatar kind">
+
       <label for="kinderWachtwoord">Wachtwoord:</label>
       <input type="password" id="kinderWachtwoord" placeholder="Je geheime code" required autocomplete="off">
+
       <button type="submit">Inloggen</button>
       <div id="melding"></div>
     </form>
   </main>
+
   <script>
     // Firebase config
     const firebaseConfig = {
@@ -142,30 +74,36 @@
         return;
       }
       try {
-        const snapshot = await db.collection("parochies").doc(parochieId).collection("leden").doc(ouderLogin).collection("kinderen").get();
+        const snap = await db
+          .collection("parochies").doc(parochieId)
+          .collection("leden").doc(ouderLogin)
+          .collection("kinderen").get();
+
         kinderen = [];
         kindSelect.innerHTML = '<option value="">-- Kies je naam --</option>';
-        snapshot.forEach(doc => {
-          const kind = doc.data();
-          kind.id = doc.id;
+
+        snap.forEach(doc => {
+          const kind = { id: doc.id, ...doc.data() };
           kinderen.push(kind);
-          const option = document.createElement('option');
-          option.value = kind.id;
-          option.textContent = kind.voornaam ? kind.voornaam + (kind.achternaam ? " " + kind.achternaam : "") : kind.id;
-          kindSelect.appendChild(option);
+          const opt = document.createElement('option');
+          opt.value = kind.id;
+          opt.textContent = kind.voornaam ? (kind.voornaam + (kind.achternaam ? " " + kind.achternaam : "")) : kind.id;
+          kindSelect.appendChild(opt);
         });
+
         if (kinderen.length === 0) {
           melding.textContent = "Er zijn geen kinderen gekoppeld aan je profiel.";
           kindSelect.disabled = true;
         }
       } catch (e) {
+        console.error(e);
         melding.textContent = "Fout bij laden kinderen!";
         kindSelect.disabled = true;
       }
     }
     window.addEventListener('DOMContentLoaded', laadKinderen);
 
-    // Toon avatar van geselecteerd kind
+    // Toon avatar bij selectie
     kindSelect.onchange = function() {
       const kind = kinderen.find(k => k.id === kindSelect.value);
       if (kind && kind.avatarURL) {
@@ -181,29 +119,29 @@
     document.getElementById('kinderLoginForm').onsubmit = async function(e) {
       e.preventDefault();
       melding.textContent = "";
+
       const kindId = kindSelect.value;
       const wachtwoord = document.getElementById('kinderWachtwoord').value.trim();
-      if (!kindId) {
-        melding.textContent = "Kies je naam!";
-        return;
-      }
+
+      if (!kindId) { melding.textContent = "Kies je naam!"; return; }
+
       const kind = kinderen.find(k => k.id === kindId);
-      if (!kind) {
-        melding.textContent = "Onbekend kind!";
-        return;
-      }
+      if (!kind) { melding.textContent = "Onbekend kind!"; return; }
+
       if (!wachtwoord || wachtwoord !== (kind.wachtwoord || "")) {
         melding.textContent = "Fout wachtwoord!";
         return;
       }
-      // Sla in localStorage de kind-gegevens op voor de kindermodus
-      localStorage.setItem("kindIngelogd", "ja");
+
+      // ✅ Sla in localStorage op (blijft ingelogd tot expliciet uitloggen)
+      localStorage.setItem("kindIngelogd", "ja");        // jouw bestaande sleutel
+      localStorage.setItem("kind_ingelogd", "true");     // compat voor header die underscore verwacht
       localStorage.setItem("ingelogdKindId", kind.id);
       localStorage.setItem("ingelogdKindVoornaam", kind.voornaam || "");
       localStorage.setItem("kindAvatarURL", kind.avatarURL || "");
-      localStorage.setItem("kindPunten", kind.punten || "0");
-      // Eventueel andere velden
-      // Navigeer naar startpagina kindermodus
+      localStorage.setItem("kindPunten", String(kind.punten || "0"));
+
+      // 🧭 Ga naar de kind startpagina (harde URL)
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/startpagina.html";
     };
   </script>
