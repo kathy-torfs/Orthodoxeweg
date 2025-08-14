@@ -3,36 +3,46 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Orthodoxeweg – LXX (tijdelijk)</title>
+  <title>Orthodoxeweg – Bijbel (tijdelijk LXX)</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
   <style>
     :root{
       --bg:#f5e9b8; --text:#6f4e1a; --bar:#6f4e1a; --menu:#7a5f35; --chip:#f5e9b8;
       --btn:#eee3c6; --btn-border:#b29467; --btn-active:#d3b87c;
+      --card:#fffdf4; --card-border:#ceb27d;
     }
+    *{box-sizing:border-box}
     body{ background:var(--bg); color:var(--text); font-family:Arial, sans-serif; margin:0; }
-    .wrap{ max-width:1200px; margin:18px auto; padding:0 16px 22px; }
-    .controls{
-      display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:center; margin-bottom:10px;
+
+    .wrap{ max-width:1200px; margin:18px auto 28px; padding:0 16px; }
+    h1{ text-align:center; margin:6px 0 12px; }
+
+    .bar{
+      background:var(--card); border:2px solid var(--card-border); border-radius:12px;
+      box-shadow:0 6px 22px rgba(168,139,84,.18); padding:12px; margin-bottom:12px;
     }
-    .controls button{
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:center; }
+
+    .url-input{
+      flex: 1 1 520px; min-width:280px; display:flex; gap:8px; align-items:center;
+    }
+    .url-input input{
+      width:100%; padding:10px 12px; border:1.5px solid var(--btn-border); border-radius:8px; background:#fffef8;
+      font-size:16px; color:var(--text);
+    }
+    .btn{
       background:var(--btn); color:var(--text); border:1.5px solid var(--btn-border);
-      border-radius:8px; padding:8px 14px; font-weight:700; cursor:pointer;
+      border-radius:8px; padding:10px 14px; font-weight:700; cursor:pointer;
     }
-    .controls button.active{ background:var(--btn-active); border-width:2px; }
-    .note{
-      font-size:.95em; opacity:.85; text-align:center; margin:6px 0 12px;
-    }
+    .btn.primary{ background:var(--btn-active); border-width:2px; }
+
+    .note{ text-align:center; font-size:.95em; opacity:.85; margin:6px 0 12px; }
     .frame-box{
-      background:#fffdf4; border:2px solid #ceb27d; border-radius:12px; box-shadow:0 6px 22px rgba(168,139,84,.25);
-      overflow:hidden;
+      background:#fffef8; border:2px solid var(--card-border); border-radius:12px; overflow:hidden;
+      box-shadow:0 6px 22px rgba(168,139,84,.25);
     }
-    iframe{
-      width:100%; height:78vh; border:0; background:#fffef8;
-    }
-    @media (max-width:700px){
-      iframe{ height:72vh; }
-    }
+    iframe{ width:100%; height:78vh; border:0; background:#fff; }
+    @media (max-width:700px){ iframe{ height:72vh; } }
   </style>
 </head>
 <body>
@@ -40,87 +50,117 @@
   <script src="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/common/layout.js"></script>
 
   <div class="wrap">
-    <h1 style="text-align:center; margin:6px 0 10px;">Septuagint (LXX) – Exodus 18 (tijdelijk)</h1>
+    <h1>Tijdelijke Bijbelweergave (LXX)</h1>
 
-    <div class="controls">
-      <button id="btn-gr" class="active" type="button">🇬🇷 Grieks (origineel)</button>
-      <button id="btn-nl" type="button">🇳🇱 Nederlands (automatisch)</button>
+    <!-- Bestemming kiezen -->
+    <div class="bar">
+      <div class="row url-input">
+        <input id="srcInput" type="url"
+               placeholder="Plak hier een LXX-URL (bv. een hoofdstukpagina van septuagint.bible)…"
+               inputmode="url" autocomplete="on" />
+        <button id="btnGR" class="btn primary" type="button" title="Griekse originele pagina tonen">🇬🇷 Grieks</button>
+        <button id="btnNL" class="btn" type="button" title="Automatische Nederlandse vertaling (Google Translate)">🇳🇱 Nederlands (auto)</button>
+      </div>
+
+      <div class="row" style="margin-top:8px;">
+        <span style="opacity:.75;">Snel kiezen:</span>
+        <!-- Voorbeelden / startpunten -->
+        <button class="btn preset" data-url="https://www.septuagint.bible/genesis">Genesis (overzicht)</button>
+        <button class="btn preset" data-url="https://www.septuagint.bible/exodus">Exodus (overzicht)</button>
+        <button class="btn preset" data-url="https://www.septuagint.bible/exodus/-/asset_publisher/08B6gAdPFYLY/content/kephalai-18?inheritRedirect=false&redirect=https%3A%2F%2Fwww.septuagint.bible%2Fexodus%3Fp_p_id%3D101_INSTANCE_08B6gAdPFYLY%26p_p_lifecycle%3D0%26p_p_state%3Dnormal%26p_p_mode%3Dview%26p_p_col_id%3Dcolumn-1%26p_p_col_pos%3D1%26p_p_col_count%3D2">Exodus 18</button>
+      </div>
     </div>
 
     <p class="note">
       De Nederlandse weergave wordt tijdelijk geleverd via Google Translate.  
-      Kwaliteit kan variëren; jouw eigen vertaling komt later op deze plaats.
+      Sommige sites blokkeren weergave in een iframe; in dat geval openen we automatisch een <b>nieuw tabblad</b>.
+      Je laatste keuze wordt onthouden.
     </p>
 
+    <!-- Viewer -->
     <div class="frame-box">
-      <iframe id="lxxFrame"
-        title="LXX Exodus 18"
-        referrerpolicy="no-referrer-when-downgrade"
-        loading="lazy"
-        sandbox="allow-same-origin allow-forms allow-scripts allow-popups allow-popups-to-escape-sandbox">
-      </iframe>
+      <iframe id="lxxFrame" title="Bijbel (LXX)"
+              referrerpolicy="no-referrer-when-downgrade"
+              loading="lazy"
+              sandbox="allow-same-origin allow-forms allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
     </div>
   </div>
 
   <script>
-    // Bron-URL van de LXX (Exodus 18) op septuagint.bible
-    const SRC_ORIGINAL = "https://www.septuagint.bible/exodus/-/asset_publisher/08B6gAdPFYLY/content/kephalai-18?inheritRedirect=false&redirect=https%3A%2F%2Fwww.septuagint.bible%2Fexodus%3Fp_p_id%3D101_INSTANCE_08B6gAdPFYLY%26p_p_lifecycle%3D0%26p_p_state%3Dnormal%26p_p_mode%3Dview%26p_p_col_id%3Dcolumn-1%26p_p_col_pos%3D1%26p_p_col_count%3D2";
-
-    // Google-Translate proxy-URL voor NL (let op: sommige sites blokkeren iframes; dan openen we in nieuw tabblad)
+    // Helper: bouw Google Translate URL (naar NL)
     function toGoogleTranslate(url, {from="auto", to="nl"} = {}){
       const enc = encodeURIComponent(url);
       return `https://translate.google.com/translate?hl=${to}&sl=${from}&tl=${to}&u=${enc}`;
     }
-    const SRC_NL = toGoogleTranslate(SRC_ORIGINAL, { from:"auto", to:"nl" });
 
-    const iframe = document.getElementById("lxxFrame");
-    const btnGR  = document.getElementById("btn-gr");
-    const btnNL  = document.getElementById("btn-nl");
+    const input = document.getElementById("srcInput");
+    const btnGR = document.getElementById("btnGR");
+    const btnNL = document.getElementById("btnNL");
+    const frame = document.getElementById("lxxFrame");
 
-    // Standaard: Grieks origineel
-    iframe.src = SRC_ORIGINAL;
+    // Presetbuttons
+    document.querySelectorAll(".preset").forEach(b=>{
+      b.addEventListener("click", ()=>{
+        input.value = b.getAttribute("data-url");
+        localStorage.setItem("bijbel_lxx_last_url", input.value);
+        setMode("gr"); // laad meteen Grieks
+      });
+    });
 
-    function setActive(btn){
-      [btnGR, btnNL].forEach(b=>b.classList.remove("active"));
-      btn.classList.add("active");
+    // Laad laatste of fallback (Genesis overzicht is een neutraal startpunt)
+    const FALLBACK = "https://www.septuagint.bible/genesis";
+    input.value = localStorage.getItem("bijbel_lxx_last_url") || FALLBACK;
+
+    // Actieve knop UI
+    function setActive(isGR){
+      if (isGR){ btnGR.classList.add("primary"); btnNL.classList.remove("primary"); }
+      else { btnNL.classList.add("primary"); btnGR.classList.remove("primary"); }
     }
 
-    // Probeer URL in iframe te laden; als X-Frame-Options blokkeert, val terug naar nieuw tabblad
+    // Probeer url in iframe; lukt dat niet (X-Frame-Options), open in nieuw tabblad
     function trySetIframe(url, fallbackNewTab=true){
       return new Promise(resolve=>{
         let timer = null;
         const onLoad = () => {
           clearTimeout(timer);
-          iframe.removeEventListener("load", onLoad);
+          frame.removeEventListener("load", onLoad);
           resolve(true);
         };
-        iframe.addEventListener("load", onLoad, { once:true });
-        iframe.src = url;
+        frame.addEventListener("load", onLoad, { once:true });
+        frame.src = url;
+
         // Als binnen 2.2s geen load-event → waarschijnlijk geblokkeerd
         timer = setTimeout(()=>{
-          iframe.removeEventListener("load", onLoad);
-          if (fallbackNewTab){
-            window.open(url, "_blank", "noopener");
-          }
+          frame.removeEventListener("load", onLoad);
+          if (fallbackNewTab){ window.open(url, "_blank", "noopener"); }
           resolve(false);
         }, 2200);
       });
     }
 
-    btnGR.addEventListener("click", async ()=>{
-      setActive(btnGR);
-      await trySetIframe(SRC_ORIGINAL, false);
-    });
+    async function setMode(mode){
+      const raw = input.value.trim();
+      if (!raw){ alert("Plak eerst een LXX‑URL."); return; }
+      localStorage.setItem("bijbel_lxx_last_url", raw);
 
-    btnNL.addEventListener("click", async ()=>{
-      setActive(btnNL);
-      // probeer in iframe; zo niet, open nieuwe tab
-      const ok = await trySetIframe(SRC_NL, true);
-      if (!ok) {
-        // Zet iframe terug op origineel (zodat kader niet “leeg” blijft)
-        iframe.src = SRC_ORIGINAL;
+      if (mode === "gr"){
+        setActive(true);
+        await trySetIframe(raw, false);
+      } else {
+        setActive(false);
+        const ok = await trySetIframe(toGoogleTranslate(raw), true);
+        if (!ok){
+          // Zet iframe terug naar Grieks zodat het kader niet leeg blijft
+          await trySetIframe(raw, false);
+        }
       }
-    });
+    }
+
+    btnGR.addEventListener("click", ()=> setMode("gr"));
+    btnNL.addEventListener("click", ()=> setMode("nl"));
+
+    // Start in Grieks
+    setMode("gr");
   </script>
 </body>
 </html>
