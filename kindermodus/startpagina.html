@@ -19,66 +19,58 @@
       min-height:100vh; background:var(--pastel1); transition:background .6s; overflow-x:hidden;
     }
 
-    /* ---------- Intro/video wrapper: volledig responsive ---------- */
+    /* --------- Introblok met video + overlaytekst --------- */
     .intro-wrap{
-      max-width:1600px;
-      margin: min(3vh,24px) auto min(3.5vh,28px) auto;
-      padding: 0 clamp(8px, 2vw, 32px);
-      display:flex; flex-direction:column; align-items:center; gap: clamp(6px, 1.2vh, 14px);
+      max-width:1400px; margin:20px auto 34px auto; padding:0 2vw;
+      display:flex; flex-direction:column; align-items:center; gap:10px;
     }
     .video-frame{
       position:relative;
-      width: clamp(300px, 96vw, 1400px);
-      aspect-ratio: 16 / 9;
+      width:min(96vw,1200px);
+      aspect-ratio:16/9;
       background:#000;
-      border-radius: clamp(10px, 1.5vw, 18px);
+      border-radius:16px;
       overflow:hidden;
-      box-shadow: 0 clamp(8px, 1.2vw, 14px) clamp(24px, 2.2vw, 36px) #00000026;
+      box-shadow:0 14px 36px #00000026;
     }
     .video-frame video, .video-frame img{
       width:100%; height:100%; object-fit:cover; display:block;
     }
 
-    /* ---------- Transparante overlaytekst (links-boven) ---------- */
+    /* Overlaytekst links‑bovenin de “ballon” – nu kleiner en zwart */
     .intro-text{
       position:absolute;
-      top: clamp(6px, 1.2vh, 18px);
-      left: clamp(6px, 1.2vw, 22px);
-      right: clamp(40px, 22vw, 320px); /* ruimte rechts zodat tekst niet over de rand valt */
-      background: transparent;
-      border: none;
-      padding: 0;
-      color: #111;                 /* ZWART, zoals gevraagd */
-      text-shadow: 0 0 0 rgba(0,0,0,0.0); /* geen omlijning */
-      font-size: clamp(0.9rem, 1.15vw, 1.35rem);  /* schaalt mee met scherm */
-      line-height: clamp(1.28, 1.2 + 0.2vw, 1.5);
-      white-space: pre-line;       /* \n => nieuwe regel */
-      pointer-events: none;        /* klikken gaat naar video */
-      user-select: none;
+      top:2.5%;
+      left:2.6%;
+      right:48%;          /* beperk breedte zodat het binnen de ballon blijft */
+      background:transparent;
+      border:none;
+      padding:0;
+      font-size:clamp(12px, 1.35vw, 15px);   /* kleiner & responsief */
+      line-height:1.28;                      /* compacter */
+      color:#111;                            /* zwart */
+      white-space:pre-line;                  /* \n -> echte nieuwe regels */
+      pointer-events:none;
     }
-    .intro-text .highlight{ color: var(--primair); font-weight: bold; }
+    .intro-text .highlight{ color:#0f7b0f; font-weight:bold; } /* donker groen i.p.v. fel */
 
-    /* ---------- Welkomstblok onder de video ---------- */
+    /* Blok onder video */
     .welkom-blok{
       background:#fffce7; color:var(--donker);
-      border-radius: clamp(14px, 1.6vw, 20px);
-      box-shadow:0 clamp(6px, 0.9vw, 12px) clamp(24px, 2vw, 30px) #d7cbb133;
-      font-size: clamp(0.95rem, 0.9rem + 0.4vw, 1.15rem);
-      line-height: 1.7;
-      text-align:center;
-      max-width: clamp(320px, 92vw, 980px);
-      margin: clamp(6px, 0.8vh, 12px) auto clamp(28px, 3.6vh, 44px) auto;
-      padding: clamp(14px, 2.2vw, 20px) clamp(12px, 2vw, 24px);
+      border-radius:20px; box-shadow:0 6px 24px #d7cbb133;
+      font-size:1.05em; line-height:1.7; text-align:center;
+      max-width:950px; width:94vw; margin:8px auto 34px auto; padding:18px 16px;
     }
 
-    /* Extra verfijning op héle kleine schermen */
-    @media (max-width: 420px){
-      .intro-text{
-        right: 10%;  /* iets smaller tekstvlak */
-        font-size: clamp(0.9rem, 3.8vw, 1.05rem);
-        top: 2%;
-        left: 3%;
-      }
+    @media (max-width:1100px){
+      .intro-text{ right:44%; top:3%; left:3%; font-size:clamp(12px, 1.55vw, 14px); }
+    }
+    @media (max-width:800px){
+      .intro-text{ right:40%; top:3.5%; font-size:clamp(11px, 2vw, 13px); }
+    }
+    @media (max-width:600px){
+      .intro-text{ right:36%; top:4%; font-size:clamp(11px, 2.6vw, 12.5px); }
+      .welkom-blok{ font-size:1.0em; }
     }
   </style>
 
@@ -86,14 +78,14 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 
-  <!-- Kinder lay-out: laadt header.html + beveiliging + live puntenteller -->
+  <!-- Kinder lay-out: header + beveiliging + live puntenteller -->
   <script defer src="common/layout.js"></script>
 </head>
 <body>
-  <!-- Header (begroeting + vlam + menubalk) wordt hier ingeladen -->
+  <!-- Header (begroeting + vlam + menubalk) -->
   <div id="kinder-header" data-header-src="common/header.html"></div>
 
-  <!-- Intro met video + transparante overlaytekst -->
+  <!-- Intro met video + overlaytekst -->
   <section class="intro-wrap">
     <div class="video-frame">
       <video id="photeinosVideo"
@@ -101,17 +93,15 @@
              autoplay muted playsinline loop
              onloadeddata="this.play().catch(()=>{})"></video>
 
-      <!-- Fallback-afbeelding (indien video niet kan spelen) -->
       <img id="videoFallback"
            src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_wave.gif"
            alt="Photeinos zwaait" style="display:none" />
 
-      <!-- Transparante overlaytekst (links-boven) -->
       <div class="intro-text" id="introText"></div>
     </div>
   </section>
 
-  <!-- Korte welkomsttekst onder de video -->
+  <!-- Kort tekstblok -->
   <div class="welkom-blok">
     Verdien <strong>lichtjes</strong> door je <strong>dagelijkse gebeden</strong> te doen,
     je <strong>dagboek</strong> in te vullen en <strong>catecheselessen</strong> te volgen.
@@ -119,15 +109,14 @@
   </div>
 
   <script>
-    // Zachte pastelachtergrond
+    // Zachte random pastel
     (function(){
       const p = ['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
       document.body.style.background = p[Math.floor(Math.random()*p.length)];
     })();
 
-    // Start wanneer layout + Firebase klaar is
-    document.addEventListener('DOMContentLoaded', () => { startWhenReady(); });
-
+    // Start wanneer layout + Firebase klaar zijn
+    document.addEventListener('DOMContentLoaded', () => startWhenReady());
     function startWhenReady(){
       if (!(window.KinderLayout && window.firebase && firebase.firestore)) {
         return setTimeout(startWhenReady, 120);
@@ -146,7 +135,7 @@
       const ouderLogin = localStorage.getItem('loginKeuze');
       const kindId     = localStorage.getItem('ingelogdKindId');
 
-      // Huidige punten ophalen (header loopt al live)
+      // Haal punten (eenmalig voor de intro)
       let punten = 0;
       if (parochieId && ouderLogin && kindId) {
         try{
@@ -154,16 +143,15 @@
             .collection('leden').doc(ouderLogin)
             .collection('kinderen').doc(kindId).get();
           punten = snap.exists ? (snap.data().punten || 0) : 0;
-        }catch(e){ /* laat 0 */ }
+        }catch(e){}
       }
 
-      // Fallback als video niet speelt
+      // Fallback voor video
       const vid = document.getElementById('photeinosVideo');
       const fallback = document.getElementById('videoFallback');
       vid.addEventListener('error', ()=> { vid.style.display='none'; fallback.style.display='block'; });
-      vid.addEventListener('stalled', ()=> { /* optioneel fallback */ });
 
-      // Tekstregels (white-space:pre-line maakt echte nieuwe regels van \n)
+      // Regels als platte tekst (white-space:pre-line in CSS zorgt voor echte regeleinden)
       const lines = [
         `Dag ${naam}!`,
         `Wat wil je vandaag doen?`,
