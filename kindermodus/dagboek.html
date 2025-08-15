@@ -5,275 +5,224 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Kinderdagboek – Dag</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
-
-  <!-- Firebase -->
+  <style>
+    :root{--ink:#3b2a12;--bg:#fffaf0;--card:#fffef7;--line:#e9d8b6;--accent:#7a5f35;--btn:#b08c58}
+    body{background:#fff7e6;margin:0;font-family:Arial,Helvetica,sans-serif;color:var(--ink)}
+    .wrap{max-width:880px;margin:28px auto;padding:0 14px}
+    h1{margin:0 0 14px 0;font-size:1.6rem;color:var(--accent)}
+    .path{font-size:.85rem;color:#8b6f3f;background:#fffdf4;border:1px solid var(--line);padding:8px 10px;border-radius:8px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:14px}
+    .btn{background:var(--btn);color:#fff;border:none;border-radius:10px;padding:8px 14px;cursor:pointer}
+    .btn:disabled{opacity:.55;cursor:not-allowed}
+    .q{margin:10px 0;padding:10px;border:1px solid var(--line);border-radius:10px}
+    .opt{display:block;margin:6px 0}
+    .msg{margin-top:10px;color:#8b6f3f}
+    .err{color:#b9311e}
+    textarea{width:100%;min-height:140px;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fffdf5}
+    .row{display:flex;gap:10px;align-items:center;justify-content:flex-end;margin-top:10px}
+    .score{font-size:.95rem;color:#6a4f28}
+  </style>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-
-  <style>
-    body{font-family:system-ui,Arial,sans-serif;margin:0;padding:16px;background:#fffef8;color:#2b1e10}
-    h1{margin:.2em 0 .4em}
-    .wrap{max-width:920px;margin:0 auto}
-    .card{background:#fff;border:1px solid #e9dfc7;border-radius:12px;padding:14px 16px;margin:12px 0}
-    .tekst p{margin:.5em 0;line-height:1.6}
-    .vraag{margin:.6em 0 1em}
-    .opt{display:block;margin:.25em 0}
-    .row{display:flex;gap:10px;align-items:center;justify-content:flex-end;margin-top:12px}
-    button{background:#7a5f35;color:#fff;border:none;border-radius:8px;padding:9px 14px;cursor:pointer}
-    button.secondary{background:#b09765}
-    .hint{font-size:.92em;color:#7a6a4c}
-    .badge{font-size:.9em;color:#7a6a4c}
-    textarea{width:100%;min-height:110px;border:1px solid #e2d2a8;border-radius:8px;padding:10px;background:#fffdf4}
-    .ok{color:#1f7a3a}
-    .err{color:#b9311e}
-  </style>
 </head>
 <body>
-<div class="wrap">
-  <h1 id="titel">Kinderdagboek</h1>
-  <div class="badge" id="padBadge"></div>
+  <div class="wrap">
+    <h1>Kinderdagboek</h1>
+    <div class="path" id="pathInfo"></div>
 
-  <div class="card tekst">
-    <div id="tekst"></div>
-  </div>
+    <div class="card">
+      <h3 id="titel">Vragen</h3>
+      <div id="vragen"></div>
+      <div class="row">
+        <button class="btn" id="nakijkBtn">Nakijken en opslaan</button>
+      </div>
+      <div class="score" id="scoreMsg"></div>
+    </div>
 
-  <div class="card">
-    <h3>Vragen</h3>
-    <form id="quizForm"></form>
-    <div class="row">
-      <span class="hint" id="quizHint"></span>
-      <button id="btnNakijken">Nakijken en opslaan</button>
+    <div class="card">
+      <h3>Mijn reflectie (+20 punten éénmalig)</h3>
+      <textarea id="reflectie" placeholder="Schrijf hier je gedachte of gebed…"></textarea>
+      <div class="row">
+        <button class="btn" id="saveReflectie">Reflectie bewaren</button>
+      </div>
+      <div class="msg" id="reflectieMsg"></div>
+    </div>
+
+    <div class="card">
+      <div id="statusMsg" class="msg"></div>
     </div>
   </div>
-
-  <div class="card">
-    <h3>Mijn reflectie (+20 punten éénmalig)</h3>
-    <textarea id="reflectie" placeholder="Schrijf hier je gedachte of gebed…"></textarea>
-    <div class="row">
-      <span class="hint" id="refHint"></span>
-      <button class="secondary" id="btnSaveRef">Reflectie bewaren</button>
-    </div>
-  </div>
-
-  <div class="card">
-    <div id="status" class="hint"></div>
-  </div>
-</div>
 
 <script>
-  // ---------- Firebase init ----------
-  const firebaseConfig = {
-    apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
-    authDomain: "orthodoxeweg.firebaseapp.com",
-    projectId: "orthodoxeweg",
-    storageBucket: "orthodoxeweg.appspot.com",
-    messagingSenderId: "408582263618",
-    appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
-  };
-  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+/* ---------- Firebase ---------- */
+const firebaseConfig = {
+  apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+  authDomain: "orthodoxeweg.firebaseapp.com",
+  projectId: "orthodoxeweg",
+  storageBucket: "orthodoxeweg.appspot.com",
+  messagingSenderId: "408582263618",
+  appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
+};
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-  // ---------- Config via URL of localStorage ----------
-  const params = new URLSearchParams(location.search);
-  const PAROCHIE_ID = params.get("parochieId") || localStorage.getItem("parochieId") || "hasselt-drie-hierarchen";
-  const OUDER_ID    = params.get("ouderId")    || localStorage.getItem("ouderId")    || "Kathy";
-  const KIND_ID     = params.get("kindId")     || localStorage.getItem("kindId")     || "__4285";
-  const DAY_ID      = params.get("dagId")      || localStorage.getItem("dagId")      || "dag001";
-  localStorage.setItem("parochieId", PAROCHIE_ID);
-  localStorage.setItem("ouderId", OUDER_ID);
-  localStorage.setItem("kindId", KIND_ID);
-  localStorage.setItem("dagId", DAY_ID);
+/* ---------- Helpers ---------- */
+const $ = id => document.getElementById(id);
+function getParam(name, def=null){
+  const u = new URL(window.location.href);
+  return u.searchParams.get(name) || def;
+}
+function radioName(i){ return `q_${i}`; }
+function makeRadio(name, value, labelText){
+  const label = document.createElement('label');
+  label.className = 'opt';
+  const inp = document.createElement('input');
+  inp.type = 'radio'; inp.name = name; inp.value = value;
+  label.appendChild(inp);
+  label.appendChild(document.createTextNode(' ' + labelText));
+  return label;
+}
+function shuffle(arr){ // Fisher–Yates
+  for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
+  return arr;
+}
 
-  const BRON_COL = "VlaamsOrthodoxeKinderdagboek";
+/* ---------- Context uit sessionStorage (zoals bij jou) ---------- */
+const parochieId = sessionStorage.getItem("dagboek_parochieId") || "hasselt-drie-hierarchen";
+const ouderId    = sessionStorage.getItem("dagboek_userId") || "Kathy";
+const kindId     = getParam("kid", "__4285");          // ?kid=__4285
+const dagId      = getParam("id", "dag001");           // ?id=dag001
 
-  // ---------- Firestore refs ----------
-  function childRef(){
-    return db.collection("parochies").doc(PAROCHIE_ID)
-      .collection("leden").doc(OUDER_ID)
-      .collection("kinderen").doc(KIND_ID);
+$("pathInfo").textContent =
+  `/parochies/${parochieId}/leden/${ouderId}/kinderen/${kindId}/kinderdagboek/${dagId}`;
+
+const kindRef   = db.collection("parochies").doc(parochieId)
+                    .collection("leden").doc(ouderId)
+                    .collection("kinderen").doc(kindId);
+const dagRef    = kindRef.collection("kinderdagboek").doc(dagId);
+const tplRef    = db.collection("VlaamsOrthodoxeKinderdagboek").doc(dagId);
+
+let vragenData = [];   // [{vraag, opties[], correct}]
+let puntenDelta = 0;
+
+/* ---------- Laden: eerst kind-doc, daarna pas sjabloon ---------- */
+(async function init(){
+  try{
+    // 1) Probeer bestaande dag van het kind
+    const childSnap = await dagRef.get();
+    if (childSnap.exists){
+      renderFromDoc(childSnap.data(), /*alreadyExists=*/true);
+      return;
+    }
+
+    // 2) Zo niet: pak sjabloon en kopieer
+    const tplSnap = await tplRef.get();
+    if (tplSnap.exists){
+      const tpl = tplSnap.data();
+      const payload = {
+        titel: tpl.titel || "Dag",
+        vragen: tpl.vragen || [],
+        antwoorden: {},              // gekozen opties van dit kind
+        puntenVerdient: false,       // reflectiepunten
+        score: 0,                    // behaalde quizscore
+        aangemaaktOp: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      await dagRef.set(payload);
+      renderFromDoc(payload, /*alreadyExists=*/false);
+      $("statusMsg").textContent = "De vragen zijn uit het sjabloon geladen.";
+    } else {
+      $("statusMsg").classList.add("err");
+      $("statusMsg").textContent = `Kon bron niet vinden: VlaamsOrthodoxeKinderdagboek/${dagId}. Je kunt deze dag pas gebruiken nadat het sjabloon is aangemaakt.`;
+      disableUI(true);
+    }
+  }catch(e){
+    $("statusMsg").classList.add("err");
+    $("statusMsg").textContent = "Fout bij laden: " + e.message;
+    console.error(e);
   }
-  function dayDocRef(dayId){
-    return childRef().collection("kinderdagboek").doc(dayId);
-  }
+})();
 
-  // ---------- Seed dag voor kind (lui) ----------
-  async function ensureDayForChild(dayId){
-    const dest = dayDocRef(dayId);
-    const snap = await dest.get();
-    if (snap.exists) return snap.data();
+function disableUI(dis){
+  $("nakijkBtn").disabled = dis;
+  $("saveReflectie").disabled = dis;
+}
 
-    const src = await db.collection(BRON_COL).doc(dayId).get();
-    if (!src.exists) throw new Error(`Bron ontbreekt: ${dayId}`);
-    const d = src.data();
+/* ---------- Render ---------- */
+function renderFromDoc(doc, alreadyExists){
+  $("titel").textContent = doc.titel || "Vragen";
+  vragenData = Array.isArray(doc.vragen) ? doc.vragen : [];
+  const container = $("vragen");
+  container.innerHTML = "";
 
-    const payload = {
-      titel: d.titel,
-      tekst: d.tekst,               // array van zinnen
-      vragen: d.vragen,             // [{vraag,opties[],correct}]
-      gegevenAntwoorden: [],        // indices 0..3
-      score: 0,                     // 0..50
-      reflectie: "",
-      reflectiePuntenToegekend: false,
-      aangemaaktOp: firebase.firestore.FieldValue.serverTimestamp(),
-      laatsteUpdate: firebase.firestore.FieldValue.serverTimestamp()
-    };
-    await dest.set(payload);
-    return payload;
-  }
+  if (!vragenData.length){
+    container.innerHTML = "<div class='msg'>Geen vragen gevonden voor deze dag.</div>";
+    $("nakijkBtn").disabled = true;
+  } else {
+    $("nakijkBtn").disabled = false;
+    vragenData.forEach((v,i)=>{
+      const box = document.createElement("div");
+      box.className = "q";
+      const q = document.createElement("div");
+      q.textContent = (i+1)+". "+v.vraag;
+      box.appendChild(q);
 
-  // ---------- Render ----------
-  const elTitel = document.getElementById("titel");
-  const elTekst = document.getElementById("tekst");
-  const elForm  = document.getElementById("quizForm");
-  const elQuizHint = document.getElementById("quizHint");
-  const elRef   = document.getElementById("reflectie");
-  const elRefHint = document.getElementById("refHint");
-  const elStatus = document.getElementById("status");
-  const elPad = document.getElementById("padBadge");
-
-  elPad.textContent = `/parochies/${PAROCHIE_ID}/leden/${OUDER_ID}/kinderen/${KIND_ID}/kinderdagboek/${DAY_ID}`;
-
-  function esc(s=""){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
-
-  function renderDay(d){
-    elTitel.textContent = d.titel || "Kinderdagboek";
-    elTekst.innerHTML = (Array.isArray(d.tekst)? d.tekst:[])
-      .map(line=>`<p>${esc(line)}</p>`).join("");
-
-    const vragen = Array.isArray(d.vragen) ? d.vragen : [];
-    elForm.innerHTML = "";
-    vragen.forEach((q, qi) => {
-      const f = document.createElement("fieldset"); f.className = "vraag";
-      const lg = document.createElement("legend"); lg.textContent = (qi+1)+". "+q.vraag; f.appendChild(lg);
-      (q.opties||[]).forEach((opt, oi) => {
-        const id = `q${qi}_o${oi}`;
-        const label = document.createElement("label"); label.className = "opt"; label.setAttribute("for", id);
-        const input = document.createElement("input");
-        input.type = "radio"; input.name = `q${qi}`; input.id = id; input.value = oi;
-        label.appendChild(input);
-        label.append(" "+opt);
-        f.appendChild(label);
+      // opties (random volgorde)
+      const opts = shuffle([...(v.opties||[])]);
+      opts.forEach(opt=>{
+        box.appendChild( makeRadio(radioName(i), opt, opt) );
       });
-      elForm.appendChild(f);
+      container.appendChild(box);
     });
-
-    // bestaand ingevuld (optioneel)
-    (d.gegevenAntwoorden||[]).forEach((idx, qi)=>{
-      const radio = elForm.querySelector(`input[name="q${qi}"][value="${idx}"]`);
-      if (radio) radio.checked = true;
-    });
-    elRef.value = d.reflectie || "";
   }
 
-  // ---------- Laden ----------
-  async function load(){
-    elStatus.textContent = "Laden…";
-    try{
-      await ensureDayForChild(DAY_ID);
-      const snap = await dayDocRef(DAY_ID).get();
-      renderDay(snap.data());
-      elStatus.textContent = "Klaar.";
-    }catch(e){
-      elStatus.innerHTML = `<span class="err">Fout: ${esc(e.message)}</span>`;
-    }
+  $("reflectie").value = doc.reflectie || "";
+  $("scoreMsg").textContent = doc.score ? `Reeds behaald: ${doc.score} punten` : "";
+  if (doc.puntenVerdient){
+    $("reflectieMsg").textContent = "Je reflectiepunten (+20) zijn al toegekend.";
+  } else {
+    $("reflectieMsg").textContent = "";
   }
+}
 
-  // ---------- Nakijken & opslaan (met punten) ----------
-  async function gradeAndSave(){
-    elQuizHint.textContent = "";
-    const chosen = [];
-    for (let i=0;i<5;i++){
-      const r = elForm.querySelector(`input[name="q${i}"]:checked`);
-      chosen.push(r ? Number(r.value) : -1);
-    }
-    if (chosen.some(v=>v<0)){ elQuizHint.innerHTML = '<span class="err">Beantwoord alle 5 vragen.</span>'; return; }
+/* ---------- Nakijken + opslaan (10 punten per juist antwoord) ---------- */
+$("nakijkBtn").addEventListener("click", async ()=>{
+  if (!vragenData.length) return;
+  let score = 0;
+  const antwoorden = {};
+  vragenData.forEach((v,i)=>{
+    const sel = document.querySelector(`input[name="${radioName(i)}"]:checked`);
+    const gekozen = sel ? sel.value : null;
+    antwoorden[i] = gekozen;
+    if (gekozen && String(gekozen) === String(v.correct)) score += 10;
+  });
 
-    try{
-      const res = await db.runTransaction(async (tx)=>{
-        const dRef = dayDocRef(DAY_ID);
-        const kRef = childRef();
-
-        const [dSnap, kSnap] = await Promise.all([tx.get(dRef), tx.get(kRef)]);
-        if (!dSnap.exists) throw new Error("Dag ontbreekt (seed mislukt).");
-        const d = dSnap.data();
-        const vragen = d.vragen || [];
-
-        let correctCount = 0;
-        for (let i=0;i<5;i++){
-          const q = vragen[i]; if (!q) continue;
-          const ansIdx = chosen[i];
-          const userAns = (q.opties||[])[ansIdx];
-          if (userAns === q.correct) correctCount++;
-        }
-        const newScore = correctCount * 10;
-        const prevScore = d.score || 0;
-        const verbetering = Math.max(0, newScore - prevScore);
-
-        const huidigePunten = (kSnap.exists ? (kSnap.data().punten||0) : 0);
-        const puntenDelta = verbetering;
-
-        tx.set(dRef, {
-          gegevenAntwoorden: chosen,
-          score: Math.max(prevScore, newScore),
-          laatsteUpdate: firebase.firestore.FieldValue.serverTimestamp()
-        }, {merge:true});
-
-        if (puntenDelta>0){
-          tx.set(kRef, { punten: huidigePunten + puntenDelta }, {merge:true});
-        }
-
-        return {correctCount, newScore: Math.max(prevScore,newScore), puntenDelta};
-      });
-
-      elQuizHint.innerHTML = `<span class="ok">Juist: ${res.correctCount}/5 • Dagscore: ${res.newScore} • +${res.puntenDelta} punten bij kind.</span>`;
-    }catch(e){
-      elQuizHint.innerHTML = `<span class="err">Fout bij opslaan: ${esc(e.message)}</span>`;
-    }
+  try{
+    await dagRef.set({antwoorden, score}, {merge:true});
+    $("scoreMsg").textContent = `Behaald: ${score} punten`;
+    $("statusMsg").textContent = "Antwoorden opgeslagen.";
+  }catch(e){
+    $("statusMsg").classList.add("err");
+    $("statusMsg").textContent = "Kon antwoorden niet opslaan: " + e.message;
   }
+});
 
-  // ---------- Reflectie bewaren (+20 éénmalig) ----------
-  async function saveReflection(){
-    elRefHint.textContent = "";
-    const text = (elRef.value||"").trim();
-    try{
-      const res = await db.runTransaction(async (tx)=>{
-        const dRef = dayDocRef(DAY_ID);
-        const kRef = childRef();
+/* ---------- Reflectie opslaan (+20 éénmalig) ---------- */
+$("saveReflectie").addEventListener("click", async ()=>{
+  const txt = $("reflectie").value.trim();
+  if (!txt){ $("reflectieMsg").textContent = "Schrijf eerst iets kleins (1–2 zinnen)."; return; }
 
-        const [dSnap, kSnap] = await Promise.all([tx.get(dRef), tx.get(kRef)]);
-        if (!dSnap.exists) throw new Error("Dag ontbreekt (seed mislukt).");
-        const d = dSnap.data();
-
-        let bonus = 0;
-        if (!d.reflectiePuntenToegekend && text.length>0){
-          bonus = 20;
-        }
-        tx.set(dRef, {
-          reflectie: text.length>0 ? text : (d.reflectie||""),
-          reflectiePuntenToegekend: d.reflectiePuntenToegekend || (bonus>0),
-          laatsteUpdate: firebase.firestore.FieldValue.serverTimestamp()
-        }, {merge:true});
-
-        if (bonus>0){
-          const huidige = (kSnap.exists ? (kSnap.data().punten||0) : 0);
-          tx.set(kRef, { punten: huidige + bonus }, {merge:true});
-        }
-        return {bonus};
-      });
-
-      if (res.bonus>0) elRefHint.innerHTML = `<span class="ok">Reflectie opgeslagen • +${res.bonus} punten toegekend.</span>`;
-      else elRefHint.textContent = "Reflectie opgeslagen.";
-    }catch(e){
-      elRefHint.innerHTML = `<span class="err">Fout bij opslaan: ${esc(e.message)}</span>`;
-    }
+  try{
+    const snap = await dagRef.get();
+    const al = snap.exists && snap.data().puntenVerdient === true;
+    const update = {reflectie: txt};
+    if (!al){ update.puntenVerdient = true; }
+    await dagRef.set(update, {merge:true});
+    $("reflectieMsg").textContent = al ? "Reflectie bijgewerkt." : "Reflectie opgeslagen (+20 punten).";
+  }catch(e){
+    $("reflectieMsg").classList.add("err");
+    $("reflectieMsg").textContent = "Kon reflectie niet opslaan: " + e.message;
   }
-
-  // ---------- Events ----------
-  document.getElementById("btnNakijken").addEventListener("click", (e)=>{ e.preventDefault(); gradeAndSave(); });
-  document.getElementById("btnSaveRef").addEventListener("click", (e)=>{ e.preventDefault(); saveReflection(); });
-
-  // ---------- Start ----------
-  load();
+});
 </script>
 </body>
 </html>
