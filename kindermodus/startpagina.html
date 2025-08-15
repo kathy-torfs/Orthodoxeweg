@@ -19,7 +19,7 @@
       min-height:100vh; background:var(--pastel1); transition:background .6s; overflow-x:hidden;
     }
 
-    /* --------- Introblok met video + overlaytekst --------- */
+    /* Introblok met video + overlaytekst */
     .intro-wrap{
       max-width:1400px; margin:20px auto 34px auto; padding:0 2vw;
       display:flex; flex-direction:column; align-items:center; gap:10px;
@@ -37,24 +37,37 @@
       width:100%; height:100%; object-fit:cover; display:block;
     }
 
-    /* Overlaytekst links‑bovenin de “ballon” – nu kleiner en zwart */
+    /* Overlaytekst meebewegen met ballon */
     .intro-text{
       position:absolute;
-      top:2.5%;
-      left:2.6%;
-      right:48%;          /* beperk breedte zodat het binnen de ballon blijft */
+      top:1.5%;
+      left:1.5%;
+      right:20%;
       background:transparent;
       border:none;
       padding:0;
-      font-size:clamp(12px, 1.35vw, 15px);   /* kleiner & responsief */
-      line-height:1.28;                      /* compacter */
-      color:#111;                            /* zwart */
-      white-space:pre-line;                  /* \n -> echte nieuwe regels */
+      font-size:clamp(12px, 1.25vw, 15px);
+      line-height:1.35;
+      color:#111;
+      text-shadow:0 2px 6px rgba(255,255,255,.65);
       pointer-events:none;
+      white-space:pre-line;
+      transform:translate(0,0);
+      animation: driftXY 6s ease-in-out infinite;
+      animation-play-state: running;
     }
-    .intro-text .highlight{ color:#0f7b0f; font-weight:bold; } /* donker groen i.p.v. fel */
+    @keyframes driftXY{
+      0%   { transform: translate(0%,  0%);   }
+      20%  { transform: translate(1.4%, -1.2%); }
+      40%  { transform: translate(2.2%,  0.6%); }
+      60%  { transform: translate(1.2%, -0.8%); }
+      80%  { transform: translate(0.6%,  0.4%); }
+      100% { transform: translate(0%,   0%);   }
+    }
+    .intro-text .highlight{ color:#a8ff7a; font-weight:bold; }
+    .intro-text .indent{ padding-left:0.8em; display:inline-block; }
 
-    /* Blok onder video */
+    /* Welkomblok onder video */
     .welkom-blok{
       background:#fffce7; color:var(--donker);
       border-radius:20px; box-shadow:0 6px 24px #d7cbb133;
@@ -62,15 +75,12 @@
       max-width:950px; width:94vw; margin:8px auto 34px auto; padding:18px 16px;
     }
 
-    @media (max-width:1100px){
-      .intro-text{ right:44%; top:3%; left:3%; font-size:clamp(12px, 1.55vw, 14px); }
-    }
-    @media (max-width:800px){
-      .intro-text{ right:40%; top:3.5%; font-size:clamp(11px, 2vw, 13px); }
+    @media (max-width:900px){
+      .intro-text{ font-size:.92rem; right:8%; top:2%; left:2%; }
+      .welkom-blok{ font-size:1.0em; }
     }
     @media (max-width:600px){
-      .intro-text{ right:36%; top:4%; font-size:clamp(11px, 2.6vw, 12.5px); }
-      .welkom-blok{ font-size:1.0em; }
+      .intro-text{ font-size:.88rem; right:6%; top:2.5%; left:3%; }
     }
   </style>
 
@@ -78,11 +88,11 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 
-  <!-- Kinder lay-out: header + beveiliging + live puntenteller -->
+  <!-- Kinder lay-out -->
   <script defer src="common/layout.js"></script>
 </head>
 <body>
-  <!-- Header (begroeting + vlam + menubalk) -->
+  <!-- Header -->
   <div id="kinder-header" data-header-src="common/header.html"></div>
 
   <!-- Intro met video + overlaytekst -->
@@ -92,16 +102,14 @@
              src="https://kathy-torfs.github.io/Orthodoxeweg/videos/photeinos.mp4"
              autoplay muted playsinline loop
              onloadeddata="this.play().catch(()=>{})"></video>
-
       <img id="videoFallback"
            src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_wave.gif"
            alt="Photeinos zwaait" style="display:none" />
-
       <div class="intro-text" id="introText"></div>
     </div>
   </section>
 
-  <!-- Kort tekstblok -->
+  <!-- Welkomtekst -->
   <div class="welkom-blok">
     Verdien <strong>lichtjes</strong> door je <strong>dagelijkse gebeden</strong> te doen,
     je <strong>dagboek</strong> in te vullen en <strong>catecheselessen</strong> te volgen.
@@ -109,14 +117,15 @@
   </div>
 
   <script>
-    // Zachte random pastel
     (function(){
       const p = ['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
       document.body.style.background = p[Math.floor(Math.random()*p.length)];
     })();
 
-    // Start wanneer layout + Firebase klaar zijn
-    document.addEventListener('DOMContentLoaded', () => startWhenReady());
+    document.addEventListener('DOMContentLoaded', () => {
+      startWhenReady();
+    });
+
     function startWhenReady(){
       if (!(window.KinderLayout && window.firebase && firebase.firestore)) {
         return setTimeout(startWhenReady, 120);
@@ -135,7 +144,6 @@
       const ouderLogin = localStorage.getItem('loginKeuze');
       const kindId     = localStorage.getItem('ingelogdKindId');
 
-      // Haal punten (eenmalig voor de intro)
       let punten = 0;
       if (parochieId && ouderLogin && kindId) {
         try{
@@ -146,22 +154,20 @@
         }catch(e){}
       }
 
-      // Fallback voor video
       const vid = document.getElementById('photeinosVideo');
       const fallback = document.getElementById('videoFallback');
       vid.addEventListener('error', ()=> { vid.style.display='none'; fallback.style.display='block'; });
 
-      // Regels als platte tekst (white-space:pre-line in CSS zorgt voor echte regeleinden)
       const lines = [
-        `  Dag ${naam}!`,
-        `  Wat wil je vandaag doen?`,
+        `<span class="indent">Dag ${naam}!</span>`,
+        `<span class="indent">Wat wil je vandaag doen?</span>`,
         `Je hebt al ${punten} lichtjes.`,
-        `Verdien meer door je dagelijkse gebeden te doen,`,
+        `Verdien meer door je dagelijkse gebeden te doen`,
         `je dagboek in te vullen en`,
-        `  catecheselessen te volgen.`,
-        `  Verken zeker alle knoppen in de menubalk! ✨`
+        `<span class="indent">catecheselessen te volgen.</span>`,
+        `<span class="indent">Verken zeker alle knoppen in de menubalk! ✨</span>`
       ];
-      document.getElementById('introText').textContent = lines.join('\n');
+      document.getElementById('introText').innerHTML = lines.join('\n');
     }
   </script>
 </body>
