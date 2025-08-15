@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Kindermodus inloggen</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
@@ -45,44 +45,42 @@
   </main>
 
   <script>
-    // Firebase config
+    // Firebase init
     const firebaseConfig = {
-      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
-      authDomain: "orthodoxeweg.firebaseapp.com",
-      projectId: "orthodoxeweg",
-      storageBucket: "orthodoxeweg.appspot.com",
-      messagingSenderId: "408582263618",
-      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
+      apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain:"orthodoxeweg.firebaseapp.com",
+      projectId:"orthodoxeweg",
+      storageBucket:"orthodoxeweg.appspot.com",
+      messagingSenderId:"408582263618",
+      appId:"1:408582263618:web:0a20f4bf0704989d3ceedb"
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Ophalen van parochie en login van ingelogde ouder
+    // Deze 2 MOETEN al in localStorage staan van de ouderlogin:
     const parochieId = localStorage.getItem("ingelogdeParochie");
     const ouderLogin = localStorage.getItem("loginKeuze");
 
     const kindSelect = document.getElementById('kindSelect');
     const kindAvatar = document.getElementById('kindAvatar');
-    const melding = document.getElementById('melding');
+    const melding    = document.getElementById('melding');
     let kinderen = [];
 
-    // Kinderen ophalen van de juiste ouder
-    async function laadKinderen() {
-      if (!parochieId || !ouderLogin) {
-        melding.textContent = "Je moet eerst als ouder inloggen!";
+    async function laadKinderen(){
+      if (!parochieId || !ouderLogin){
+        melding.textContent = "Je moet eerst als ouder inloggen.";
         kindSelect.disabled = true;
         return;
       }
-      try {
-        const snap = await db
-          .collection("parochies").doc(parochieId)
+      try{
+        const snap = await db.collection("parochies").doc(parochieId)
           .collection("leden").doc(ouderLogin)
           .collection("kinderen").get();
 
         kinderen = [];
         kindSelect.innerHTML = '<option value="">-- Kies je naam --</option>';
 
-        snap.forEach(doc => {
+        snap.forEach(doc=>{
           const kind = { id: doc.id, ...doc.data() };
           kinderen.push(kind);
           const opt = document.createElement('option');
@@ -91,57 +89,53 @@
           kindSelect.appendChild(opt);
         });
 
-        if (kinderen.length === 0) {
+        if (kinderen.length === 0){
           melding.textContent = "Er zijn geen kinderen gekoppeld aan je profiel.";
           kindSelect.disabled = true;
         }
-      } catch (e) {
+      }catch(e){
         console.error(e);
-        melding.textContent = "Fout bij laden kinderen!";
+        melding.textContent = "Fout bij laden kinderen.";
         kindSelect.disabled = true;
       }
     }
     window.addEventListener('DOMContentLoaded', laadKinderen);
 
-    // Toon avatar bij selectie
-    kindSelect.onchange = function() {
-      const kind = kinderen.find(k => k.id === kindSelect.value);
-      if (kind && kind.avatarURL) {
-        kindAvatar.src = kind.avatarURL;
-        kindAvatar.style.display = "block";
-      } else {
-        kindAvatar.style.display = "none";
-      }
+    kindSelect.onchange = function(){
+      const k = kinderen.find(x => x.id === kindSelect.value);
+      if (k && k.avatarURL){ kindAvatar.src = k.avatarURL; kindAvatar.style.display = "block"; }
+      else { kindAvatar.style.display = "none"; }
       melding.textContent = "";
     };
 
-    // Inloggen kind
-    document.getElementById('kinderLoginForm').onsubmit = async function(e) {
+    document.getElementById('kinderLoginForm').onsubmit = async function(e){
       e.preventDefault();
       melding.textContent = "";
 
-      const kindId = kindSelect.value;
+      const kindId     = kindSelect.value;
       const wachtwoord = document.getElementById('kinderWachtwoord').value.trim();
 
-      if (!kindId) { melding.textContent = "Kies je naam!"; return; }
+      if (!kindId){ melding.textContent = "Kies je naam."; return; }
 
       const kind = kinderen.find(k => k.id === kindId);
-      if (!kind) { melding.textContent = "Onbekend kind!"; return; }
+      if (!kind){ melding.textContent = "Onbekend kind."; return; }
 
-      if (!wachtwoord || wachtwoord !== (kind.wachtwoord || "")) {
-        melding.textContent = "Fout wachtwoord!";
+      if (!wachtwoord || wachtwoord !== (kind.wachtwoord || "")){
+        melding.textContent = "Fout wachtwoord.";
         return;
       }
 
-      // ✅ Sla in localStorage op (blijft ingelogd tot expliciet uitloggen)
-      localStorage.setItem("kindIngelogd", "ja");        // jouw bestaande sleutel
-      localStorage.setItem("kind_ingelogd", "true");     // compat voor header die underscore verwacht
+      // ✅ Zet ALLE sleutels die de header/layout verwacht
+      localStorage.setItem("kindIngelogd", "ja");       // jouw sleutel
+      localStorage.setItem("kind_ingelogd", "true");    // compat
       localStorage.setItem("ingelogdKindId", kind.id);
-      localStorage.setItem("ingelogdKindVoornaam", kind.voornaam || "");
+      localStorage.setItem("ingelogdKindVoornaam", kind.voornaam || "Kind");
       localStorage.setItem("kindAvatarURL", kind.avatarURL || "");
-      localStorage.setItem("kindPunten", String(kind.punten || "0"));
+      localStorage.setItem("kindPunten", String(kind.punten || "0")); // cache
 
-      // 🧭 Ga naar de kind startpagina (harde URL)
+      // Oudersleutels blijven staan (parochieId, ouderLogin) — die zetten we NIET opnieuw
+
+      // 🧭 Door naar startpagina
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/startpagina.html";
     };
   </script>
