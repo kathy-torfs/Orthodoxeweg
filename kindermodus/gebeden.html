@@ -1,93 +1,509 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Startpagina – Orthodoxe Kinderpagina</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ik bid – Orthodoxe Kinderpagina</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
-  <link rel="stylesheet" href="../common/header.css">
-
   <style>
+    :root {
+      --primair: #7bb235;
+      --donker: #67510C;
+      --pastel1: #fff6e5; --pastel2: #fffde6; --pastel3: #ffe8ec; --pastel4: #e7f8ff;
+      --pastel5: #e6ffe5; --pastel6: #fff2fb; --pastel7: #f5ffe5; --pastel8: #f5e8ff;
+      --pastel9: #fff6fb; --pastel10: #e7fff9; --pastel11: #f3e6ff; --pastel12: #ffeae6;
+      --pastel13: #ecffe9; --pastel14: #f7fff3; --pastel15: #eafffa; --pastel16: #fff4ea;
+    }
     body {
       margin: 0;
-      background-color: #e6fff2;
-      font-family: "Comic Sans MS", Arial, sans-serif;
+      font-family: 'Comic Sans MS', Arial, sans-serif;
+      color: #333;
+      min-height: 100vh;
+      background: var(--pastel1);
+      transition: background 0.6s;
+      overflow-x: hidden;
     }
-    .video-container {
-      position: relative;
+    .bovenrij {
+      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto;
       display: flex;
-      justify-content: center;
-      margin-top: 20px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0;
+      padding: 22px 2vw 8px 2vw;
+      box-sizing: border-box;
     }
-    .video-container video {
-      border-radius: 12px;
-      max-width: 100%;
-      height: auto;
+    .bovenrij .links {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+    .photeinos-wave-img {
+      width: 120px;
+      min-width: 54px;
+      max-width: 26vw;
+      height: 120px;
+      border-radius: 50%;
+      background: #fff;
+      border: 2.2px solid #dab97a;
+      box-shadow: 0 2px 12px #dab97a2a;
+      object-fit: cover;
+      margin-right: 0;
+      user-drag: none;
+      -webkit-user-drag: none;
       display: block;
     }
-    .talk-overlay {
-      position: absolute;
-      left: 0;  /* Helemaal links */
-      top: 0;   /* Helemaal bovenaan */
-      max-width: 48ch;
-      background: rgba(255,255,255,.96);
-      border-radius: 14px;
-      border: 2px solid #e9e9e9;
-      box-shadow: 0 10px 30px rgba(0,0,0,.15);
-      padding: 12px 14px;
-      font-family: "Comic Sans MS", Arial, sans-serif;
-      color: #1f2937;
-      z-index: 3;
-    }
-    .talk-overlay strong {
-      color: #2f855a;
-    }
-    .talk-overlay em {
-      font-style: normal;
+    .begroeting {
+      font-size: 2.2em;
       font-weight: bold;
-      color: #1d4ed8;
+      color: var(--primair);
+      text-shadow: 0 2px 8px #b3d9ff44;
+      letter-spacing: 0.01em;
+      line-height: 1.04;
+      margin-top: 0;
+      margin-bottom: 0;
+      text-align: left;
+      white-space: nowrap;
+    }
+    .bovenrij .rechts {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-left: 24px;
+    }
+    .uitlog-kind-btn {
+      background: #e24343;
+      color: #fff;
+      border: none;
+      padding: 11px 24px;
+      border-radius: 9px;
+      font-weight: bold;
+      font-size: 1.1em;
+      cursor: pointer;
+      box-shadow: 0 2px 10px #b04141ab;
+      transition: background 0.2s;
+      z-index: 10;
+      margin-left: 12px;
+    }
+    .uitlog-kind-btn:hover { background: #b72828; }
+
+    /* Photeinos vlam naast begroeting */
+    .puntenvlam-balk {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      width: 58px;
+      min-width: 44px;
+      height: 74px;
+      margin-left: 22px;
+    }
+    .puntenvlam-img {
+      width: 58px;
+      height: 74px;
+      display: block;
+      user-drag: none;
+      -webkit-user-drag: none;
+    }
+    .punten-teller-balk {
+      position: absolute;
+      left: 0; right: 0;
+      top: 63%;
+      text-align: center;
+      font-family: 'Comic Sans MS', Arial, sans-serif;
+      font-size: 1.33em;
+      color: #bf5300;
+      font-weight: bold;
+      text-shadow: 0 2px 10px #fffef9, 0 1px 0 #ffecb3;
+      pointer-events: none;
+      letter-spacing: 0.03em;
+      filter: drop-shadow(0 2px 2px #fffef9);
+      transition: transform 0.14s;
+    }
+    @media (max-width: 1100px) {
+      .photeinos-wave-img { width: 17vw; height: 17vw; min-width: 60px; max-width: 120px;}
+      .puntenvlam-balk, .puntenvlam-img { width: 44px; height: 60px;}
+    }
+    @media (max-width: 900px) {
+      .bovenrij { padding-top: 10px; }
+      .photeinos-wave-img { width: 16vw; height: 16vw; min-width: 44px;}
+      .begroeting { font-size: 1.2em;}
+      .puntenvlam-balk, .puntenvlam-img { width: 36px; height: 48px;}
+    }
+    @media (max-width: 600px) {
+      .photeinos-wave-img { width: 24vw; height: 24vw; min-width: 28px;}
+      .puntenvlam-balk, .puntenvlam-img { width: 27px; height: 35px;}
+    }
+
+    /* Menubalk */
+    nav.kinder-menu {
+      width: 100vw;
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 32px;
+      padding: 36px 0 25px 0;
+      box-sizing: border-box;
+      min-height: 88px;
+      flex-wrap: wrap;
+      transition: gap 0.2s;
+    }
+    nav.kinder-menu a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: none;
+      box-shadow: none;
+      padding: 0;
+      cursor: pointer;
+      outline: none;
+      border-radius: 12px;
+      transition: transform 0.13s;
+    }
+    nav.kinder-menu a:focus, nav.kinder-menu a:hover {
+      transform: scale(1.12);
+    }
+    .menu-icoon {
+      width: 72px;
+      height: 72px;
+      object-fit: contain;
+      border-radius: 16px;
+      background: #fff9d5;
+      box-shadow: 0 2px 7px #ffe17e25;
+      border: 2.2px solid #ffe05e;
+      transition: box-shadow 0.13s, border-color 0.13s, width 0.2s, height 0.2s;
+      display: block;
+    }
+    nav.kinder-menu a:focus .menu-icoon,
+    nav.kinder-menu a:hover .menu-icoon {
+      box-shadow: 0 5px 16px #ffe17e55;
+      border-color: #ffbe23;
+    }
+
+    .spacer-begroeting-menu { height: 38px; }
+
+    /* Gebeden cards */
+    .container-gebeden {
+      max-width: 650px;
+      margin: 0 auto;
+      padding: 0 12px 44px 12px;
+    }
+    .gebed-card {
+      background: #fff6e2;
+      border-radius: 22px;
+      box-shadow: 0 2px 8px #0002;
+      margin-bottom: 22px;
+      padding: 20px 18px;
+      opacity: 1;
+      transition: opacity 0.4s, max-height 0.4s;
+      position: relative;
+    }
+    .gebed-card.fade {
+      opacity: 0;
+      max-height: 0 !important;
+      padding: 0 18px;
+      margin-bottom: 0;
+      overflow: hidden;
+    }
+    .gebed-titel {
+      color: #795020;
+      font-size: 1.13em;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    .gebed-tekst {
+      color: #46351F;
+      font-size: 1em;
+      line-height: 1.45;
+      margin-bottom: 15px;
+    }
+    .gebed-punten {
+      display: inline-block;
+      background: #d8ffdf;
+      color: #20641e;
+      border-radius: 8px;
+      padding: 2px 11px;
+      font-size: 0.95em;
+      margin-right: 10px;
+      margin-bottom: 7px;
+    }
+    .gebed-btn {
+      background: #7bb235;
+      color: white;
+      border: none;
+      border-radius: 13px;
+      padding: 11px 0;
+      width: 100%;
+      font-size: 1em;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .gebed-btn:disabled {
+      background: #d8ffdf;
+      color: #888;
+      cursor: default;
+    }
+
+    .photeinos-gif {
+      position: fixed;
+      left: 0;
+      bottom: 50px;
+      width: 110px;
+      height: 110px;
+      z-index: 1000;
+      display: none;
+      pointer-events: none;
+      animation: photeinosInOut 2.2s linear forwards;
+    }
+    @keyframes photeinosInOut {
+      0%   { transform: translateX(-120%);}
+      15%  { transform: translateX(12%);}
+      80%  { transform: translateX(10%);}
+      100% { transform: translateX(-120%);}
     }
   </style>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-
-  <!-- Laad de header met begroeting en menubalk -->
-  <div id="header-container"></div>
-
-  <!-- Video met tekstballon -->
-  <div class="video-container">
-    <video autoplay muted loop>
-      <source src="../videos/photeinos.mp4" type="video/mp4">
-      Je browser ondersteunt geen video.
-    </video>
-    <div class="talk-overlay" id="talk-text">
-      Dag <strong id="kind-naam"></strong>! Wat wil je vandaag doen?<br><br>
-      Je hebt al <strong id="punten-aantal"></strong> lichtjes. Verdien meer door je 
-      <em>dagelijkse gebeden</em> te doen, je <em>dagboek</em> in te vullen en 
-      <em>catecheselessen</em> te volgen.<br><br>
-      Vergeet niet ook alle knoppen hierboven eens te verkennen – er valt overal iets leuks te ontdekken!
+  <!-- Bovenste rij: ster, begroeting, vlam, uitloggen -->
+  <div class="bovenrij">
+    <div class="links">
+      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_wave.gif" alt="Photeinos zwaait" class="photeinos-wave-img" draggable="false">
+      <span class="begroeting" id="groet-tekst">Hallo, kind!</span>
+    </div>
+    <div class="rechts">
+      <div class="puntenvlam-balk">
+        <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_vlam.png" alt="Vlam" class="puntenvlam-img" draggable="false">
+        <div id="punten-teller" class="punten-teller-balk">…</div>
+      </div>
+      <button class="uitlog-kind-btn" onclick="uitloggenKind()">Uitloggen</button>
     </div>
   </div>
 
-  <script src="../common/layout.js"></script>
+  <div class="spacer-begroeting-menu"></div>
+
+  <!-- Menubalk -->
+  <nav class="kinder-menu">
+    <a href="startpagina.html" title="Startpagina">
+      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_home.png" alt="Startpagina" class="menu-icoon">
+    </a>
+    <a href="gebeden.html" title="Ik bid">
+      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_bid.png" alt="Ik bid" class="menu-icoon">
+    </a>
+    <a href="catechese.html" title="Catechese">
+      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/catechese.png" alt="Catechese" class="menu-icoon">
+    </a>
+    <a href="heiligen.html" title="Heiligen">
+      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_heiligen.png" alt="Heiligen" class="menu-icoon">
+    </a>
+    <a href="bijbelverhalen.html" title="Bijbelverhalen">
+      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_bijbel.png" alt="Bijbelverhalen" class="menu-icoon">
+    </a>
+    <a href="spelletjes.html" title="Spelletjes">
+      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_spelletjes.png" alt="Spelletjes" class="menu-icoon">
+    </a>
+    <a href="school.html" title="School">
+      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_school.png" alt="School" class="menu-icoon">
+    </a>
+  </nav>
+
+  <div class="container-gebeden" id="gebedenLijst">
+    <!-- Gebeden worden hier geladen -->
+    <div id="loadingMsg" style="font-size:1.2em;color:#888;text-align:center;margin:28px 0;">Laden...</div>
+  </div>
+
+  <img id="photeinosGif" class="photeinos-gif" src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_kiekeboeduim.gif" alt="Photeinos duim">
+
   <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-      // Naam en punten ophalen uit Firestore (layout.js regelt login check)
-      const naamSpan = document.getElementById("kind-naam");
-      const puntenSpan = document.getElementById("punten-aantal");
+    // Random pastel achtergrond bij laden
+    (function(){
+      const pastelKleuren = [
+        'var(--pastel1)', 'var(--pastel2)', 'var(--pastel3)', 'var(--pastel4)',
+        'var(--pastel5)', 'var(--pastel6)', 'var(--pastel7)', 'var(--pastel8)',
+        'var(--pastel9)', 'var(--pastel10)', 'var(--pastel11)', 'var(--pastel12)',
+        'var(--pastel13)', 'var(--pastel14)', 'var(--pastel15)', 'var(--pastel16)'
+      ];
+      const colorIndex = Math.floor(Math.random() * pastelKleuren.length);
+      document.body.style.background = pastelKleuren[colorIndex];
+    })();
 
-      if (window.kindNaam) {
-        naamSpan.textContent = window.kindNaam;
-      } else {
-        naamSpan.textContent = "Kind";
+    // Haal naam uit localStorage
+    const kindNaam = localStorage.getItem("ingelogdKindVoornaam") || "Kind";
+    function welkomstGroet() {
+      const uur = new Date().getHours();
+      if (uur >= 6 && uur <= 11) return "Goeiemorgen";
+      if (uur >= 12 && uur <= 16) return "Goeiemiddag";
+      if (uur >= 17 && uur <= 22) return "Goeieavond";
+      return "Hallo";
+    }
+    // FIX: backticks gebruiken
+    document.getElementById("groet-tekst").textContent = `${welkomstGroet()}, ${kindNaam}!`;
+
+    function uitloggenKind() {
+      localStorage.removeItem("kindIngelogd");
+      localStorage.removeItem("ingelogdKindId");
+      localStorage.removeItem("ingelogdKindVoornaam");
+      localStorage.removeItem("kindAvatarURL");
+      localStorage.removeItem("kindPunten");
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html";
+    }
+
+    // ==== FIREBASE CONFIG EN PUNTEN/GEDEDEN OPHALEN ====
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const parochieId = localStorage.getItem("ingelogdeParochie");
+    const ouderLogin = localStorage.getItem("loginKeuze");
+    const kindId = localStorage.getItem("ingelogdKindId");
+
+    // Laad punten (en update live)
+    async function laadPunten() {
+      const teller = document.getElementById("punten-teller");
+      if (!parochieId || !ouderLogin || !kindId) {
+        teller.textContent = "…";
+        return;
+      }
+      try {
+        const kindDoc = await db.collection("parochies")
+          .doc(parochieId)
+          .collection("leden")
+          .doc(ouderLogin)
+          .collection("kinderen")
+          .doc(kindId)
+          .get();
+        let punten = 0;
+        if (kindDoc.exists) {
+          punten = kindDoc.data().punten || 0;
+        }
+        teller.textContent = punten;
+        teller.style.transform = 'scale(1.18)';
+        setTimeout(() => { teller.style.transform = 'scale(1)'; }, 180);
+      } catch {
+        teller.textContent = "…";
+      }
+    }
+    laadPunten();
+
+    // Laad gebeden uit Firestore
+    async function laadGebeden() {
+      const lijst = document.getElementById('gebedenLijst');
+      lijst.innerHTML = '<div id="loadingMsg" style="font-size:1.2em;color:#888;text-align:center;margin:28px 0;">Laden...</div>';
+      let gebeden = [];
+      try {
+        const doc = await db.collection("gebedenboek").doc("dagschema").get();
+        if (doc.exists && Array.isArray(doc.data().blocks)) {
+          gebeden = doc.data().blocks;
+        }
+      } catch(e) {
+        lijst.innerHTML = '<div style="color:red;text-align:center;margin:28px 0;">Kan gebeden niet laden: ' + e.message + '</div>';
+        return;
       }
 
-      if (window.kindPunten !== undefined) {
-        puntenSpan.textContent = window.kindPunten;
-      } else {
-        puntenSpan.textContent = "0";
+      // Gebedenstatus per dag ophalen
+      const today = new Date().toISOString().slice(0,10); // 'YYYY-MM-DD'
+      let statusData = {};
+      try {
+        const statDoc = await db
+          .collection("parochies").doc(parochieId)
+          .collection("leden").doc(ouderLogin)
+          .collection("kinderen").doc(kindId)
+          .collection("gebeden_status").doc(today)
+          .get();
+        if (statDoc.exists) statusData = statDoc.data() || {};
+      } catch {}
+
+      // Maak cards
+      lijst.innerHTML = '';
+      for (const blok of gebeden) {
+        const checked = !!statusData[blok.id];
+        lijst.appendChild(maakGebedCard(blok, checked));
       }
-    });
+    }
+
+    function toonPhoteinosGif() {
+      const gif = document.getElementById('photeinosGif');
+      gif.style.display = 'block';
+      gif.style.animation = 'none';
+      void gif.offsetWidth;
+      gif.style.animation = 'photeinosInOut 2.2s linear forwards';
+      setTimeout(() => { gif.style.display = 'none'; }, 2200);
+    }
+
+    // Kaart voor elk gebed
+    function maakGebedCard(gebed, checked) {
+      const card = document.createElement('div');
+      card.className = 'gebed-card';
+      card.id = gebed.id;
+
+      // Puntenbadge (FIX: backticks)
+      const puntenBadge = document.createElement('span');
+      puntenBadge.className = 'gebed-punten';
+      puntenBadge.textContent = `+${gebed.punten} punt${gebed.punten > 1 ? 'en' : ''}`;
+      card.appendChild(puntenBadge);
+
+      // Titel
+      const titel = document.createElement('div');
+      titel.className = 'gebed-titel';
+      titel.textContent = gebed.titel;
+      card.appendChild(titel);
+
+      // Tekst
+      const tekst = document.createElement('div');
+      tekst.className = 'gebed-tekst';
+      tekst.textContent = gebed.tekst;
+      card.appendChild(tekst);
+
+      // Button
+      const btn = document.createElement('button');
+      btn.className = 'gebed-btn';
+      btn.textContent = checked ? "✔ Gedaan" : 'Ik heb gebeden!';
+      btn.disabled = checked;
+      btn.onclick = async function() {
+        if (btn.disabled) return;
+        btn.disabled = true;
+        card.classList.add('fade');
+        // Zet gebed als gedaan voor vandaag
+        const today = new Date().toISOString().slice(0,10);
+        await db.collection("parochies").doc(parochieId)
+          .collection("leden").doc(ouderLogin)
+          .collection("kinderen").doc(kindId)
+          .collection("gebeden_status").doc(today)
+          .set({ [gebed.id]: true }, { merge: true });
+        // Update punten in Firestore
+        await db.collection("parochies").doc(parochieId)
+          .collection("leden").doc(ouderLogin)
+          .collection("kinderen").doc(kindId)
+          .update({ punten: firebase.firestore.FieldValue.increment(gebed.punten) });
+        // Update teller (live)
+        laadPunten();
+        toonPhoteinosGif();
+        setTimeout(() => card.remove(), 600);
+      };
+      card.appendChild(btn);
+
+      // Automatisch wegfade als al gedaan
+      if (checked) {
+        setTimeout(() => card.remove(), 1100);
+      }
+      return card;
+    }
+
+    // Start!
+    laadGebeden();
   </script>
 </body>
 </html>
