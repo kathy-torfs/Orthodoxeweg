@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Ik bid – Orthodoxe Kinderpagina</title>
-  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
+  <title>Startpagina – Orthodoxe Kinderpagina</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
 
   <style>
     :root{
@@ -15,232 +15,166 @@
       --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
     }
     body{
-      margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
+      margin:0; font-family:"Comic Sans MS", Arial, sans-serif; color:#333;
       min-height:100vh; background:var(--pastel1); transition:background .6s; overflow-x:hidden;
     }
 
-    /* Pagina-inhoud (onder de herbruikbare header) */
-    .page-container{ max-width:650px; margin:0 auto; padding:0 12px 44px 12px; }
-
-    /* Gebed-cards */
-    .gebed-card{
-      background:#fff6e2; border-radius:22px; box-shadow:0 2px 8px #0002;
-      margin-bottom:22px; padding:20px 18px; position:relative; opacity:1;
-      transition:opacity .4s, max-height .4s, padding .3s, margin .3s;
-    }
-    .gebed-card.fade{ opacity:0; max-height:0!important; padding:0 18px; margin-bottom:0; overflow:hidden; }
-
-    .gebed-titel{ color:#795020; font-size:1.13em; font-weight:bold; margin-bottom:8px; }
-    .gebed-tekst{ color:#46351F; font-size:1em; line-height:1.45; margin-bottom:15px; }
-
-    .gebed-punten{
-      display:inline-block; background:#d8ffdf; color:#20641e; border-radius:8px;
-      padding:2px 11px; font-size:.95em; margin-right:10px; margin-bottom:7px;
+    /* === Pagina-inhoud === */
+    .page{
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 24px 16px 64px 16px;
     }
 
-    .gebed-btn{
-      background:#7bb235; color:#fff; border:none; border-radius:13px; padding:11px 0;
-      width:100%; font-size:1em; font-weight:bold; cursor:pointer; transition:background .2s;
+    /* Video-kaart */
+    .intro-video-wrap{
+      position: relative;            /* nodig voor overlay */
+      background: #ffffff;
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.12);
+      overflow: hidden;
+      margin: 18px auto 10px auto;
+      aspect-ratio: 16/9;            /* nette verhouding */
+      max-width: 860px;
     }
-    .gebed-btn:hover{ background:#6aa12c; }
-    .gebed-btn:disabled{ background:#d8ffdf; color:#888; cursor:default; }
+    .intro-video-wrap video{
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      background: #000;              /* zwart zolang video laadt */
+    }
 
-    /* Klein “duim”-gifje (zoals op je eerdere pagina) */
-    .photeinos-gif{
-      position:fixed; left:0; bottom:50px; width:110px; height:110px; z-index:1000;
-      display:none; pointer-events:none; animation:photeinosInOut 2.2s linear forwards;
+    /* Tekstballon links‑boven over de video */
+    .talk-overlay{
+      position: absolute;
+      left: 4%;
+      top: 6%;
+      max-width: 48ch;
+      background: rgba(255,255,255,.96);
+      border-radius: 14px;
+      border: 2px solid #e9e9e9;
+      box-shadow: 0 10px 30px rgba(0,0,0,.15);
+      padding: 12px 14px;
+      font-family:"Comic Sans MS", Arial, sans-serif;
+      color:#1f2937;
+      z-index: 3;
     }
-    @keyframes photeinosInOut{
-      0%{transform:translateX(-120%);} 15%{transform:translateX(12%);}
-      80%{transform:translateX(10%);} 100%{transform:translateX(-120%);}
+    .talk-overlay .hoofd{
+      margin:0 0 4px 0;
+      font-weight:700;
+      color:#1e40af;
+      font-size:1.02em;
+    }
+    .talk-overlay .tekst{
+      margin:0;
+      line-height:1.45;
+    }
+    .talk-overlay .tekst b{ color:#0b7a27; }
+    .talk-overlay .tip{
+      display:block; margin-top:8px; color:#6b7280; font-size:.95em;
+    }
+
+    /* CTA knopje */
+    .intro-cta{
+      text-align:center;
+      margin: 10px 0 28px 0;
+    }
+    .intro-cta .btn{
+      appearance:none; border:0; border-radius:999px; padding:10px 16px;
+      background:#eaf2ff; color:#1e40af; font-weight:700; cursor:pointer;
+      box-shadow:0 2px 8px rgba(30,64,175,.15);
+    }
+    .intro-cta .btn:active{ transform: translateY(1px); }
+
+    /* Responsief */
+    @media (max-width: 900px){
+      .talk-overlay{ left:5%; top:5%; max-width:80%; }
+    }
+    @media (max-width: 560px){
+      .talk-overlay{ left:4%; top:4%; max-width:88%; padding:10px 12px; }
     }
   </style>
 
-  <!-- Firebase compat (zelfde versie als elders) -->
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
-
-  <!-- Kinder lay-out (laadt & bewaakt header/menubalk/veiligheid/punten) -->
+  <!-- De layout loader zorgt voor beveiliging + header/menubalk + Firebase init -->
   <script defer src="common/layout.js"></script>
 </head>
 <body>
-  <!-- Herbruikbare header wordt hier ingeladen door layout.js -->
+  <!-- Herbruikbare kinder-header wordt hier door layout.js geplaatst -->
   <div id="kinder-header" data-header-src="common/header.html"></div>
 
   <!-- Pagina-inhoud -->
-  <main class="page-container">
-    <div id="gebedenLijst">
-      <div id="loadingMsg" style="font-size:1.2em;color:#888;text-align:center;margin:28px 0;">Laden...</div>
+  <main class="page">
+
+    <!-- Video met overlappende tekstballon -->
+    <section class="intro-video-wrap" aria-label="Welkomsvideo">
+      <!-- Tekstballon -->
+      <div class="talk-overlay" aria-live="polite">
+        <div class="hoofd" id="bubble-groet">Dag kind! Wat wil je vandaag doen?</div>
+        <p class="tekst">
+          Je hebt al <b id="bubble-punten">…</b> lichtjes.
+          Verdien meer door je <b>dagelijkse gebeden</b> te doen, je <b>dagboek</b> in te vullen
+          en <b>catecheselessen</b> te volgen.
+          <span class="tip">Tip: verken ook eens alle knoppen in de menubalk bovenaan!</span>
+        </p>
+      </div>
+
+      <!-- Je MP4 -->
+      <video
+        src="https://kathy-torfs.github.io/Orthodoxeweg/videos/photeinos/photeinos.mp4"
+        autoplay
+        muted
+        playsinline
+        loop
+      ></video>
+    </section>
+
+    <div class="intro-cta">
+      <button class="btn" onclick="window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});">
+        Sla de intro over
+      </button>
     </div>
+
   </main>
 
-  <!-- Optioneel: Photeinos duim-gif -->
-  <img id="photeinosGif" class="photeinos-gif" src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_kiekeboeduim.gif" alt="Photeinos duim" />
-
   <script>
-    // Pastel achtergrond (zelfde logica als elders)
+    // Zachte pastelachtergrond
     (function(){
       const pastel=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
       document.body.style.background = pastel[Math.floor(Math.random()*pastel.length)];
     })();
 
-    // Firebase init (veilig tegen dubbel-initialisatie)
-    const firebaseConfig = {
-      apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
-      authDomain:"orthodoxeweg.firebaseapp.com",
-      projectId:"orthodoxeweg",
-      storageBucket:"orthodoxeweg.appspot.com",
-      messagingSenderId:"408582263618",
-      appId:"1:408582263618:web:0a20f4bf0704989d3ceedb"
-    };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    // Persoonlijke groet in de ballon
+    (function setGroet(){
+      const naam = localStorage.getItem("ingelogdKindVoornaam") || "kind";
+      const h = new Date().getHours();
+      const groet = (h>=6&&h<=11)?"Goeiemorgen":(h>=12&&h<=16)?"Goeiemiddag":(h>=17&&h<=22)?"Goeieavond":"Hallo";
+      const el = document.getElementById("bubble-groet");
+      if (el) el.textContent = `${groet}, ${naam}! Wat wil je vandaag doen?`;
+    })();
 
-    // Wacht tot de kinder-header klaar staat + beveiliging toegepast is
-    // layout.js zou zelf de header injecteren en beveiligen.
-    document.addEventListener('DOMContentLoaded', async () => {
-      // Vraag aan layout.js om de header te plaatsen & beveiliging te checken
-      if (window.KinderLayout && typeof window.KinderLayout.mountHeader === 'function') {
-        await window.KinderLayout.mountHeader({
-          rootId: 'kinder-header',
-          headerSrc: document.getElementById('kinder-header').dataset.headerSrc,
-          active: 'gebeden' // active knop in menubalk
-        });
-      } else {
-        // Fallback: header zelf includen (als layout.js nog niet klaar is)
-        try {
-          const src = document.getElementById('kinder-header').dataset.headerSrc;
-          const html = await fetch(src, {cache:'no-cache'}).then(r=>r.text());
-          document.getElementById('kinder-header').innerHTML = html;
-        } catch(e) {
-          console.warn('Header kon niet geladen worden:', e);
-        }
-      }
+    // Live punten in de ballon (wacht tot Firebase klaar is via layout.js)
+    (function bindBubblePoints(){
+      function tryBind(){
+        if (!(window.firebase && firebase.firestore)) { setTimeout(tryBind, 150); return; }
+        const db = firebase.firestore();
+        const parochieId = localStorage.getItem("ingelogdeParochie");
+        const ouderLogin = localStorage.getItem("loginKeuze");
+        const kindId     = localStorage.getItem("ingelogdKindId");
+        const puntenEl   = document.getElementById("bubble-punten");
+        if (!parochieId || !ouderLogin || !kindId || !puntenEl) return;
 
-      // Beveiliging (als layout.js dit niet al gedaan heeft)
-      if (!localStorage.getItem('kindIngelogd') ||
-          !localStorage.getItem('ingelogdKindId') ||
-          !localStorage.getItem('loginKeuze') ||
-          !localStorage.getItem('ingelogdeParochie')) {
-        // redirect naar login van volwassenenmodus
-        window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html";
-        return;
-      }
-
-      // Gebeden laden
-      laadGebeden();
-    });
-
-    async function laadGebeden() {
-      const lijst = document.getElementById('gebedenLijst');
-      lijst.innerHTML = '<div id="loadingMsg" style="font-size:1.2em;color:#888;text-align:center;margin:28px 0;">Laden...</div>';
-
-      let gebeden = [];
-      try {
-        const doc = await db.collection("gebedenboek").doc("dagschema").get();
-        if (doc.exists && Array.isArray(doc.data().blocks)) gebeden = doc.data().blocks;
-      } catch(e) {
-        lijst.innerHTML = '<div style="color:red;text-align:center;margin:28px 0;">Kan gebeden niet laden: ' + (e.message||e) + '</div>';
-        return;
-      }
-
-      const parochieId = localStorage.getItem("ingelogdeParochie");
-      const ouderLogin = localStorage.getItem("loginKeuze");
-      const kindId    = localStorage.getItem("ingelogdKindId");
-      const today = new Date().toISOString().slice(0,10);
-
-      let statusData = {};
-      try {
-        const statDoc = await db
-          .collection("parochies").doc(parochieId)
+        const ref = db.collection("parochies").doc(parochieId)
           .collection("leden").doc(ouderLogin)
-          .collection("kinderen").doc(kindId)
-          .collection("gebeden_status").doc(today)
-          .get();
-        if (statDoc.exists) statusData = statDoc.data() || {};
-      } catch(e) {
-        // laat statusData leeg
+          .collection("kinderen").doc(kindId);
+
+        ref.onSnapshot(
+          snap => { puntenEl.textContent = snap.exists ? (snap.data().punten || 0) : 0; },
+          err  => { console.warn("Ballonpunten live lezen faalde:", err); puntenEl.textContent = "…"; }
+        );
       }
-
-      lijst.innerHTML = '';
-      for (const blok of gebeden) {
-        const done = !!statusData[blok.id];
-        lijst.appendChild(maakGebedCard(blok, done, {parochieId, ouderLogin, kindId, today}));
-      }
-    }
-
-    function toonPhoteinosGif() {
-      const gif = document.getElementById('photeinosGif');
-      if (!gif) return;
-      gif.style.display = 'block';
-      gif.style.animation = 'none';
-      // force reflow
-      void gif.offsetWidth;
-      gif.style.animation = 'photeinosInOut 2.2s linear forwards';
-      setTimeout(() => { gif.style.display = 'none'; }, 2200);
-    }
-
-    function maakGebedCard(gebed, checked, ctx) {
-      const card = document.createElement('div');
-      card.className = 'gebed-card';
-      card.id = gebed.id;
-
-      const puntenBadge = document.createElement('span');
-      puntenBadge.className = 'gebed-punten';
-      puntenBadge.textContent = `+${gebed.punten} punt${gebed.punten > 1 ? 'en' : ''}`;
-      card.appendChild(puntenBadge);
-
-      const titel = document.createElement('div');
-      titel.className = 'gebed-titel';
-      titel.textContent = gebed.titel;
-      card.appendChild(titel);
-
-      const tekst = document.createElement('div');
-      tekst.className = 'gebed-tekst';
-      tekst.textContent = gebed.tekst;
-      card.appendChild(tekst);
-
-      const btn = document.createElement('button');
-      btn.className = 'gebed-btn';
-      btn.textContent = checked ? "✔ Gedaan" : 'Ik heb gebeden!';
-      btn.disabled = checked;
-
-      btn.onclick = async function() {
-        if (btn.disabled) return;
-        btn.disabled = true;
-        card.classList.add('fade');
-
-        // Status voor vandaag zetten
-        await db.collection("parochies").doc(ctx.parochieId)
-          .collection("leden").doc(ctx.ouderLogin)
-          .collection("kinderen").doc(ctx.kindId)
-          .collection("gebeden_status").doc(ctx.today)
-          .set({ [gebed.id]: true }, { merge: true });
-
-        // Punten in Firestore verhogen
-        await db.collection("parochies").doc(ctx.parochieId)
-          .collection("leden").doc(ctx.ouderLogin)
-          .collection("kinderen").doc(ctx.kindId)
-          .update({ punten: firebase.firestore.FieldValue.increment(gebed.punten) });
-
-        // Puntenteller in de header bijwerken via layout.js (als aanwezig)
-        if (window.KinderLayout && typeof window.KinderLayout.refreshPoints === 'function') {
-          window.KinderLayout.refreshPoints();
-        }
-
-        toonPhoteinosGif();
-        setTimeout(() => card.remove(), 600);
-      };
-
-      card.appendChild(btn);
-
-      // Als al gedaan, kaartje zacht verwijderen
-      if (checked) {
-        setTimeout(() => card.remove(), 1100);
-      }
-
-      return card;
-    }
+      tryBind();
+    })();
   </script>
 </body>
 </html>
