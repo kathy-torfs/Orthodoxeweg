@@ -13,13 +13,16 @@
       --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
       --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
       --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
+      /* Fijn-afstelling voor de 'bobbing' (verticale meebeweging) */
+      --bob-amplitude: 1.2%;   /* hoe veel de tekst op/neer beweegt */
+      --bob-duration: 3.2s;    /* snelheid van de beweging */
     }
     body{
       margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
       min-height:100vh; background:var(--pastel1); transition:background .6s; overflow-x:hidden;
     }
 
-    /* Introblok met video + overlaytekst */
+    /* --- Startpagina: video met overlaytekst --- */
     .intro-wrap{
       max-width:1400px; margin:20px auto 34px auto; padding:0 2vw;
       display:flex; flex-direction:column; align-items:center; gap:10px;
@@ -37,50 +40,54 @@
       width:100%; height:100%; object-fit:cover; display:block;
     }
 
-    /* Overlaytekst meebewegen met ballon */
+    /* Transparante overlaytekst links-boven */
     .intro-text{
       position:absolute;
       top:1.5%;
-      left:1.5%;
+      left:2.5%;      /* iets naar rechts zodat het beter in de ballon blijft */
       right:20%;
       background:transparent;
       border:none;
       padding:0;
-      font-size:clamp(12px, 1.25vw, 15px);
+      /* Tekst iets kleiner en responsief */
+      font-size:clamp(.85rem, 1.2vw, 1rem);
       line-height:1.35;
-      color:#111;
-      text-shadow:0 2px 6px rgba(255,255,255,.65);
+      color:#000000;  /* ZWART zoals gevraagd */
+      text-shadow:0 2px 5px rgba(255,255,255,.55); /* witte gloed zodat zwart op lichte frames leesbaar blijft */
       pointer-events:none;
       white-space:pre-line;
-      transform:translate(0,0);
-      animation: driftXY 6s ease-in-out infinite;
-      animation-play-state: running;
+      /* Zacht verticaal meebewegen (bobbing) */
+      animation: bobY var(--bob-duration) ease-in-out infinite;
     }
-    @keyframes driftXY{
-      0%   { transform: translate(0%,  0%);   }
-      20%  { transform: translate(1.4%, -1.2%); }
-      40%  { transform: translate(2.2%,  0.6%); }
-      60%  { transform: translate(1.2%, -0.8%); }
-      80%  { transform: translate(0.6%,  0.4%); }
-      100% { transform: translate(0%,   0%);   }
-    }
-    .intro-text .highlight{ color:#a8ff7a; font-weight:bold; }
-    .intro-text .indent{ padding-left:0.8em; display:inline-block; }
 
-    /* Welkomblok onder video */
+    /* De eerste twee en laatste twee regels iets naar rechts inspringen */
+    .intro-text .indent{
+      display:inline-block;
+      padding-left: .35em;   /* mini-inspringing, subtiel */
+    }
+
+    .intro-text .highlight{ color:#0d7a00; font-weight:bold; }
+
+    @keyframes bobY{
+      0%   { transform: translateY(calc(var(--bob-amplitude) * -1)); }
+      50%  { transform: translateY(calc(var(--bob-amplitude) *  1)); }
+      100% { transform: translateY(calc(var(--bob-amplitude) * -1)); }
+    }
+
+    /* Welkomstblok onder de video */
     .welkom-blok{
       background:#fffce7; color:var(--donker);
       border-radius:20px; box-shadow:0 6px 24px #d7cbb133;
-      font-size:1.05em; line-height:1.7; text-align:center;
+      font-size:clamp(1rem, 1.5vw, 1.1rem);
+      line-height:1.7; text-align:center;
       max-width:950px; width:94vw; margin:8px auto 34px auto; padding:18px 16px;
     }
 
     @media (max-width:900px){
-      .intro-text{ font-size:.92rem; right:8%; top:2%; left:2%; }
-      .welkom-blok{ font-size:1.0em; }
+      .intro-text{ right:10%; top:2%; left:3%; }
     }
     @media (max-width:600px){
-      .intro-text{ font-size:.88rem; right:6%; top:2.5%; left:3%; }
+      .intro-text{ right:8%; top:2.5%; left:3.5%; }
     }
   </style>
 
@@ -88,28 +95,30 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 
-  <!-- Kinder lay-out -->
+  <!-- Kinder lay-out: laadt header.html + beveiliging + live puntenteller -->
   <script defer src="common/layout.js"></script>
 </head>
 <body>
-  <!-- Header -->
+  <!-- Header (begroeting + vlam + menubalk) wordt hier ingeladen -->
   <div id="kinder-header" data-header-src="common/header.html"></div>
 
-  <!-- Intro met video + overlaytekst -->
+  <!-- Intro met video + transparante overlaytekst -->
   <section class="intro-wrap">
     <div class="video-frame">
       <video id="photeinosVideo"
              src="https://kathy-torfs.github.io/Orthodoxeweg/videos/photeinos.mp4"
              autoplay muted playsinline loop
              onloadeddata="this.play().catch(()=>{})"></video>
+
       <img id="videoFallback"
            src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_wave.gif"
            alt="Photeinos zwaait" style="display:none" />
+
       <div class="intro-text" id="introText"></div>
     </div>
   </section>
 
-  <!-- Welkomtekst -->
+  <!-- Korte welkomsttekst onder de video -->
   <div class="welkom-blok">
     Verdien <strong>lichtjes</strong> door je <strong>dagelijkse gebeden</strong> te doen,
     je <strong>dagboek</strong> in te vullen en <strong>catecheselessen</strong> te volgen.
@@ -117,11 +126,13 @@
   </div>
 
   <script>
+    // Zachte pastelachtergrond
     (function(){
       const p = ['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
       document.body.style.background = p[Math.floor(Math.random()*p.length)];
     })();
 
+    // Start als header+firebase klaar zijn
     document.addEventListener('DOMContentLoaded', () => {
       startWhenReady();
     });
@@ -144,6 +155,7 @@
       const ouderLogin = localStorage.getItem('loginKeuze');
       const kindId     = localStorage.getItem('ingelogdKindId');
 
+      // Huidige punten ophalen (header heeft al live teller; dit is voor de intro)
       let punten = 0;
       if (parochieId && ouderLogin && kindId) {
         try{
@@ -151,23 +163,28 @@
             .collection('leden').doc(ouderLogin)
             .collection('kinderen').doc(kindId).get();
           punten = snap.exists ? (snap.data().punten || 0) : 0;
-        }catch(e){}
+        }catch(e){ /* laat 0 staan */ }
       }
 
+      // Fallback als video niet speelt
       const vid = document.getElementById('photeinosVideo');
       const fallback = document.getElementById('videoFallback');
       vid.addEventListener('error', ()=> { vid.style.display='none'; fallback.style.display='block'; });
+      vid.addEventListener('stalled', ()=> { /* optioneel fallback */ });
 
-      const lines = [
-        `<span class="indent">Dag ${naam}!</span>`,
+      // Tekstregels — 1,2,6,7 krijgen een extra inspringing
+      const regels = [
+        `<span class="indent">Dag <span class="highlight">${naam}</span>!</span>`,
         `<span class="indent">Wat wil je vandaag doen?</span>`,
-        `Je hebt al ${punten} lichtjes.`,
-        `Verdien meer door je dagelijkse gebeden te doen`,
-        `je dagboek in te vullen en`,
-        `<span class="indent">catecheselessen te volgen.</span>`,
-        `<span class="indent">Verken zeker alle knoppen in de menubalk! ✨</span>`
+        `Je hebt al <span class="highlight">${punten}</span> lichtjes.`,
+        `Verdien meer door je dagelijkse gebeden te doen,`,
+        `je dagboek in te vullen en catecheselessen te volgen.`,
+        `<span class="indent">Verken zeker alle knoppen in de menubalk!</span>`,
+        `<span class="indent">Veel plezier! ✨</span>`
       ];
-      document.getElementById('introText').innerHTML = lines.join('\n');
+
+      // Zet als aparte regels (white-space: pre-line zorgt voor echte regelafbreking)
+      document.getElementById('introText').innerHTML = regels.join('\n');
     }
   </script>
 </body>
