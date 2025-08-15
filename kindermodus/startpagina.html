@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Welkom – Orthodoxe Kinderpagina</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
+
   <style>
     :root{
       --primair:#7bb235; --donker:#67510C;
@@ -18,74 +19,78 @@
       min-height:100vh; background:var(--pastel1); overflow-x:hidden;
     }
 
-    /* ============= Hero ============= */
+    /* Verstop de menubalk die in header.html zit (alleen op deze pagina) */
+    #kinder-header nav.kinder-menu { display:none !important; }
+
+    /* Center podium */
+    .stage{
+      max-width:1100px; margin: 18px auto 40px; padding: 0 2vw;
+      display:grid; grid-template-columns: 1fr; place-items:center;
+      gap: 18px;
+    }
+
+    /* Photeinos + praatwolkje */
     .hero{
-      position:relative;
-      max-width:1200px; margin:20px auto 40px; padding:0 2vw;
-      display:grid; grid-template-columns:1.05fr .95fr; gap:24px; align-items:center;
+      position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center;
     }
-    .card{
-      background:#fffef9; border:1px solid #ede5c7; border-radius:22px;
-      box-shadow:0 10px 26px #00000012; padding:22px;
-    }
-    .groet{
-      color:var(--primair); font-size:1.8em; font-weight:bold; margin:0 0 6px 0;
-      text-shadow:0 2px 10px #b3d9ff33;
-    }
-    .sub{
-      color:#6b7280; margin:.2rem 0 1rem 0; font-weight:600;
-    }
-    .knoppen{
-      display:flex; gap:12px; flex-wrap:wrap; margin-top:10px;
-    }
-    .cta{
-      appearance:none; border:0; border-radius:14px; padding:12px 16px;
-      background:#7bb235; color:#fff; font-weight:bold; text-decoration:none;
-      box-shadow:0 6px 18px #7bb2353a; transition:transform .12s ease;
-    }
-    .cta:hover{ transform:translateY(-1px); }
-    .cta.dark{ background:#111827; box-shadow:0 6px 18px #11182730; }
-
-    .photeinos{
-      display:flex; align-items:center; justify-content:center;
-    }
-    .photeinos img{
-      width:min(480px,86vw); height:auto; object-fit:contain; display:block;
+    .hero img.photeinos{
+      width:min(420px, 80vw); height:auto; object-fit:contain;
+      user-drag:none; -webkit-user-drag:none; display:block;
       filter: drop-shadow(0 18px 28px #00000022);
-      user-drag:none; -webkit-user-drag:none;
+    }
+    .bubble{
+      margin-top: -8px;
+      background:#fffef9; border:1px solid #efe3c2; color:#3b2f1b;
+      border-radius:18px; padding:14px 16px; text-align:center; font-weight:bold;
+      box-shadow:0 10px 26px #00000012;
+      position:relative; max-width: 680px;
+    }
+    .bubble:after{
+      content:""; position:absolute; left:50%; transform:translateX(-50%);
+      top:100%; width:0; height:0; border: 12px solid transparent; border-top-color:#fffef9;
     }
 
-    /* ============= Zachte achtergrond-animatie ============= */
-    .sparkles{
-      position:fixed; inset:0; pointer-events:none; z-index:-1;
-      opacity:.45;
+    /* Keuze-blokken (de “gesmeten” tegels) */
+    .choices{
+      display:grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap:16px;
+      width:100%; max-width:1100px;
     }
-    .sparkles span{
-      position:absolute; font-size:16px; animation:float 18s linear infinite;
-      filter: drop-shadow(0 2px 4px #ffffff80);
-    }
-    @keyframes float{
-      0%   { transform: translateY(110vh) translateX(0); opacity:0; }
-      10%  { opacity:.9; }
-      100% { transform: translateY(-10vh) translateX(0); opacity:0; }
-    }
-    /* posities & snelheidsvariatie */
-    .sparkles span:nth-child(1){ left:6%;  animation-duration:22s; }
-    .sparkles span:nth-child(2){ left:18%; animation-duration:19s; }
-    .sparkles span:nth-child(3){ left:31%; animation-duration:24s; }
-    .sparkles span:nth-child(4){ left:44%; animation-duration:20s; }
-    .sparkles span:nth-child(5){ left:57%; animation-duration:23s; }
-    .sparkles span:nth-child(6){ left:70%; animation-duration:21s; }
-    .sparkles span:nth-child(7){ left:83%; animation-duration:25s; }
+    @media (max-width:1000px){ .choices{ grid-template-columns: repeat(3, 1fr);} }
+    @media (max-width:720px) { .choices{ grid-template-columns: repeat(2, 1fr);} }
+    @media (max-width:480px) { .choices{ grid-template-columns: 1fr;} }
 
-    /* ============= Responsief ============= */
-    @media (max-width:1000px){
-      .hero{ grid-template-columns:1fr; gap:16px; }
-      .photeinos{ order:-1; }
+    .tile{
+      background:#fff9d5; border:2.2px solid #ffe05e; border-radius:18px;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      padding:12px 10px; text-decoration:none; color:#4A3B20; font-weight:bold;
+      box-shadow:0 6px 16px #ffe17e44; transform: translateY(-24px) scale(.94); opacity:0;
+      animation: dropin .72s cubic-bezier(.2,.9,.2,1.2) forwards;
+    }
+    .tile:hover{ transform: translateY(-2px) scale(1.02); transition:transform .12s ease; }
+    .tile img{
+      width:82px; height:82px; object-fit:contain; border-radius:14px;
+      background:#fff; border:1px solid #ffe0b5; margin-bottom:8px; display:block;
+    }
+    .tile span{ display:block; text-align:center; }
+
+    /* Stagger: elke volgende tegel iets later “gesmeten” */
+    .tile:nth-child(1){ animation-delay:.05s; }
+    .tile:nth-child(2){ animation-delay:.12s; }
+    .tile:nth-child(3){ animation-delay:.19s; }
+    .tile:nth-child(4){ animation-delay:.26s; }
+    .tile:nth-child(5){ animation-delay:.33s; }
+    .tile:nth-child(6){ animation-delay:.40s; }
+    .tile:nth-child(7){ animation-delay:.47s; }
+    .tile:nth-child(8){ animation-delay:.54s; }
+
+    @keyframes dropin{
+      0%   { transform: translateY(-26px) scale(.92); opacity:0; }
+      60%  { transform: translateY(4px)  scale(1.02); opacity:1; }
+      100% { transform: translateY(0)    scale(1.00); opacity:1; }
     }
   </style>
 
-  <!-- Firebase (mag dubbel met header; compat is hier oké) -->
+  <!-- Firebase (compat) -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 
@@ -96,29 +101,43 @@
   <!-- Herbruikbare header -->
   <div id="kinder-header" data-header-src="common/header.html"></div>
 
-  <!-- Zachte sparkles-achtergrond -->
-  <div class="sparkles" aria-hidden="true">
-    <span>✨</span><span>✨</span><span>✨</span><span>✨</span>
-    <span>✨</span><span>✨</span><span>✨</span>
-  </div>
-
-  <!-- Hero -->
-  <section class="hero">
-    <div class="card">
-      <h1 class="groet" id="groetPersoonlijk">Hallo, kind!</h1>
-      <div class="sub" id="groetSub">Fijn dat je er bent 💛</div>
-      <p style="margin:6px 0 0 0;">
-        Kies iets leuks om te doen: bidden, leren of spelen.
-        Elke stap geeft je lichtjes ✨
-      </p>
-      <div class="knoppen">
-        <a class="cta" href="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/gebeden.html">🙏 Ik wil bidden</a>
-        <a class="cta dark" href="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/spelletjes.html">🎮 Ik wil spelen</a>
-      </div>
+  <!-- Podium -->
+  <section class="stage">
+    <div class="hero">
+      <img class="photeinos" src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_wave.gif" alt="Photeinos zwaait" draggable="false" />
+      <div class="bubble" id="welkomTekst">Dag kind, wat wil je vandaag doen?</div>
     </div>
 
-    <div class="photeinos">
-      <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_wave.gif" alt="Photeinos zwaait" draggable="false" />
+    <div class="choices">
+      <a class="tile" href="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/gebeden.html" title="Ik bid">
+        <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_bid.png" alt="">
+        <span>Ik wil bidden</span>
+      </a>
+      <a class="tile" href="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/catechese.html" title="Catechese">
+        <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/catechese.png" alt="">
+        <span>Catechese</span>
+      </a>
+      <a class="tile" href="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/heiligen.html" title="Heiligen">
+        <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_heiligen.png" alt="">
+        <span>Heiligen</span>
+      </a>
+      <a class="tile" href="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/bijbelverhalen.html" title="Bijbelverhalen">
+        <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_bijbel.png" alt="">
+        <span>Bijbelverhalen</span>
+      </a>
+      <a class="tile" href="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/spelletjes.html" title="Spelletjes">
+        <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_spelletjes.png" alt="">
+        <span>Spelletjes</span>
+      </a>
+      <a class="tile" href="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/school.html" title="School">
+        <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_school.png" alt="">
+        <span>School</span>
+      </a>
+      <a class="tile" href="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/dagboek.html" title="Dagboek">
+        <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/dagboek.png" alt="">
+        <span>Dagboek</span>
+      </a>
+      <!-- Startpagina-tegel laten we weg (we zitten er al). Voeg toe als je wil. -->
     </div>
   </section>
 
@@ -129,15 +148,11 @@
       document.body.style.background = p[Math.floor(Math.random()*p.length)];
     })();
 
-    // Persoonlijk zinnetje (naam + tijd van de dag)
+    // Praatwolkje op naam
     (function(){
       const naam = localStorage.getItem("ingelogdKindVoornaam") || "kind";
-      const h = new Date().getHours();
-      const groet = (h>=6&&h<=11) ? "Goeiemorgen" : (h<=16) ? "Goeiemiddag" : (h<=22) ? "Goeieavond" : "Hallo";
-      const g1 = document.getElementById('groetPersoonlijk');
-      const g2 = document.getElementById('groetSub');
-      if (g1) g1.textContent = `${groet}, ${naam}!`;
-      if (g2) g2.textContent = "Fijn dat je er bent 💛";
+      const el = document.getElementById("welkomTekst");
+      if (el) el.textContent = `Dag ${naam}, wat wil je vandaag doen?`;
     })();
   </script>
 </body>
