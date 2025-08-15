@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
@@ -19,9 +19,17 @@
       min-height:100vh; background:var(--pastel1); transition:background .6s; overflow-x:hidden;
     }
 
-    /* Intro: video met overlay-tekst */
+    /* Menubalk verbergen tot na intro */
+    nav.kinder-menu{
+      opacity:0; transform:translateY(-10px); pointer-events:none; transition:opacity .4s, transform .4s;
+    }
+    .show-menu nav.kinder-menu{
+      opacity:1; transform:translateY(0); pointer-events:auto;
+    }
+
+    /* Introblok */
     .intro-wrap{
-      max-width:1000px; margin:20px auto 30px auto; padding:0 16px;
+      max-width:1000px; margin:20px auto 40px auto; padding:0 16px;
       display:flex; align-items:center; justify-content:center; flex-direction:column; gap:14px;
     }
     .video-frame{
@@ -32,71 +40,72 @@
       width:100%; height:100%; object-fit:cover; display:block;
     }
 
-    /* Platte tekst linksboven over de video */
+    /* Platte overlay tekst */
     .intro-text{
       position:absolute;
-      top:10px;              /* zet hoger/lager indien nodig */
-      left:10px;             /* zet meer naar links/rechts indien nodig */
-      background:rgba(255,255,255,0.95);
-      color:#1f2937;
-      border:2px solid #ffe0a6;
+      top:6%;
+      left:8%;
+      background:rgba(255,255,255,0.85);
+      padding:12px 16px;
       border-radius:14px;
-      padding:10px 14px;
-      max-width:min(86%, 540px);
+      font-size:1.1em;
       line-height:1.5;
-      font-size:1.06em;
-      box-shadow:0 6px 24px rgba(0,0,0,.12);
+      max-width:75%;
+      box-shadow:0 6px 24px #00000020;
+      border:2px solid #ffe0a6;
     }
-    .intro-text .highlight{ color:var(--primair); font-weight:bold; }
+    .highlight{ color:#7bb235; font-weight:bold; }
 
-    /* Korte welkomsttekst onder de video */
+    .skip-btn{
+      margin-top:8px; background:#eff6ff; color:#1e40af; border:1px solid #93c5fd;
+      padding:8px 12px; border-radius:10px; font-weight:bold; cursor:pointer;
+    }
+    .skip-btn:hover{ background:#e0efff; }
+
+    /* Welkom-blok */
     .welkom-blok{
       background:#fffce7; color:var(--donker);
       border-radius:20px; box-shadow:0 6px 24px #d7cbb133;
       font-size:1.1em; line-height:1.7; text-align:center;
-      max-width:900px; width:93vw; margin:6px auto 34px auto; padding:22px 20px;
+      max-width:900px; width:93vw; margin:10px auto 34px auto; padding:22px 20px;
+    }
+
+    @media (max-width:700px){
+      .intro-text{ top:4%; font-size:1em; }
     }
   </style>
 
   <!-- Firebase compat -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
-  <!-- Kinder lay-out: laadt header.html + beveiliging + live puntenteller -->
+
+  <!-- Kinder lay-out -->
   <script defer src="common/layout.js"></script>
 </head>
 <body>
-  <!-- Header wordt hier ingeladen -->
+  <!-- Header wordt ingeladen -->
   <div id="kinder-header" data-header-src="common/header.html"></div>
 
-  <!-- Intro met video + overlay tekst -->
+  <!-- Intro met video + tekst -->
   <section class="intro-wrap">
     <div class="video-frame">
-      <!-- JOUW VIDEO (nu met loop) -->
       <video id="photeinosVideo"
              src="https://kathy-torfs.github.io/Orthodoxeweg/videos/photeinos.mp4"
              autoplay muted playsinline loop
              onloadeddata="this.play().catch(()=>{})"></video>
 
-      <!-- Fallback-afbeelding -->
       <img id="videoFallback"
            src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_wave.gif"
            alt="Photeinos zwaait" style="display:none" />
 
-     <!-- Platte overlay tekst -->
       <div class="intro-text" id="introText">
-        <!-- Wordt gevuld via JS met naam + punten -->
-        Dag <span class="highlight">Kind</span>! <br/>
-         Wat wil je vandaag doen? <br/>
-        Je hebt al <span class="highlight">0</span> lichtjes. <br/>
-        Verdien meer door je <strong>dagelijkse gebeden</strong> te doen,<br/>
-        je <strong>dagboek</strong> in te vullen en<br/>
-        <strong>catecheselessen</strong> te volgen.<br/>
-        Verken zeker alle knoppen in de menubalk! ✨
+        <!-- Wordt gevuld via JS -->
       </div>
     </div>
+    <button class="skip-btn" id="skipIntro">Sla de intro over</button>
   </section>
 
-  <!-- Korte welkomsttekst -->
+  <!-- Welkomblok -->
   <div class="welkom-blok">
     Welkom! Je kan <strong>lichtjes</strong> verdienen door je <strong>dagelijkse gebeden</strong> te doen,
     je <strong>dagboek</strong> in te vullen en <strong>catecheselessen</strong> te volgen.
@@ -110,7 +119,6 @@
       document.body.style.background = p[Math.floor(Math.random()*p.length)];
     })();
 
-    // Start wanneer layout.js klaar is (header + security)
     document.addEventListener('DOMContentLoaded', () => {
       startWhenReady();
     });
@@ -123,10 +131,10 @@
         rootId: 'kinder-header',
         headerSrc: document.getElementById('kinder-header').dataset.headerSrc,
         active: 'start'
-      }).then(fillIntro).catch(fillIntro);
+      }).then(runIntro).catch(runIntro);
     }
 
-    async function fillIntro(){
+    async function runIntro(){
       const naam = localStorage.getItem('ingelogdKindVoornaam') || 'Kind';
       const db = firebase.firestore();
       const parochieId = localStorage.getItem('ingelogdeParochie');
@@ -143,21 +151,32 @@
         }catch(e){}
       }
 
-      // Fallback als video niet kan spelen
+      // Video fallback
       const vid = document.getElementById('photeinosVideo');
       const fallback = document.getElementById('videoFallback');
       vid.addEventListener('error', ()=> { vid.style.display='none'; fallback.style.display='block'; });
 
-      // Tekst invullen
-      const intro = document.getElementById('introText');
-      intro.innerHTML =
-        `Dag <span class="highlight">${naam}</span>! 
-          Wat wil je vandaag doen? <br/>
-         Je hebt al <span class="highlight">${punten}</span> lichtjes. 
-        Verdien meer door je <strong>dagelijkse gebeden</strong> te doen,
-         je <strong>dagboek</strong> in te vullen en 
-        <strong>catecheselessen</strong> te volgen.
-         Verken zeker alle knoppen in de menubalk! ✨`;
+      // Tekst zetten
+      const introText = document.getElementById('introText');
+      introText.innerHTML = `
+        Dag <span class="highlight">${naam}</span>!<br>
+        Wat wil je vandaag doen?<br>
+        Je hebt al <span class="highlight">${punten}</span> lichtjes.<br>
+        Verdien meer door je <strong>dagelijkse gebeden</strong> te doen,<br>
+        je <strong>dagboek</strong> in te vullen en<br>
+        <strong>catecheselessen</strong> te volgen.<br>
+        Verken zeker alle knoppen in de menubalk! ✨
+      `;
+
+      // Skipknop toont menubalk
+      document.getElementById('skipIntro').onclick = () => {
+        document.body.classList.add('show-menu');
+      };
+
+      // Automatisch menubalk tonen na 4 sec
+      setTimeout(() => {
+        document.body.classList.add('show-menu');
+      }, 4000);
     }
   </script>
 </body>
