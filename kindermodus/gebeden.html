@@ -1,180 +1,93 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Startpagina – Orthodoxe Kinderpagina</title>
-  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
+  <link rel="stylesheet" href="../common/header.css">
 
   <style>
-    :root{
-      --primair:#7bb235; --donker:#67510C;
-      --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
-      --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
-      --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
-      --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
+    body {
+      margin: 0;
+      background-color: #e6fff2;
+      font-family: "Comic Sans MS", Arial, sans-serif;
     }
-    body{
-      margin:0; font-family:"Comic Sans MS", Arial, sans-serif; color:#333;
-      min-height:100vh; background:var(--pastel1); transition:background .6s; overflow-x:hidden;
+    .video-container {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
     }
-
-    /* === Pagina-inhoud === */
-    .page{
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 24px 16px 64px 16px;
-    }
-
-    /* Video-kaart */
-    .intro-video-wrap{
-      position: relative;            /* nodig voor overlay */
-      background: #ffffff;
-      border-radius: 18px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.12);
-      overflow: hidden;
-      margin: 18px auto 10px auto;
-      aspect-ratio: 16/9;            /* nette verhouding */
-      max-width: 860px;
-    }
-    .intro-video-wrap video{
-      width: 100%;
-      height: 100%;
+    .video-container video {
+      border-radius: 12px;
+      max-width: 100%;
+      height: auto;
       display: block;
-      object-fit: cover;
-      background: #000;              /* zwart zolang video laadt */
     }
-
-    /* Tekstballon links‑boven over de video */
-    .talk-overlay{
+    .talk-overlay {
       position: absolute;
-      left: 4%;
-      top: 6%;
+      left: 0;  /* Helemaal links */
+      top: 0;   /* Helemaal bovenaan */
       max-width: 48ch;
       background: rgba(255,255,255,.96);
       border-radius: 14px;
       border: 2px solid #e9e9e9;
       box-shadow: 0 10px 30px rgba(0,0,0,.15);
       padding: 12px 14px;
-      font-family:"Comic Sans MS", Arial, sans-serif;
-      color:#1f2937;
+      font-family: "Comic Sans MS", Arial, sans-serif;
+      color: #1f2937;
       z-index: 3;
     }
-    .talk-overlay .hoofd{
-      margin:0 0 4px 0;
-      font-weight:700;
-      color:#1e40af;
-      font-size:1.02em;
+    .talk-overlay strong {
+      color: #2f855a;
     }
-    .talk-overlay .tekst{
-      margin:0;
-      line-height:1.45;
-    }
-    .talk-overlay .tekst b{ color:#0b7a27; }
-    .talk-overlay .tip{
-      display:block; margin-top:8px; color:#6b7280; font-size:.95em;
-    }
-
-    /* CTA knopje */
-    .intro-cta{
-      text-align:center;
-      margin: 10px 0 28px 0;
-    }
-    .intro-cta .btn{
-      appearance:none; border:0; border-radius:999px; padding:10px 16px;
-      background:#eaf2ff; color:#1e40af; font-weight:700; cursor:pointer;
-      box-shadow:0 2px 8px rgba(30,64,175,.15);
-    }
-    .intro-cta .btn:active{ transform: translateY(1px); }
-
-    /* Responsief */
-    @media (max-width: 900px){
-      .talk-overlay{ left:5%; top:5%; max-width:80%; }
-    }
-    @media (max-width: 560px){
-      .talk-overlay{ left:4%; top:4%; max-width:88%; padding:10px 12px; }
+    .talk-overlay em {
+      font-style: normal;
+      font-weight: bold;
+      color: #1d4ed8;
     }
   </style>
-
-  <!-- De layout loader zorgt voor beveiliging + header/menubalk + Firebase init -->
-  <script defer src="common/layout.js"></script>
 </head>
 <body>
-  <!-- Herbruikbare kinder-header wordt hier door layout.js geplaatst -->
-  <div id="kinder-header" data-header-src="common/header.html"></div>
 
-  <!-- Pagina-inhoud -->
-  <main class="page">
+  <!-- Laad de header met begroeting en menubalk -->
+  <div id="header-container"></div>
 
-    <!-- Video met overlappende tekstballon -->
-    <section class="intro-video-wrap" aria-label="Welkomsvideo">
-      <!-- Tekstballon -->
-      <div class="talk-overlay" aria-live="polite">
-        <div class="hoofd" id="bubble-groet">Dag kind! Wat wil je vandaag doen?</div>
-        <p class="tekst">
-          Je hebt al <b id="bubble-punten">…</b> lichtjes.
-          Verdien meer door je <b>dagelijkse gebeden</b> te doen, je <b>dagboek</b> in te vullen
-          en <b>catecheselessen</b> te volgen.
-          <span class="tip">Tip: verken ook eens alle knoppen in de menubalk bovenaan!</span>
-        </p>
-      </div>
-
-      <!-- Je MP4 -->
-      <video
-        src="https://kathy-torfs.github.io/Orthodoxeweg/videos/photeinos/photeinos.mp4"
-        autoplay
-        muted
-        playsinline
-        loop
-      ></video>
-    </section>
-
-    <div class="intro-cta">
-      <button class="btn" onclick="window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});">
-        Sla de intro over
-      </button>
+  <!-- Video met tekstballon -->
+  <div class="video-container">
+    <video autoplay muted loop>
+      <source src="../videos/photeinos.mp4" type="video/mp4">
+      Je browser ondersteunt geen video.
+    </video>
+    <div class="talk-overlay" id="talk-text">
+      Dag <strong id="kind-naam"></strong>! Wat wil je vandaag doen?<br><br>
+      Je hebt al <strong id="punten-aantal"></strong> lichtjes. Verdien meer door je 
+      <em>dagelijkse gebeden</em> te doen, je <em>dagboek</em> in te vullen en 
+      <em>catecheselessen</em> te volgen.<br><br>
+      Vergeet niet ook alle knoppen hierboven eens te verkennen – er valt overal iets leuks te ontdekken!
     </div>
+  </div>
 
-  </main>
-
+  <script src="../common/layout.js"></script>
   <script>
-    // Zachte pastelachtergrond
-    (function(){
-      const pastel=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
-      document.body.style.background = pastel[Math.floor(Math.random()*pastel.length)];
-    })();
+    document.addEventListener("DOMContentLoaded", async () => {
+      // Naam en punten ophalen uit Firestore (layout.js regelt login check)
+      const naamSpan = document.getElementById("kind-naam");
+      const puntenSpan = document.getElementById("punten-aantal");
 
-    // Persoonlijke groet in de ballon
-    (function setGroet(){
-      const naam = localStorage.getItem("ingelogdKindVoornaam") || "kind";
-      const h = new Date().getHours();
-      const groet = (h>=6&&h<=11)?"Goeiemorgen":(h>=12&&h<=16)?"Goeiemiddag":(h>=17&&h<=22)?"Goeieavond":"Hallo";
-      const el = document.getElementById("bubble-groet");
-      if (el) el.textContent = `${groet}, ${naam}! Wat wil je vandaag doen?`;
-    })();
-
-    // Live punten in de ballon (wacht tot Firebase klaar is via layout.js)
-    (function bindBubblePoints(){
-      function tryBind(){
-        if (!(window.firebase && firebase.firestore)) { setTimeout(tryBind, 150); return; }
-        const db = firebase.firestore();
-        const parochieId = localStorage.getItem("ingelogdeParochie");
-        const ouderLogin = localStorage.getItem("loginKeuze");
-        const kindId     = localStorage.getItem("ingelogdKindId");
-        const puntenEl   = document.getElementById("bubble-punten");
-        if (!parochieId || !ouderLogin || !kindId || !puntenEl) return;
-
-        const ref = db.collection("parochies").doc(parochieId)
-          .collection("leden").doc(ouderLogin)
-          .collection("kinderen").doc(kindId);
-
-        ref.onSnapshot(
-          snap => { puntenEl.textContent = snap.exists ? (snap.data().punten || 0) : 0; },
-          err  => { console.warn("Ballonpunten live lezen faalde:", err); puntenEl.textContent = "…"; }
-        );
+      if (window.kindNaam) {
+        naamSpan.textContent = window.kindNaam;
+      } else {
+        naamSpan.textContent = "Kind";
       }
-      tryBind();
-    })();
+
+      if (window.kindPunten !== undefined) {
+        puntenSpan.textContent = window.kindPunten;
+      } else {
+        puntenSpan.textContent = "0";
+      }
+    });
   </script>
 </body>
 </html>
