@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Orthodoxeweg – Kindermodus Dagboek</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
+  <!-- Firebase (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    :root{
+      --bg:#fff9ef; --paper:#fffdf7; --ink:#3b2f1a; --muted:#6f4e1a;
+      --brand:#7a5f35; --accent:#d28f2c; --good:#2e7d32; --bad:#c62828;
+      --chip:#f0e3c6; --chip2:#f7efd9;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; background:var(--bg); color:var(--ink);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      line-height:1.5;
+    }
+
+    /* Top header */
+    .top{
+      background:linear-gradient(90deg, var(--brand), #946f39);
+      color:#fff; padding:12px 16px;
+      display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    }
+    .top h1{margin:0; font-size:1.15rem; font-weight:700; letter-spacing:.3px}
+    .badge{
+      background:#ffffff22; border:1px solid #ffffff55; padding:4px 10px; border-radius:999px;
+      font-size:.9rem
+    }
+
+    /* Shell */
+    .wrap{
+      max-width:980px; margin:16px auto 28px; padding:0 12px;
+    }
+
+    /* Controls */
+    .controls{
+      background:var(--chip2);
+      border:1px solid #e8d7ab; border-radius:14px; padding:10px;
+      display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between;
+      box-shadow: 0 2px 10px #00000010 inset;
+    }
+    .controls .left, .controls .right{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+    .btn{
+      appearance:none; border:none; background:var(--brand); color:#fff; padding:8px 12px;
+      border-radius:10px; font-weight:700; cursor:pointer; transition:filter .15s, transform .05s;
+    }
+    .btn.secondary{ background:#b58a4b; }
+    .btn:active{ transform:translateY(1px); }
+    .btn[disabled]{ opacity:.6; cursor:not-allowed; }
+    select, .day-input{
+      background:#fff; border:1px solid #e1d3ac; padding:8px 10px; border-radius:10px; min-width:160px;
+      font-weight:600; color:var(--muted);
+    }
+    .score-chip{
+      background:var(--chip); border:1px solid #e6d5ad; border-radius:999px; padding:6px 12px; font-weight:700;
+    }
+
+    /* Card */
+    .card{
+      background:var(--paper);
+      border:1px solid #efdfb7; border-radius:18px; margin-top:14px; padding:16px;
+      box-shadow:0 6px 28px #00000012;
+    }
+    .card h2{margin:0 0 4px; font-size:1.35rem; color:#5d441f}
+    .sub{ color:#8a6a32; margin:0 0 12px; font-size:.95rem }
+
+    /* Story */
+    .story p{ margin:10px 0; }
+    .divider{ height:1px; background:#efdcb3; margin:16px 0; }
+
+    /* Quiz */
+    .q{
+      margin:12px 0;
+      padding:12px; border:1px dashed #e7d4a7; border-radius:12px; background:#fffbf1;
+    }
+    .q-title{ font-weight:800; margin-bottom:8px; }
+    .opt{
+      display:flex; gap:8px; align-items:flex-start; padding:6px 8px; border-radius:8px;
+      cursor:pointer; user-select:none;
+    }
+    .opt input{ margin-top:4px }
+    .opt:hover{ background:#f9f1db }
+    .feedback{ margin-top:6px; font-weight:700; }
+    .ok{ color:var(--good) }
+    .nok{ color:var(--bad) }
+
+    /* Footer actions */
+    .actions{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; margin-top:14px;
+    }
+    .sum{ font-weight:900; color:#5d441f }
+
+    /* Progress */
+    .progress{
+      height:10px; background:#f1e6c7; border-radius:999px; overflow:hidden;
+      box-shadow:inset 0 1px 3px #00000015;
+    }
+    .progress > span{ display:block; height:100%; background:linear-gradient(90deg, #8fbf57, #2e7d32); width:0% }
+
+    /* Small */
+    @media (max-width:640px){
+      .top h1{font-size:1rem}
+      .controls{gap:8px}
+      select{min-width:140px}
+    }
+  </style>
+</head>
+<body>
+
+  <div class="top">
+    <h1>Kinderdagboek</h1>
+    <div class="badge">Vlaams • Orthodox • 7 dagen</div>
+  </div>
+
+  <div class="wrap">
+
+    <!-- Controls -->
+    <div class="controls">
+      <div class="left">
+        <button class="btn" id="prevBtn">◀ Vorige</button>
+        <button class="btn" id="nextBtn">Volgende ▶</button>
+        <select id="daySelect" title="Kies dag">
+          <option value="1">Dag 001</option>
+          <option value="2">Dag 002</option>
+          <option value="3">Dag 003</option>
+          <option value="4">Dag 004</option>
+          <option value="5">Dag 005</option>
+          <option value="6">Dag 006</option>
+          <option value="7">Dag 007</option>
+        </select>
+      </div>
+      <div class="right">
+        <span class="score-chip">Weekscore: <span id="weekScore">0</span> / 350</span>
+      </div>
+    </div>
+
+    <!-- Story + quiz -->
+    <div class="card">
+      <h2 id="title">Dag —</h2>
+      <p class="sub" id="subtitle">VlaamsOrthodoxekinderdagboek</p>
+
+      <div id="story" class="story"></div>
+
+      <div class="divider"></div>
+
+      <div id="quiz"></div>
+
+      <div class="actions">
+        <div>
+          <button class="btn" id="checkBtn">Nakijken</button>
+          <button class="btn secondary" id="resetBtn" title="Maak opnieuw">Opnieuw</button>
+        </div>
+        <div class="sum">Score vandaag: <span id="todayScore">0</span> / 50</div>
+      </div>
+    </div>
+
+    <!-- Weekly progress -->
+    <div class="card" style="margin-top:12px">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <strong>Voortgang week</strong>
+        <span id="progressLabel">0%</span>
+      </div>
+      <div class="progress"><span id="progressBar"></span></div>
+    </div>
+
+  </div>
+
+  <script>
+    // --- Firebase init ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb",
+      measurementId: "G-C942F2NYQV"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // --- UI refs ---
+    const daySelect   = document.getElementById('daySelect');
+    const prevBtn     = document.getElementById('prevBtn');
+    const nextBtn     = document.getElementById('nextBtn');
+    const titleEl     = document.getElementById('title');
+    const subtitleEl  = document.getElementById('subtitle');
+    const storyEl     = document.getElementById('story');
+    const quizEl      = document.getElementById('quiz');
+    const checkBtn    = document.getElementById('checkBtn');
+    const resetBtn    = document.getElementById('resetBtn');
+    const todayScoreEl= document.getElementById('todayScore');
+    const weekScoreEl = document.getElementById('weekScore');
+    const progressBar = document.getElementById('progressBar');
+    const progressLbl = document.getElementById('progressLabel');
+
+    // --- Helpers ---
+    const pad3 = (n)=> String(n).padStart(3,'0');
+    const docIdFor = (n)=> `dag${pad3(n)}`;
+    const LS_PREFIX = "KINDERDAGBOEK_SCORE_"; // per dag 0..50
+
+    function renderStory(multilineText){
+      // multilineText is één string met \n (zoals we in Firestore opslaan)
+      storyEl.innerHTML = '';
+      const parts = (multilineText || '').split('\n').filter(s=>s.trim().length);
+      for(const line of parts){
+        const p = document.createElement('p');
+        p.textContent = line.trim();
+        storyEl.appendChild(p);
+      }
+    }
+
+    function renderQuiz(questions, docId){
+      quizEl.innerHTML = '';
+      (questions || []).forEach((q, idx)=>{
+        const box = document.createElement('div');
+        box.className = 'q';
+        const title = document.createElement('div');
+        title.className = 'q-title';
+        title.textContent = `Vraag ${idx+1}: ${q.vraag}`;
+        box.appendChild(title);
+
+        const name = `q_${idx}`;
+        (q.opties || []).forEach((opt, oi)=>{
+          const id = `${name}_${oi}`;
+          const label = document.createElement('label');
+          label.className = 'opt';
+          label.setAttribute('for', id);
+
+          const input = document.createElement('input');
+          input.type = 'radio';
+          input.name = name;
+          input.id = id;
+          input.value = opt;
+
+          const span = document.createElement('span');
+          span.textContent = opt;
+
+          label.appendChild(input);
+          label.appendChild(span);
+          box.appendChild(label);
+        });
+
+        const fb = document.createElement('div');
+        fb.className = 'feedback';
+        fb.id = `fb_${idx}`;
+        box.appendChild(fb);
+
+        quizEl.appendChild(box);
+      });
+
+      // Als er al een opgeslagen score is, tonen we die en markeren we feedback
+      const stored = Number(localStorage.getItem(LS_PREFIX + docId) || 0);
+      if (stored > 0) {
+        todayScoreEl.textContent = stored;
+        // we tonen enkel dat er al punten zijn, zonder antwoorddetails te lekken
+        const note = document.createElement('div');
+        note.style.marginTop = '8px';
+        note.style.fontStyle = 'italic';
+        note.style.color = '#6f4e1a';
+        note.textContent = "Je hebt deze dag al eens gemaakt. Je mag opnieuw proberen; de beste score telt.";
+        quizEl.appendChild(note);
+      } else {
+        todayScoreEl.textContent = '0';
+      }
+    }
+
+    function calcWeekScore(){
+      let sum = 0;
+      for(let d=1; d<=7; d++){
+        const key = LS_PREFIX + docIdFor(d);
+        sum += Number(localStorage.getItem(key) || 0);
+      }
+      weekScoreEl.textContent = sum;
+      const pct = Math.round((sum / 350) * 100);
+      progressBar.style.width = pct + '%';
+      progressLbl.textContent = pct + '%';
+    }
+
+    async function loadDay(dayNum){
+      const docId = docIdFor(dayNum);
+      daySelect.value = String(dayNum);
+      prevBtn.disabled = (dayNum <= 1);
+      nextBtn.disabled = (dayNum >= 7);
+
+      titleEl.textContent = 'Laden…';
+      storyEl.innerHTML = '<p style="color:#98784a">Even geduld…</p>';
+      quizEl.innerHTML  = '';
+
+      try{
+        const snap = await db.collection('VlaamsOrthodoxekinderdagboek').doc(docId).get();
+        if (!snap.exists){
+          titleEl.textContent = `Dag ${pad3(dayNum)} (niet gevonden)`;
+          storyEl.innerHTML   = '<p style="color:#b5482c">Geen gegevens voor deze dag.</p>';
+          todayScoreEl.textContent = '0';
+          return;
+        }
+        const data = snap.data();
+        titleEl.textContent = `${data.titel || `Dag ${pad3(dayNum)}`}`;
+        subtitleEl.textContent = `Document: ${docId}`;
+        renderStory(data.tekst || '');
+        renderQuiz(data.vragen || [], docId);
+        // Toon eventueel bestaande score
+        const stored = Number(localStorage.getItem(LS_PREFIX + docId) || 0);
+        todayScoreEl.textContent = stored > 0 ? stored : '0';
+      } catch(e){
+        titleEl.textContent = `Dag ${pad3(dayNum)} (fout)`;
+        storyEl.innerHTML   = `<p style="color:#b5482c">Kon niet laden: ${e && e.message ? e.message : e}</p>`;
+        todayScoreEl.textContent = '0';
+      }
+    }
+
+    function checkAnswers(currentDay){
+      const docId = docIdFor(currentDay);
+      const qBoxes = Array.from(quizEl.querySelectorAll('.q'));
+      let score = 0;
+
+      // We hebben de "correct" antwoorden nodig → haal ze uit DOM? We hebben ze niet bewaard.
+      // Oplossing: tijdens renderQuiz een data-struct bijhouden. Eenvoudig: bewaar in window.__CURRENT_QUESTIONS
+    }
+
+    // Hou de huidige vragen in geheugen om te kunnen nakijken
+    let CURRENT_DAY = 1;
+    let CURRENT_QUESTIONS = [];
+
+    async function loadDayWithCache(dayNum){
+      CURRENT_DAY = dayNum;
+      // haal doc opnieuw om CURRENT_QUESTIONS te vullen
+      const docId = docIdFor(dayNum);
+      try{
+        const snap = await db.collection('VlaamsOrthodoxekinderdagboek').doc(docId).get();
+        const data = snap.exists ? snap.data() : null;
+        CURRENT_QUESTIONS = data && Array.isArray(data.vragen) ? data.vragen : [];
+        await loadDay(dayNum);
+      } catch {
+        CURRENT_QUESTIONS = [];
+        await loadDay(dayNum);
+      }
+      calcWeekScore();
+    }
+
+    function gradeNow(){
+      const docId = docIdFor(CURRENT_DAY);
+      let score = 0;
+
+      CURRENT_QUESTIONS.forEach((q, idx)=>{
+        const sel = document.querySelector(`input[name="q_${idx}"]:checked`);
+        const fb  = document.getElementById(`fb_${idx}`);
+        if (!fb) return;
+
+        if (!sel){
+          fb.textContent = "Kies een antwoord.";
+          fb.className = 'feedback nok';
+          return;
+        }
+        const chosen = sel.value;
+        if (chosen === q.correct){
+          score += 10;
+          fb.textContent = "Goed zo! (+10)";
+          fb.className = 'feedback ok';
+        } else {
+          fb.textContent = `Niet juist. Het juiste antwoord is: ${q.correct}`;
+          fb.className = 'feedback nok';
+        }
+      });
+
+      todayScoreEl.textContent = String(score);
+
+      // Bewaar beste score
+      const key = LS_PREFIX + docId;
+      const prev = Number(localStorage.getItem(key) || 0);
+      if (score > prev){
+        localStorage.setItem(key, String(score));
+      }
+      calcWeekScore();
+    }
+
+    function resetAnswers(){
+      // Wis selectie, feedback en dag-score (maar laat weekscore en best score staan)
+      quizEl.querySelectorAll('input[type="radio"]').forEach(i=> i.checked = false);
+      quizEl.querySelectorAll('.feedback').forEach(fb => { fb.textContent = ''; fb.className = 'feedback'; });
+      todayScoreEl.textContent = '0';
+    }
+
+    // --- Events ---
+    prevBtn.addEventListener('click', ()=> {
+      const n = Number(daySelect.value);
+      if (n > 1) loadDayWithCache(n-1);
+    });
+    nextBtn.addEventListener('click', ()=> {
+      const n = Number(daySelect.value);
+      if (n < 7) loadDayWithCache(n+1);
+    });
+    daySelect.addEventListener('change', ()=> {
+      const n = Number(daySelect.value);
+      loadDayWithCache(n);
+    });
+    checkBtn.addEventListener('click', gradeNow);
+    resetBtn.addEventListener('click', resetAnswers);
+
+    // --- Start ---
+    // Als er een ?dag= param is, gebruik die
+    (function initFromQuery(){
+      const usp = new URLSearchParams(location.search);
+      const d = Number(usp.get('dag') || 1);
+      const start = (d>=1 && d<=7) ? d : 1;
+      daySelect.value = String(start);
+      loadDayWithCache(start);
+    })();
+  </script>
+</body>
+</html>
