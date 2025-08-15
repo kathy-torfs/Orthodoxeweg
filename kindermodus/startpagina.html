@@ -15,145 +15,204 @@
       --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
     }
     body{
-      margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#46351F;
-      min-height:100vh; background:var(--pastel1); overflow-x:hidden;
+      margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
+      min-height:100vh; background:var(--pastel1); transition:background .6s; overflow-x:hidden;
     }
 
-    /* Verstop de menubalk die in header.html zit (alleen op deze pagina) */
-    #kinder-header nav.kinder-menu { display:none !important; }
-
-    /* Center podium */
-    .stage{
-      max-width:1100px; margin: 18px auto 40px; padding: 0 2vw;
-      display:grid; grid-template-columns: 1fr; place-items:center;
-      gap: 18px;
+    /* --- Header (ingeladen via header.html) --- */
+    /* Startpagina verbergt de menubalk tot na de intro */
+    nav.kinder-menu{
+      opacity:0; transform:translateY(-10px); pointer-events:none; transition:opacity .4s, transform .4s;
+    }
+    .show-menu nav.kinder-menu{
+      opacity:1; transform:translateY(0); pointer-events:auto;
     }
 
-    /* Photeinos + praatwolkje */
-    .hero{
-      position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    /* --- Introblok met video + spraakballon --- */
+    .intro-wrap{
+      max-width:1000px; margin:20px auto 40px auto; padding:0 16px;
+      display:flex; align-items:center; justify-content:center; flex-direction:column; gap:14px;
     }
-    .hero img.photeinos{
-      width:min(420px, 80vw); height:auto; object-fit:contain;
-      user-drag:none; -webkit-user-drag:none; display:block;
-      filter: drop-shadow(0 18px 28px #00000022);
+    .video-frame{
+      position:relative; width:min(92vw,860px); aspect-ratio:16/9; background:#000; border-radius:16px; overflow:hidden;
+      box-shadow:0 10px 28px #00000022;
     }
-    .bubble{
-      margin-top: -8px;
-      background:#fffef9; border:1px solid #efe3c2; color:#3b2f1b;
-      border-radius:18px; padding:14px 16px; text-align:center; font-weight:bold;
-      box-shadow:0 10px 26px #00000012;
-      position:relative; max-width: 680px;
+    .video-frame video, .video-frame img{
+      width:100%; height:100%; object-fit:cover; display:block;
     }
-    .bubble:after{
-      content:""; position:absolute; left:50%; transform:translateX(-50%);
-      top:100%; width:0; height:0; border: 12px solid transparent; border-top-color:#fffef9;
+    .speech{
+      position:absolute; left:50%; top:10%;
+      transform:translateX(-50%);
+      background:#fff; color:#1f2937; border-radius:18px; padding:12px 16px;
+      box-shadow:0 6px 24px #00000020; max-width:85%; font-size:1.1em; line-height:1.5;
+      border:2px solid #ffe0a6;
+    }
+    .speech::after{
+      content:""; position:absolute; left:50%; bottom:-12px; transform:translateX(-50%);
+      width:0; height:0; border-left:14px solid transparent; border-right:14px solid transparent; border-top:14px solid #fff;
+      filter:drop-shadow(0 2px 1px #00000010);
+    }
+    .speech .line{ opacity:0; transform:translateY(6px); transition:opacity .4s, transform .4s; }
+    .speech .line.show{ opacity:1; transform:translateY(0); }
+    .speech .highlight{ color:#7bb235; font-weight:bold; }
+
+    .skip-btn{
+      margin-top:8px; background:#eff6ff; color:#1e40af; border:1px solid #93c5fd;
+      padding:8px 12px; border-radius:10px; font-weight:bold; cursor:pointer;
+    }
+    .skip-btn:hover{ background:#e0efff; }
+
+    /* Welkomstblok onder de video (kort & rustig) */
+    .welkom-blok{
+      background:#fffce7; color:var(--donker);
+      border-radius:20px; box-shadow:0 6px 24px #d7cbb133;
+      font-size:1.1em; line-height:1.7; text-align:center;
+      max-width:900px; width:93vw; margin:10px auto 34px auto; padding:22px 20px;
     }
 
-    /* Keuze-blokken (de “gesmeten” tegels) */
-    .choices{
-      display:grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap:16px;
-      width:100%; max-width:1100px;
-    }
-    @media (max-width:1000px){ .choices{ grid-template-columns: repeat(3, 1fr);} }
-    @media (max-width:720px) { .choices{ grid-template-columns: repeat(2, 1fr);} }
-    @media (max-width:480px) { .choices{ grid-template-columns: 1fr;} }
-
-    .tile{
-      background:#fff9d5; border:2.2px solid #ffe05e; border-radius:18px;
-      display:flex; flex-direction:column; align-items:center; justify-content:center;
-      padding:12px 10px; text-decoration:none; color:#4A3B20; font-weight:bold;
-      box-shadow:0 6px 16px #ffe17e44; transform: translateY(-24px) scale(.94); opacity:0;
-      animation: dropin .72s cubic-bezier(.2,.9,.2,1.2) forwards;
-    }
-    .tile:hover{ transform: translateY(-2px) scale(1.02); transition:transform .12s ease; }
-    .tile img{
-      width:82px; height:82px; object-fit:contain; border-radius:14px;
-      background:#fff; border:1px solid #ffe0b5; margin-bottom:8px; display:block;
-    }
-    .tile span{ display:block; text-align:center; }
-
-    /* Stagger: elke volgende tegel iets later “gesmeten” */
-    .tile:nth-child(1){ animation-delay:.05s; }
-    .tile:nth-child(2){ animation-delay:.12s; }
-    .tile:nth-child(3){ animation-delay:.19s; }
-    .tile:nth-child(4){ animation-delay:.26s; }
-    .tile:nth-child(5){ animation-delay:.33s; }
-    .tile:nth-child(6){ animation-delay:.40s; }
-    .tile:nth-child(7){ animation-delay:.47s; }
-    .tile:nth-child(8){ animation-delay:.54s; }
-
-    @keyframes dropin{
-      0%   { transform: translateY(-26px) scale(.92); opacity:0; }
-      60%  { transform: translateY(4px)  scale(1.02); opacity:1; }
-      100% { transform: translateY(0)    scale(1.00); opacity:1; }
+    @media (max-width:700px){
+      .speech{ top:6%; font-size:1em; }
     }
   </style>
 
-  <!-- Firebase (compat) -->
+  <!-- Firebase compat -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 
-  <!-- Kinder lay-out: laadt header + checkt login + live punten -->
+  <!-- Kinder lay-out: laadt header.html + beveiliging + live puntenteller -->
   <script defer src="common/layout.js"></script>
 </head>
 <body>
-  <!-- Herbruikbare header -->
+  <!-- Header wordt hier ingeladen -->
   <div id="kinder-header" data-header-src="common/header.html"></div>
 
-  <!-- Podium -->
-  <section class="stage">
-    <div class="hero">
-      <img class="photeinos" src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_wave.gif" alt="Photeinos zwaait" draggable="false" />
-      <div class="bubble" id="welkomTekst">Dag kind, wat wil je vandaag doen?</div>
-    </div>
+  <!-- Intro met video + ballon -->
+  <section class="intro-wrap">
+    <div class="video-frame">
+      <!-- JOUW VIDEO -->
+      <video id="photeinosVideo"
+             src="https://kathy-torfs.github.io/Orthodoxeweg/videos/photeinos.mp4"
+             autoplay muted playsinline
+             onloadeddata="this.play().catch(()=>{})"></video>
 
-    <div class="choices">
-      <a class="tile" href="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/gebeden.html" title="Ik bid">
-        <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_bid.png" alt="">
-        <span>Ik wil bidden</span>
-      </a>
-      <a class="tile" href="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/catechese.html" title="Catechese">
-        <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/catechese.png" alt="">
-        <span>Catechese</span>
-      </a>
-      <a class="tile" href="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/heiligen.html" title="Heiligen">
-        <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_heiligen.png" alt="">
-        <span>Heiligen</span>
-      </a>
-      <a class="tile" href="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/bijbelverhalen.html" title="Bijbelverhalen">
-        <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_bijbel.png" alt="">
-        <span>Bijbelverhalen</span>
-      </a>
-      <a class="tile" href="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/spelletjes.html" title="Spelletjes">
-        <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_spelletjes.png" alt="">
-        <span>Spelletjes</span>
-      </a>
-      <a class="tile" href="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/school.html" title="School">
-        <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_school.png" alt="">
-        <span>School</span>
-      </a>
-      <a class="tile" href="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/dagboek.html" title="Dagboek">
-        <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/dagboek.png" alt="">
-        <span>Dagboek</span>
-      </a>
-      <!-- Startpagina-tegel laten we weg (we zitten er al). Voeg toe als je wil. -->
+      <!-- Fallback-afbeelding (voor als de video niet kan spelen) -->
+      <img id="videoFallback"
+           src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_wave.gif"
+           alt="Photeinos zwaait" style="display:none" />
+
+      <!-- Tekstballon (gevuld door script) -->
+      <div class="speech" id="speechBox">
+        <div class="line" id="line1"></div>
+        <div class="line" id="line2" style="margin-top:6px"></div>
+      </div>
     </div>
+    <button class="skip-btn" id="skipIntro">Sla de intro over</button>
   </section>
 
+  <!-- Korte welkomsttekst (rustig gehouden) -->
+  <div class="welkom-blok">
+    Welkom! Je kan <strong>lichtjes</strong> verdienen door je <strong>dagelijkse gebeden</strong> te doen,
+    je <strong>dagboek</strong> in te vullen en <strong>catecheselessen</strong> te volgen.
+    Met die lichtjes speel je spelletjes en vul je je iconengalerij aan. Veel plezier! ✨
+  </div>
+
   <script>
-    // Zachte random pastel (1x bij laden)
+    // Zachte pastelachtergrond
     (function(){
-      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
+      const p = ['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
       document.body.style.background = p[Math.floor(Math.random()*p.length)];
     })();
 
-    // Praatwolkje op naam
-    (function(){
-      const naam = localStorage.getItem("ingelogdKindVoornaam") || "kind";
-      const el = document.getElementById("welkomTekst");
-      if (el) el.textContent = `Dag ${naam}, wat wil je vandaag doen?`;
-    })();
+    // Wachten tot layout.js de header + beveiliging klaar heeft, daarna intro vullen
+    document.addEventListener('DOMContentLoaded', () => {
+      startWhenReady();
+    });
+
+    function startWhenReady(){
+      // Zorg dat Firebase en de KinderLayout klaar zijn
+      if (!(window.KinderLayout && window.firebase && firebase.firestore)) {
+        return setTimeout(startWhenReady, 120);
+      }
+      // Header monteren (indien nog niet gedaan)
+      window.KinderLayout.mountHeader({
+        rootId: 'kinder-header',
+        headerSrc: document.getElementById('kinder-header').dataset.headerSrc,
+        active: 'start' // welke knop actief markeren (optioneel)
+      }).then(runIntro).catch(runIntro);
+    }
+
+    async function runIntro(){
+      const naam = localStorage.getItem('ingelogdKindVoornaam') || 'Kind';
+      const db = firebase.firestore();
+      const parochieId = localStorage.getItem('ingelogdeParochie');
+      const ouderLogin = localStorage.getItem('loginKeuze');
+      const kindId     = localStorage.getItem('ingelogdKindId');
+
+      // Haal punten op (eenmalig; header loopt al live)
+      let punten = 0;
+      if (parochieId && ouderLogin && kindId) {
+        try{
+          const snap = await db.collection('parochies').doc(parochieId)
+            .collection('leden').doc(ouderLogin)
+            .collection('kinderen').doc(kindId).get();
+          punten = snap.exists ? (snap.data().punten || 0) : 0;
+        }catch(e){ /* laat punten=0 */ }
+      }
+
+      // Als de video niet speelt, toon fallback
+      const vid = document.getElementById('photeinosVideo');
+      const fallback = document.getElementById('videoFallback');
+      vid.addEventListener('error', ()=> { vid.style.display='none'; fallback.style.display='block'; });
+      vid.addEventListener('stalled', ()=> { /* kan ook fallback tonen indien gewenst */ });
+
+      // Tekstballon regels
+      const line1 = document.getElementById('line1');
+      const line2 = document.getElementById('line2');
+
+      const regel1 = `Dag <span class="highlight">${naam}</span>! Wat wil je vandaag doen?`;
+      const regel2 = `Je hebt al <span class="highlight">${punten}</span> lichtjes. `
+                   + `Verdien meer door je <strong>dagelijkse gebeden</strong> te doen, je <strong>dagboek</strong> in te vullen en `
+                   + `<strong>catecheselessen</strong> te volgen.`;
+
+      typeInto(line1, regel1, 18, () => {
+        line1.classList.add('show');
+        setTimeout(() => {
+          typeInto(line2, regel2, 14, () => {
+            line2.classList.add('show');
+            // Menubalk tonen
+            document.body.classList.add('show-menu');
+          });
+        }, 500);
+      });
+
+      // Skip-knop
+      document.getElementById('skipIntro').onclick = () => {
+        line1.innerHTML = regel1; line1.classList.add('show');
+        line2.innerHTML = regel2; line2.classList.add('show');
+        document.body.classList.add('show-menu');
+      };
+    }
+
+    // Eenvoudige “typewriter”
+    function typeInto(el, html, speed, done){
+      // we typen zonder tags (veilig), daarna zetten we de uiteindelijke html
+      const tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      const plain = tmp.textContent || tmp.innerText || '';
+      el.innerHTML = '';
+      let i=0;
+      const tick = () => {
+        if (i < plain.length){
+          el.textContent += plain.charAt(i++);
+          setTimeout(tick, speed);
+        } else {
+          // Vervang door de echte HTML (voor spans/bold)
+          el.innerHTML = html;
+          if (done) done();
+        }
+      };
+      tick();
+    }
   </script>
 </body>
 </html>
