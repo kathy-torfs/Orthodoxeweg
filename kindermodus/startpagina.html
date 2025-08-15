@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
@@ -19,59 +19,59 @@
       min-height:100vh; background:var(--pastel1); transition:background .6s; overflow-x:hidden;
     }
 
-    /* Menubalk verbergen tot na intro */
-    nav.kinder-menu{
-      opacity:0; transform:translateY(-10px); pointer-events:none; transition:opacity .4s, transform .4s;
-    }
-    .show-menu nav.kinder-menu{
-      opacity:1; transform:translateY(0); pointer-events:auto;
-    }
-
-    /* Introblok */
+    /* --------- Introblok met video + transparante overlaytekst --------- */
     .intro-wrap{
-      max-width:1000px; margin:20px auto 40px auto; padding:0 16px;
-      display:flex; align-items:center; justify-content:center; flex-direction:column; gap:14px;
+      max-width:1400px; margin:20px auto 34px auto; padding:0 2vw;
+      display:flex; flex-direction:column; align-items:center; gap:10px;
     }
     .video-frame{
-      position:relative; width:min(92vw,860px); aspect-ratio:16/9; background:#000; border-radius:16px; overflow:hidden;
-      box-shadow:0 10px 28px #00000022;
+      position:relative;
+      width:min(96vw,1200px);
+      aspect-ratio:16/9;
+      background:#000;
+      border-radius:16px;
+      overflow:hidden;
+      box-shadow:0 14px 36px #00000026;
     }
     .video-frame video, .video-frame img{
       width:100%; height:100%; object-fit:cover; display:block;
     }
 
-    /* Platte overlay tekst */
+    /* Volledig transparante overlaytekst links-boven */
     .intro-text{
       position:absolute;
-      top:6%;
-      left:8%;
-      background:rgba(255,255,255,0.85);
-      padding:12px 16px;
-      border-radius:14px;
-      font-size:1.1em;
-      line-height:1.5;
-      max-width:75%;
-      box-shadow:0 6px 24px #00000020;
-      border:2px solid #ffe0a6;
+      /* dichter naar linksboven */
+      top:1.5%;
+      left:1.5%;
+      right:20%;
+      /* volledig transparant: geen bg, geen border */
+      background:transparent;
+      border:none;
+      padding:0;
+      /* typografie */
+      font-size:1rem;              /* kleiner */
+      line-height:1.35;
+      color:#ffffff;
+      text-shadow:0 2px 6px rgba(0,0,0,.55);
+      pointer-events:none;         /* klik gaat naar video */
+      white-space:pre-line;        /* \n in JS => nieuwe regel */
     }
-    .highlight{ color:#7bb235; font-weight:bold; }
+    .intro-text .highlight{ color:#a8ff7a; font-weight:bold; }
 
-    .skip-btn{
-      margin-top:8px; background:#eff6ff; color:#1e40af; border:1px solid #93c5fd;
-      padding:8px 12px; border-radius:10px; font-weight:bold; cursor:pointer;
-    }
-    .skip-btn:hover{ background:#e0efff; }
-
-    /* Welkom-blok */
+    /* Korte, rustige welkomstparagraaf onder de video */
     .welkom-blok{
       background:#fffce7; color:var(--donker);
       border-radius:20px; box-shadow:0 6px 24px #d7cbb133;
-      font-size:1.1em; line-height:1.7; text-align:center;
-      max-width:900px; width:93vw; margin:10px auto 34px auto; padding:22px 20px;
+      font-size:1.05em; line-height:1.7; text-align:center;
+      max-width:950px; width:94vw; margin:8px auto 34px auto; padding:18px 16px;
     }
 
-    @media (max-width:700px){
-      .intro-text{ top:4%; font-size:1em; }
+    @media (max-width:900px){
+      .intro-text{ font-size:.92rem; right:8%; top:2%; left:2%; }
+      .welkom-blok{ font-size:1.0em; }
+    }
+    @media (max-width:600px){
+      .intro-text{ font-size:.88rem; right:6%; top:2.5%; left:3%; }
     }
   </style>
 
@@ -79,46 +79,47 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 
-  <!-- Kinder lay-out -->
+  <!-- Kinder lay-out: laadt header.html + beveiliging + live puntenteller -->
   <script defer src="common/layout.js"></script>
 </head>
 <body>
-  <!-- Header wordt ingeladen -->
+  <!-- Header (begroeting + vlam + menubalk) wordt hier ingeladen -->
   <div id="kinder-header" data-header-src="common/header.html"></div>
 
-  <!-- Intro met video + tekst -->
+  <!-- Intro met video + transparante overlaytekst -->
   <section class="intro-wrap">
     <div class="video-frame">
+      <!-- JOUW VIDEO: nu in loop, autoplay, muted, playsinline -->
       <video id="photeinosVideo"
              src="https://kathy-torfs.github.io/Orthodoxeweg/videos/photeinos.mp4"
              autoplay muted playsinline loop
              onloadeddata="this.play().catch(()=>{})"></video>
 
+      <!-- Fallback-afbeelding (indien video niet kan spelen) -->
       <img id="videoFallback"
            src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_wave.gif"
            alt="Photeinos zwaait" style="display:none" />
 
-      <div class="intro-text" id="introText">
-        <!-- Wordt gevuld via JS -->
-      </div>
+      <!-- Volledig transparante overlaytekst (gevuld via JS) -->
+      <div class="intro-text" id="introText"></div>
     </div>
-    <button class="skip-btn" id="skipIntro">Sla de intro over</button>
   </section>
 
-  <!-- Welkomblok -->
+  <!-- Korte welkomsttekst onder de video -->
   <div class="welkom-blok">
-    Welkom! Je kan <strong>lichtjes</strong> verdienen door je <strong>dagelijkse gebeden</strong> te doen,
+    Verdien <strong>lichtjes</strong> door je <strong>dagelijkse gebeden</strong> te doen,
     je <strong>dagboek</strong> in te vullen en <strong>catecheselessen</strong> te volgen.
-    Met die lichtjes speel je spelletjes en vul je je iconengalerij aan. Veel plezier! ✨
+    Met die lichtjes kan je <strong>spelletjes spelen</strong> en je <strong>iconengalerij</strong> aanvullen. ✨
   </div>
 
   <script>
-    // Pastel achtergrond
+    // Zachte pastelachtergrond
     (function(){
       const p = ['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
       document.body.style.background = p[Math.floor(Math.random()*p.length)];
     })();
 
+    // Wacht tot layout.js de header + beveiliging klaar heeft, daarna tekst vullen
     document.addEventListener('DOMContentLoaded', () => {
       startWhenReady();
     });
@@ -127,20 +128,22 @@
       if (!(window.KinderLayout && window.firebase && firebase.firestore)) {
         return setTimeout(startWhenReady, 120);
       }
+      // Header monteren (als dat nog niet gebeurde)
       window.KinderLayout.mountHeader({
         rootId: 'kinder-header',
         headerSrc: document.getElementById('kinder-header').dataset.headerSrc,
-        active: 'start'
-      }).then(runIntro).catch(runIntro);
+        active: 'start' // (optioneel) active knop
+      }).then(fillIntroText).catch(fillIntroText);
     }
 
-    async function runIntro(){
+    async function fillIntroText(){
       const naam = localStorage.getItem('ingelogdKindVoornaam') || 'Kind';
       const db = firebase.firestore();
       const parochieId = localStorage.getItem('ingelogdeParochie');
       const ouderLogin = localStorage.getItem('loginKeuze');
       const kindId     = localStorage.getItem('ingelogdKindId');
 
+      // Haal punten op (header loopt al live, dit is voor de intro/zinnetje)
       let punten = 0;
       if (parochieId && ouderLogin && kindId) {
         try{
@@ -148,35 +151,24 @@
             .collection('leden').doc(ouderLogin)
             .collection('kinderen').doc(kindId).get();
           punten = snap.exists ? (snap.data().punten || 0) : 0;
-        }catch(e){}
+        }catch(e){ /* laat 0 */ }
       }
 
-      // Video fallback
+      // Als de video niet speelt, toon fallback
       const vid = document.getElementById('photeinosVideo');
       const fallback = document.getElementById('videoFallback');
       vid.addEventListener('error', ()=> { vid.style.display='none'; fallback.style.display='block'; });
+      vid.addEventListener('stalled', ()=> { /* optioneel fallback */ });
 
-      // Tekst zetten
-      const introText = document.getElementById('introText');
-      introText.innerHTML = `
-        Dag <span class="highlight">${naam}</span>!<br>
-        Wat wil je vandaag doen?<br>
-        Je hebt al <span class="highlight">${punten}</span> lichtjes.<br>
-        Verdien meer door je <strong>dagelijkse gebeden</strong> te doen,<br>
-        je <strong>dagboek</strong> in te vullen en<br>
-        <strong>catecheselessen</strong> te volgen.<br>
-        Verken zeker alle knoppen in de menubalk! ✨
-      `;
-
-      // Skipknop toont menubalk
-      document.getElementById('skipIntro').onclick = () => {
-        document.body.classList.add('show-menu');
-      };
-
-      // Automatisch menubalk tonen na 4 sec
-      setTimeout(() => {
-        document.body.classList.add('show-menu');
-      }, 4000);
+      // Tekst als aparte regels (white-space:pre-line zorgt voor echte regelafbreking)
+      const lines = [
+        `Dag ${naam}!`,
+        `Wat wil je vandaag doen?`,
+        `Je hebt al ${punten} lichtjes.`,
+        `Verdien meer door je dagelijkse gebeden te doen, je dagboek in te vullen en catecheselessen te volgen.`,
+        `Verken zeker alle knoppen in de menubalk! ✨`
+      ];
+      document.getElementById('introText').textContent = lines.join('\n');
     }
   </script>
 </body>
