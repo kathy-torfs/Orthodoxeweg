@@ -1,136 +1,187 @@
-// kindermodus/common/layout.js
-(function(){
-  const HEADER_MOUNT_ID = "kid-header";
-  const HEADER_URL = "https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/common/header.html";
-
-  // ---- Helpers --------------------------------------------------------------
-  function logWarn(msg){ try{ console.warn("[kid-layout] " + msg); }catch(_){} }
-
-  // 0) Compat-migratie van oude/verschillende keys
-  (function migrateKeys(){
-    // login status
-    const a = localStorage.getItem("kindIngelogd");
-    const b = localStorage.getItem("kind_ingelogd");
-    if (a === "ja" && b !== "true") localStorage.setItem("kind_ingelogd", "true");
-    if (b === "true" && a !== "ja") localStorage.setItem("kindIngelogd", "ja");
-
-    // naam fallback
-    if (!localStorage.getItem("ingelogdKindVoornaam")){
-      const maybe = localStorage.getItem("kindVoornaam") || localStorage.getItem("voornaam");
-      if (maybe) localStorage.setItem("ingelogdKindVoornaam", maybe);
+// common/layout.js
+// Eén centrale helper die de header mount, login controleert en punten live laadt.
+(function () {
+  const CONFIG = {
+    headerDefaultMountId: "kinder-header",            // <div id="kinder-header"></div> op elke pagina
+    headerDefaultSrc: "common/header.html",           // pad vanaf de kindermodus-pagina's
+    loginUrl: "https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/inloggen.html",
+    firebase: {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
     }
-  })();
+  };
 
-  // 1) Beveiliging: kind moet ingelogd zijn (blijft ingelogd tot expliciet uitloggen)
-  function ensureKidLoggedIn(){
-    const a = localStorage.getItem("kindIngelogd");   // "ja"
-    const b = localStorage.getItem("kind_ingelogd");  // "true"
-    const ok = (a === "ja" || b === "true");
-    if (!ok){
-      logWarn("Geen geldige kindlogin in localStorage -> naar inloggen.html");
-      window.location.replace("https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/inloggen.html");
+  let pointsUnsub = null; // Firestore unsubscribe
+
+  // ---------- Utils ----------
+  function isKidLoggedIn() {
+    // accepteer meerdere sleutels/waarden zodat je “ingelogd blijft”
+    const flags = [
+      localStorage.getItem("kindIngelogd"),
+      localStorage.getItem("kind_ingelogd")
+    ].map(v => (v || "").toLowerCase());
+
+    const logged =
+      flags.includes("true") ||
+      flags.includes("ja") ||
+      flags.includes("1");
+
+    const mustHave =
+      localStorage.getItem("ingelogdKindId") &&
+      localStorage.getItem("ingelogdeParochie") &&
+      localStorage.getItem("loginKeuze");
+
+    return logged && !!mustHave;
+  }
+
+  function ensureLoggedInOrRedirect() {
+    if (!isKidLoggedIn()) {
+      // NIET uitloggen, alleen doorsturen naar login
+      window.location.replace(CONFIG.loginUrl);
       return false;
     }
     return true;
   }
 
-  // 2) Firebase scripts laden indien nodig
-  function loadFirebaseIfNeeded(cb){
-    if (window.firebase?.apps?.length){ cb(); return; }
-    const app = document.createElement("script");
-    app.src = "https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js";
-    const fs = document.createElement("script");
-    fs.src  = "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js";
-
-    fs.onload = () => {
-      if (!firebase.apps.length){
-        firebase.initializeApp({
-          apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
-          authDomain:"orthodoxeweg.firebaseapp.com",
-          projectId:"orthodoxeweg",
-          storageBucket:"orthodoxeweg.appspot.com",
-          messagingSenderId:"408582263618",
-          appId:"1:408582263618:web:0a20f4bf0704989d3ceedb"
-        });
+  function loadFirebaseCompatIfNeeded() {
+    return new Promise(resolve => {
+      if (window.firebase && firebase.apps && firebase.apps.length) {
+        resolve();
+        return;
       }
-      cb();
-    };
-    app.onload = () => document.head.appendChild(fs);
-    document.head.appendChild(app);
-  }
-
-  // 3) Header HTML inladen
-  async function mountHeader(){
-    const mount = document.getElementById(HEADER_MOUNT_ID);
-    if(!mount){ logWarn(`<div id="${HEADER_MOUNT_ID}"></div> ontbreekt op de pagina.`); return; }
-    const res = await fetch(HEADER_URL, { cache:"no-store" });
-    mount.innerHTML = await res.text();
-    wireHeader();
-  }
-
-  // 4) Begroeting + uitloggen + live punten
-  function wireHeader(){
-    // Begroeting met naam uit storage
-    const naam = localStorage.getItem("ingelogdKindVoornaam") || "Kind";
-    const h = new Date().getHours();
-    const groet = (h>=6 && h<=11) ? "Goeiemorgen" : (h<=16) ? "Goeiemiddag" : (h<=22) ? "Goeieavond" : "Hallo";
-    const groetEl = document.getElementById("groet-tekst");
-    if (groetEl) groetEl.textContent = `${groet}, ${naam}!`;
-
-    // Uitloggen
-    const outBtn = document.getElementById("uitlogBtn");
-    if (outBtn){
-      outBtn.onclick = () => {
-        localStorage.removeItem("kindIngelogd");
-        localStorage.removeItem("kind_ingelogd");
-        localStorage.removeItem("ingelogdKindId");
-        localStorage.removeItem("ingelogdKindVoornaam");
-        localStorage.removeItem("kindAvatarURL");
-        localStorage.removeItem("kindPunten");
-        window.location.replace("https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/inloggen.html");
+      const add = (src, onload) => {
+        const s = document.createElement("script");
+        s.src = src; s.onload = onload; s.defer = true;
+        document.head.appendChild(s);
       };
-    }
+      add("https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js", () => {
+        add("https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js", () => {
+          if (!firebase.apps.length) {
+            firebase.initializeApp(CONFIG.firebase);
+          }
+          resolve();
+        });
+      });
+    });
+  }
 
-    // Live punten teller via Firestore
+  function setGreeting() {
+    const el = document.getElementById("groet-tekst");
+    if (!el) return;
+    const naam = localStorage.getItem("ingelogdKindVoornaam") || "kind";
+    const h = new Date().getHours();
+    const groet = (h >= 6 && h <= 11) ? "Goeiemorgen"
+               : (h >= 12 && h <= 16) ? "Goeiemiddag"
+               : (h >= 17 && h <= 22) ? "Goeieavond" : "Hallo";
+    el.textContent = `${groet}, ${naam}!`;
+  }
+
+  function bindLogout() {
+    const btn = document.getElementById("uitlogBtn");
+    if (!btn) return;
+    btn.addEventListener("click", () => {
+      // enkel bij expliciet uitloggen alles wissen
+      localStorage.removeItem("kindIngelogd");
+      localStorage.removeItem("kind_ingelogd");
+      localStorage.removeItem("ingelogdKindId");
+      localStorage.removeItem("ingelogdKindVoornaam");
+      localStorage.removeItem("kindAvatarURL");
+      localStorage.removeItem("kindPunten");
+      // terug naar login
+      window.location.replace(CONFIG.loginUrl);
+    });
+  }
+
+  function startLivePoints() {
+    stopLivePoints();
+    const teller = document.getElementById("punten-teller");
+    if (!teller) return;
+
     const parochieId = localStorage.getItem("ingelogdeParochie");
     const ouderLogin = localStorage.getItem("loginKeuze");
     const kindId     = localStorage.getItem("ingelogdKindId");
-    const tellerEl   = document.getElementById("punten-teller");
-
-    // Altijd tonen wat we al hebben (cached) zodat je iets ziet
-    if (tellerEl){
-      const cached = localStorage.getItem("kindPunten");
-      if (cached) tellerEl.textContent = String(cached);
+    if (!parochieId || !ouderLogin || !kindId) {
+      teller.textContent = "…";
+      return;
     }
+    const db = firebase.firestore();
+    const ref = db.collection("parochies").doc(parochieId)
+      .collection("leden").doc(ouderLogin)
+      .collection("kinderen").doc(kindId);
 
-    if (!parochieId || !ouderLogin || !kindId){
-      logWarn("parochieId/ouderLogin/kindId ontbreken → geen live punten. Controleer ouderlogin + kinderlogin.");
-      return; // greeting blijft, punten blijven cached of '…'
-    }
+    pointsUnsub = ref.onSnapshot(
+      snap => {
+        const punten = snap.exists ? (snap.data().punten || 0) : 0;
+        teller.textContent = punten;
+        teller.style.transform = "scale(1.18)";
+        setTimeout(() => (teller.style.transform = "scale(1)"), 160);
+      },
+      err => {
+        console.warn("Punten live lezen mislukt:", err);
+        teller.textContent = "…";
+      }
+    );
+  }
 
-    try{
-      const db = firebase.firestore();
-      db.collection("parochies").doc(parochieId)
-        .collection("leden").doc(ouderLogin)
-        .collection("kinderen").doc(kindId)
-        .onSnapshot(snap=>{
-          const punten = snap.exists ? (snap.data().punten || 0) : 0;
-          if (tellerEl){
-            tellerEl.textContent = String(punten);
-            tellerEl.style.transform = "scale(1.18)";
-            setTimeout(()=> tellerEl.style.transform = "scale(1)", 160);
-          }
-          localStorage.setItem("kindPunten", String(punten)); // cache updaten
-        }, err=>{
-          logWarn("Kon Firestore punten niet live lezen: " + err);
-          if (tellerEl && !tellerEl.textContent) tellerEl.textContent = "…";
-        });
-    }catch(e){
-      logWarn("Firestore init mislukt: " + e);
+  function stopLivePoints() {
+    if (typeof pointsUnsub === "function") {
+      pointsUnsub();
+      pointsUnsub = null;
     }
   }
 
-  // Boot
-  if (!ensureKidLoggedIn()) return;
-  loadFirebaseIfNeeded(mountHeader);
+  async function mountHeader({ rootId, headerSrc } = {}) {
+    if (!ensureLoggedInOrRedirect()) return;
+
+    const mountId = rootId || CONFIG.headerDefaultMountId;
+    const src     = headerSrc || CONFIG.headerDefaultSrc;
+    const mountEl = document.getElementById(mountId);
+    if (!mountEl) {
+      console.warn(`[layout] Plaats <div id="${CONFIG.headerDefaultMountId}"></div> in je pagina.`);
+      return;
+    }
+
+    // Laad Firebase (eenmalig) en daarna de header
+    await loadFirebaseCompatIfNeeded();
+
+    try {
+      const html = await fetch(src, { cache: "no-cache" }).then(r => r.text());
+      mountEl.innerHTML = html;
+    } catch (e) {
+      console.error("[layout] Header laden mislukt:", e);
+      return;
+    }
+
+    // Zodra de header staat:
+    setGreeting();
+    bindLogout();
+    startLivePoints();
+  }
+
+  // Exporteer een kleine API
+  window.KinderLayout = {
+    mountHeader,
+    refreshPoints: startLivePoints   // handig om na punten‑updates te callen
+  };
+
+  // Auto‑mount als de standaard container aanwezig is
+  function autoMountIfPresent() {
+    const el = document.getElementById(CONFIG.headerDefaultMountId);
+    if (!el) return;
+    const src = el.getAttribute("data-header-src") || CONFIG.headerDefaultSrc;
+    mountHeader({ rootId: CONFIG.headerDefaultMountId, headerSrc: src });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", autoMountIfPresent);
+  } else {
+    autoMountIfPresent();
+  }
+
+  // Opruimen
+  window.addEventListener("beforeunload", stopLivePoints);
 })();
