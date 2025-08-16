@@ -2,42 +2,33 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Photeinos Springspel</title>
-  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
-
+  <link rel="icon" href="images/kruis.png">
   <style>
-    body { margin:0; font-family:"Comic Sans MS", sans-serif; background:#fff6e5; }
+    body { margin:0; font-family:"Comic Sans MS", Arial, sans-serif; background:#fff6e5; }
     .center { max-width:1280px; margin:0 auto; padding:0 2vw 64px; }
     .game-card { background:#fff; border-radius:22px; box-shadow:0 10px 30px #0000001a; padding:16px; }
     .game-wrap { width:100%; max-width:1100px; aspect-ratio:21/9; margin:0 auto; border-radius:16px;
-      overflow:hidden; background:#e0f7fa; position:relative; }
+      overflow:hidden; background:#87ceeb; position:relative; }
     canvas { display:block; width:100%; height:100%; }
-    .hud { position:absolute; left:18px; bottom:16px; background:rgba(255,255,255,.8); padding:6px 10px; border-radius:8px; }
-    .modal { position:absolute; inset:0; display:none; place-items:center; }
-    .card { background:#fff; border-radius:16px; box-shadow:0 6px 18px rgba(0,0,0,.25); padding:20px; max-width:500px; text-align:center; }
-    .btn { margin-top:10px; padding:8px 14px; border:0; border-radius:10px; background:#0ea5e9; color:#fff; cursor:pointer; }
   </style>
 
-  <!-- Header en layout -->
+  <!-- Firebase compat -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+  <!-- Kinder lay-out -->
   <script defer src="common/layout.js"></script>
 </head>
 <body>
-  <!-- Header wordt hier ingeladen -->
+  <!-- Header -->
   <div id="kinder-header" data-header-src="common/header.html"></div>
 
+  <!-- Inhoud -->
   <div class="center">
     <div class="game-card">
       <div class="game-wrap">
         <canvas id="game"></canvas>
-        <div class="hud" id="hud">Score: 0</div>
-
-        <div class="modal" id="vraagBox">
-          <div class="card">
-            <div id="vraagTekst"></div>
-            <button class="btn" id="okBtn">Oké</button>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -45,60 +36,58 @@
 <script>
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
-function resize(){ canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; }
-window.addEventListener("resize", resize); resize();
 
-const playerImg = new Image();
-playerImg.src = "images/photeinos_walk.gif";
+function resize() {
+  canvas.width = canvas.clientWidth;
+  canvas.height = canvas.clientHeight;
+}
+window.addEventListener("resize", resize);
+resize();
 
-let player = { x:100, y:200, vy:0, size:60 };
-let score = 0;
-let running = true;
-let objects = [];
+// -----------------
+// Speler: Photeinos
+// -----------------
+const photeinos = new Image();
+photeinos.src = "images/photeinos_walk.gif";
 
-function loop(){
-  if(!running) return;
+let player = { x:100, y:200, vy:0, size:80 };
+
+// -----------------
+// Controls
+// -----------------
+window.addEventListener("keydown", e => {
+  if (e.code === "Space") {
+    player.vy = -10; // springen
+  }
+});
+
+// -----------------
+// Game Loop
+// -----------------
+function loop() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  // Player
-  ctx.drawImage(playerImg, player.x, player.y, player.size, player.size);
-  player.vy += 0.8; player.y += player.vy;
-  if(player.y > canvas.height-60) player.y = canvas.height-60;
+  // achtergrond
+  ctx.fillStyle = "#87ceeb"; // lucht
+  ctx.fillRect(0,0,canvas.width,canvas.height);
 
-  // Nieuwe objecten
-  if(Math.random()<0.02){
-    const icoon = Math.random()<0.5 ? "⭐" : "🔥";
-    objects.push({icon:icoon, x:canvas.width, y:Math.random()*canvas.height});
+  // zwaartekracht
+  player.vy += 0.8;
+  player.y += player.vy;
+
+  if (player.y > canvas.height - player.size) {
+    player.y = canvas.height - player.size;
+    player.vy = 0;
   }
 
-  // Objecten tekenen
-  ctx.font="32px serif";
-  for(const obj of objects){
-    ctx.fillText(obj.icon, obj.x, obj.y);
-    obj.x -= 4;
-    if(Math.abs(obj.x-player.x)<40 && Math.abs(obj.y-player.y)<40){
-      if(obj.icon==="⭐"){ score++; showVraag("Wat doen we op zondag?"); }
-      else{ showVraag("Oei, dit is een hindernis!"); }
-      objects.splice(objects.indexOf(obj),1);
-    }
-  }
+  // speler tekenen
+  ctx.drawImage(photeinos, player.x, player.y, player.size, player.size);
 
-  document.getElementById("hud").textContent = "Score: "+score;
   requestAnimationFrame(loop);
 }
-loop();
 
-window.addEventListener("keydown", e=>{ if(e.code==="Space"){ player.vy=-10; } });
-canvas.addEventListener("click", ()=>{ player.vy=-10; });
-
-function showVraag(txt){
-  running=false;
-  document.getElementById("vraagTekst").textContent = txt;
-  document.getElementById("vraagBox").style.display="grid";
-}
-document.getElementById("okBtn").onclick = ()=>{
-  document.getElementById("vraagBox").style.display="none";
-  running=true; loop();
+photeinos.onload = () => {
+  loop();
 };
 </script>
 </body>
