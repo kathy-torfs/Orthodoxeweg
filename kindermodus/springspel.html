@@ -1,69 +1,83 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Photeinos Springspel</title>
-  <link rel="icon" href="images/kruis.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Photeinos Springspel – Test</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
-    body { margin:0; background:#e0f7fa; overflow:hidden; }
-    canvas { display:block; width:100%; height:calc(100vh - 120px); }
-    header { height:120px; }
+    body { margin:0; font-family:"Comic Sans MS", Arial, sans-serif; background:#fff6e5; }
+    .center { max-width:1280px; margin:0 auto; padding:0 2vw 64px; }
+    .game-card { background:#fff; border-radius:22px; box-shadow:0 10px 30px #0000001a; padding:16px; }
+    .game-wrap { width:100%; max-width:1100px; aspect-ratio:21/9; margin:0 auto; border-radius:16px;
+      overflow:hidden; background:#e0f7fa; position:relative; }
+    canvas { display:block; width:100%; height:100%; }
   </style>
+  <!-- Kinder lay-out -->
+  <script defer src="common/layout.js"></script>
 </head>
 <body>
-  <!-- Header komt hier -->
-  <div id="header"></div>
+  <!-- Header wordt hier ingeladen -->
+  <div id="kinder-header" data-header-src="common/header.html"></div>
 
-  <!-- Het spelcanvas -->
-  <canvas id="game"></canvas>
+  <div class="center">
+    <div class="game-card">
+      <div class="game-wrap">
+        <canvas id="game"></canvas>
+      </div>
+    </div>
+  </div>
 
-  <script src="layout.js"></script>
-  <script>
-    // --------------------------
-    // Canvas instellen
-    // --------------------------
-    const canvas = document.getElementById("game");
-    const ctx = canvas.getContext("2d");
+<script>
+// --------------------------
+// Springspel met Photeinos
+// --------------------------
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
 
-    function resize() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight - 120; // ruimte voor header
-    }
-    window.addEventListener("resize", resize);
-    resize();
+function resize() {
+  canvas.width = canvas.clientWidth;
+  canvas.height = canvas.clientHeight;
+}
+window.addEventListener("resize", resize);
+resize();
 
-    // --------------------------
-    // Speler laden (PNG versie)
-    // --------------------------
-    const playerImg = new Image();
-    playerImg.src = "images/photeinos_walk.png"; // gebruik PNG
+let player = { x:100, y:200, vy:0, size:80 };
 
-    let player = { x:100, y:200, vy:0, size:80 };
+// laad de Photeinos-gif (absoluut pad)
+const photeinos = new Image();
+photeinos.src = "https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.gif";
+let photeinosLoaded = false;
+photeinos.onload = () => { photeinosLoaded = true; };
 
-    playerImg.onload = () => { loop(); };
+function loop() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    function loop(){
-      ctx.clearRect(0,0,canvas.width,canvas.height);
+  // zwaartekracht
+  player.vy += 0.8;
+  player.y += player.vy;
+  if (player.y > canvas.height-50) {
+    player.y = canvas.height-50;
+    player.vy = 0;
+  }
 
-      // zwaartekracht
-      player.vy += 0.5;
-      player.y += player.vy;
-      if (player.y > canvas.height-100) {
-        player.y = canvas.height-100;
-        player.vy = 0;
-      }
+  // teken de speler
+  if(photeinosLoaded){
+    ctx.drawImage(photeinos, player.x, player.y - player.size, player.size, player.size);
+  } else {
+    ctx.font = player.size + "px serif";
+    ctx.fillText("⭐", player.x, player.y);
+  }
 
-      // speler tekenen
-      ctx.drawImage(playerImg, player.x, player.y, player.size, player.size);
+  requestAnimationFrame(loop);
+}
 
-      requestAnimationFrame(loop);
-    }
+// springen met spatie
+window.addEventListener("keydown", e=>{
+  if(e.code==="Space"){ player.vy = -12; }
+});
 
-    // springen met spatie
-    window.addEventListener("keydown", e=>{
-      if(e.code==="Space"){ player.vy = -10; }
-    });
-  </script>
+loop();
+</script>
 </body>
 </html>
