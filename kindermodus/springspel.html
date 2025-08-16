@@ -1,50 +1,101 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Photeinos Springspel</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
+
   <style>
-    body { margin:0; font-family:"Comic Sans MS",Arial,sans-serif; background:#fff6e5; overflow-x:hidden; }
-    .center { max-width:1280px; margin:0 auto; padding:0 2vw 64px; }
-    .game-card { background:#fff; border-radius:22px; box-shadow:0 10px 30px #0000001a; padding:16px; }
-    .game-wrap { width:100%; max-width:1100px; aspect-ratio:21/9; margin:0 auto; border-radius:16px; overflow:hidden; background:#fff; position:relative; }
-    canvas { display:block; width:100%; height:100%; }
-    .hud { position:absolute; left:18px; bottom:16px; background:rgba(255,255,255,.82); backdrop-filter:blur(4px);
-           padding:8px 10px; border-radius:10px; font-size:14px; color:#1e3a8a; }
-    .btn { border:0; border-radius:10px; background:#0ea5e9; color:#fff; padding:6px 10px; font-weight:600; cursor:pointer; }
-    .btn.ghost { background:#eff6ff; color:#1e40af; }
-    .feedback { position:absolute; left:50%; top:10%; transform:translateX(-50%); background:rgba(255,255,255,.9); padding:8px 12px;
-                border-radius:999px; color:#065f46; font-weight:700; display:none; }
-    .start,.end { position:absolute; inset:0; display:grid; place-items:center; }
-    .card { background:#fff; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.2); padding:20px 22px; max-width:min(90%,560px); text-align:center; }
-    .title { font-weight:700; color:#1e40af; margin:6px 0; }
-    .badge { display:inline-block; background:#ecfeff; color:#0c4a6e; border:1px solid #a5f3fc; border-radius:999px; padding:3px 8px; font-size:12px; margin:6px 0; }
+    body {
+      margin: 0;
+      font-family: "Comic Sans MS", Arial, sans-serif;
+      background: var(--pastel1);
+      transition: background .6s;
+      overflow-x: hidden;
+    }
+    .center { max-width: 1280px; margin: 0 auto; padding: 0 2vw 64px; }
+    .game-card {
+      background: #fff; border-radius: 22px;
+      box-shadow: 0 10px 30px #0000001a; padding: 16px;
+    }
+    .game-wrap {
+      width: 100%; max-width: 1100px;
+      aspect-ratio: 21/9;
+      margin: 0 auto; border-radius: 16px;
+      overflow: hidden; background: #fff; position: relative;
+    }
+    canvas { display: block; width: 100%; height: 100%; }
+    .hud {
+      position: absolute; left: 18px; bottom: 16px;
+      background: rgba(255,255,255,.82); backdrop-filter: blur(4px);
+      padding: 8px 10px; border-radius: 10px;
+      font-size: 14px; color: #1e3a8a;
+    }
+    .start, .end, .modal { position: absolute; inset: 0; display: grid; place-items: center; }
+    .card {
+      background: #fff; border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.2);
+      padding: 20px 22px; max-width: min(90%,560px); text-align: center;
+    }
+    .title { font-weight: 700; color: #1e40af; margin: 6px 0; }
+    .btn {
+      appearance: none; border: 0; border-radius: 10px;
+      background: #0ea5e9; color: #fff;
+      padding: 10px 14px; font-weight: 600; cursor: pointer;
+    }
+    .btn:active { transform: translateY(1px); }
+    .ghost { background: #eff6ff; color: #1e40af; }
+    .answers { display: grid; gap: 8px; margin-top: 10px; }
+    .answers.two { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .answers .btn { background: #111827; color: #fff; border: 1px solid #374151; }
+    .badge {
+      display: inline-block; background: #ecfeff; color: #0c4a6e;
+      border: 1px solid #a5f3fc; border-radius: 999px;
+      padding: 3px 8px; font-size: 12px; margin: 6px 0;
+    }
+    .feedback {
+      position: absolute; left: 50%; top: 10%; transform: translateX(-50%);
+      background: rgba(255,255,255,.9); padding: 8px 12px;
+      border-radius: 999px; color: #065f46; font-weight: 700; display: none;
+    }
   </style>
+
+  <!-- Firebase compat -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+
+  <!-- Kinder lay-out -->
+  <script defer src="common/layout.js"></script>
 </head>
 <body>
+  <!-- Header -->
+  <div id="kinder-header" data-header-src="common/header.html"></div>
+
+  <!-- Inhoud van de pagina -->
   <div class="center">
     <div class="game-card">
       <div class="game-wrap" id="gameRoot">
         <canvas id="game"></canvas>
-        <div class="hud" id="hud">
-          Level 1/5 • Vleugels 0/0 • Score 0 • Totaal 0
-          <button class="btn ghost" id="pauseBtn" style="margin-left:12px">⏸</button>
-        </div>
+        <div class="hud" id="hud">Level 1/5 • Vleugels 0/0 • Score 0 • Totaal 0</div>
         <div class="feedback" id="feedback"></div>
 
         <div class="start" id="start">
           <div class="card">
             <div class="title">Photeinos Springspel</div>
             <div style="color:#334155;margin-bottom:10px">
-              Tik/klik of druk <strong>spatie</strong> om te springen.<br/>
-              1 tik = kleine sprong (voor grond-obstakels),<br/>
-              meerdere tikken = hoger springen.<br/>
-              Vang 🪽 en ontwijk 💀.
+              Tik/klik of druk <strong>spatie</strong> om te flappen (1 korte tik = kleine sprong, meerdere tikken = hoger).<br/>
+              Vang alle 🪽 en ontwijk 💀. Laag-bij-de-grond items worden automatisch geraakt.
             </div>
             <div class="badge">5 levels • kost 20 punten • +2 per level</div>
             <div style="margin-top:12px"><button class="btn" id="startBtn">Start spel (20)</button></div>
+          </div>
+        </div>
+
+        <div class="modal" id="question" style="display:none">
+          <div class="card" id="qCard">
+            <div id="qText" class="title" style="margin:0 0 10px"></div>
+            <div id="qAnswers" class="answers"></div>
           </div>
         </div>
 
@@ -60,152 +111,90 @@
     </div>
   </div>
 
-<script>
-window.addEventListener("load", () => {
-  const canvas = document.getElementById("game");
-  const ctx = canvas.getContext("2d");
-  const hud = document.getElementById("hud");
-  const feedback = document.getElementById("feedback");
-  const startOv = document.getElementById("start");
-  const endOv = document.getElementById("end");
-  const endText = document.getElementById("endText");
-  const startBtn = document.getElementById("startBtn");
-  const againBtn = document.getElementById("again");
-  const backBtn = document.getElementById("back");
-  const pauseBtn = document.getElementById("pauseBtn");
+  <!-- Spelcode inline -->
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
 
-  function resizeCanvas() {
-    canvas.width = canvas.clientWidth;
-    canvas.height = canvas.clientHeight;
-  }
-  resizeCanvas();
-  window.addEventListener("resize", resizeCanvas);
+    let width, height;
+    function resize() {
+      width = canvas.clientWidth;
+      height = canvas.clientHeight;
+      canvas.width = width;
+      canvas.height = height;
+    }
+    window.addEventListener("resize", resize);
+    resize();
 
-  // Photeinos sprite-sheet (4 frames naast elkaar)
-  const playerImg = new Image();
-  playerImg.src = "https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.png";
-  const frameCount = 4;     // aantal frames in de sheet
-  let frameIndex = 0;       // huidig frame
-  let frameTick = 0;        // om snelheid te regelen
+    // speler
+    const playerImg = new Image();
+    playerImg.src = "https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.gif";
+    const player = { x: 100, y: height/2, w: 70, h: 70, dy: 0 };
 
-  // game vars
-  let running = false, paused = false;
-  let level = 1, maxLevels = 5;
-  let wingsNeeded = 10, wingsCollected = 0;
-  let score = 0, totalScore = 0, gameSpeed = 2;
+    // obstakels
+    let items = [];
+    const gravity = 0.4;
+    let gameLoopId;
+    let running = false;
 
-  const player = { x:100, y:canvas.height-60, width:60, height:60, vy:0 };
-  let items = [];
-
-  function spawnItem() {
-    const type = Math.random()<0.7 ? "wing":"skull";
-    const size=30, ground=Math.random()<0.4;
-    const y= ground ? canvas.height-size-10 : Math.random()*(canvas.height-120);
-    items.push({type,x:canvas.width+40,y,width:size,height:size});
-  }
-
-  function resetGame() {
-    running=false; paused=false;
-    level=1; wingsCollected=0; score=0; totalScore=0; gameSpeed=2;
-    items=[]; player.y=canvas.height-player.height; player.vy=0;
-    updateHUD();
-  }
-
-  function updateHUD() {
-    hud.childNodes[0].nodeValue =
-      `Level ${level}/${maxLevels} • Vleugels ${wingsCollected}/${wingsNeeded} • Score ${score} • Totaal ${totalScore} `;
-  }
-
-  function showFeedback(text,color="#065f46") {
-    feedback.textContent=text; feedback.style.color=color;
-    feedback.style.display="block"; setTimeout(()=>feedback.style.display="none",1000);
-  }
-
-  function checkCollision(p,i) {
-    const onGround=p.y+p.height>=canvas.height-2;
-    const nearGround=i.y>canvas.height-50;
-    if(nearGround && onGround && p.x<i.x+i.width && p.x+p.width>i.x) return true;
-    return (p.x<i.x+i.width && p.x+p.width>i.x && p.y<i.y+i.height && p.y+p.height>i.y);
-  }
-
-  function update() {
-    player.vy+=0.5; player.y+=player.vy;
-    if(player.y+player.height>=canvas.height){player.y=canvas.height-player.height; player.vy=0;}
-    if(player.y<0){player.y=0; player.vy=0;}
-
-    items.forEach(i=>i.x-=gameSpeed);
-    items=items.filter(i=>{
-      if(checkCollision(player,i)){
-        if(i.type==="wing"){wingsCollected++;score+=2;totalScore+=2;showFeedback("+2 🪽");if(wingsCollected>=wingsNeeded)nextLevel();}
-        else{score-=5;totalScore-=5;showFeedback("-5 💀","#dc2626");if(score<0)score=0;}
-        return false;
-      } return i.x+i.width>0;
-    });
-    if(Math.random()<0.02)spawnItem();
-    updateHUD();
-  }
-
-  function draw() {
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-
-    // Photeinos animatie
-    const imgSize=60;
-    if(playerImg.complete){
-      const frameWidth = playerImg.width / frameCount;
-      const sx = frameIndex * frameWidth;
-      const sy = 0;
-      ctx.drawImage(playerImg, sx, sy, frameWidth, playerImg.height,
-                    player.x, player.y, imgSize, imgSize);
-
-      // om de paar ticks naar volgend frame
-      frameTick++;
-      if(frameTick % 8 === 0) { // elke 8e frame wisselen
-        frameIndex = (frameIndex+1) % frameCount;
-      }
-    } else {
-      ctx.fillStyle="#1e293b";
-      ctx.fillRect(player.x,player.y,imgSize,imgSize);
+    function startGame() {
+      items = [];
+      player.y = height/2;
+      player.dy = 0;
+      running = true;
+      cancelAnimationFrame(gameLoopId);
+      loop();
     }
 
-    // items
-    ctx.font="28px serif";
-    items.forEach(i=>ctx.fillText(i.type==="wing"?"🪽":"💀",i.x,i.y));
-  }
+    function loop() {
+      gameLoopId = requestAnimationFrame(loop);
+      ctx.clearRect(0,0,width,height);
 
-  function loop() {
-    if(!running)return;
-    if(paused){requestAnimationFrame(loop);return;}
-    update(); draw(); requestAnimationFrame(loop);
-  }
+      // player
+      player.dy += gravity;
+      player.y += player.dy;
+      if (player.y + player.h > height) {
+        player.y = height - player.h;
+        player.dy = 0;
+      }
+      ctx.drawImage(playerImg, player.x, player.y, player.w, player.h);
 
-  function nextLevel() {
-    level++;
-    if(level>maxLevels){endGame();return;}
-    wingsCollected=0; gameSpeed+=1.2;
-    showFeedback("Level "+level+"!","#1e40af");
-  }
+      // items
+      if (Math.random() < 0.02) {
+        const isSkull = Math.random() < 0.4;
+        items.push({
+          x: width,
+          y: isSkull ? height-40 : Math.random()*(height-80),
+          w: 40, h: 40,
+          type: isSkull ? "skull" : "wing"
+        });
+      }
+      items.forEach(it => {
+        it.x -= 3;
+        ctx.fillText(it.type === "skull" ? "💀" : "🪽", it.x, it.y);
+      });
+      items = items.filter(it => it.x > -50);
 
-  function endGame() {
-    running=false; endOv.style.display="grid";
-    endText.textContent=`Je hebt alle ${maxLevels} levels gehaald! Totaalscore: ${totalScore}`;
-  }
+      // collision
+      for (const it of items) {
+        const autoHit = it.y > height-60; // automatisch geraakt bij grond
+        if (autoHit || (player.x < it.x+it.w && player.x+player.w > it.x && player.y < it.y+it.h && player.y+player.h > it.y)) {
+          // TODO: score of game-over logica
+        }
+      }
+    }
 
-  function flap() {
-    if(!running||paused)return;
-    if(player.y+player.height>=canvas.height-2){player.vy=-8;} else {player.vy-=4;if(player.vy<-12)player.vy=-12;}
-  }
+    // controls
+    function flap() {
+      if (!running) return;
+      player.dy = -7;
+    }
+    window.addEventListener("keydown", e => { if (e.code==="Space") flap(); });
+    window.addEventListener("click", flap);
 
-  window.addEventListener("keydown",e=>{if(e.code==="Space"){e.preventDefault();flap();}});
-  canvas.addEventListener("mousedown",flap);
-  canvas.addEventListener("touchstart",flap);
-
-  startBtn.onclick=()=>{startOv.style.display="none";resetGame();running=true;loop();};
-  againBtn.onclick=()=>{endOv.style.display="none";resetGame();running=true;loop();};
-  backBtn.onclick=()=>{window.location.href="spelletjes.html";};
-  pauseBtn.onclick=()=>{paused=!paused;showFeedback(paused?"Pauze":"Verder spelen");};
-
-  updateHUD();
-});
-</script>
+    document.getElementById("startBtn").addEventListener("click", startGame);
+    document.getElementById("again").addEventListener("click", startGame);
+    document.getElementById("back").addEventListener("click", () => history.back());
+  </script>
 </body>
 </html>
