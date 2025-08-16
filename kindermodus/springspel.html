@@ -1,153 +1,240 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Photeinos Springspel</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
-    body {
-      margin: 0;
-      background: #e0f7ff;
-      font-family: Arial, sans-serif;
-    }
-    canvas {
-      display: block;
-      margin: 0 auto;
-      background: #aee1f9;
-    }
-    .hud {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      background: rgba(255,255,255,0.8);
-      padding: 5px 10px;
-      border-radius: 8px;
-      font-size: 14px;
-    }
-    .start, .end, .modal {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: rgba(0,0,0,0.5);
-    }
-    .card {
-      background: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      text-align: center;
-      max-width: 400px;
-    }
-    .btn {
-      background: #7bb235;
-      border: none;
-      padding: 10px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 15px;
-      color: #fff;
-    }
-    .btn.ghost {
-      background: #ccc;
-      color: #000;
-    }
+    body { margin:0; font-family:"Comic Sans MS", Arial, sans-serif; background:#fff6e5; }
+    .center { max-width:1280px; margin:0 auto; padding:0 2vw 64px; }
+    .game-card { background:#fff; border-radius:22px; box-shadow:0 10px 30px #0000001a; padding:16px; }
+    .game-wrap { width:100%; max-width:1100px; aspect-ratio:21/9; margin:0 auto; border-radius:16px;
+      overflow:hidden; background:#e0f7fa; position:relative; }
+    canvas { display:block; width:100%; height:100%; }
+    .hud { position:absolute; left:18px; bottom:16px;
+      background:rgba(255,255,255,.82); backdrop-filter:blur(4px);
+      padding:8px 10px; border-radius:10px; font-size:14px; color:#1e3a8a; }
+    .start, .end, .modal { position:absolute; inset:0; display:grid; place-items:center; }
+    .card { background:#fff; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.2);
+      padding:20px 22px; max-width:min(90%,560px); text-align:center; }
+    .title { font-weight:700; color:#1e40af; margin:6px 0; }
+    .btn { border:0; border-radius:10px; background:#0ea5e9; color:#fff;
+      padding:10px 14px; font-weight:600; cursor:pointer; }
+    .btn:active { transform:translateY(1px); }
+    .ghost { background:#eff6ff; color:#1e40af; }
+    .answers { display:grid; gap:8px; margin-top:10px; }
+    .answers.two { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .answers .btn { background:#111827; color:#fff; border:1px solid #374151; }
   </style>
+
+  <!-- Firebase compat -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+  <!-- Kinder lay-out -->
+  <script defer src="common/layout.js"></script>
 </head>
 <body>
-  <!-- Header inladen -->
-  <div id="header"></div>
+  <!-- Header wordt hier ingeladen -->
+  <div id="kinder-header" data-header-src="common/header.html"></div>
 
-  <canvas id="game" width="480" height="320"></canvas>
-  <div class="hud" id="hud">Level 1/5 • Vleugels 0/0 • Score 0 • Totaal 0</div>
+  <!-- Inhoud van de pagina -->
+  <div class="center">
+    <div class="game-card">
+      <div class="game-wrap" id="gameRoot">
+        <canvas id="game"></canvas>
+        <div class="hud" id="hud">Level 1/5 • Vragen 0/10 • Score 0</div>
 
-  <div class="start" id="start">
-    <div class="card">
-      <h2>Photeinos Springspel</h2>
-      <p>Tik/klik of druk <strong>spatie</strong> om te springen.<br>
-      Vang alle 🪽 en ontwijk obstakels.</p>
-      <button class="btn" id="startBtn">Start spel (20)</button>
+        <div class="start" id="start">
+          <div class="card">
+            <div class="title">Photeinos Springspel</div>
+            <div style="color:#334155;margin-bottom:10px">
+              Tik/klik of druk <strong>spatie</strong> om te springen.<br/>
+              Vang 🕊️ 🍇 💎 🪽 om vragen te beantwoorden.<br/>
+              Ontwijk 📦 🌵 🐍 🔥 – die zijn gevaarlijk!
+            </div>
+            <div class="badge">5 levels • kost 20 punten • +2 per level</div>
+            <div style="margin-top:12px"><button class="btn" id="startBtn">Start spel (20)</button></div>
+          </div>
+        </div>
+
+        <div class="modal" id="question" style="display:none">
+          <div class="card" id="qCard">
+            <div id="qText" class="title" style="margin:0 0 10px"></div>
+            <div id="qAnswers" class="answers"></div>
+          </div>
+        </div>
+
+        <div class="end" id="end" style="display:none">
+          <div class="card">
+            <div class="title">Spel afgelopen!</div>
+            <div id="endText" style="color:#14532d;margin:8px 0 12px"></div>
+            <button class="btn" id="again">Speel opnieuw (20)</button>
+            <button class="btn ghost" id="back" style="margin-left:8px">Terug</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="modal" id="question" style="display:none">
-    <div class="card">
-      <h3 id="qText"></h3>
-      <div id="qAnswers"></div>
-    </div>
-  </div>
+<script>
+// --------------------------
+// Variabelen spel
+// --------------------------
+let punten = 0, level = 1, vragenTeller = 0;
+let running = false;
 
-  <div class="end" id="end" style="display:none">
-    <div class="card">
-      <h2>Goed gespeeld!</h2>
-      <p id="endText"></p>
-      <button class="btn" id="again">Speel opnieuw (20)</button>
-      <button class="btn ghost" id="back">Terug</button>
-    </div>
-  </div>
+// --------------------------
+// Setup canvas
+// --------------------------
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+function resize() {
+  canvas.width = canvas.clientWidth;
+  canvas.height = canvas.clientHeight;
+}
+window.addEventListener("resize", resize);
+resize();
 
-  <script>
-    // Hier staat jouw volledige oude spelcode inline
-    const canvas = document.getElementById("game");
-    const ctx = canvas.getContext("2d");
+// --------------------------
+// Speler (Photeinos)
+// --------------------------
+const playerImg = new Image();
+playerImg.src = "images/photeinos_walk.gif";
+let player = { x:100, y:200, vy:0, size:60 };
 
-    let playerImg = new Image();
-    playerImg.src = "images/photeinos_walk.gif"; // <-- correct pad naar jouw sprite
+// --------------------------
+// Game objecten
+// --------------------------
+let objects = [];
+const items = ["🕊️","🍇","💎","🪽"];
+const obstacles = ["📦","🌵","🐍","🔥"];
 
-    let player = { x: 50, y: 150, w: 40, h: 40, dy: 0, gravity: 0.6, jump: -10 };
-    let score = 0, totalScore = 0, level = 1, wings = 0, needed = 5;
-    let gameRunning = false, obstacles = [], items = [];
+// --------------------------
+// Loop
+// --------------------------
+function loop() {
+  if (!running) return;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    function resetGame() {
-      player.y = 150; player.dy = 0;
-      score = 0; wings = 0; obstacles = []; items = [];
+  // Player tekenen
+  ctx.drawImage(playerImg, player.x, player.y, player.size, player.size);
+
+  // Gravity
+  player.vy += 0.8;
+  player.y += player.vy;
+  if (player.y > canvas.height-50) player.y = canvas.height-50;
+
+  // Nieuwe objecten soms
+  if (Math.random()<0.02){
+    if (Math.random()<0.5){
+      objects.push({type:"item", icon:items[Math.floor(Math.random()*items.length)], x:canvas.width, y:Math.random()*canvas.height});
+    } else {
+      objects.push({type:"obstacle", icon:obstacles[Math.floor(Math.random()*obstacles.length)], x:canvas.width, y:Math.random()*canvas.height});
     }
+  }
 
-    function drawPlayer() {
-      if (playerImg.complete) {
-        ctx.drawImage(playerImg, player.x, player.y, player.w, player.h);
-      } else {
-        ctx.fillStyle = "yellow";
-        ctx.beginPath();
-        ctx.arc(player.x+20, player.y+20, 20, 0, Math.PI*2);
-        ctx.fill();
+  // Objecten tekenen
+  for (let obj of [...objects]) {
+    ctx.font="32px serif";
+    ctx.fillText(obj.icon, obj.x, obj.y);
+    obj.x -= 3+level;
+    if (Math.abs(obj.x-player.x)<40 && Math.abs(obj.y-player.y)<40) {
+      if (obj.type==="item") { askMeerkeuze(); }
+      if (obj.type==="obstacle") { askZonde(); }
+      objects.splice(objects.indexOf(obj),1);
+    }
+    if (obj.x<-30) objects.splice(objects.indexOf(obj),1);
+  }
+
+  requestAnimationFrame(loop);
+}
+
+// --------------------------
+// Vragen (voorbeelden)
+// --------------------------
+const meerkeuzeVragen = [
+  { vraag: "Wat doen we op zondag?", opties:["Naar de kerk gaan","Thuisblijven"], juist:0 },
+  { vraag: "Wat betekent 'Amen'?", opties:["Ik geloof het","Einde"], juist:0 }
+];
+const zondeVragen = [
+  { vraag:"God helemaal vergeten en nooit bidden is goed.", juist:1 },
+  { vraag:"Pesten van anderen is juist.", juist:1 }
+];
+
+// --------------------------
+// Functies vragen
+// --------------------------
+function askMeerkeuze() {
+  running=false;
+  const q = meerkeuzeVragen[Math.floor(Math.random()*meerkeuzeVragen.length)];
+  document.getElementById("qText").textContent=q.vraag;
+  const answers=document.getElementById("qAnswers");
+  answers.innerHTML="";
+  q.opties.forEach((opt,i)=>{
+    const btn=document.createElement("button");
+    btn.className="btn";
+    btn.textContent=opt;
+    btn.onclick=()=>{
+      if(i===q.juist){
+        vragenTeller++;
+        if (vragenTeller>=10) { level++; punten+=2; vragenTeller=0; if(level>5) endGame(); }
+        updateHud();
       }
-    }
-
-    function update() {
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      ctx.fillStyle="#87ceeb"; ctx.fillRect(0,0,canvas.width,canvas.height);
-      ctx.fillStyle="#228B22"; ctx.fillRect(0,280,canvas.width,40);
-
-      player.dy += player.gravity;
-      player.y += player.dy;
-      if (player.y+player.h>280){player.y=280-player.h;player.dy=0;}
-
-      drawPlayer();
-      document.getElementById("hud").innerText=`Level ${level}/5 • Vleugels ${wings}/${needed} • Score ${score} • Totaal ${totalScore}`;
-
-      requestAnimationFrame(update);
-    }
-    update();
-
-    window.addEventListener("keydown", e=>{
-      if(e.code==="Space"){player.dy=player.jump;}
-    });
-    canvas.addEventListener("click", ()=>{player.dy=player.jump;});
-
-    document.getElementById("startBtn").onclick=()=>{
-      document.getElementById("start").style.display="none";
-      gameRunning=true; resetGame();
+      closeModal();
     };
-    document.getElementById("again").onclick=()=>{
-      document.getElementById("end").style.display="none";
-      gameRunning=true; resetGame();
-    };
-    document.getElementById("back").onclick=()=>{window.location.href="index.html";}
-  </script>
+    answers.appendChild(btn);
+  });
+  document.getElementById("question").style.display="grid";
+}
 
-  <!-- header loader -->
-  <script src="layout.js"></script>
+function askZonde() {
+  running=false;
+  const q = zondeVragen[Math.floor(Math.random()*zondeVragen.length)];
+  document.getElementById("qText").textContent=q.vraag;
+  const answers=document.getElementById("qAnswers");
+  answers.innerHTML="";
+  ["Ja","Nee"].forEach((opt,i)=>{
+    const btn=document.createElement("button");
+    btn.className="btn";
+    btn.textContent=opt;
+    btn.onclick=()=>{ if((i===1 && q.juist===1)) { closeModal(); } else { endGame(); } };
+    answers.appendChild(btn);
+  });
+  document.getElementById("question").style.display="grid";
+}
+
+function closeModal(){ document.getElementById("question").style.display="none"; running=true; loop(); }
+
+// --------------------------
+// HUD en einde
+// --------------------------
+function updateHud(){
+  document.getElementById("hud").textContent=`Level ${level}/5 • Vragen ${vragenTeller}/10 • Score ${punten}`;
+}
+function endGame(){
+  running=false;
+  document.getElementById("end").style.display="grid";
+  document.getElementById("endText").textContent=`Eindscore: ${punten} punten • Level ${level}`;
+}
+
+// --------------------------
+// Controls
+// --------------------------
+window.addEventListener("keydown", e=>{ if(e.code==="Space"){ player.vy=-10; }});
+canvas.addEventListener("click", ()=>{ player.vy=-10; });
+
+// --------------------------
+// Start
+// --------------------------
+document.getElementById("startBtn").onclick=()=>{
+  punten-=20;
+  level=1; vragenTeller=0; updateHud();
+  document.getElementById("start").style.display="none";
+  running=true; loop();
+};
+document.getElementById("again").onclick=()=>{ location.reload(); };
+document.getElementById("back").onclick=()=>{ history.back(); };
+</script>
 </body>
 </html>
