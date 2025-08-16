@@ -30,7 +30,7 @@
 
 <script>
 // --------------------------
-// Basis spel met emoji ⭐
+// Springspel met Photeinos
 // --------------------------
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
@@ -42,7 +42,13 @@ function resize() {
 window.addEventListener("resize", resize);
 resize();
 
-let player = { x:100, y:200, vy:0, size:40 };
+let player = { x:100, y:200, vy:0, size:80 };
+
+// laad de Photeinos-gif
+const photeinos = new Image();
+photeinos.src = "images/photeinos_walk.gif";
+let photeinosLoaded = false;
+photeinos.onload = () => { photeinosLoaded = true; };
 
 function loop() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -55,15 +61,20 @@ function loop() {
     player.vy = 0;
   }
 
-  // teken de speler als ⭐
-  ctx.font = player.size + "px serif";
-  ctx.fillText("⭐", player.x, player.y);
+  // teken de speler
+  if(photeinosLoaded){
+    ctx.drawImage(photeinos, player.x, player.y - player.size, player.size, player.size);
+  } else {
+    ctx.font = player.size + "px serif";
+    ctx.fillText("⭐", player.x, player.y);
+  }
 
   requestAnimationFrame(loop);
 }
 
+// springen met spatie
 window.addEventListener("keydown", e=>{
-  if(e.code==="Space"){ player.vy = -10; }
+  if(e.code==="Space"){ player.vy = -12; }
 });
 
 loop();
