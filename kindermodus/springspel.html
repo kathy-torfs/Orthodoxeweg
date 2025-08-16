@@ -1,17 +1,27 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Photeinos Springspel – Test</title>
+  <title>Photeinos Springspel – GIF versie</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
     body { margin:0; font-family:"Comic Sans MS", Arial, sans-serif; background:#fff6e5; }
     .center { max-width:1280px; margin:0 auto; padding:0 2vw 64px; }
     .game-card { background:#fff; border-radius:22px; box-shadow:0 10px 30px #0000001a; padding:16px; }
-    .game-wrap { width:100%; max-width:1100px; aspect-ratio:21/9; margin:0 auto; border-radius:16px;
-      overflow:hidden; background:#e0f7fa; position:relative; }
+    .game-wrap {
+      width:100%; max-width:1100px; aspect-ratio:21/9; margin:0 auto;
+      border-radius:16px; overflow:hidden; background:#e0f7fa; position:relative;
+    }
     canvas { display:block; width:100%; height:100%; }
+
+    /* Photeinos bovenop canvas */
+    #photeinos {
+      position:absolute;
+      bottom:50px; left:100px;
+      width:80px; height:auto;
+      pointer-events:none; /* niet aanklikbaar */
+    }
   </style>
   <!-- Kinder lay-out -->
   <script defer src="common/layout.js"></script>
@@ -24,6 +34,7 @@
     <div class="game-card">
       <div class="game-wrap">
         <canvas id="game"></canvas>
+        <img id="photeinos" src="images/photeinos_walk.gif" alt="Photeinos">
       </div>
     </div>
   </div>
@@ -34,6 +45,7 @@
 // --------------------------
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
+const photeinos = document.getElementById("photeinos");
 
 function resize() {
   canvas.width = canvas.clientWidth;
@@ -44,12 +56,7 @@ resize();
 
 let player = { x:100, y:200, vy:0, size:80 };
 
-// laad de Photeinos-gif (absoluut pad)
-const photeinos = new Image();
-photeinos.src = "https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.gif";
-let photeinosLoaded = false;
-photeinos.onload = () => { photeinosLoaded = true; };
-
+// animatielus
 function loop() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
@@ -61,20 +68,18 @@ function loop() {
     player.vy = 0;
   }
 
-  // teken de speler
-  if(photeinosLoaded){
-    ctx.drawImage(photeinos, player.x, player.y - player.size, player.size, player.size);
-  } else {
-    ctx.font = player.size + "px serif";
-    ctx.fillText("⭐", player.x, player.y);
-  }
+  // zet Photeinos-positie (bovenop canvas)
+  photeinos.style.left = player.x + "px";
+  photeinos.style.top = (player.y - player.size) + "px";
 
   requestAnimationFrame(loop);
 }
 
 // springen met spatie
 window.addEventListener("keydown", e=>{
-  if(e.code==="Space"){ player.vy = -12; }
+  if(e.code==="Space" && player.y >= canvas.height-50){
+    player.vy = -12;
+  }
 });
 
 loop();
