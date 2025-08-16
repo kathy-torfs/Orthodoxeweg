@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Bijbelverhalen – Orthodoxe Kinderpagina</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
+
+  <style>
+    :root{
+      --primair:#7bb235; --donker:#67510C;
+      --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
+      --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
+      --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
+      --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
+      --kaart:#fffef9; --rand:#f1e6c8; --tekst:#3b2f12;
+    }
+    body{
+      margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:var(--tekst);
+      min-height:100vh; background:var(--pastel1); transition:background .6s;
+    }
+
+    /* ====== Pagina-opmaak onder de header ====== */
+    main{ max-width: 980px; margin: 16px auto 60px auto; padding: 0 2vw; }
+
+    .intro{
+      background:#fffdf5; border:1.5px solid var(--rand); border-radius:18px;
+      box-shadow:0 6px 22px rgba(0,0,0,.06);
+      padding:16px 18px; margin:6px auto 18px auto; text-align:center; color:#56461e;
+    }
+    .intro b{ color:var(--primair); }
+
+    /* Verhalenlijst */
+    .story-list{ display:flex; flex-direction:column; gap:16px; }
+    .story{
+      background:var(--kaart);
+      border:1.5px solid var(--rand);
+      border-radius:20px;
+      box-shadow:0 8px 26px rgba(0,0,0,.06);
+      padding:18px 18px 20px 18px;
+      opacity:0; transform:translateY(14px) scale(.98);
+      animation: storyIn .6s ease forwards;
+    }
+    .story h2{
+      margin:0 0 8px 0; font-size:1.25rem; color:#684d16;
+    }
+    .story .tekst{
+      white-space:pre-line; line-height:1.55; font-size:1.02rem; color:#3d3218;
+    }
+
+    /* zachte “één voor één” binnenkomst */
+    @keyframes storyIn{
+      to{ opacity:1; transform:translateY(0) scale(1); }
+    }
+
+    /* klein labeltje boven de lijst */
+    .label{
+      display:inline-block; background:#fff1c7; border:1px solid #f1d188; color:#7a4d00;
+      padding:6px 12px; border-radius:999px; font-weight:bold; font-size:.92rem;
+      margin:8px 0 6px 2px;
+    }
+
+    /* “laden…” */
+    .loading{
+      text-align:center; color:#7a6b42; padding:22px 8px; font-size:1.05rem;
+    }
+
+    /* responsief */
+    @media (max-width: 600px){
+      .story{ padding:14px; }
+      .story h2{ font-size:1.14rem; }
+      .story .tekst{ font-size:1rem; }
+    }
+  </style>
+
+  <!-- Firebase compat (zelfde versie als elders) -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+
+  <!-- Header + beveiliging + live punten -->
+  <script defer src="common/layout.js"></script>
+</head>
+<body>
+  <!-- Hier laadt layout.js automatisch je begroetingsbalk en menubalk -->
+  <div id="kinder-header" data-header-src="common/header.html"></div>
+
+  <main>
+    <div class="intro">
+      <b>Welkom!</b> Hieronder vind je mooie bijbelverhalen. Ze verschijnen één voor één —
+      neem rustig je tijd om ze te lezen. ✨
+    </div>
+
+    <div class="label">Bijbelverhalen</div>
+    <div id="stories" class="story-list"></div>
+    <div id="loader" class="loading">Laden…</div>
+  </main>
+
+  <script>
+    // Zachte pastelachtergrond (zoals op je andere pagina’s)
+    (function(){
+      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
+      document.body.style.background = p[Math.floor(Math.random()*p.length)];
+    })();
+
+    // Wacht even tot layout.js klaar is en Firestore beschikbaar is
+    (function boot(){
+      if (!(window.KinderLayout && window.firebase)) return setTimeout(boot, 120);
+      const el = document.getElementById('kinder-header');
+      window.KinderLayout.mountHeader({
+        rootId: 'kinder-header',
+        headerSrc: el.dataset.headerSrc,
+        active: 'bijbel' // (optioneel) highlight de knop “Bijbelverhalen”
+      }).then(loadStories).catch(loadStories);
+    })();
+
+    // Verhalen laden en één voor één tonen
+    async function loadStories(){
+      try{
+        // Als Firebase nog niet geinitialiseerd is, doe het hier (no-op als al klaar)
+        if (!firebase.apps.length) {
+          firebase.initializeApp({
+            apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+            authDomain:"orthodoxeweg.firebaseapp.com",
+            projectId:"orthodoxeweg",
+            storageBucket:"orthodoxeweg.appspot.com",
+            messagingSenderId:"408582263618",
+            appId:"1:408582263618:web:0a20f4bf0704989d3ceedb"
+          });
+        }
+        const db = firebase.firestore();
+
+        // Ophalen uit root-collectie: VlaamsOrthodoxekinderdagboek (docs: dag001, dag002, …)
+        // We ordenen op document-id zodat dag001 < dag002 < …
+        const snap = await db.collection('VlaamsOrthodoxekinderdagboek')
+                             .orderBy(firebase.firestore.FieldPath.documentId())
+                             .get();
+
+        const data = [];
+        snap.forEach(doc => {
+          const d = doc.data() || {};
+          const titel = d.titel || d.Titel || `Verhaal ${doc.id}`;
+          // verschillende mogelijke sleutel-namen voor de tekst
+          const tekst = d.tekst || d.verhaal || d.content || d.beschrijving || "";
+          if (String(tekst).trim().length) data.push({ id: doc.id, titel, tekst: String(tekst) });
+        });
+
+        // Niks? Meld het netjes
+        if (!data.length){
+          document.getElementById('loader').textContent = "Er zijn nog geen bijbelverhalen toegevoegd.";
+          return;
+        }
+
+        // Eén voor één tonen met een kleine vertraging
+        const root = document.getElementById('stories');
+        document.getElementById('loader').style.display = 'none';
+
+        let i = 0;
+        const STEP_MS = 450; // tijd tussen verhalen
+        function addNext(){
+          if (i >= data.length) return;
+          const { titel, tekst } = data[i++];
+
+          const card = document.createElement('article');
+          card.className = 'story';
+          card.innerHTML = `
+            <h2>${escapeHtml(titel)}</h2>
+            <div class="tekst">${escapeHtml(tekst)}</div>
+          `;
+          root.appendChild(card);
+
+          // volgend item plannen
+          setTimeout(addNext, STEP_MS);
+        }
+        addNext();
+
+      }catch(e){
+        console.error(e);
+        const loader = document.getElementById('loader');
+        loader.textContent = "Kon de verhalen niet laden. Probeer later opnieuw.";
+      }
+    }
+
+    // heel simpele escaper zodat line breaks bewaard blijven (we gebruiken pre-line in CSS)
+    function escapeHtml(s){
+      return String(s)
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;');
+    }
+  </script>
+</body>
+</html>
