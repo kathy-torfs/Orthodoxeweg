@@ -2,57 +2,68 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Photeinos Test</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Photeinos Springspel</title>
+  <link rel="icon" href="images/kruis.png">
   <style>
-    body { margin:0; background:#e0f7fa; }
-    canvas { display:block; width:100%; height:100vh; }
+    body { margin:0; background:#e0f7fa; overflow:hidden; }
+    canvas { display:block; width:100%; height:calc(100vh - 120px); }
+    header { height:120px; }
   </style>
 </head>
 <body>
+  <!-- Header komt hier -->
+  <div id="header"></div>
+
+  <!-- Het spelcanvas -->
   <canvas id="game"></canvas>
-<script>
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
 
-function resize() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-}
-window.addEventListener("resize", resize);
-resize();
+  <script src="layout.js"></script>
+  <script>
+    // --------------------------
+    // Canvas instellen
+    // --------------------------
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
 
-// Laad nu PNG i.p.v. GIF
-const playerImg = new Image();
-playerImg.src = "images/photeinos_walk.png";
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight - 120; // ruimte voor header
+    }
+    window.addEventListener("resize", resize);
+    resize();
 
-let player = { x:100, y:200, vy:0, size:80 };
+    // --------------------------
+    // Speler laden (PNG versie)
+    // --------------------------
+    const playerImg = new Image();
+    playerImg.src = "images/photeinos_walk.png"; // gebruik PNG
 
-playerImg.onload = () => {
-  loop();
-};
+    let player = { x:100, y:200, vy:0, size:80 };
 
-function loop(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+    playerImg.onload = () => { loop(); };
 
-  // zwaartekracht
-  player.vy += 0.5;
-  player.y += player.vy;
-  if (player.y > canvas.height-100) {
-    player.y = canvas.height-100;
-    player.vy = 0;
-  }
+    function loop(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  // teken speler
-  ctx.drawImage(playerImg, player.x, player.y, player.size, player.size);
+      // zwaartekracht
+      player.vy += 0.5;
+      player.y += player.vy;
+      if (player.y > canvas.height-100) {
+        player.y = canvas.height-100;
+        player.vy = 0;
+      }
 
-  requestAnimationFrame(loop);
-}
+      // speler tekenen
+      ctx.drawImage(playerImg, player.x, player.y, player.size, player.size);
 
-// spring met spatie
-window.addEventListener("keydown", e=>{
-  if(e.code==="Space"){ player.vy = -10; }
-});
-</script>
+      requestAnimationFrame(loop);
+    }
+
+    // springen met spatie
+    window.addEventListener("keydown", e=>{
+      if(e.code==="Space"){ player.vy = -10; }
+    });
+  </script>
 </body>
 </html>
