@@ -81,9 +81,12 @@ window.addEventListener("load", () => {
   resizeCanvas();
   window.addEventListener("resize", resizeCanvas);
 
-  // Photeinos sprite
+  // Photeinos sprite-sheet (4 frames naast elkaar)
   const playerImg = new Image();
   playerImg.src = "https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.png";
+  const frameCount = 4;     // aantal frames in de sheet
+  let frameIndex = 0;       // huidig frame
+  let frameTick = 0;        // om snelheid te regelen
 
   // game vars
   let running = false, paused = false;
@@ -144,12 +147,27 @@ window.addEventListener("load", () => {
 
   function draw() {
     ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    // Photeinos animatie
     const imgSize=60;
     if(playerImg.complete){
-      ctx.drawImage(playerImg, player.x, player.y, imgSize, imgSize);
+      const frameWidth = playerImg.width / frameCount;
+      const sx = frameIndex * frameWidth;
+      const sy = 0;
+      ctx.drawImage(playerImg, sx, sy, frameWidth, playerImg.height,
+                    player.x, player.y, imgSize, imgSize);
+
+      // om de paar ticks naar volgend frame
+      frameTick++;
+      if(frameTick % 8 === 0) { // elke 8e frame wisselen
+        frameIndex = (frameIndex+1) % frameCount;
+      }
     } else {
-      ctx.fillStyle="#1e293b"; ctx.fillRect(player.x,player.y,imgSize,imgSize);
+      ctx.fillStyle="#1e293b";
+      ctx.fillRect(player.x,player.y,imgSize,imgSize);
     }
+
+    // items
     ctx.font="28px serif";
     items.forEach(i=>ctx.fillText(i.type==="wing"?"🪽":"💀",i.x,i.y));
   }
