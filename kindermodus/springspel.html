@@ -2,167 +2,267 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Photeinos Springspel</title>
-  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Photeinos Game – Level 1</title>
   <style>
-    body { margin:0; font-family:"Comic Sans MS", Arial, sans-serif; background:#fff6e5; }
-    .center { max-width:1280px; margin:0 auto; padding:0 2vw 64px; }
-    .game-card { background:#fff; border-radius:22px; box-shadow:0 10px 30px #0000001a; padding:16px; }
-    .game-wrap {
-      width:100%; max-width:1100px; aspect-ratio:21/9; margin:0 auto;
-      border-radius:16px; overflow:hidden; background:#000; position:relative;
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: black;
     }
-    canvas { display:block; width:100%; height:100%; }
-    #photeinos {
-      position:absolute; bottom:50px; left:100px;
-      width:120px; height:auto; pointer-events:none;
+    canvas {
+      display: block;
+      background: url("level1.png") repeat-x;
+      background-size: cover;
     }
-    #punten { font-size:20px; font-weight:bold; margin:12px; }
+    #questionModal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: none;
+      background: rgba(0,0,0,0.8);
+      color: white;
+      font-family: sans-serif;
+      text-align: center;
+      padding-top: 100px;
+      z-index: 1000;
+    }
+    .questionBox {
+      background: #333;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 500px;
+      margin: auto;
+    }
+    .answerBtn {
+      display: block;
+      background: #7bb235;
+      margin: 10px auto;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1.2em;
+    }
   </style>
-  <!-- Firebase -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
-    import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "YOUR_KEY",
-      authDomain: "YOUR_PROJECT.firebaseapp.com",
-      projectId: "YOUR_PROJECT",
-      storageBucket: "YOUR_PROJECT.appspot.com",
-      messagingSenderId: "YOUR_ID",
-      appId: "YOUR_APPID"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    window.db = db; // zodat spel-script erbij kan
-    window.getDoc = getDoc;
-    window.updateDoc = updateDoc;
-    window.doc = doc;
-  </script>
-  <script defer src="common/layout.js"></script>
 </head>
 <body>
-  <div id="kinder-header" data-header-src="common/header.html"></div>
+  <canvas id="gameCanvas" width="900" height="400"></canvas>
 
-  <div class="center">
-    <div id="punten">Punten: laden...</div>
-    <div class="game-card">
-      <div class="game-wrap">
-        <canvas id="game"></canvas>
-        <img id="photeinos" src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.png" alt="Photeinos">
-      </div>
+  <div id="questionModal">
+    <div class="questionBox">
+      <p id="questionText"></p>
+      <div id="answers"></div>
     </div>
   </div>
 
-<script>
-// ---------------------
-// Spelvariabelen
-// ---------------------
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
-const photeinos = document.getElementById("photeinos");
-const puntenDiv = document.getElementById("punten");
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
 
-function resize() { canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; }
-window.addEventListener("resize", resize); resize();
+    // Afbeeldingen
+    const photeinosImg = new Image();
+    photeinosImg.src = "photeinos_walk.png";
 
-let player = { x:100, y:200, vy:0, size:120, grounded:false };
-let obstakels = [];
-let obstakelTeller = 0;
-let level = 1;
-const maxLevels = 5;
-let achtergrond = new Image();
-achtergrond.src = `https://kathy-torfs.github.io/Orthodoxeweg/images/level${level}.png`;
+    let photeinos = { x: 50, y: 300, width: 80, height: 120, vy: 0, jumping: false };
 
-let punten = 0;
+    let objects = []; // obstakels en bonusobjecten
+    let score = 0;
+    let level = 1;
+    let correctAnswers = 0;
 
-// ---------------------
-// Firestore
-// ---------------------
-async function laadPunten() {
-  const ref = window.doc(window.db,"spel","photeinos_vlam");
-  const snap = await window.getDoc(ref);
-  if(snap.exists()) {
-    punten = snap.data().punten || 0;
-    puntenDiv.textContent = "Punten: " + punten;
-  }
-}
-async function schrijfPunten(nieuw) {
-  const ref = window.doc(window.db,"spel","photeinos_vlam");
-  await window.updateDoc(ref,{ punten: nieuw });
-  punten = nieuw;
-  puntenDiv.textContent = "Punten: " + punten;
-}
-laadPunten().then(()=> schrijfPunten(punten-20)); // start kost 20 punten
+    // Vragen
+    const meerkeuzeVragen = [
+      {q:"Wat doe je als je wakker wordt?", a:["Een kort gebedje bidden","Je bed uit springen zonder God te groeten"], correct:0},
+      {q:"Wat doe je met het kruisteken?", a:["Je begint en eindigt je gebed ermee","Alleen doen als anderen kijken"], correct:0},
+      {q:"Wat betekent 'Amen'?", a:["Ik geloof het/zo is het","Einde, klaar!"], correct:0},
+      {q:"Wat doe je op zondag als je kan?", a:["Naar de kerk gaan","Thuisblijven omdat uitslapen belangrijker is"], correct:0},
+      {q:"Wat is bidden?", a:["Praten met God","Alleen iets vragen als je iets wil"], correct:0},
+      {q:"Een kind zit alleen op de speelplaats. Wat doe je?", a:["Je nodigt hem/haar uit","Je doet alsof je het niet ziet"], correct:0},
+      {q:"Iemand heeft honger. Wat is goed?", a:["Delen van je eten","Doen alsof je niets merkt"], correct:0},
+      {q:"Een klasgenoot heeft verdriet. Wat past het meest bij Jezus?", a:["Troosten en luisteren","Zeggen dat het niet erg is en weglopen"], correct:0},
+      {q:"Iemand maakt een fout. Wat doe je?", a:["Vergeven en opnieuw proberen","Boos blijven en pesten"], correct:0},
+      {q:"Je brak per ongeluk iets. Wat is juist?", a:["Eerlijk zeggen wat er gebeurde","Zwijgen zodat niemand het weet"], correct:0},
+      {q:"De juf stelt een vraag en je weet het niet zeker.", a:["Eerlijk zijn en je best doen","Afkijken bij de buur"], correct:0},
+      {q:"Mama vraagt hulp bij de tafel. Wat doe je?", a:["Je helpt meteen","Je doet alsof je het niet hoorde"], correct:0},
+      {q:"Hoe toon je respect thuis?", a:["Met dankjewel en alstublieft","Door te roepen als je iets wil"], correct:0},
+      {q:"Je kreeg twee koekjes en je vriend geen.", a:["Je deelt er één","Je eet ze snel allebei op"], correct:0},
+      {q:"Iemand heeft een mooier speelgoed.", a:["Blij zijn met wat je hebt","Jaloers doen en kwaad worden"], correct:0},
+      {q:"Wat doe je in de kerk?", a:["Stil zijn en meebidden","Rondlopen en praten"], correct:0},
+      {q:"Wat lees je in de Bijbel?", a:["Gods Woord","Grappige mopjes"], correct:0},
+      {q:"Wat is vasten (simpel)?", a:["Minder van iets nemen om meer bij God te zijn","Niet eten zodat je sneller bent"], correct:0},
+      {q:"Wat doet het doopsel?", a:["Maakt je kind van God en lid van de Kerk","Geeft je superkrachten"], correct:0},
+      {q:"Wat is de communie?", a:["Jezus die bij ons komt in de Eucharistie","Gewoon brood"], correct:0},
+      {q:"Je mag het spel kiezen. Wat is beleefd?", a:["Om beurten kiezen","Altijd zelf kiezen"], correct:0},
+      {q:"Je krijgt een cadeau dat je al hebt.", a:["Dankbaar zijn en het mooi bewaren","Meteen doorgeven zonder dankjewel"], correct:0},
+      {q:"Wat is beter?", a:["Eerlijk en vriendelijk zijn","Stoer doen en stoer spreken"], correct:0},
+      {q:"Je wordt boos. Wat is goed?", a:["Eerst rustig worden en dan praten","Meteen schreeuwen"], correct:0},
+      {q:"Wat doe je met je talenten?", a:["Je gebruikt ze om goed te doen","Alleen om beter te zijn dan anderen"], correct:0},
+      {q:"Je twijfelt wat juist is.", a:["Je vraagt raad aan je ouders of catecheet","Je doet maar wat je wil"], correct:0},
+      {q:"Je hebt iemand pijn gedaan.", a:["Sorry zeggen en goedmaken","Doen alsof er niets is"], correct:0},
+      {q:"Wat doe je met afval buiten?", a:["In de vuilnisbak gooien","Laten liggen"], correct:0},
+      {q:"Hoe ga je om met dieren?", a:["Zacht en zorgzaam","Plagen voor de lol"], correct:0},
+      {q:"Wie leerde ons de 'Onze Vader'?", a:["Jezus","Petrus"], correct:0},
+      {q:"Wat vieren we met Pasen?", a:["De verrijzenis van Jezus","Een lenteschoonmaak"], correct:0},
+      {q:"Wat betekent ‘naaste’?", a:["Iedereen die God op je weg plaatst","Alleen je beste vriend"], correct:0},
+      {q:"Op de beurt wachten is…", a:["Eerlijk en vriendelijk","Saai en dus niet nodig"], correct:0},
+      {q:"Iemand stelt een domme vraag.", a:["Respectvol antwoorden","Uitlachen"], correct:0}
+    ];
 
-// ---------------------
-// Spel mechanics
-// ---------------------
-function nieuwObstakel() {
-  let type = Math.random() < 0.5 ? "🪨" : "🕊️";
-  obstakels.push({x:canvas.width+50,y:canvas.height-70,type});
-}
-setInterval(()=>{ if(level<=maxLevels) nieuwObstakel(); },2000);
+    const zondeVragen = [
+      "God helemaal vergeten en nooit bidden is goed.",
+      "Grappen maken over God in de kerk is goed.",
+      "De Naam van God lelijk gebruiken is toegestaan.",
+      "De zondag is alleen voor spel en nooit voor God.",
+      "Je ouders expres negeren is juist.",
+      "Met respect praten tegen ouders en juf is niet nodig.",
+      "Iemand pijn doen voor de grap mag.",
+      "Pesten of iemand buitensluiten is goed.",
+      "Over het lichaam van anderen grapjes maken is goed.",
+      "Iets meenemen dat niet van jou is mag.",
+      "Jaloers doen en alles voor jezelf willen is goed.",
+      "Liegen om uit de problemen te blijven is toegestaan.",
+      "Roddelen over iemand is goed.",
+      "In de kerk hard roepen en rennen mag.",
+      "Tijdens gebed expres grapjes maken is goed.",
+      "Iemand met honger of verdriet negeren is juist.",
+      "Niet willen delen met wie niets heeft is goed.",
+      "Afval op straat gooien is oké.",
+      "Dieren plagen mag.",
+      "Spieken en valsspelen is toegestaan.",
+      "Je beurt afpakken in de rij is goed.",
+      "Schelden en lelijke woorden gebruiken is oké.",
+      "Nooit vergeven en altijd boos blijven is juist.",
+      "Nooit dankjewel zeggen is goed.",
+      "Opscheppen en anderen klein maken is goed.",
+      "Altijd schermtijd kiezen boven gebed of gezin is juist.",
+      "Een fout verbergen en een ander de schuld geven is toegestaan."
+    ];
 
-function volgendeLevel() {
-  level++;
-  if(level<=maxLevels) {
-    achtergrond.src = `https://kathy-torfs.github.io/Orthodoxeweg/images/level${level}.png`;
-    schrijfPunten(punten+2);
-    player.x=100;
-    obstakels=[];
-  } else {
-    alert("Proficiat! Alle levels gehaald!");
-  }
-}
+    // Modal
+    const modal = document.getElementById("questionModal");
+    const qText = document.getElementById("questionText");
+    const ansDiv = document.getElementById("answers");
 
-// ---------------------
-// Game loop
-// ---------------------
-function loop() {
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.drawImage(achtergrond,0,0,canvas.width,canvas.height);
+    let currentQuestion = null;
+    let currentType = null; // "meerkeuze" of "zonde"
 
-  // zwaartekracht
-  player.vy += 0.8;
-  player.y += player.vy;
-  if (player.y > canvas.height-50) {
-    player.y = canvas.height-50;
-    player.vy = 0;
-    player.grounded = true;
-  } else { player.grounded = false; }
-
-  // obstakels
-  ctx.font = "40px serif";
-  obstakels.forEach(o=>{
-    o.x -= 5;
-    ctx.fillText(o.type,o.x,o.y);
-    // botsing
-    if(player.x+player.size>o.x && player.x<o.x+40 && player.y>o.y-40){
-      alert("Botsing! Probeer opnieuw.");
-      level=1; achtergrond.src=`https://kathy-torfs.github.io/Orthodoxeweg/images/level1.png`;
-      obstakels=[];
+    function showMeerkeuzeVraag() {
+      currentType = "meerkeuze";
+      currentQuestion = meerkeuzeVragen[Math.floor(Math.random() * meerkeuzeVragen.length)];
+      qText.innerText = currentQuestion.q;
+      ansDiv.innerHTML = "";
+      currentQuestion.a.forEach((ans, i) => {
+        const btn = document.createElement("div");
+        btn.className = "answerBtn";
+        btn.innerText = ans;
+        btn.onclick = () => {
+          if (i === currentQuestion.correct) {
+            correctAnswers++;
+            if (correctAnswers >= 10) {
+              nextLevel();
+            }
+          }
+          modal.style.display = "none";
+        };
+        ansDiv.appendChild(btn);
+      });
+      modal.style.display = "block";
     }
-    if(o.x<-50) obstakels.shift();
-  });
 
-  // photeinos positie
-  photeinos.style.left = player.x+"px";
-  photeinos.style.top = (player.y-player.size)+"px";
+    function showZondeVraag() {
+      currentType = "zonde";
+      const q = zondeVragen[Math.floor(Math.random() * zondeVragen.length)];
+      qText.innerText = q + " (Ja of Nee?)";
+      ansDiv.innerHTML = "";
 
-  requestAnimationFrame(loop);
-}
-loop();
+      ["Ja","Nee"].forEach((ans) => {
+        const btn = document.createElement("div");
+        btn.className = "answerBtn";
+        btn.innerText = ans;
+        btn.onclick = () => {
+          if (ans === "Nee") {
+            modal.style.display = "none"; // goed → verder
+          } else {
+            alert("Fout! Game Over");
+            location.reload();
+          }
+        };
+        ansDiv.appendChild(btn);
+      });
 
-// controls
-window.addEventListener("keydown", e=>{
-  if(e.code==="Space" && player.grounded) player.vy=-15;
-  if(e.code==="ArrowRight") player.x += 15;
-  if(e.code==="ArrowLeft") player.x -= 15;
-  if(player.x>canvas.width-100) volgendeLevel();
-});
-</script>
+      modal.style.display = "block";
+    }
+
+    // Level wisselen
+    function nextLevel() {
+      level++;
+      correctAnswers = 0;
+      if (level > 5) {
+        alert("Gefeliciteerd! Je hebt alle levels gehaald!");
+        location.reload();
+      } else {
+        canvas.style.background = `url('level${level}.png') repeat-x`;
+        canvas.style.backgroundSize = "cover";
+        modal.style.display = "none";
+      }
+    }
+
+    // Input
+    document.addEventListener("keydown", (e) => {
+      if (e.code === "Space" && !photeinos.jumping) {
+        photeinos.vy = -15;
+        photeinos.jumping = true;
+      }
+    });
+
+    // Game loop
+    function gameLoop() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+
+      // Photeinos
+      photeinos.y += photeinos.vy;
+      photeinos.vy += 1;
+      if (photeinos.y > 300) {
+        photeinos.y = 300;
+        photeinos.vy = 0;
+        photeinos.jumping = false;
+      }
+      ctx.drawImage(photeinosImg, photeinos.x, photeinos.y, photeinos.width, photeinos.height);
+
+      // Obstakels en objecten
+      if (Math.random() < 0.01) {
+        const types = ["obstacle","bonus"];
+        let type = types[Math.floor(Math.random()*types.length)];
+        objects.push({
+          x: canvas.width,
+          y: type==="obstacle"? 320:Math.random()*200+100,
+          type: type,
+          symbol: type==="obstacle"? ["🪨","🐍","🔥"][Math.floor(Math.random()*3)] : ["🪽","🕊️","😇"][Math.floor(Math.random()*3)]
+        });
+      }
+
+      objects.forEach((o,i) => {
+        o.x -= 5;
+        ctx.font = "40px serif";
+        ctx.fillText(o.symbol,o.x,o.y);
+
+        // Collision
+        if (o.x < photeinos.x+photeinos.width &&
+            o.x+30 > photeinos.x &&
+            o.y < photeinos.y+photeinos.height &&
+            o.y+30 > photeinos.y) {
+          objects.splice(i,1);
+          if (o.type === "obstacle") {
+            showZondeVraag();
+          } else {
+            showMeerkeuzeVraag();
+          }
+        }
+      });
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+  </script>
 </body>
 </html>
