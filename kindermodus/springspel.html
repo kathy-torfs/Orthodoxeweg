@@ -1,78 +1,79 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Springspel – Orthodoxe Kinderpagina</title>
-  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Photeinos Springspel – Orthodoxe Kinderpagina</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png"/>
 
   <style>
     :root{
       --primair:#7bb235; --donker:#67510C;
       --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
-      --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
-      --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
-      --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
     }
-    body{
-      margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
-      min-height:100vh; background:var(--pastel1); transition:background .6s; overflow-x:hidden;
+    body,html{
+      margin:0; padding:0;
+      width:100%; height:100%;
+      font-family:'Comic Sans MS', Arial, sans-serif;
+      overflow:hidden;
+      background:var(--pastel1);
     }
-
-    .page-container{ max-width:1000px; margin:0 auto; padding:0 12px 44px 12px; }
 
     #gameContainer{
-      position:relative;
-      width:100%;
-      height:500px;
-      background:url('https://kathy-torfs.github.io/Orthodoxeweg/images/level1.png') repeat-x;
-      background-size:cover;
-      overflow:hidden;
-      border-radius:18px;
-      box-shadow:0 2px 8px #0003;
+      width:100vw; height:100vh;
+      position:relative; overflow:hidden;
     }
-    #photeinos{
-      position:absolute;
-      bottom:0;
-      left:50px;
-      width:120px;
-      height:auto;
-    }
+
     #questionBox{
       position:absolute;
-      top:20%;
-      left:50%;
-      transform:translateX(-50%);
+      top:50%; left:50%;
+      transform:translate(-50%,-50%);
       background:white;
-      border:2px solid #7bb235;
+      border-radius:14px;
+      box-shadow:0 4px 20px rgba(0,0,0,0.4);
       padding:20px;
-      width:300px;
+      width:80%; max-width:480px;
       display:none;
-      z-index:10;
-      border-radius:15px;
-      box-shadow:0 3px 10px #0004;
+      z-index:1000;
+      text-align:center;
     }
-    #questionBox button{
-      display:block;
-      margin-top:10px;
-      width:100%;
-      border:none;
-      padding:10px;
-      border-radius:10px;
-      background:#7bb235;
-      color:white;
-      font-weight:bold;
+    #questionText{ font-size:1.2em; margin-bottom:18px; color:#333; }
+    #answers button{
+      display:block; width:100%;
+      margin:8px 0; padding:10px;
+      font-size:1em; border:none; border-radius:8px;
+      background:#7bb235; color:white;
       cursor:pointer;
     }
-    #questionBox button:hover{ background:#6aa12c; }
+    #answers button:hover{ background:#689c2b; }
   </style>
 
   <!-- Firebase compat -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 
-  <!-- Init Firebase HIER -->
+  <!-- Layout (header + beveiliging) -->
+  <script defer src="common/layout.js"></script>
+</head>
+<body>
+  <!-- Header -->
+  <div id="kinder-header" data-header-src="common/header.html"></div>
+
+  <!-- Game -->
+  <main id="gameContainer">
+    <div id="questionBox">
+      <div id="questionText"></div>
+      <div id="answers"></div>
+    </div>
+  </main>
+
+  <!-- Vragen -->
+  <script src="vragen.js"></script>
+  <!-- Spel -->
+  <script src="springspel.js"></script>
+
   <script>
+    // Firebase init
     const firebaseConfig = {
       apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain:"orthodoxeweg.firebaseapp.com",
@@ -81,58 +82,21 @@
       messagingSenderId:"408582263618",
       appId:"1:408582263618:web:0a20f4bf0704989d3ceedb"
     };
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
-  </script>
+    if(!firebase.apps.length){ firebase.initializeApp(firebaseConfig); }
 
-  <script defer src="common/layout.js"></script>
-</head>
-<body>
-  <div id="kinder-header" data-header-src="common/header.html"></div>
-
-  <main class="page-container">
-    <div id="gameContainer">
-      <img id="photeinos" src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.png" alt="Photeinos">
-      <div id="questionBox">
-        <p id="questionText"></p>
-        <div id="answers"></div>
-      </div>
-    </div>
-  </main>
-
-  <script src="vragen.js"></script>
-  <script src="springspel.js"></script>
-
-  <script>
-    (function(){
-      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
-      document.body.style.background = p[Math.floor(Math.random()*p.length)];
-    })();
-
+    // Header laden + beveiliging
     document.addEventListener('DOMContentLoaded', () => {
       startWhenReady();
     });
-
     function startWhenReady(){
       if (!(window.KinderLayout && window.firebase && firebase.firestore)) {
         return setTimeout(startWhenReady, 120);
       }
       window.KinderLayout.mountHeader({
-        rootId:'kinder-header',
-        headerSrc:document.getElementById('kinder-header').dataset.headerSrc,
-        active:'spelletjes'
-      }).then(initPage).catch(initPage);
-    }
-
-    function initPage(){
-      if (!localStorage.getItem('kindIngelogd') ||
-          !localStorage.getItem('ingelogdKindId') ||
-          !localStorage.getItem('loginKeuze') ||
-          !localStorage.getItem('ingelogdeParochie')) {
-        window.location.href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html";
-        return;
-      }
+        rootId: 'kinder-header',
+        headerSrc: document.getElementById('kinder-header').dataset.headerSrc,
+        active: 'springspel'
+      });
     }
   </script>
 </body>
