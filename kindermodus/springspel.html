@@ -3,46 +3,57 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Photeinos Scrollspel</title>
+  <title>Photeinos Springspel – Levels</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
-    body { margin:0; background:#fff6e5; font-family:"Comic Sans MS", Arial, sans-serif; }
+    body { margin:0; font-family:"Comic Sans MS", Arial, sans-serif; background:#fff6e5; }
     .center { max-width:1280px; margin:0 auto; padding:0 2vw 64px; }
     .game-card { background:#fff; border-radius:22px; box-shadow:0 10px 30px #0000001a; padding:16px; }
     .game-wrap {
       width:100%; max-width:1100px; aspect-ratio:21/9; margin:0 auto;
-      border-radius:16px; overflow:hidden; background:#87CEEB; /* lucht */
-      position:relative;
+      border-radius:16px; overflow:hidden; position:relative;
     }
     canvas { display:block; width:100%; height:100%; }
     #photeinos {
       position:absolute;
-      bottom:40px; /* tegen de grond */
-      left:150px;  /* vast punt */
-      width:150px; height:auto;
+      bottom:50px; left:100px;
+      width:120px; height:auto;
       pointer-events:none;
     }
   </style>
+  <!-- Kinder lay-out -->
   <script defer src="common/layout.js"></script>
 </head>
 <body>
+  <!-- Header -->
   <div id="kinder-header" data-header-src="common/header.html"></div>
 
   <div class="center">
     <div class="game-card">
       <div class="game-wrap">
         <canvas id="game"></canvas>
-        <img id="photeinos" src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.png" alt="Photeinos">
+        <img id="photeinos" src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.gif" alt="Photeinos">
       </div>
     </div>
   </div>
 
 <script>
 // --------------------------
-// Scrollend Photeinos-spel
+// Levels & achtergronden
 // --------------------------
+const backgrounds = {
+  1: "https://kathy-torfs.github.io/Orthodoxeweg/images/level1.png",
+  2: "https://kathy-torfs.github.io/Orthodoxeweg/images/level2.png",
+  3: "https://kathy-torfs.github.io/Orthodoxeweg/images/level3.png",
+  4: "https://kathy-torfs.github.io/Orthodoxeweg/images/level4.png",
+  5: "https://kathy-torfs.github.io/Orthodoxeweg/images/level5.png"
+};
+
+let currentLevel = 1; // <<< verander dit voor ander level
+
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
+const photeinos = document.getElementById("photeinos");
 
 function resize() {
   canvas.width = canvas.clientWidth;
@@ -51,51 +62,56 @@ function resize() {
 window.addEventListener("resize", resize);
 resize();
 
-let scrollX = 0;          // wereldpositie
-let speed = 0;            // huidige snelheid
-const groundHeight = 60;  // hoogte van de grond
+// Achtergrond laden
+let bgImg = new Image();
+bgImg.src = backgrounds[currentLevel];
+let bgX = 0;
 
-// obstakels in de wereld
-let obstacles = [
-  {x:400, w:50, h:50, color:"brown"},
-  {x:700, w:60, h:80, color:"green"},
-  {x:1100, w:40, h:60, color:"purple"}
-];
+// Player
+let player = { x:100, y:200, vy:0, size:120 };
 
-function loop(){
+// Controls
+let keys = {};
+
+// animatielus
+function loop() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  // lucht
-  ctx.fillStyle="#87CEEB";
-  ctx.fillRect(0,0,canvas.width,canvas.height);
+  // achtergrond scroll
+  bgX -= 2; // snelheid scroll
+  if(bgX <= -canvas.width) bgX = 0;
+  ctx.drawImage(bgImg, bgX, 0, canvas.width, canvas.height);
+  ctx.drawImage(bgImg, bgX+canvas.width, 0, canvas.width, canvas.height);
 
-  // grond
-  ctx.fillStyle="#228B22";
-  ctx.fillRect(0,canvas.height-groundHeight,canvas.width,groundHeight);
-
-  // obstakels
-  for(let obs of obstacles){
-    let drawX = obs.x - scrollX;
-    if(drawX+obs.w > 0 && drawX < canvas.width){
-      ctx.fillStyle=obs.color;
-      ctx.fillRect(drawX, canvas.height-groundHeight-obs.h, obs.w, obs.h);
-    }
+  // zwaartekracht
+  player.vy += 0.8;
+  player.y += player.vy;
+  if (player.y > canvas.height-50) {
+    player.y = canvas.height-50;
+    player.vy = 0;
   }
 
-  // scrollpositie updaten
-  scrollX += speed;
+  // controls
+  if(keys["ArrowLeft"]) player.x -= 5;
+  if(keys["ArrowRight"]) player.x += 5;
+  if(player.x < 0) player.x = 0;
+  if(player.x > canvas.width-100) player.x = canvas.width-100;
+
+  // Photeinos-positie
+  photeinos.style.left = player.x + "px";
+  photeinos.style.top = (player.y - player.size) + "px";
 
   requestAnimationFrame(loop);
 }
 
-// besturing
+// controls events
 window.addEventListener("keydown", e=>{
-  if(e.code==="ArrowRight") speed = 4;
-  if(e.code==="ArrowLeft") speed = -4;
+  keys[e.code] = true;
+  if(e.code==="Space" && player.y >= canvas.height-50){
+    player.vy = -12;
+  }
 });
-window.addEventListener("keyup", e=>{
-  if(e.code==="ArrowRight" || e.code==="ArrowLeft") speed = 0;
-});
+window.addEventListener("keyup", e=> keys[e.code] = false);
 
 loop();
 </script>
