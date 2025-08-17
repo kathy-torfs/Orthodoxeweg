@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Photeinos Springspel</title>
+  <title>Photeinos Springspel – Level Test</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
     body { margin:0; font-family:"Comic Sans MS", Arial, sans-serif; background:#fff6e5; }
@@ -11,40 +11,54 @@
     .game-card { background:#fff; border-radius:22px; box-shadow:0 10px 30px #0000001a; padding:16px; }
     .game-wrap {
       width:100%; max-width:1100px; aspect-ratio:21/9; margin:0 auto;
-      border-radius:16px; overflow:hidden; background:#cceeff; position:relative;
+      border-radius:16px; overflow:hidden; background:#e0f7fa; position:relative;
     }
-    canvas { display:block; width:100%; height:100%; background:linear-gradient(#87CEEB,#e0f7fa); }
+    canvas { display:block; width:100%; height:100%; }
+
+    /* Photeinos bovenop canvas */
     #photeinos {
-      position:absolute; bottom:50px; left:100px;
-      width:100px; height:auto; pointer-events:none;
+      position:absolute;
+      bottom:50px; left:100px;
+      width:160px; height:auto;
+      pointer-events:none;
     }
+
     #scoreboard {
-      position:absolute; top:10px; left:10px;
-      background:#fff; padding:8px 12px; border-radius:8px;
-      font-weight:bold; box-shadow:0 2px 6px rgba(0,0,0,0.2);
+      position:absolute;
+      top:10px; left:10px;
+      background:#ffffffaa;
+      padding:6px 12px;
+      border-radius:12px;
+      font-weight:bold;
     }
+
     #questionBox {
-      display:none; position:absolute; top:50%; left:50%;
-      transform:translate(-50%,-50%); background:#fff; padding:20px;
-      border-radius:12px; box-shadow:0 5px 20px rgba(0,0,0,0.3); max-width:400px;
+      display:none;
+      position:absolute; top:20%; left:50%; transform:translateX(-50%);
+      background:white; border-radius:16px; padding:20px; box-shadow:0 8px 20px #00000055;
+      max-width:400px; text-align:center;
     }
-    #questionBox button { margin-top:10px; display:block; width:100%; padding:8px; }
+    #questionBox button {
+      margin:8px; padding:10px 16px; border:none; border-radius:8px;
+      background:#7bb235; color:white; font-weight:bold; cursor:pointer;
+    }
+    #questionBox button:hover { background:#5a8c28; }
   </style>
   <!-- Kinder lay-out -->
   <script defer src="common/layout.js"></script>
 </head>
 <body>
-  <!-- Header -->
+  <!-- Header wordt hier ingeladen -->
   <div id="kinder-header" data-header-src="common/header.html"></div>
 
   <div class="center">
     <div class="game-card">
       <div class="game-wrap">
+        <div id="scoreboard">Score: 0 | Level: 1</div>
         <canvas id="game"></canvas>
         <img id="photeinos" src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.gif" alt="Photeinos">
-        <div id="scoreboard">Level: 1 | Punten: 0</div>
         <div id="questionBox">
-          <div id="questionText"></div>
+          <p id="questionText">Vraag komt hier</p>
           <div id="answers"></div>
         </div>
       </div>
@@ -66,59 +80,24 @@ const qAnswers = document.getElementById("answers");
 function resize(){ canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; }
 window.addEventListener("resize",resize); resize();
 
-let player = {x:100, y:canvas.height-80, vy:0, size:100};
+let player = {x:100, y:canvas.height-160, vy:0, size:160};
 let obstacles = [];
 let items = [];
 let score=0, level=1, answered=0, running=true;
 
 // --------------------------
-// Vragen (voorbeeld 5 stuks)
-// --------------------------
-const vragen = [
-  {q:"Wat doe je als je wakker wordt?", a:["Een kort gebedje bidden","Je bed uit springen"], correct:0},
-  {q:"Wat is bidden?", a:["Praten met God","Alleen iets vragen"], correct:0},
-  {q:"Je brak iets per ongeluk. Wat doe je?", a:["Eerlijk zeggen","Zwijgen"], correct:0},
-  {q:"Wat doe je in de kerk?", a:["Stil zijn en meebidden","Rondlopen"], correct:0},
-  {q:"Wat vieren we met Pasen?", a:["De verrijzenis van Jezus","Een lenteschoonmaak"], correct:0}
-];
-
-function toonVraag(v){
-  running=false;
-  qText.textContent=vragen[v].q;
-  qAnswers.innerHTML="";
-  vragen[v].a.forEach((ans,i)=>{
-    const btn=document.createElement("button");
-    btn.textContent=ans;
-    btn.onclick=()=>{
-      if(i===vragen[v].correct){
-        score+=2; // juiste antwoord
-        if(++answered % 10===0){ level++; }
-        scoreboard.textContent=`Level: ${level} | Punten: ${score}`;
-        running=true;
-      } else {
-        alert("Fout antwoord! Game Over.");
-        window.location.reload();
-      }
-      questionBox.style.display="none";
-    };
-    qAnswers.appendChild(btn);
-  });
-  questionBox.style.display="block";
-}
-
-// --------------------------
 // Obstakels en items
 // --------------------------
 function spawn(){
-  if(Math.random()<0.02) obstacles.push({x:canvas.width,y:canvas.height-50,w:40,h:40});
-  if(Math.random()<0.01) items.push({x:canvas.width,y:canvas.height-120,size:30});
+  if(Math.random()<0.01) obstacles.push({x:canvas.width,y:canvas.height-70,w:50,h:50});
+  if(Math.random()<0.005) items.push({x:canvas.width,y:canvas.height-200,size:40});
 }
 function tekenObstakels(){
-  ctx.fillStyle="brown";
+  ctx.fillStyle="saddlebrown";
   obstacles.forEach(o=>ctx.fillRect(o.x,o.y,o.w,o.h));
 }
 function tekenItems(){
-  ctx.fillStyle="gold";
+  ctx.font="40px serif";
   items.forEach(i=>ctx.fillText("🕊️",i.x,i.y));
 }
 
@@ -129,31 +108,19 @@ function loop(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   if(running){
     // zwaartekracht
-    player.vy+=0.8; player.y+=player.vy;
+    player.vy+=0.6; player.y+=player.vy;
     if(player.y>canvas.height-50){player.y=canvas.height-50;player.vy=0;}
     photeinos.style.left=player.x+"px";
     photeinos.style.top=(player.y-player.size)+"px";
+    photeinos.style.width=player.size+"px";  
 
-    // beweeg obstakels/items
-    obstacles.forEach(o=>o.x-=5);
-    items.forEach(i=>i.x-=5);
+    // beweeg obstakels/items — snelheid afhankelijk van level
+    const speed = 2 + (level-1)*0.5;
+    obstacles.forEach(o=>o.x-=speed);
+    items.forEach(i=>i.x-=speed);
 
     // teken
     tekenObstakels(); tekenItems();
-
-    // botsingen
-    obstacles.forEach(o=>{
-      if(player.x<o.x+o.w && player.x+player.size>o.x && player.y<o.y+o.h && player.y+player.size>o.y){
-        toonVraag(Math.floor(Math.random()*vragen.length));
-      }
-    });
-    items=items.filter(i=>{
-      if(player.x<i.x+i.size && player.x+player.size>i.x && player.y<i.y+i.size && player.y+player.size>i.y){
-        score++; scoreboard.textContent=`Level: ${level} | Punten: ${score}`;
-        return false;
-      }
-      return true;
-    });
 
     spawn();
   }
@@ -164,7 +131,7 @@ loop();
 // springen met spatie
 window.addEventListener("keydown",e=>{
   if(e.code==="Space" && player.y>=canvas.height-50){
-    player.vy=-15;
+    player.vy=-14;
   }
 });
 </script>
