@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Photeinos Springspel – Level Test</title>
+  <title>Photeinos Springspel – Level 1</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
     body { margin:0; font-family:"Comic Sans MS", Arial, sans-serif; background:#fff6e5; }
@@ -15,24 +15,19 @@
     }
     canvas { display:block; width:100%; height:100%; }
 
-    /* Photeinos bovenop canvas */
     #photeinos {
       position:absolute;
-      left:100px;
-      width:160px; height:auto;
+      bottom:50px; left:100px;
+      width:90px; height:auto;
       pointer-events:none;
     }
-
-    #scoreboard {
+    #dove {
       position:absolute;
-      top:10px; left:10px;
-      background:#ffffffaa;
-      padding:6px 12px;
-      border-radius:12px;
-      font-weight:bold;
+      top:100px; right:-80px;
+      width:60px; height:auto;
+      pointer-events:none;
     }
   </style>
-  <!-- Kinder lay-out -->
   <script defer src="common/layout.js"></script>
 </head>
 <body>
@@ -42,95 +37,92 @@
   <div class="center">
     <div class="game-card">
       <div class="game-wrap">
-        <div id="scoreboard">Score: 0 | Level: 1</div>
         <canvas id="game"></canvas>
         <img id="photeinos" src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.gif" alt="Photeinos">
+        <img id="dove" src="https://em-content.zobj.net/thumbs/120/apple/354/dove_1f54a-fe0f.png" alt="Duif">
       </div>
     </div>
   </div>
 
 <script>
 // --------------------------
-// Spelvariabelen
+// Canvas en variabelen
 // --------------------------
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
+function resize(){ canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; }
+window.addEventListener("resize", resize); resize();
+
+const ground = canvas.height - 50;
+let keys = {};
+
+// Photeinos
 const photeinos = document.getElementById("photeinos");
+let player = { x:100, y:ground, vy:0, size:90, duck:false };
 
-function resize(){
-  canvas.width = canvas.clientWidth;
-  canvas.height = canvas.clientHeight;
-}
-window.addEventListener("resize",resize);
-resize();
+// Obstakels
+let obstacles = [
+  {x:400, y:ground-40, w:40, h:40},
+  {x:600, y:ground-60, w:60, h:60},
+  {x:800, y:ground-40, w:40, h:40}
+];
 
-let player = {
-  x:100,
-  y:canvas.height-160, // start onderaan
-  vy:0,
-  size:160
-};
-
-let obstacles = [];
-let items = [];
-let score=0, level=1, running=true;
+// Duif
+const dove = document.getElementById("dove");
+let doveX = canvas.width + 100;
 
 // --------------------------
-// Obstakels en items
+// Input
 // --------------------------
-function spawn(){
-  // veel lagere kans: gemiddeld 1 obstakel om de 3-4 seconden
-  if(Math.random()<0.002) obstacles.push({x:canvas.width,y:canvas.height-70,w:50,h:50});
-  // items (duifjes) nog zeldzamer
-  if(Math.random()<0.001) items.push({x:canvas.width,y:canvas.height-200,size:40});
-}
-function tekenObstakels(){
-  ctx.fillStyle="saddlebrown";
-  obstacles.forEach(o=>ctx.fillRect(o.x,o.y,o.w,o.h));
-}
-function tekenItems(){
-  ctx.font="40px serif";
-  items.forEach(i=>ctx.fillText("🕊️",i.x,i.y));
-}
+window.addEventListener("keydown", e => { keys[e.code]=true; });
+window.addEventListener("keyup", e => { keys[e.code]=false; });
 
 // --------------------------
-// Animatielus
+// Game loop
 // --------------------------
 function loop(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  if(running){
-    // zwaartekracht
-    player.vy+=0.6; player.y+=player.vy;
-    if(player.y>canvas.height-50){
-      player.y=canvas.height-50;
-      player.vy=0;
-    }
 
-    // zet Photeinos tegen de grond
-    photeinos.style.left=player.x+"px";
-    photeinos.style.top=(player.y-player.size)+"px";
-    photeinos.style.width=player.size+"px";  
+  // Achtergrond
+  ctx.fillStyle = "#87CEEB"; // lucht
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle = "#228B22"; // gras
+  ctx.fillRect(0,ground,canvas.width,50);
 
-    // beweeg obstakels/items
-    const speed = 2 + (level-1)*0.5;
-    obstacles.forEach(o=>o.x-=speed);
-    items.forEach(i=>i.x-=speed);
+  // Beweging links/rechts
+  if(keys["ArrowLeft"]) player.x -= 4;
+  if(keys["ArrowRight"]) player.x += 4;
 
-    // teken
-    tekenObstakels(); tekenItems();
+  // Springen
+  if(keys["Space"] && player.y >= ground){ player.vy = -12; }
 
-    spawn();
+  // Bukken
+  player.duck = keys["ArrowDown"] || false;
+
+  // Zwaartekracht
+  player.vy += 0.8;
+  player.y += player.vy;
+  if(player.y > ground){ player.y = ground; player.vy = 0; }
+
+  // Update Photeinos positie
+  photeinos.style.left = player.x + "px";
+  photeinos.style.top = (player.y - (player.duck ? player.size*0.6 : player.size)) + "px";
+  photeinos.style.width = (player.duck ? "60px" : "90px");
+
+  // Obstakels tekenen
+  ctx.fillStyle = "#8B4513"; // bruin
+  for(const ob of obstacles){
+    ctx.fillRect(ob.x, ob.y, ob.w, ob.h);
   }
+
+  // Duif bewegen
+  doveX -= 2;
+  if(doveX < -80) doveX = canvas.width+100;
+  dove.style.right = (canvas.width - doveX) + "px";
+
   requestAnimationFrame(loop);
 }
 loop();
-
-// springen met spatie
-window.addEventListener("keydown",e=>{
-  if(e.code==="Space" && player.y>=canvas.height-50){
-    player.vy=-14;
-  }
-});
 </script>
 </body>
 </html>
