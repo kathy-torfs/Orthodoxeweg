@@ -3,191 +3,265 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Photeinos Game – Kindermodus</title>
+  <title>Photeinos Spel – Orthodoxe Kinderpagina</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
-  <script src="layout.js" defer></script>
   <style>
+    :root {
+      --primair: #7bb235;
+      --donker: #67510C;
+      --pastel1: #fff6e5; --pastel2: #fffde6; --pastel3: #ffe8ec; --pastel4: #e7f8ff;
+      --pastel5: #e6ffe5; --pastel6: #fff2fb; --pastel7: #f5ffe5; --pastel8: #f5e8ff;
+    }
     body {
       margin: 0;
-      background: var(--pastel4);
-      font-family: 'Comic Sans MS', sans-serif;
+      font-family: 'Comic Sans MS', Arial, sans-serif;
+      background-color: var(--pastel1);
+      color: var(--donker);
     }
-    main {
-      padding: 20px;
+    header {
+      background-color: var(--primair);
+      padding: 15px;
       text-align: center;
-    }
-    canvas {
-      display: block;
-      margin: 20px auto;
-      background: url("level1.png") no-repeat left center;
-      background-size: cover;
-      border: 4px solid var(--primair);
-      border-radius: 15px;
-    }
-    #questionModal {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      display: none;
-      background: rgba(0,0,0,0.8);
+      font-size: 1.6em;
+      font-weight: bold;
       color: white;
-      font-family: sans-serif;
-      text-align: center;
-      padding-top: 100px;
-      z-index: 1000;
     }
-    .questionBox {
-      background: #333;
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      background-color: var(--pastel2);
+      border-bottom: 3px solid var(--primair);
+    }
+    nav a {
+      padding: 10px 15px;
+      text-decoration: none;
+      color: var(--donker);
+      font-weight: bold;
+    }
+    nav a:hover { background-color: var(--pastel3); }
+
+    #game-container {
+      position: relative;
+      width: 100%;
+      height: 500px;
+      overflow: hidden;
+      background-size: cover;
+      background-position: center;
+    }
+
+    #photeinos {
+      position: absolute;
+      bottom: 0;
+      left: 50px;
+      width: 100px;
+      height: auto;
+    }
+
+    .obstacle, .collectible {
+      position: absolute;
+      bottom: 0;
+      font-size: 40px;
+    }
+
+    #question-box {
+      position: absolute;
+      top: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      border: 2px solid var(--donker);
       padding: 20px;
-      border-radius: 12px;
-      max-width: 500px;
-      margin: auto;
+      display: none;
+      z-index: 10;
+      width: 80%;
+      max-width: 400px;
     }
-    .answerBtn {
+    #question-box button {
       display: block;
-      background: #7bb235;
       margin: 10px auto;
       padding: 10px;
-      border-radius: 8px;
+      background: var(--primair);
+      color: white;
+      border: none;
       cursor: pointer;
-      font-size: 1.2em;
+      font-size: 1em;
     }
+    #question-box button:hover { background: var(--donker); }
   </style>
 </head>
 <body>
-  <!-- Jouw vaste header -->
-  <header-component></header-component>
+  <header>Welkom bij de Orthodoxe Kinderpagina</header>
+  <nav>
+    <a href="#">Ik bid</a>
+    <a href="#">Bijbelverhalen</a>
+    <a href="#">Spelletjes</a>
+    <a href="#">Mijn punten</a>
+  </nav>
 
-  <!-- Inhoud -->
-  <main>
-    <h1 style="color:var(--donker);">🌟 Photeinos Game – Level 1 🌟</h1>
-    <canvas id="gameCanvas" width="900" height="400"></canvas>
-  </main>
-
-  <!-- Vraag-venster -->
-  <div id="questionModal">
-    <div class="questionBox">
-      <p id="questionText"></p>
+  <div id="game-container">
+    <img id="photeinos" src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.png" alt="Photeinos">
+    <div id="question-box">
+      <p id="question-text"></p>
       <div id="answers"></div>
     </div>
   </div>
 
   <script>
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
-
-    // Afbeelding Photeinos
-    const photeinosImg = new Image();
-    photeinosImg.src = "photeinos_walk.png";
-
-    let photeinos = { x: 50, y: 300, width: 80, height: 120, vy: 0, jumping: false };
-    let objects = [];
-    let level = 1;
-    let correctAnswers = 0;
-
-    // Eenvoudige voorbeeldvragen (test)
+    // -------------------------------
+    // Vragenlijsten
+    // -------------------------------
     const meerkeuzeVragen = [
-      {q:"Wat doe je als je wakker wordt?", a:["Een kort gebedje bidden","Je bed uit springen"], correct:0}
+      { vraag: "Wat doe je als je wakker wordt?", opties: ["Een kort gebedje bidden", "Je bed uit springen"], juist: 0 },
+      { vraag: "Wat betekent 'Amen'?", opties: ["Ik geloof het/zo is het", "Einde, klaar!"], juist: 0 },
+      { vraag: "Wat doe je op zondag?", opties: ["Naar de kerk gaan", "Thuisblijven"], juist: 0 },
+      { vraag: "Wat doe je in de kerk?", opties: ["Stil zijn en meebidden", "Rondlopen en praten"], juist: 0 }
     ];
     const zondeVragen = [
-      "God helemaal vergeten en nooit bidden is goed."
+      { vraag: "God helemaal vergeten en nooit bidden is goed.", juist: 1 },
+      { vraag: "De zondag is alleen voor spel en nooit voor God.", juist: 1 },
+      { vraag: "Pesten of iemand buitensluiten is goed.", juist: 1 }
     ];
 
-    // Modal
-    const modal = document.getElementById("questionModal");
-    const qText = document.getElementById("questionText");
-    const ansDiv = document.getElementById("answers");
+    // -------------------------------
+    // Spelvariabelen
+    // -------------------------------
+    let level = 1;
+    const maxLevel = 5;
+    let score = 0;
+    let vleugels = 0;
+    const game = document.getElementById("game-container");
+    const photeinos = document.getElementById("photeinos");
+    const questionBox = document.getElementById("question-box");
+    const questionText = document.getElementById("question-text");
+    const answersDiv = document.getElementById("answers");
 
-    function showMeerkeuzeVraag() {
-      const q = meerkeuzeVragen[Math.floor(Math.random()*meerkeuzeVragen.length)];
-      qText.innerText = q.q;
-      ansDiv.innerHTML = "";
-      q.a.forEach((ans,i)=>{
-        const btn=document.createElement("div");
-        btn.className="answerBtn";
-        btn.innerText=ans;
-        btn.onclick=()=>{
-          if(i===q.correct){
-            correctAnswers++;
-            if(correctAnswers>=10){ nextLevel(); }
-          }
-          modal.style.display="none";
-        };
-        ansDiv.appendChild(btn);
-      });
-      modal.style.display="block";
+    // Achtergronden per level
+    const backgrounds = {
+      1: "https://kathy-torfs.github.io/Orthodoxeweg/images/level1.png",
+      2: "https://kathy-torfs.github.io/Orthodoxeweg/images/level2.png",
+      3: "https://kathy-torfs.github.io/Orthodoxeweg/images/level3.png",
+      4: "https://kathy-torfs.github.io/Orthodoxeweg/images/level4.png",
+      5: "https://kathy-torfs.github.io/Orthodoxeweg/images/level5.png"
+    };
+
+    function setBackground() {
+      game.style.backgroundImage = `url('${backgrounds[level]}')`;
+    }
+    setBackground();
+
+    // -------------------------------
+    // Obstakels & collectibles
+    // -------------------------------
+    function spawnObstacle() {
+      const obs = document.createElement("div");
+      obs.classList.add("obstacle");
+      const symbols = ["🪨","🔥","🐍"];
+      obs.textContent = symbols[Math.floor(Math.random()*symbols.length)];
+      obs.style.left = "100%";
+      game.appendChild(obs);
+
+      let pos = game.offsetWidth;
+      const interval = setInterval(() => {
+        pos -= 3;
+        obs.style.left = pos + "px";
+        if (pos < -50) { obs.remove(); clearInterval(interval); }
+        checkCollision(obs, interval, "zonde");
+      }, 20);
     }
 
-    function showZondeVraag() {
-      const q = zondeVragen[Math.floor(Math.random()*zondeVragen.length)];
-      qText.innerText = q+" (Ja of Nee?)";
-      ansDiv.innerHTML="";
-      ["Ja","Nee"].forEach(ans=>{
-        const btn=document.createElement("div");
-        btn.className="answerBtn";
-        btn.innerText=ans;
-        btn.onclick=()=>{
-          if(ans==="Nee"){ modal.style.display="none"; }
-          else{ alert("Fout! Game Over"); location.reload(); }
-        };
-        ansDiv.appendChild(btn);
-      });
-      modal.style.display="block";
+    function spawnCollectible() {
+      const col = document.createElement("div");
+      col.classList.add("collectible");
+      const symbols = ["🪽","🕊️","😇"];
+      col.textContent = symbols[Math.floor(Math.random()*symbols.length)];
+      col.style.left = "100%";
+      col.style.bottom = "100px";
+      game.appendChild(col);
+
+      let pos = game.offsetWidth;
+      const interval = setInterval(() => {
+        pos -= 2;
+        col.style.left = pos + "px";
+        if (pos < -50) { col.remove(); clearInterval(interval); }
+        checkCollision(col, interval, "licht");
+      }, 20);
     }
 
-    function nextLevel(){
-      level++;
-      correctAnswers=0;
-      if(level>5){
-        alert("Gefeliciteerd! Alle levels gehaald!");
-        location.reload();
+    // -------------------------------
+    // Botsingsdetectie
+    // -------------------------------
+    function checkCollision(el, interval, type) {
+      const pRect = photeinos.getBoundingClientRect();
+      const eRect = el.getBoundingClientRect();
+      if (!(pRect.right < eRect.left || pRect.left > eRect.right || pRect.bottom < eRect.top || pRect.top > eRect.bottom)) {
+        clearInterval(interval);
+        el.remove();
+        showQuestion(type);
+      }
+    }
+
+    // -------------------------------
+    // Vraag tonen
+    // -------------------------------
+    function showQuestion(type) {
+      questionBox.style.display = "block";
+      answersDiv.innerHTML = "";
+
+      if (type === "licht") {
+        const q = meerkeuzeVragen[Math.floor(Math.random()*meerkeuzeVragen.length)];
+        questionText.textContent = q.vraag;
+        q.opties.forEach((opt,i) => {
+          const btn = document.createElement("button");
+          btn.textContent = opt;
+          btn.onclick = () => {
+            questionBox.style.display = "none";
+            if (i === q.juist) {
+              vleugels++;
+              if (vleugels >= 10) nextLevel();
+            }
+          };
+          answersDiv.appendChild(btn);
+        });
       } else {
-        canvas.style.background=`url('level${level}.png') no-repeat left center`;
-        canvas.style.backgroundSize="cover";
-      }
-    }
-
-    document.addEventListener("keydown",e=>{
-      if(e.code==="Space" && !photeinos.jumping){
-        photeinos.vy=-15; photeinos.jumping=true;
-      }
-    });
-
-    function gameLoop(){
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-
-      // Photeinos
-      photeinos.y+=photeinos.vy;
-      photeinos.vy+=1;
-      if(photeinos.y>300){ photeinos.y=300; photeinos.vy=0; photeinos.jumping=false; }
-      ctx.drawImage(photeinosImg,photeinos.x,photeinos.y,photeinos.width,photeinos.height);
-
-      // Nieuwe objecten
-      if(Math.random()<0.02){
-        const type=Math.random()<0.5?"obstacle":"bonus";
-        objects.push({
-          x:canvas.width,
-          y:type==="obstacle"?320:Math.random()*200+100,
-          type,
-          symbol:type==="obstacle"?["🪨","🐍","🔥"][Math.floor(Math.random()*3)] : ["🪽","🕊️","😇"][Math.floor(Math.random()*3)]
+        const q = zondeVragen[Math.floor(Math.random()*zondeVragen.length)];
+        questionText.textContent = q.vraag + " (Ja/Nee)";
+        ["Ja","Nee"].forEach((opt,i) => {
+          const btn = document.createElement("button");
+          btn.textContent = opt;
+          btn.onclick = () => {
+            questionBox.style.display = "none";
+            if (i === q.juist) {
+              // fout = game over
+              alert("Game Over!");
+              location.reload();
+            }
+          };
+          answersDiv.appendChild(btn);
         });
       }
-
-      // Teken objecten
-      objects.forEach((o,i)=>{
-        o.x-=4;
-        ctx.font="40px serif";
-        ctx.fillText(o.symbol,o.x,o.y);
-        // Collision
-        if(o.x<photeinos.x+photeinos.width && o.x+30>photeinos.x && o.y<photeinos.y+photeinos.height && o.y+30>photeinos.y){
-          objects.splice(i,1);
-          if(o.type==="obstacle"){ showZondeVraag(); }
-          else{ showMeerkeuzeVraag(); }
-        }
-      });
-
-      requestAnimationFrame(gameLoop);
     }
-    gameLoop();
+
+    // -------------------------------
+    // Level wissel
+    // -------------------------------
+    function nextLevel() {
+      level++;
+      vleugels = 0;
+      if (level > maxLevel) {
+        alert("Proficiat! Je hebt het spel uitgespeeld!");
+        location.reload();
+      } else {
+        setBackground();
+        alert("Level " + level);
+      }
+    }
+
+    // -------------------------------
+    // Spawner
+    // -------------------------------
+    setInterval(spawnObstacle, 4000);
+    setInterval(spawnCollectible, 5000);
   </script>
 </body>
 </html>
