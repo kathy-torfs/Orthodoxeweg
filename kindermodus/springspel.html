@@ -18,7 +18,7 @@
     /* Photeinos bovenop canvas */
     #photeinos {
       position:absolute;
-      bottom:50px; left:100px;
+      left:100px;
       width:160px; height:auto;
       pointer-events:none;
     }
@@ -31,24 +31,12 @@
       border-radius:12px;
       font-weight:bold;
     }
-
-    #questionBox {
-      display:none;
-      position:absolute; top:20%; left:50%; transform:translateX(-50%);
-      background:white; border-radius:16px; padding:20px; box-shadow:0 8px 20px #00000055;
-      max-width:400px; text-align:center;
-    }
-    #questionBox button {
-      margin:8px; padding:10px 16px; border:none; border-radius:8px;
-      background:#7bb235; color:white; font-weight:bold; cursor:pointer;
-    }
-    #questionBox button:hover { background:#5a8c28; }
   </style>
   <!-- Kinder lay-out -->
   <script defer src="common/layout.js"></script>
 </head>
 <body>
-  <!-- Header wordt hier ingeladen -->
+  <!-- Header -->
   <div id="kinder-header" data-header-src="common/header.html"></div>
 
   <div class="center">
@@ -57,10 +45,6 @@
         <div id="scoreboard">Score: 0 | Level: 1</div>
         <canvas id="game"></canvas>
         <img id="photeinos" src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.gif" alt="Photeinos">
-        <div id="questionBox">
-          <p id="questionText">Vraag komt hier</p>
-          <div id="answers"></div>
-        </div>
       </div>
     </div>
   </div>
@@ -72,25 +56,33 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 const photeinos = document.getElementById("photeinos");
-const scoreboard = document.getElementById("scoreboard");
-const questionBox = document.getElementById("questionBox");
-const qText = document.getElementById("questionText");
-const qAnswers = document.getElementById("answers");
 
-function resize(){ canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; }
-window.addEventListener("resize",resize); resize();
+function resize(){
+  canvas.width = canvas.clientWidth;
+  canvas.height = canvas.clientHeight;
+}
+window.addEventListener("resize",resize);
+resize();
 
-let player = {x:100, y:canvas.height-160, vy:0, size:160};
+let player = {
+  x:100,
+  y:canvas.height-160, // start onderaan
+  vy:0,
+  size:160
+};
+
 let obstacles = [];
 let items = [];
-let score=0, level=1, answered=0, running=true;
+let score=0, level=1, running=true;
 
 // --------------------------
 // Obstakels en items
 // --------------------------
 function spawn(){
-  if(Math.random()<0.01) obstacles.push({x:canvas.width,y:canvas.height-70,w:50,h:50});
-  if(Math.random()<0.005) items.push({x:canvas.width,y:canvas.height-200,size:40});
+  // veel lagere kans: gemiddeld 1 obstakel om de 3-4 seconden
+  if(Math.random()<0.002) obstacles.push({x:canvas.width,y:canvas.height-70,w:50,h:50});
+  // items (duifjes) nog zeldzamer
+  if(Math.random()<0.001) items.push({x:canvas.width,y:canvas.height-200,size:40});
 }
 function tekenObstakels(){
   ctx.fillStyle="saddlebrown";
@@ -109,12 +101,17 @@ function loop(){
   if(running){
     // zwaartekracht
     player.vy+=0.6; player.y+=player.vy;
-    if(player.y>canvas.height-50){player.y=canvas.height-50;player.vy=0;}
+    if(player.y>canvas.height-50){
+      player.y=canvas.height-50;
+      player.vy=0;
+    }
+
+    // zet Photeinos tegen de grond
     photeinos.style.left=player.x+"px";
     photeinos.style.top=(player.y-player.size)+"px";
     photeinos.style.width=player.size+"px";  
 
-    // beweeg obstakels/items — snelheid afhankelijk van level
+    // beweeg obstakels/items
     const speed = 2 + (level-1)*0.5;
     obstacles.forEach(o=>o.x-=speed);
     items.forEach(i=>i.x-=speed);
