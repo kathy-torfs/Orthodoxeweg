@@ -1,4 +1,5 @@
 // kindermodus/springspel.js
+
 (function(){
   let canvas, ctx;
   let photeinos, obstacles = [], collectibles = [];
@@ -6,21 +7,16 @@
   let gravity = 0.6, jumpPower = -10, velocity = 0;
   let gameLoopInterval;
 
-  // Firebase kindDocRef pas maken bij spelstart
-  let kindDocRef = null;
-  function initKindDocRef() {
-    if (!kindDocRef) {
-      const parochieId = localStorage.getItem("ingelogdeParochie");
-      const ouderLogin = localStorage.getItem("loginKeuze");
-      const kindId     = localStorage.getItem("ingelogdKindId");
+  // Firebase referenties
+  const parochieId = localStorage.getItem("ingelogdeParochie");
+  const ouderLogin = localStorage.getItem("loginKeuze");
+  const kindId     = localStorage.getItem("ingelogdKindId");
+  const kindDocRef = firebase.firestore()
+    .collection("parochies").doc(parochieId)
+    .collection("leden").doc(ouderLogin)
+    .collection("kinderen").doc(kindId);
 
-      kindDocRef = firebase.firestore()
-        .collection("parochies").doc(parochieId)
-        .collection("leden").doc(ouderLogin)
-        .collection("kinderen").doc(kindId);
-    }
-  }
-
+  // Level instellingen
   const levelSettings = {
     1: { bg: "level1.png", difficulty: 1, answersToShow: 2 },
     2: { bg: "level2.png", difficulty: 1, answersToShow: 3 },
@@ -29,8 +25,8 @@
     5: { bg: "level5.png", difficulty: 3, answersToShow: 4 }
   };
 
+  // Startknop logica
   async function betaalStart(){
-    initKindDocRef();
     const snap = await kindDocRef.get();
     const punten = snap.exists ? (snap.data().punten||0) : 0;
 
@@ -53,9 +49,7 @@
 
     photeinos = { x: 50, y: canvas.height-120, w: 60, h: 60 };
 
-    document.addEventListener("keydown", (e)=>{
-      if(e.code === "Space") jump();
-    });
+    document.addEventListener("keydown", (e)=>{ if(e.code==="Space") jump(); });
 
     startLevel(1);
   }
@@ -67,7 +61,8 @@
     collectibles = [];
 
     let settings = levelSettings[level];
-    document.getElementById("gameContainer").style.background = `url('https://kathy-torfs.github.io/Orthodoxeweg/images/${settings.bg}') repeat-x`;
+    document.getElementById("gameContainer").style.background = 
+      `url('https://kathy-torfs.github.io/Orthodoxeweg/images/${settings.bg}') repeat-x center`;
     document.getElementById("gameContainer").style.backgroundSize = "cover";
 
     if(gameLoopInterval) clearInterval(gameLoopInterval);
@@ -83,6 +78,7 @@
   function gameLoop(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
+    // zwaartekracht
     velocity += gravity;
     photeinos.y += velocity;
     if(photeinos.y > canvas.height - photeinos.h){
@@ -90,50 +86,61 @@
       velocity = 0;
     }
 
-    ctx.fillStyle = "yellow";
-    ctx.fillRect(photeinos.x, photeinos.y, photeinos.w, photeinos.h);
+    // teken Photeinos
+    let img = new Image();
+    img.src = "https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.png";
+    ctx.drawImage(img, photeinos.x, photeinos.y, photeinos.w, photeinos.h);
 
+    // spawn obstakels (vaste grond emoji)
     if(Math.random()<0.015){
-      obstacles.push({x:canvas.width, y:canvas.height-100, w:100, h:100});
+      const opties = ["🪨","🔥","🐍"];
+      obstacles.push({
+        x: canvas.width,
+        y: canvas.height-60,
+        w: 60, h: 60,
+        emoji: opties[Math.floor(Math.random()*opties.length)]
+      });
     }
+
     for(let i=obstacles.length-1;i>=0;i--){
       let o=obstacles[i];
       o.x -= 4;
-      ctx.fillStyle="brown";
-      ctx.fillRect(o.x,o.y,o.w,o.h);
+      ctx.font="50px serif";
+      ctx.fillText(o.emoji, o.x, o.y);
 
       if(collides(photeinos,o)){
-        askQuestion(true);
-        return;
+        askQuestion(true); return;
       }
       if(o.x+o.w<0) obstacles.splice(i,1);
     }
 
+    // spawn collectibles (🕊️ lager & bewegend)
     if(Math.random()<0.02){
-      collectibles.push({x:canvas.width, y:Math.random()*(canvas.height-250)+80, w:50, h:50, t:0});
+      collectibles.push({
+        x: canvas.width,
+        y: canvas.height - 200 - Math.random()*100,
+        w: 40, h: 40, t: 0
+      });
     }
+
     for(let i=collectibles.length-1;i>=0;i--){
       let c=collectibles[i];
       c.x -= 2.5;
       c.t += 0.1;
-      let offsetY = Math.sin(c.t)*10;
-      ctx.fillStyle="lightblue";
-      ctx.beginPath();
-      ctx.ellipse(c.x, c.y+offsetY, c.w/2, c.h/2, 0, 0, Math.PI*2);
-      ctx.fill();
+      let offsetY = Math.sin(c.t)*8;
+      ctx.font="40px serif";
+      ctx.fillText("🕊️", c.x, c.y+offsetY);
 
       if(collides(photeinos,c)){
         collectibles.splice(i,1);
         wings++;
-        if(wings>=10){
-          askQuestion(false);
-          return;
-        }
+        if(wings>=10){ askQuestion(false); return; }
       } else if(c.x+c.w<0){
         collectibles.splice(i,1);
       }
     }
 
+    // HUD
     ctx.fillStyle="black";
     ctx.font="20px Comic Sans MS";
     ctx.fillText("Vleugeltjes: "+wings+"/10",20,30);
@@ -144,6 +151,7 @@
     return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y;
   }
 
+  // Vraag stellen (zelfde logica als eerder)
   async function askQuestion(failed){
     clearInterval(gameLoopInterval);
     gameRunning = false;
@@ -180,15 +188,13 @@
         if(s.index===vraag.correct){
           qBox.style.display="none";
           await kindDocRef.update({ punten: firebase.firestore.FieldValue.increment(2) });
-          if(level<5){
-            startLevel(level+1);
-          }else{
+          if(level<5){ startLevel(level+1); }
+          else{
             alert("Proficiat! Je hebt alle levels gehaald!");
             document.getElementById("startBtn").style.display="block";
           }
         }else{
-          qBox.style.display="none";
-          startLevel(level);
+          qBox.style.display="none"; startLevel(level);
         }
       };
       ansDiv.appendChild(btn);
@@ -197,6 +203,7 @@
     qBox.style.display="block";
   }
 
+  // Startknop
   document.addEventListener("DOMContentLoaded", ()=>{
     const btn=document.createElement("button");
     btn.id="startBtn";
