@@ -6,18 +6,20 @@
   <title>Photeinos Game – Kindermodus</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <script src="layout.js" defer></script>
-  <link rel="stylesheet" href="header.html">
   <style>
     body {
       margin: 0;
-      overflow: hidden;
       background: var(--pastel4);
       font-family: 'Comic Sans MS', sans-serif;
+    }
+    main {
+      padding: 20px;
+      text-align: center;
     }
     canvas {
       display: block;
       margin: 20px auto;
-      background: url("level1.png") repeat-x;
+      background: url("level1.png") no-repeat left center;
       background-size: cover;
       border: 4px solid var(--primair);
       border-radius: 15px;
@@ -52,9 +54,12 @@
   </style>
 </head>
 <body>
+  <!-- Jouw vaste header -->
   <header-component></header-component>
+
+  <!-- Inhoud -->
   <main>
-    <h1 style="text-align:center; color:var(--donker);">🌟 Photeinos Game – Level 1 🌟</h1>
+    <h1 style="color:var(--donker);">🌟 Photeinos Game – Level 1 🌟</h1>
     <canvas id="gameCanvas" width="900" height="400"></canvas>
   </main>
 
@@ -75,79 +80,19 @@
     photeinosImg.src = "photeinos_walk.png";
 
     let photeinos = { x: 50, y: 300, width: 80, height: 120, vy: 0, jumping: false };
-    let objects = []; // obstakels en bonusobjecten
+    let objects = [];
     let level = 1;
     let correctAnswers = 0;
 
-    // Vragen
+    // Eenvoudige voorbeeldvragen (test)
     const meerkeuzeVragen = [
-      {q:"Wat doe je als je wakker wordt?", a:["Een kort gebedje bidden","Je bed uit springen zonder God te groeten"], correct:0},
-      {q:"Wat doe je met het kruisteken?", a:["Je begint en eindigt je gebed ermee","Alleen doen als anderen kijken"], correct:0},
-      {q:"Wat betekent 'Amen'?", a:["Ik geloof het/zo is het","Einde, klaar!"], correct:0},
-      {q:"Wat doe je op zondag als je kan?", a:["Naar de kerk gaan","Thuisblijven omdat uitslapen belangrijker is"], correct:0},
-      {q:"Wat is bidden?", a:["Praten met God","Alleen iets vragen als je iets wil"], correct:0},
-      {q:"Een kind zit alleen op de speelplaats. Wat doe je?", a:["Je nodigt hem/haar uit","Je doet alsof je het niet ziet"], correct:0},
-      {q:"Iemand heeft honger. Wat is goed?", a:["Delen van je eten","Doen alsof je niets merkt"], correct:0},
-      {q:"Een klasgenoot heeft verdriet. Wat past het meest bij Jezus?", a:["Troosten en luisteren","Zeggen dat het niet erg is en weglopen"], correct:0},
-      {q:"Iemand maakt een fout. Wat doe je?", a:["Vergeven en opnieuw proberen","Boos blijven en pesten"], correct:0},
-      {q:"Je brak per ongeluk iets. Wat is juist?", a:["Eerlijk zeggen wat er gebeurde","Zwijgen zodat niemand het weet"], correct:0},
-      {q:"De juf stelt een vraag en je weet het niet zeker.", a:["Eerlijk zijn en je best doen","Afkijken bij de buur"], correct:0},
-      {q:"Mama vraagt hulp bij de tafel. Wat doe je?", a:["Je helpt meteen","Je doet alsof je het niet hoorde"], correct:0},
-      {q:"Hoe toon je respect thuis?", a:["Met dankjewel en alstublieft","Door te roepen als je iets wil"], correct:0},
-      {q:"Je kreeg twee koekjes en je vriend geen.", a:["Je deelt er één","Je eet ze snel allebei op"], correct:0},
-      {q:"Iemand heeft een mooier speelgoed.", a:["Blij zijn met wat je hebt","Jaloers doen en kwaad worden"], correct:0},
-      {q:"Wat doe je in de kerk?", a:["Stil zijn en meebidden","Rondlopen en praten"], correct:0},
-      {q:"Wat lees je in de Bijbel?", a:["Gods Woord","Grappige mopjes"], correct:0},
-      {q:"Wat is vasten (simpel)?", a:["Minder van iets nemen om meer bij God te zijn","Niet eten zodat je sneller bent"], correct:0},
-      {q:"Wat doet het doopsel?", a:["Maakt je kind van God en lid van de Kerk","Geeft je superkrachten"], correct:0},
-      {q:"Wat is de communie?", a:["Jezus die bij ons komt in de Eucharistie","Gewoon brood"], correct:0},
-      {q:"Je mag het spel kiezen. Wat is beleefd?", a:["Om beurten kiezen","Altijd zelf kiezen"], correct:0},
-      {q:"Je krijgt een cadeau dat je al hebt.", a:["Dankbaar zijn en het mooi bewaren","Meteen doorgeven zonder dankjewel"], correct:0},
-      {q:"Wat is beter?", a:["Eerlijk en vriendelijk zijn","Stoer doen en stoer spreken"], correct:0},
-      {q:"Je wordt boos. Wat is goed?", a:["Eerst rustig worden en dan praten","Meteen schreeuwen"], correct:0},
-      {q:"Wat doe je met je talenten?", a:["Je gebruikt ze om goed te doen","Alleen om beter te zijn dan anderen"], correct:0},
-      {q:"Je twijfelt wat juist is.", a:["Je vraagt raad aan je ouders of catecheet","Je doet maar wat je wil"], correct:0},
-      {q:"Je hebt iemand pijn gedaan.", a:["Sorry zeggen en goedmaken","Doen alsof er niets is"], correct:0},
-      {q:"Wat doe je met afval buiten?", a:["In de vuilnisbak gooien","Laten liggen"], correct:0},
-      {q:"Hoe ga je om met dieren?", a:["Zacht en zorgzaam","Plagen voor de lol"], correct:0},
-      {q:"Wie leerde ons de 'Onze Vader'?", a:["Jezus","Petrus"], correct:0},
-      {q:"Wat vieren we met Pasen?", a:["De verrijzenis van Jezus","Een lenteschoonmaak"], correct:0},
-      {q:"Wat betekent ‘naaste’?", a:["Iedereen die God op je weg plaatst","Alleen je beste vriend"], correct:0},
-      {q:"Op de beurt wachten is…", a:["Eerlijk en vriendelijk","Saai en dus niet nodig"], correct:0},
-      {q:"Iemand stelt een domme vraag.", a:["Respectvol antwoorden","Uitlachen"], correct:0}
+      {q:"Wat doe je als je wakker wordt?", a:["Een kort gebedje bidden","Je bed uit springen"], correct:0}
     ];
-
     const zondeVragen = [
-      "God helemaal vergeten en nooit bidden is goed.",
-      "Grappen maken over God in de kerk is goed.",
-      "De Naam van God lelijk gebruiken is toegestaan.",
-      "De zondag is alleen voor spel en nooit voor God.",
-      "Je ouders expres negeren is juist.",
-      "Met respect praten tegen ouders en juf is niet nodig.",
-      "Iemand pijn doen voor de grap mag.",
-      "Pesten of iemand buitensluiten is goed.",
-      "Over het lichaam van anderen grapjes maken is goed.",
-      "Iets meenemen dat niet van jou is mag.",
-      "Jaloers doen en alles voor jezelf willen is goed.",
-      "Liegen om uit de problemen te blijven is toegestaan.",
-      "Roddelen over iemand is goed.",
-      "In de kerk hard roepen en rennen mag.",
-      "Tijdens gebed expres grapjes maken is goed.",
-      "Iemand met honger of verdriet negeren is juist.",
-      "Niet willen delen met wie niets heeft is goed.",
-      "Afval op straat gooien is oké.",
-      "Dieren plagen mag.",
-      "Spieken en valsspelen is toegestaan.",
-      "Je beurt afpakken in de rij is goed.",
-      "Schelden en lelijke woorden gebruiken is oké.",
-      "Nooit vergeven en altijd boos blijven is juist.",
-      "Nooit dankjewel zeggen is goed.",
-      "Opscheppen en anderen klein maken is goed.",
-      "Altijd schermtijd kiezen boven gebed of gezin is juist.",
-      "Een fout verbergen en een ander de schuld geven is toegestaan."
+      "God helemaal vergeten en nooit bidden is goed."
     ];
 
-    // === Vraag-modal ===
+    // Modal
     const modal = document.getElementById("questionModal");
     const qText = document.getElementById("questionText");
     const ansDiv = document.getElementById("answers");
@@ -196,19 +141,17 @@
         alert("Gefeliciteerd! Alle levels gehaald!");
         location.reload();
       } else {
-        canvas.style.background=`url('level${level}.png') repeat-x`;
+        canvas.style.background=`url('level${level}.png') no-repeat left center`;
         canvas.style.backgroundSize="cover";
       }
     }
 
-    // Input
     document.addEventListener("keydown",e=>{
       if(e.code==="Space" && !photeinos.jumping){
         photeinos.vy=-15; photeinos.jumping=true;
       }
     });
 
-    // Game loop
     function gameLoop(){
       ctx.clearRect(0,0,canvas.width,canvas.height);
 
@@ -219,7 +162,7 @@
       ctx.drawImage(photeinosImg,photeinos.x,photeinos.y,photeinos.width,photeinos.height);
 
       // Nieuwe objecten
-      if(Math.random()<0.01){
+      if(Math.random()<0.02){
         const type=Math.random()<0.5?"obstacle":"bonus";
         objects.push({
           x:canvas.width,
@@ -229,6 +172,7 @@
         });
       }
 
+      // Teken objecten
       objects.forEach((o,i)=>{
         o.x-=4;
         ctx.font="40px serif";
