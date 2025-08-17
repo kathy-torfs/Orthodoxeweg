@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Orthodoxeweg – Zondagsliturgie</title>
+  <style>
+    body { background-color:#f5e9b8; color:#6f4e1a; font-family:Arial,sans-serif; margin:0; padding:0;}
+    nav.menu { background-color:#7a5f35; padding:10px 15px; display:flex; flex-wrap:wrap; gap:12px; justify-content:center;}
+    nav.menu a {color:#f5e9b8; text-decoration:none; font-weight:600; font-size:16px; padding:6px 12px; border-radius:8px;}
+    nav.menu a:hover { background-color:#5d4726; text-decoration:underline;}
+    main { max-width:860px; margin:30px auto 60px auto; padding:0 15px;}
+    h1,h2 {font-weight:bold; text-decoration:underline;}
+    .variable { background:#fffbd2; padding:8px; border:1px dashed #8a732f; margin:10px 0;}
+  </style>
+</head>
+
+<body>
+<nav class="menu">
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/gastenmodus/startpagina.html">🏠 Home</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/gastenmodus/zondagsliturgie.html">zondagsliturgie</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/gastenmodus/catechese/catechese.html">📖 Catechese</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/gastenmodus/psalmen/psalmen.html">📜 Psalmen</a>
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/gastenmodus/gebeden/gebeden.html">🙏 Gebeden</a>
+</nav>
+
+<main>
+  <h1>Zondagsliturgie</h1>
+
+  <div id="content">
+    <h2>Blok 1 – Aanvangsgebeden en Zegen</h2>
+    <p><strong>Priester:</strong> Gezegend is het Koninkrijk...<br>
+    <strong>Koor:</strong> Amen.</p>
+
+    <h2>Grote Litanie</h2>
+    <p>In vrede, laat ons tot de Heer bidden… (enz.)</p>
+
+    <!-- vaste tekst gaat hier verder … tot aan de lezingen -->
+
+    <h2>Apostellezing</h2>
+    <div class="variable" id="apostel">
+      <!-- wordt automatisch ingevuld via OpenAI -->
+    </div>
+
+    <h2>Evangelielezing</h2>
+    <div class="variable" id="evangelie">
+      <!-- wordt automatisch ingevuld via OpenAI -->
+    </div>
+
+    <!-- vaste tekst (Cherubijnenhymne, anaphora, communie, slot) hier …  -->
+  </div>
+</main>
+
+<footer style="text-align:center; margin-bottom:40px;">
+  <a href="https://kathy-torfs.github.io/Orthodoxeweg/gastenmodus/">Overzicht</a>
+</footer>
+
+<script>
+window.onload = async () => {
+  const today = new Date().toISOString().slice(0,10); // YYYY-MM-DD
+  try {
+    const res = await fetch(`/api/get-readings?date=${today}`);
+    const data = await res.json();
+
+    // Vul apostel- en evangelielezing in
+    document.getElementById('apostel').innerText   = data.apostel || 'Niet gevonden';
+    document.getElementById('evangelie').innerText = data.evangelie || 'Niet gevonden';
+  } catch (err) {
+    console.error(err);
+  }
+};
+</script>
+
+</body>
+</html>
