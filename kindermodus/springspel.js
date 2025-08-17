@@ -1,5 +1,4 @@
 // kindermodus/springspel.js
-
 (function(){
   let canvas, ctx;
   let photeinos, obstacles = [], collectibles = [];
@@ -7,16 +6,21 @@
   let gravity = 0.6, jumpPower = -10, velocity = 0;
   let gameLoopInterval;
 
-  // Firebase referenties (zoals elders in kindermodus)
-  const parochieId = localStorage.getItem("ingelogdeParochie");
-  const ouderLogin = localStorage.getItem("loginKeuze");
-  const kindId     = localStorage.getItem("ingelogdKindId");
-  const kindDocRef = firebase.firestore()
-    .collection("parochies").doc(parochieId)
-    .collection("leden").doc(ouderLogin)
-    .collection("kinderen").doc(kindId);
+  // Firebase kindDocRef pas maken bij spelstart
+  let kindDocRef = null;
+  function initKindDocRef() {
+    if (!kindDocRef) {
+      const parochieId = localStorage.getItem("ingelogdeParochie");
+      const ouderLogin = localStorage.getItem("loginKeuze");
+      const kindId     = localStorage.getItem("ingelogdKindId");
 
-  // Difficulty instellingen
+      kindDocRef = firebase.firestore()
+        .collection("parochies").doc(parochieId)
+        .collection("leden").doc(ouderLogin)
+        .collection("kinderen").doc(kindId);
+    }
+  }
+
   const levelSettings = {
     1: { bg: "level1.png", difficulty: 1, answersToShow: 2 },
     2: { bg: "level2.png", difficulty: 1, answersToShow: 3 },
@@ -25,8 +29,8 @@
     5: { bg: "level5.png", difficulty: 3, answersToShow: 4 }
   };
 
-  // Startknop logica
   async function betaalStart(){
+    initKindDocRef();
     const snap = await kindDocRef.get();
     const punten = snap.exists ? (snap.data().punten||0) : 0;
 
@@ -35,7 +39,6 @@
       return;
     }
 
-    // 20 punten aftrekken
     await kindDocRef.update({ punten: firebase.firestore.FieldValue.increment(-20) });
     document.getElementById("startBtn").style.display="none";
     initGame();
@@ -80,7 +83,6 @@
   function gameLoop(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    // zwaartekracht
     velocity += gravity;
     photeinos.y += velocity;
     if(photeinos.y > canvas.height - photeinos.h){
@@ -88,15 +90,12 @@
       velocity = 0;
     }
 
-    // teken speler
     ctx.fillStyle = "yellow";
     ctx.fillRect(photeinos.x, photeinos.y, photeinos.w, photeinos.h);
 
-    // spawn obstakels (grotere blokken)
     if(Math.random()<0.015){
       obstacles.push({x:canvas.width, y:canvas.height-100, w:100, h:100});
     }
-
     for(let i=obstacles.length-1;i>=0;i--){
       let o=obstacles[i];
       o.x -= 4;
@@ -104,18 +103,15 @@
       ctx.fillRect(o.x,o.y,o.w,o.h);
 
       if(collides(photeinos,o)){
-        // botsing → opnieuw level
-        askQuestion(true); // true = gefaald
+        askQuestion(true);
         return;
       }
       if(o.x+o.w<0) obstacles.splice(i,1);
     }
 
-    // spawn collectibles (bewegende vleugeltjes)
     if(Math.random()<0.02){
-      collectibles.push({x:canvas.width, y:Math.random()*(canvas.height-250)+80, w:40, h:40, t:0});
+      collectibles.push({x:canvas.width, y:Math.random()*(canvas.height-250)+80, w:50, h:50, t:0});
     }
-
     for(let i=collectibles.length-1;i>=0;i--){
       let c=collectibles[i];
       c.x -= 2.5;
@@ -138,7 +134,6 @@
       }
     }
 
-    // HUD
     ctx.fillStyle="black";
     ctx.font="20px Comic Sans MS";
     ctx.fillText("Vleugeltjes: "+wings+"/10",20,30);
@@ -149,7 +144,6 @@
     return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y;
   }
 
-  // Vraag stellen
   async function askQuestion(failed){
     clearInterval(gameLoopInterval);
     gameRunning = false;
@@ -172,11 +166,9 @@
     qText.textContent = vraag.q;
     ansDiv.innerHTML = "";
 
-    // juiste aantal antwoorden tonen
     let shuffled = [...vraag.a].map((a,i)=>({txt:a,index:i}));
     shuffled.sort(()=>Math.random()-0.5);
     shuffled = shuffled.slice(0, settings.answersToShow);
-
     if(!shuffled.some(s => s.index===vraag.correct)){
       shuffled[0] = {txt:vraag.a[vraag.correct], index:vraag.correct};
     }
@@ -187,13 +179,12 @@
       btn.onclick=async ()=>{
         if(s.index===vraag.correct){
           qBox.style.display="none";
-          // ✅ 2 punten teruggeven
           await kindDocRef.update({ punten: firebase.firestore.FieldValue.increment(2) });
           if(level<5){
             startLevel(level+1);
           }else{
             alert("Proficiat! Je hebt alle levels gehaald!");
-            document.getElementById("startBtn").style.display="block"; // opnieuw spelen
+            document.getElementById("startBtn").style.display="block";
           }
         }else{
           qBox.style.display="none";
@@ -206,7 +197,6 @@
     qBox.style.display="block";
   }
 
-  // Startknop zichtbaar maken
   document.addEventListener("DOMContentLoaded", ()=>{
     const btn=document.createElement("button");
     btn.id="startBtn";
@@ -216,6 +206,5 @@
     document.getElementById("gameContainer").appendChild(btn);
   });
 
-  // Exporteer startLevel zodat HTML-knoppen het kunnen oproepen
   window.startLevel = startLevel;
 })();
