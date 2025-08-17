@@ -3,125 +3,101 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Photeinos Springspel – Level 1</title>
+  <title>Photeinos Scrollspel</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
-    body { margin:0; font-family:"Comic Sans MS", Arial, sans-serif; background:#fff6e5; }
+    body { margin:0; background:#fff6e5; font-family:"Comic Sans MS", Arial, sans-serif; }
     .center { max-width:1280px; margin:0 auto; padding:0 2vw 64px; }
     .game-card { background:#fff; border-radius:22px; box-shadow:0 10px 30px #0000001a; padding:16px; }
     .game-wrap {
       width:100%; max-width:1100px; aspect-ratio:21/9; margin:0 auto;
-      border-radius:16px; overflow:hidden; background:#e0f7fa; position:relative;
+      border-radius:16px; overflow:hidden; background:#87CEEB; /* lucht */
+      position:relative;
     }
     canvas { display:block; width:100%; height:100%; }
-
     #photeinos {
       position:absolute;
-      bottom:50px; left:100px;
-      width:90px; height:auto;
-      pointer-events:none;
-    }
-    #dove {
-      position:absolute;
-      top:100px; right:-80px;
-      width:60px; height:auto;
+      bottom:40px; /* tegen de grond */
+      left:150px;  /* vast punt */
+      width:150px; height:auto;
       pointer-events:none;
     }
   </style>
   <script defer src="common/layout.js"></script>
 </head>
 <body>
-  <!-- Header -->
   <div id="kinder-header" data-header-src="common/header.html"></div>
 
   <div class="center">
     <div class="game-card">
       <div class="game-wrap">
         <canvas id="game"></canvas>
-        <img id="photeinos" src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_game.gif" alt="Photeinos">
-        <img id="dove" src="https://em-content.zobj.net/thumbs/120/apple/354/dove_1f54a-fe0f.png" alt="Duif">
+        <img id="photeinos" src="images/photeinos_game.gif" alt="Photeinos">
       </div>
     </div>
   </div>
 
 <script>
 // --------------------------
-// Canvas en variabelen
+// Scrollend Photeinos-spel
 // --------------------------
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
-function resize(){ canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; }
-window.addEventListener("resize", resize); resize();
-
-const ground = canvas.height - 50;
-let keys = {};
-
-// Photeinos
 const photeinos = document.getElementById("photeinos");
-let player = { x:100, y:ground, vy:0, size:90, duck:false };
 
-// Obstakels
+function resize() {
+  canvas.width = canvas.clientWidth;
+  canvas.height = canvas.clientHeight;
+}
+window.addEventListener("resize", resize);
+resize();
+
+let scrollX = 0;          // wereldpositie
+let speed = 0;            // huidige snelheid
+const groundHeight = 60;  // hoogte van de grond
+
+// obstakels in de wereld
 let obstacles = [
-  {x:400, y:ground-40, w:40, h:40},
-  {x:600, y:ground-60, w:60, h:60},
-  {x:800, y:ground-40, w:40, h:40}
+  {x:400, w:50, h:50, color:"brown"},
+  {x:700, w:60, h:80, color:"green"},
+  {x:1100, w:40, h:60, color:"purple"}
 ];
 
-// Duif
-const dove = document.getElementById("dove");
-let doveX = canvas.width + 100;
-
-// --------------------------
-// Input
-// --------------------------
-window.addEventListener("keydown", e => { keys[e.code]=true; });
-window.addEventListener("keyup", e => { keys[e.code]=false; });
-
-// --------------------------
-// Game loop
-// --------------------------
 function loop(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  // Achtergrond
-  ctx.fillStyle = "#87CEEB"; // lucht
+  // lucht
+  ctx.fillStyle="#87CEEB";
   ctx.fillRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle = "#228B22"; // gras
-  ctx.fillRect(0,ground,canvas.width,50);
 
-  // Beweging links/rechts
-  if(keys["ArrowLeft"]) player.x -= 4;
-  if(keys["ArrowRight"]) player.x += 4;
+  // grond
+  ctx.fillStyle="#228B22";
+  ctx.fillRect(0,canvas.height-groundHeight,canvas.width,groundHeight);
 
-  // Springen
-  if(keys["Space"] && player.y >= ground){ player.vy = -12; }
-
-  // Bukken
-  player.duck = keys["ArrowDown"] || false;
-
-  // Zwaartekracht
-  player.vy += 0.8;
-  player.y += player.vy;
-  if(player.y > ground){ player.y = ground; player.vy = 0; }
-
-  // Update Photeinos positie
-  photeinos.style.left = player.x + "px";
-  photeinos.style.top = (player.y - (player.duck ? player.size*0.6 : player.size)) + "px";
-  photeinos.style.width = (player.duck ? "60px" : "90px");
-
-  // Obstakels tekenen
-  ctx.fillStyle = "#8B4513"; // bruin
-  for(const ob of obstacles){
-    ctx.fillRect(ob.x, ob.y, ob.w, ob.h);
+  // obstakels
+  for(let obs of obstacles){
+    let drawX = obs.x - scrollX;
+    if(drawX+obs.w > 0 && drawX < canvas.width){
+      ctx.fillStyle=obs.color;
+      ctx.fillRect(drawX, canvas.height-groundHeight-obs.h, obs.w, obs.h);
+    }
   }
 
-  // Duif bewegen
-  doveX -= 2;
-  if(doveX < -80) doveX = canvas.width+100;
-  dove.style.right = (canvas.width - doveX) + "px";
+  // scrollpositie updaten
+  scrollX += speed;
 
   requestAnimationFrame(loop);
 }
+
+// besturing
+window.addEventListener("keydown", e=>{
+  if(e.code==="ArrowRight") speed = 4;
+  if(e.code==="ArrowLeft") speed = -4;
+});
+window.addEventListener("keyup", e=>{
+  if(e.code==="ArrowRight" || e.code==="ArrowLeft") speed = 0;
+});
+
 loop();
 </script>
 </body>
