@@ -7,214 +7,144 @@
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <link rel="stylesheet" href="layout.css">
   <style>
-    body {
-      margin: 0;
-      font-family: 'Comic Sans MS', sans-serif;
-      background-color: #fff6e5;
-      overflow: hidden;
-    }
-    #gameContainer {
-      position: relative;
-      width: 100%;
-      height: 500px;
-      background: url('https://kathy-torfs.github.io/Orthodoxeweg/images/level1.png') repeat-x;
-      background-size: cover;
-      overflow: hidden;
-    }
-    #photeinos {
-      position: absolute;
-      bottom: 0;
-      left: 50px;
-      width: 120px;
-      height: auto;
-    }
-    .obstacle {
-      position: absolute;
-      bottom: 0;
-      width: 60px;
-      height: 60px;
-    }
-    .collectible {
-      position: absolute;
-      width: 50px;
-      height: 50px;
-    }
-    #questionBox {
-      position: absolute;
-      top: 20%;
-      left: 50%;
-      transform: translateX(-50%);
-      background: white;
-      border: 2px solid #7bb235;
-      padding: 20px;
-      width: 300px;
-      display: none;
-      z-index: 10;
-    }
-    #questionBox button {
-      display: block;
-      margin-top: 10px;
-      width: 100%;
-    }
+    body { margin: 0; font-family: 'Comic Sans MS', sans-serif; background-color: #fff6e5; overflow: hidden; }
+    #gameContainer { position: relative; width: 100%; height: 500px; background-size: cover; overflow: hidden; }
+    #photeinos { position: absolute; bottom: 0; left: 50px; width: 120px; height: auto; }
+    .obstacle,.collectible { position: absolute; font-size: 48px; }
+    .obstacle { bottom: 0; }
+    #questionBox { position: absolute; top: 20%; left: 50%; transform: translateX(-50%); background: white;
+                   border: 2px solid #7bb235; padding: 20px; width: 300px; display: none; z-index: 10; }
+    #questionBox button { display: block; margin-top: 10px; width: 100%; }
   </style>
 </head>
 <body>
-  <!-- Begroeting en menubalk laden -->
   <div id="header"></div>
   <script src="layout.js"></script>
-  <script>
-    loadHeader('header.html', 'header');
-  </script>
+  <script>loadHeader('header.html','header');</script>
 
-  <!-- Spelcontainer -->
   <div id="gameContainer">
     <img id="photeinos" src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.png" alt="Photeinos">
-
-    <!-- Obstakels op vaste plaats -->
-    <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/rock.png" class="obstacle" style="left: 400px;">
-    <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/fire.png" class="obstacle" style="left: 800px;">
-    <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/snake.png" class="obstacle" style="left: 1200px;">
-
-    <!-- Collectibles in de lucht -->
-    <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/dove.png" class="collectible" style="top:150px; left:600px;">
-    <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/dove.png" class="collectible" style="top:200px; left:1000px;">
   </div>
 
-  <!-- Vragenvenster -->
   <div id="questionBox">
     <p id="questionText"></p>
     <div id="answers"></div>
   </div>
 
+  <!-- Vragen laden -->
+  <script src="vragen.js"></script>
+
   <script>
     const photeinos = document.getElementById("photeinos");
     const gameContainer = document.getElementById("gameContainer");
-    const obstacles = document.querySelectorAll(".obstacle");
-    const collectibles = document.querySelectorAll(".collectible");
     const questionBox = document.getElementById("questionBox");
     const questionText = document.getElementById("questionText");
     const answersDiv = document.getElementById("answers");
 
-    let posX = 50;
-    let posY = 0;
-    let velocityY = 0;
-    let jumping = false;
-    let score = 0;
+    let posX=50,posY=0,velocityY=0,jumping=false;
+    let score=0,currentLevel=1;
+    const gravity=2,ground=0;
 
-    const gravity = 2;
-    const ground = 0;
+    // Levels
+    const levels={
+      1:{ bg:"level1.png", obstacles:["🪨","🔥","🐍"], collectibles:["🕊️"] },
+      2:{ bg:"level2.png", obstacles:["🌵","⚡","🕷️"], collectibles:["⭐"] },
+      3:{ bg:"level3.png", obstacles:["🌊","🌪️","⛰️"], collectibles:["🌸"] },
+      4:{ bg:"level4.png", obstacles:["👹","🗡️","💣"], collectibles:["💎"] },
+      5:{ bg:"level5.png", obstacles:["🧊","🦅","🌋"], collectibles:["🌟"] }
+    };
 
-    // Vragenlijsten (ingekort voorbeeld – we vullen later ALLE vragen)
-    const zondeVragen = [
-      { vraag: "God helemaal vergeten en nooit bidden is goed.", juist: 1 },
-      { vraag: "Grappen maken over God in de kerk is goed.", juist: 1 }
-    ];
-
-    const lichtVragen = [
-      { vraag: "Wat doe je als je wakker wordt?", opties: ["Een kort gebedje bidden", "Je bed uit springen"], juist: 0 },
-      { vraag: "Wat betekent 'Amen'?", opties: ["Ik geloof het/zo is het", "Einde, klaar!"], juist: 0 }
-    ];
-
-    // Beweging
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "ArrowRight") posX += 20;
-      if (e.key === "ArrowLeft") posX -= 20;
-      if (e.key === " " && !jumping) {
-        velocityY = 25;
-        jumping = true;
-      }
-      updatePhoteinos();
-    });
-
-    function updatePhoteinos() {
-      photeinos.style.left = posX + "px";
+    function loadLevel(n){
+      gameContainer.style.backgroundImage=`url('https://kathy-torfs.github.io/Orthodoxeweg/images/${levels[n].bg}')`;
+      document.querySelectorAll(".obstacle,.collectible").forEach(el=>el.remove());
+      levels[n].obstacles.forEach((o,i)=>{
+        const obs=document.createElement("div");
+        obs.className="obstacle"; obs.style.left=(400+i*400)+"px"; obs.textContent=o;
+        gameContainer.appendChild(obs);
+      });
+      levels[n].collectibles.forEach((c,i)=>{
+        const col=document.createElement("div");
+        col.className="collectible"; col.style.left=(600+i*400)+"px"; col.style.top=(150+i*50)+"px"; col.textContent=c;
+        gameContainer.appendChild(col);
+      });
     }
 
-    function gameLoop() {
-      // Gravity
-      if (jumping) {
-        posY += velocityY;
-        velocityY -= gravity;
-        if (posY <= ground) {
-          posY = ground;
-          jumping = false;
-        }
-        photeinos.style.bottom = posY + "px";
+    // Controls
+    document.addEventListener("keydown",(e)=>{
+      if(e.key==="ArrowRight")posX+=20;
+      if(e.key==="ArrowLeft")posX-=20;
+      if(e.key===" "&&!jumping){velocityY=25;jumping=true;}
+      updatePhoteinos();
+    });
+    function updatePhoteinos(){ photeinos.style.left=posX+"px"; }
+
+    // Main loop
+    function gameLoop(){
+      if(jumping){
+        posY+=velocityY; velocityY-=gravity;
+        if(posY<=ground){ posY=ground;jumping=false;}
+        photeinos.style.bottom=posY+"px";
       }
-
-      // Botsing met obstakel
-      obstacles.forEach(obs => {
-        if (checkCollision(photeinos, obs)) {
-          askZondeVraag();
+      document.querySelectorAll(".obstacle").forEach(obs=>{ if(checkCollision(photeinos,obs)) askZondeVraag(); });
+      document.querySelectorAll(".collectible").forEach(col=>{
+        if(checkCollision(photeinos,col)){
+          col.remove(); askLichtVraag(); score++;
+          if(score>=5){ score=0; nextLevel(); }
         }
       });
-
-      // Collectibles
-      collectibles.forEach(col => {
-        if (checkCollision(photeinos, col)) {
-          col.style.display = "none";
-          askLichtVraag();
-        }
-      });
-
       requestAnimationFrame(gameLoop);
     }
 
-    function checkCollision(a, b) {
-      const rect1 = a.getBoundingClientRect();
-      const rect2 = b.getBoundingClientRect();
-      return !(rect1.top > rect2.bottom ||
-               rect1.bottom < rect2.top ||
-               rect1.right < rect2.left ||
-               rect1.left > rect2.right);
+    function checkCollision(a,b){
+      const r1=a.getBoundingClientRect(),r2=b.getBoundingClientRect();
+      return !(r1.top>r2.bottom||r1.bottom<r2.top||r1.right<r2.left||r1.left>r2.right);
     }
 
-    function askZondeVraag() {
-      showQuestion(zondeVragen[Math.floor(Math.random()*zondeVragen.length)], "zonde");
+    function askZondeVraag(){
+      const vragen=zondeVragen; // uit vragen.js
+      showQuestion(vragen[Math.floor(Math.random()*vragen.length)],"zonde");
+    }
+    function askLichtVraag(){
+      const vragen=vragenLijst.filter(v=>v.difficulty===getDifficulty()); 
+      showQuestion(vragen[Math.floor(Math.random()*vragen.length)],"licht");
     }
 
-    function askLichtVraag() {
-      showQuestion(lichtVragen[Math.floor(Math.random()*lichtVragen.length)], "licht");
+    function getDifficulty(){
+      if(currentLevel<=3) return 1;
+      if(currentLevel===4) return 2;
+      if(currentLevel===5) return 3;
     }
 
-    function showQuestion(vraag, type) {
-      questionBox.style.display = "block";
-      questionText.textContent = vraag.vraag;
-      answersDiv.innerHTML = "";
-
-      if (type === "zonde") {
-        ["Ja", "Nee"].forEach((opt, idx) => {
-          const btn = document.createElement("button");
-          btn.textContent = opt;
-          btn.onclick = () => {
-            questionBox.style.display = "none";
-            if (idx === vraag.juist) {
-              // goed → doorgaan
-            } else {
-              alert("Fout antwoord – game over!");
-              location.reload();
-            }
-          };
+    function showQuestion(vraag,type){
+      questionBox.style.display="block";
+      questionText.textContent=vraag.q;
+      answersDiv.innerHTML="";
+      if(type==="zonde"){
+        ["Ja","Nee"].forEach((opt,idx)=>{
+          const btn=document.createElement("button"); btn.textContent=opt;
+          btn.onclick=()=>{questionBox.style.display="none"; if(idx!==vraag.correct){alert("Fout antwoord – game over!"); location.reload();}};
           answersDiv.appendChild(btn);
         });
-      }
-
-      if (type === "licht") {
-        vraag.opties.forEach((opt, idx) => {
-          const btn = document.createElement("button");
-          btn.textContent = opt;
-          btn.onclick = () => {
-            questionBox.style.display = "none";
-            if (idx === vraag.juist) {
-              score++;
-              if (score >= 10) alert("Level gehaald!");
-            }
-          };
+      }else{
+        // aantal antwoorden afhankelijk van level
+        let opties=[...vraag.a];
+        if(currentLevel===1) opties=opties.slice(0,2);
+        if(currentLevel===2) opties=opties.slice(0,3);
+        opties.forEach((opt,idx)=>{
+          const btn=document.createElement("button"); btn.textContent=opt;
+          btn.onclick=()=>{questionBox.style.display="none"; if(idx===vraag.correct){} else{alert("Fout antwoord!"); location.reload();}};
           answersDiv.appendChild(btn);
         });
       }
     }
 
+    function nextLevel(){
+      if(currentLevel<5){ currentLevel++; loadLevel(currentLevel); alert("Level "+currentLevel+" gestart!"); posX=50; updatePhoteinos();}
+      else{ alert("🎉 Proficiat! Alle levels gehaald!"); }
+    }
+
+    // Start
+    loadLevel(currentLevel);
     gameLoop();
   </script>
 </body>
