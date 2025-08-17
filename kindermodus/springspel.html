@@ -1,226 +1,154 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Photeinos Spel – Orthodoxe Kinderpagina</title>
-  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
-  <link rel="stylesheet" href="https://kathy-torfs.github.io/Orthodoxeweg/layout.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Springspel – Orthodoxe Kinderpagina</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
+
   <style>
-    body {
-      margin: 0;
-      font-family: 'Comic Sans MS', sans-serif;
-      background-color: #fff6e5;
-      overflow: hidden;
+    :root{
+      --primair:#7bb235; --donker:#67510C;
+      --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
+      --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
+      --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
+      --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
     }
-    #gameContainer {
-      position: relative;
-      width: 100%;
-      height: 500px;
-      background-size: cover;
-      overflow: hidden;
+    body{
+      margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
+      min-height:100vh; background:var(--pastel1); transition:background .6s; overflow-x:hidden;
     }
-    #photeinos {
-      position: absolute;
-      bottom: 0;
-      left: 50px;
-      width: 120px;
-      height: auto;
+
+    .page-container{ max-width:1000px; margin:0 auto; padding:0 12px 44px 12px; }
+
+    /* Spelcontainer */
+    #gameContainer{
+      position:relative;
+      width:100%;
+      height:500px;
+      background:url('https://kathy-torfs.github.io/Orthodoxeweg/images/level1.png') repeat-x;
+      background-size:cover;
+      overflow:hidden;
+      border-radius:18px;
+      box-shadow:0 2px 8px #0003;
     }
-    .obstacle, .collectible {
-      position: absolute;
-      font-size: 48px;
+    #photeinos{
+      position:absolute;
+      bottom:0;
+      left:50px;
+      width:120px;
+      height:auto;
     }
-    .obstacle { bottom: 0; }
-    #questionBox {
-      position: absolute;
-      top: 20%;
-      left: 50%;
-      transform: translateX(-50%);
-      background: white;
-      border: 2px solid #7bb235;
-      padding: 20px;
-      width: 300px;
-      display: none;
-      z-index: 10;
+    .obstacle{
+      position:absolute;
+      bottom:0;
+      width:60px;
+      height:60px;
     }
-    #questionBox button {
-      display: block;
-      margin-top: 10px;
-      width: 100%;
+    .collectible{
+      position:absolute;
+      width:50px;
+      height:50px;
     }
+    #questionBox{
+      position:absolute;
+      top:20%;
+      left:50%;
+      transform:translateX(-50%);
+      background:white;
+      border:2px solid #7bb235;
+      padding:20px;
+      width:300px;
+      display:none;
+      z-index:10;
+      border-radius:15px;
+      box-shadow:0 3px 10px #0004;
+    }
+    #questionBox button{
+      display:block;
+      margin-top:10px;
+      width:100%;
+      border:none;
+      padding:10px;
+      border-radius:10px;
+      background:#7bb235;
+      color:white;
+      font-weight:bold;
+      cursor:pointer;
+    }
+    #questionBox button:hover{ background:#6aa12c; }
   </style>
+
+  <!-- Firebase compat -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+
+  <!-- Kinder lay-out: header + beveiliging -->
+  <script defer src="common/layout.js"></script>
 </head>
 <body>
-  <!-- Header -->
-  <div id="header"></div>
-  <script src="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/common/layout.js"></script>
+  <!-- Herbruikbare header -->
+  <div id="kinder-header" data-header-src="common/header.html"></div>
+
+  <!-- Pagina-inhoud -->
+  <main class="page-container">
+    <div id="gameContainer">
+      <img id="photeinos" src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.png" alt="Photeinos">
+      <div id="questionBox">
+        <p id="questionText"></p>
+        <div id="answers"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Scripts -->
+  <script src="vragen.js"></script>
+  <script src="springspel.js"></script>
+
   <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      loadHeader("https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/common/header.html", "header");
-    });
-  </script>
+    // Zachte random pastelachtergrond
+    (function(){
+      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
+      document.body.style.background = p[Math.floor(Math.random()*p.length)];
+    })();
 
-  <!-- Spelcontainer -->
-  <div id="gameContainer">
-    <img id="photeinos" src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.png" alt="Photeinos">
-  </div>
+    // Firebase init (zoals elders)
+    const firebaseConfig = {
+      apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain:"orthodoxeweg.firebaseapp.com",
+      projectId:"orthodoxeweg",
+      storageBucket:"orthodoxeweg.appspot.com",
+      messagingSenderId:"408582263618",
+      appId:"1:408582263618:web:0a20f4bf0704989d3ceedb"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 
-  <!-- Vraagvenster -->
-  <div id="questionBox">
-    <p id="questionText"></p>
-    <div id="answers"></div>
-  </div>
-
-  <!-- Vragen.js -->
-  <script src="https://kathy-torfs.github.io/Orthodoxeweg/vragen.js"></script>
-
-  <!-- Spelscript -->
-  <script>
-    const photeinos = document.getElementById("photeinos");
-    const gameContainer = document.getElementById("gameContainer");
-    const questionBox = document.getElementById("questionBox");
-    const questionText = document.getElementById("questionText");
-    const answersDiv = document.getElementById("answers");
-
-    let posX = 50;
-    let posY = 0;
-    let velocityY = 0;
-    let jumping = false;
-    let score = 0;
-    let level = 1;
-
-    const gravity = 2;
-    const ground = 0;
-
-    // Obstakels (emoji)
-    const obstacleIcons = ["🪨","🔥","🐍"];
-    // Collectibles (emoji)
-    const collectibleIcons = ["🕊️","⭐","✨"];
-
-    function loadLevel(lvl) {
-      gameContainer.style.backgroundImage = `url('https://kathy-torfs.github.io/Orthodoxeweg/images/level${lvl}.png')`;
-      gameContainer.querySelectorAll(".obstacle, .collectible").forEach(e => e.remove());
-
-      // Obstakels
-      obstacleIcons.forEach((icon, idx) => {
-        const obs = document.createElement("div");
-        obs.className = "obstacle";
-        obs.style.left = (400 + idx*400) + "px";
-        obs.textContent = icon;
-        gameContainer.appendChild(obs);
-      });
-
-      // Collectibles
-      collectibleIcons.forEach((icon, idx) => {
-        const col = document.createElement("div");
-        col.className = "collectible";
-        col.style.left = (600 + idx*400) + "px";
-        col.style.top = (150 + idx*50) + "px";
-        col.textContent = icon;
-        gameContainer.appendChild(col);
-      });
-    }
-
-    // Botsingscontrole
-    function checkCollision(a, b) {
-      const rect1 = a.getBoundingClientRect();
-      const rect2 = b.getBoundingClientRect();
-      return !(rect1.top > rect2.bottom ||
-               rect1.bottom < rect2.top ||
-               rect1.right < rect2.left ||
-               rect1.left > rect2.right);
-    }
-
-    // Vraag stellen
-    function showQuestion(vraag) {
-      questionBox.style.display = "block";
-      questionText.textContent = vraag.q;
-      answersDiv.innerHTML = "";
-
-      vraag.a.forEach((opt, idx) => {
-        const btn = document.createElement("button");
-        btn.textContent = opt;
-        btn.onclick = () => {
-          questionBox.style.display = "none";
-          if (idx === vraag.correct) {
-            score++;
-            if (score >= 10) {
-              level++;
-              score = 0;
-              if (level > 5) {
-                alert("🎉 Proficiat! Je hebt het spel uitgespeeld!");
-                location.reload();
-              } else {
-                loadLevel(level);
-                alert("Level " + level + " gestart!");
-              }
-            }
-          } else {
-            alert("Fout antwoord – probeer opnieuw!");
-            location.reload();
-          }
-        };
-        answersDiv.appendChild(btn);
-      });
-    }
-
-    function askQuestion(type) {
-      let pool;
-      if (type === "zonde") {
-        pool = vragen.filter(v => v.difficulty === "zonde");
-      } else {
-        if (level <= 3) pool = vragen.filter(v => v.difficulty === "1");
-        if (level === 4) pool = vragen.filter(v => v.difficulty === "2");
-        if (level === 5) pool = vragen.filter(v => v.difficulty === "3");
-      }
-      const vraag = pool[Math.floor(Math.random()*pool.length)];
-      showQuestion(vraag);
-    }
-
-    // Controls
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "ArrowRight") posX += 20;
-      if (e.key === "ArrowLeft") posX -= 20;
-      if (e.key === " " && !jumping) {
-        velocityY = 25;
-        jumping = true;
-      }
-      photeinos.style.left = posX + "px";
+    document.addEventListener('DOMContentLoaded', () => {
+      startWhenReady();
     });
 
-    function gameLoop() {
-      // Gravity
-      if (jumping) {
-        posY += velocityY;
-        velocityY -= gravity;
-        if (posY <= ground) {
-          posY = ground;
-          jumping = false;
-        }
-        photeinos.style.bottom = posY + "px";
+    function startWhenReady(){
+      if (!(window.KinderLayout && window.firebase && firebase.firestore)) {
+        return setTimeout(startWhenReady, 120);
       }
-
-      // Botsing obstakels
-      document.querySelectorAll(".obstacle").forEach(obs => {
-        if (checkCollision(photeinos, obs)) {
-          askQuestion("zonde");
-        }
-      });
-
-      // Botsing collectibles
-      document.querySelectorAll(".collectible").forEach(col => {
-        if (checkCollision(photeinos, col) && col.style.display !== "none") {
-          col.style.display = "none";
-          askQuestion("licht");
-        }
-      });
-
-      requestAnimationFrame(gameLoop);
+      window.KinderLayout.mountHeader({
+        rootId:'kinder-header',
+        headerSrc:document.getElementById('kinder-header').dataset.headerSrc,
+        active:'spelletjes' // markeer juiste knop
+      }).then(initPage).catch(initPage);
     }
 
-    loadLevel(level);
-    gameLoop();
+    function initPage(){
+      // Beveiliging zoals bij gebeden
+      if (!localStorage.getItem('kindIngelogd') ||
+          !localStorage.getItem('ingelogdKindId') ||
+          !localStorage.getItem('loginKeuze') ||
+          !localStorage.getItem('ingelogdeParochie')) {
+        window.location.href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html";
+        return;
+      }
+      // springspel.js start vanzelf
+    }
   </script>
 </body>
 </html>
