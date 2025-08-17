@@ -513,7 +513,7 @@ vragen.push(
   {
     difficulty: 3,
     q: "Wie was de eerste bisschop van Jeruzalem?",
-    a: ["Jakobus, de broer van de Heer", "Petrus", "Paulus", "Johannes"],
+    a: ["Jakobus, gekozen door de apostelen", "Petrus", "Paulus", "Johannes"],
     correct: 0
   },
   {
@@ -589,259 +589,136 @@ vragen.push(
     correct: 0
   }
 );
-📋 100 Zondevragen (met juiste antwoord)
-1e gebod – God liefhebben
-
-God helemaal vergeten en nooit bidden is goed. ❌ Nee
-
-Elke dag even aan God denken is juist. ✅ Ja
-
-Grappen maken over God in de kerk is goed. ❌ Nee
-
-In de kerk eerbiedig zijn is juist. ✅ Ja
-
-2e gebod – Gods naam niet ijdel
-
-De Naam van God lelijk gebruiken is toegestaan. ❌ Nee
-
-Gods Naam met liefde en eerbied gebruiken is juist. ✅ Ja
-
-3e gebod – Zondag heiligen
-
-De zondag enkel gebruiken om te spelen en nooit aan God te denken is goed. ❌ Nee
-
-Naar de kerk gaan op zondag is juist. ✅ Ja
-
-4e gebod – Vader en moeder eren
-
-Je ouders expres negeren is juist. ❌ Nee
-
-Met respect praten tegen ouders en juf is nodig. ✅ Ja
-
-Je grootouders met liefde helpen is goed. ✅ Ja
-
-Schelden tegen je ouders mag. ❌ Nee
-
-5e gebod – Niet doden (vrede & zorg)
-
-Iemand pijn doen voor de grap mag. ❌ Nee
-
-Een vriend beschermen tegen pesten is juist. ✅ Ja
-
-Pesten of iemand buitensluiten is goed. ❌ Nee
-
-Je boosheid vergeven en vrede maken is goed. ✅ Ja
-
-6e/9e – Zuiverheid en respect
-
-Over het lichaam van anderen grapjes maken is goed. ❌ Nee
-
-Respectvol omgaan met je eigen lichaam is juist. ✅ Ja
-
-7e/10e – Niet stelen en niet hebzuchtig
-
-Iets meenemen dat niet van jou is mag. ❌ Nee
-
-Iets teruggeven dat je vond is goed. ✅ Ja
-
-Jaloers doen en alles voor jezelf willen is juist. ❌ Nee
-
-Tevreden zijn met wat je hebt is goed. ✅ Ja
-
-8e gebod – Niet liegen
-
-Liegen om uit de problemen te blijven is toegestaan. ❌ Nee
-
-Altijd eerlijk zijn is goed. ✅ Ja
-
-Roddelen over iemand is juist. ❌ Nee
-
-De waarheid spreken, ook als het moeilijk is, is juist. ✅ Ja
-
-Kerk & gebed
-
-In de kerk hard roepen en rennen mag. ❌ Nee
-
-Tijdens gebed stil en aandachtig zijn is goed. ✅ Ja
-
-Tijdens gebed expres grapjes maken is goed. ❌ Nee
-
-Een kaarsje aansteken voor iemand is juist. ✅ Ja
-
-Barmhartigheid
-
-Iemand met honger of verdriet negeren is juist. ❌ Nee
-
-Delen met wie niets heeft is goed. ✅ Ja
-
-Zieken bezoeken is juist. ✅ Ja
-
-Iemand uitlachen die verdrietig is mag. ❌ Nee
-
-Respect voor schepping
-
-Afval op straat gooien is oké. ❌ Nee
-
-Afval in de vuilnisbak gooien is juist. ✅ Ja
-
-Dieren plagen mag. ❌ Nee
-
-Zorgen voor dieren is goed. ✅ Ja
-
-School & eerlijk spel
-
-Spieken en valsspelen is toegestaan. ❌ Nee
-
-Eerlijk zijn bij een toets is juist. ✅ Ja
-
-Je beurt afpakken in de rij is goed. ❌ Nee
-
-Wachten op je beurt is juist. ✅ Ja
-
-Taalgebruik
-
-Schelden en lelijke woorden gebruiken is oké. ❌ Nee
-
-Vriendelijke woorden spreken is juist. ✅ Ja
-
-Vergeving
-
-Nooit vergeven en altijd boos blijven is juist. ❌ Nee
-
-Iemand vergeven die sorry zegt is goed. ✅ Ja
-
-Dankbaarheid
-
-Nooit dankjewel zeggen is goed. ❌ Nee
-
-Dankbaar zijn voor kleine dingen is juist. ✅ Ja
-
-Trots / nederigheid
-
-Opscheppen en anderen klein maken is juist. ❌ Nee
-
-Nederig en vriendelijk zijn is goed. ✅ Ja
-
-Media & tijd
-
-Altijd schermtijd kiezen boven gebed of gezin is juist. ❌ Nee
-
-Samen bidden met je gezin is goed. ✅ Ja
-
-Waarheidsliefde
-
-Een fout verbergen en een ander de schuld geven is toegestaan. ❌ Nee
-
-Je eigen fouten toegeven is goed. ✅ Ja
-
-Verdere toepassing geboden
-
-Geld stelen van een arme is toegestaan. ❌ Nee
-
-Een deel van je zakgeld geven aan de armen is juist. ✅ Ja
-
-Een geheim doorvertellen dat iemand jou toevertrouwde is juist. ❌ Nee
-
-Een geheim bewaren als iemand je vertrouwt is goed. ✅ Ja
-
-Je vrienden verraden voor plezier is toegestaan. ❌ Nee
-
-Trouwe vriendschap bewaren is juist. ✅ Ja
-
-Kerk & liturgie
-
-Met aandacht luisteren naar het Evangelie is goed. ✅ Ja
-
-In de kerk bewust storen is juist. ❌ Nee
-
-Voor de communie bidden is goed. ✅ Ja
-
-De communie nemen zonder geloof is juist. ❌ Nee
-
-Gebed & geloof
-
-Elke dag danken voor eten is goed. ✅ Ja
-
-Eten zonder God te danken is juist. ❌ Nee
-
-Je zorgen bij God brengen in gebed is goed. ✅ Ja
-
-Denken dat God je nooit hoort is juist. ❌ Nee
-
-Broederliefde
-
-Je broer of zus expres pijn doen is juist. ❌ Nee
-
-Samen spelen en delen is goed. ✅ Ja
-
-Altijd jaloers zijn op je broer of zus is juist. ❌ Nee
-
-Trots zijn op je broer of zus is goed. ✅ Ja
-
-Heiligen en iconen
-
-Voor een icoon eerbiedig bidden is goed. ✅ Ja
-
-Een icoon bespotten is juist. ❌ Nee
-
-Een kruisje dragen uit geloof is goed. ✅ Ja
-
-Het kruisje uitlachen is juist. ❌ Nee
-
-Liefde voor vijanden
-
-Wraak nemen op iemand die je pijn deed is juist. ❌ Nee
-
-Bidden voor je vijanden is goed. ✅ Ja
-
-Iemand vervloeken is toegestaan. ❌ Nee
-
-Iemand zegenen is juist. ✅ Ja
-
-Naastenliefde
-
-Een nieuwe leerling uitsluiten is juist. ❌ Nee
-
-Een nieuwe leerling welkom heten is goed. ✅ Ja
-
-Een arm kind uitlachen is juist. ❌ Nee
-
-Een arm kind helpen is goed. ✅ Ja
-
-Geloofsleven
-
-De vasten negeren en er grapjes over maken is juist. ❌ Nee
-
-De vasten volgen uit liefde voor God is goed. ✅ Ja
-
-De Bijbel lezen is goed. ✅ Ja
-
-De Bijbel belachelijk maken is juist. ❌ Nee
-
-Hoop & vreugde
-
-Altijd somber doen en nooit danken is juist. ❌ Nee
-
-Hoopvol bidden en danken is goed. ✅ Ja
-
-Overig
-
-Een vriend verraden voor geld is juist. ❌ Nee
-
-Een vriend trouw blijven is goed. ✅ Ja
-
-Zegenen bij het eten is goed. ✅ Ja
-
-Vechten en ruzie maken is juist. ❌ Nee
-
-Bidden voor zieke mensen is goed. ✅ Ja
-
-Zieken uitlachen is juist. ❌ Nee
-
-Een kaarsje aansteken voor iemand is goed. ✅ Ja
-
-Een icoon kapotmaken is juist. ❌ Nee
-
-Samen zingen voor God is goed. ✅ Ja
-
-In de kerk expres lawaai maken is juist. ❌ Nee
+// -----------------------------------------------------
+// Zondevragen (difficulty: "zonde")
+// -----------------------------------------------------
+vragen.push(
+  { difficulty: "zonde", q: "God helemaal vergeten en nooit bidden is goed.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Elke dag even aan God denken is juist.", a: ["Ja", "Nee"], correct: 0 },
+  { difficulty: "zonde", q: "Grappen maken over God in de kerk is goed.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "In de kerk eerbiedig zijn is juist.", a: ["Ja", "Nee"], correct: 0 },
+
+  { difficulty: "zonde", q: "De Naam van God lelijk gebruiken is toegestaan.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Gods Naam met liefde en eerbied gebruiken is juist.", a: ["Ja", "Nee"], correct: 0 },
+
+  { difficulty: "zonde", q: "De zondag enkel gebruiken om te spelen en nooit aan God te denken is goed.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Naar de kerk gaan op zondag is juist.", a: ["Ja", "Nee"], correct: 0 },
+
+  { difficulty: "zonde", q: "Je ouders expres negeren is juist.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Met respect praten tegen ouders en juf is nodig.", a: ["Ja", "Nee"], correct: 0 },
+  { difficulty: "zonde", q: "Je grootouders met liefde helpen is goed.", a: ["Ja", "Nee"], correct: 0 },
+  { difficulty: "zonde", q: "Schelden tegen je ouders mag.", a: ["Ja", "Nee"], correct: 1 },
+
+  { difficulty: "zonde", q: "Iemand pijn doen voor de grap mag.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Een vriend beschermen tegen pesten is juist.", a: ["Ja", "Nee"], correct: 0 },
+  { difficulty: "zonde", q: "Pesten of iemand buitensluiten is goed.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Je boosheid vergeven en vrede maken is goed.", a: ["Ja", "Nee"], correct: 0 },
+
+  { difficulty: "zonde", q: "Over het lichaam van anderen grapjes maken is goed.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Respectvol omgaan met je eigen lichaam is juist.", a: ["Ja", "Nee"], correct: 0 },
+
+  { difficulty: "zonde", q: "Iets meenemen dat niet van jou is mag.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Iets teruggeven dat je vond is goed.", a: ["Ja", "Nee"], correct: 0 },
+  { difficulty: "zonde", q: "Jaloers doen en alles voor jezelf willen is juist.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Tevreden zijn met wat je hebt is goed.", a: ["Ja", "Nee"], correct: 0 },
+
+  { difficulty: "zonde", q: "Liegen om uit de problemen te blijven is toegestaan.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Altijd eerlijk zijn is goed.", a: ["Ja", "Nee"], correct: 0 },
+  { difficulty: "zonde", q: "Roddelen over iemand is juist.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "De waarheid spreken, ook als het moeilijk is, is juist.", a: ["Ja", "Nee"], correct: 0 },
+
+  { difficulty: "zonde", q: "In de kerk hard roepen en rennen mag.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Tijdens gebed stil en aandachtig zijn is goed.", a: ["Ja", "Nee"], correct: 0 },
+  { difficulty: "zonde", q: "Tijdens gebed expres grapjes maken is goed.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Een kaarsje aansteken voor iemand is juist.", a: ["Ja", "Nee"], correct: 0 },
+
+  { difficulty: "zonde", q: "Iemand met honger of verdriet negeren is juist.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Delen met wie niets heeft is goed.", a: ["Ja", "Nee"], correct: 0 },
+  { difficulty: "zonde", q: "Zieken bezoeken is juist.", a: ["Ja", "Nee"], correct: 0 },
+  { difficulty: "zonde", q: "Iemand uitlachen die verdrietig is mag.", a: ["Ja", "Nee"], correct: 1 },
+
+  { difficulty: "zonde", q: "Afval op straat gooien is oké.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Afval in de vuilnisbak gooien is juist.", a: ["Ja", "Nee"], correct: 0 },
+  { difficulty: "zonde", q: "Dieren plagen mag.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Zorgen voor dieren is goed.", a: ["Ja", "Nee"], correct: 0 },
+
+  { difficulty: "zonde", q: "Spieken en valsspelen is toegestaan.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Eerlijk zijn bij een toets is juist.", a: ["Ja", "Nee"], correct: 0 },
+  { difficulty: "zonde", q: "Je beurt afpakken in de rij is goed.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Wachten op je beurt is juist.", a: ["Ja", "Nee"], correct: 0 },
+
+  { difficulty: "zonde", q: "Schelden en lelijke woorden gebruiken is oké.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Vriendelijke woorden spreken is juist.", a: ["Ja", "Nee"], correct: 0 },
+
+  { difficulty: "zonde", q: "Nooit vergeven en altijd boos blijven is juist.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Iemand vergeven die sorry zegt is goed.", a: ["Ja", "Nee"], correct: 0 },
+
+  { difficulty: "zonde", q: "Nooit dankjewel zeggen is goed.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Dankbaar zijn voor kleine dingen is juist.", a: ["Ja", "Nee"], correct: 0 },
+
+  { difficulty: "zonde", q: "Opscheppen en anderen klein maken is juist.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Nederig en vriendelijk zijn is goed.", a: ["Ja", "Nee"], correct: 0 },
+
+  { difficulty: "zonde", q: "Altijd schermtijd kiezen boven gebed of gezin is juist.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Samen bidden met je gezin is goed.", a: ["Ja", "Nee"], correct: 0 },
+
+  { difficulty: "zonde", q: "Een fout verbergen en een ander de schuld geven is toegestaan.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Je eigen fouten toegeven is goed.", a: ["Ja", "Nee"], correct: 0 },
+
+  { difficulty: "zonde", q: "Geld stelen van een arme is toegestaan.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Een deel van je zakgeld geven aan de armen is juist.", a: ["Ja", "Nee"], correct: 0 },
+  { difficulty: "zonde", q: "Een geheim doorvertellen dat iemand jou toevertrouwde is juist.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Een geheim bewaren als iemand je vertrouwt is goed.", a: ["Ja", "Nee"], correct: 0 },
+  { difficulty: "zonde", q: "Je vrienden verraden voor plezier is toegestaan.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Trouwe vriendschap bewaren is juist.", a: ["Ja", "Nee"], correct: 0 },
+  { difficulty: "zonde", q: "Met aandacht luisteren naar het Evangelie is goed.", a: ["Ja", "Nee"], correct: 0 },
+  { difficulty: "zonde", q: "In de kerk bewust storen is juist.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Voor de communie bidden is goed.", a: ["Ja", "Nee"], correct: 0 },
+  { difficulty: "zonde", q: "De communie nemen zonder geloof is juist.", a: ["Ja", "Nee"], correct: 1 },
+
+  { difficulty: "zonde", q: "Elke dag danken voor eten is goed.", a: ["Ja", "Nee"], correct: 0 },
+  { difficulty: "zonde", q: "Eten zonder God te danken is juist.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Je zorgen bij God brengen in gebed is goed.", a: ["Ja", "Nee"], correct: 0 },
+  { difficulty: "zonde", q: "Denken dat God je nooit hoort is juist.", a: ["Ja", "Nee"], correct: 1 },
+
+  { difficulty: "zonde", q: "Je broer of zus expres pijn doen is juist.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Samen spelen en delen is goed.", a: ["Ja", "Nee"], correct: 0 },
+  { difficulty: "zonde", q: "Altijd jaloers zijn op je broer of zus is juist.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Trots zijn op je broer of zus is goed.", a: ["Ja", "Nee"], correct: 0 },
+
+  { difficulty: "zonde", q: "Voor een icoon eerbiedig bidden is goed.", a: ["Ja", "Nee"], correct: 0 },
+  { difficulty: "zonde", q: "Een icoon bespotten is juist.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Een kruisje dragen uit geloof is goed.", a: ["Ja", "Nee"], correct: 0 },
+  { difficulty: "zonde", q: "Het kruisje uitlachen is juist.", a: ["Ja", "Nee"], correct: 1 },
+
+  { difficulty: "zonde", q: "Wraak nemen op iemand die je pijn deed is juist.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Bidden voor je vijanden is goed.", a: ["Ja", "Nee"], correct: 0 },
+  { difficulty: "zonde", q: "Iemand vervloeken is toegestaan.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Iemand zegenen is juist.", a: ["Ja", "Nee"], correct: 0 },
+
+  { difficulty: "zonde", q: "Een nieuwe leerling uitsluiten is juist.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Een nieuwe leerling welkom heten is goed.", a: ["Ja", "Nee"], correct: 0 },
+  { difficulty: "zonde", q: "Een arm kind uitlachen is juist.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Een arm kind helpen is goed.", a: ["Ja", "Nee"], correct: 0 },
+
+  { difficulty: "zonde", q: "De vasten negeren en er grapjes over maken is juist.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "De vasten volgen uit liefde voor God is goed.", a: ["Ja", "Nee"], correct: 0 },
+  { difficulty: "zonde", q: "De Bijbel lezen is goed.", a: ["Ja", "Nee"], correct: 0 },
+  { difficulty: "zonde", q: "De Bijbel belachelijk maken is juist.", a: ["Ja", "Nee"], correct: 1 },
+
+  { difficulty: "zonde", q: "Altijd somber doen en nooit danken is juist.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Hoopvol bidden en danken is goed.", a: ["Ja", "Nee"], correct: 0 },
+
+  { difficulty: "zonde", q: "Een vriend verraden voor geld is juist.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Een vriend trouw blijven is goed.", a: ["Ja", "Nee"], correct: 0 },
+
+  { difficulty: "zonde", q: "Zegenen bij het eten is goed.", a: ["Ja", "Nee"], correct: 0 },
+  { difficulty: "zonde", q: "Vechten en ruzie maken is juist.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Bidden voor zieke mensen is goed.", a: ["Ja", "Nee"], correct: 0 },
+  { difficulty: "zonde", q: "Zieken uitlachen is juist.", a: ["Ja", "Nee"], correct: 1 },
+
+  { difficulty: "zonde", q: "Een kaarsje aansteken voor iemand is goed.", a: ["Ja", "Nee"], correct: 0 },
+  { difficulty: "zonde", q: "Een icoon kapotmaken is juist.", a: ["Ja", "Nee"], correct: 1 },
+  { difficulty: "zonde", q: "Samen zingen voor God is goed.", a: ["Ja", "Nee"], correct: 0 },
+  { difficulty: "zonde", q: "In de kerk expres lawaai maken is juist.", a: ["Ja", "Nee"], correct: 1 }
+);
