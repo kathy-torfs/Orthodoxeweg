@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Springspel – Orthodoxe Kinderpagina</title>
+  <title>Photeinos Springspel – Orthodoxe Kinderpagina</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
 
   <style>
@@ -14,59 +14,54 @@
       --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
       --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
     }
-    body {
+    body{
       margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
-      min-height:100vh; background:var(--pastel1); transition:background .6s; overflow-x:hidden;
+      min-height:100vh; background:var(--pastel1); transition:background .6s; overflow:hidden;
     }
-    .page-container { max-width:100%; margin:0 auto; padding:0; }
 
-    #gameCanvas {
+    /* Pagina-inhoud onder de header */
+    main.page-container{
+      margin:0; padding:0; width:100%; height:calc(100vh - 90px); 
+      display:flex; align-items:center; justify-content:center;
+    }
+
+    canvas#gameCanvas {
       display:block;
       width:100%;
-      height:100vh;
-      background:#000;
+      height:100%;
+      background:#000; /* kan later vervangen door jouw level-afbeelding */
     }
-    #startButton {
-      margin:20px auto;
-      padding:12px 28px;
-      font-size:1.2em;
-      font-weight:bold;
-      background:#7bb235;
-      color:#fff;
-      border:none;
-      border-radius:15px;
-      cursor:pointer;
-      transition:background .2s;
-      display:block;
-    }
-    #startButton:hover { background:#6aa12c; }
   </style>
 
   <!-- Firebase compat -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 
-  <!-- Kinder lay-out: laadt header.html + beveiliging + puntenteller -->
-  <script defer src="common/layout.js"></script>
+  <!-- Kinder lay-out met hardcoded link -->
+  <script defer src="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/common/layout.js"></script>
 </head>
 <body>
-  <!-- Herbruikbare header wordt hier ingeladen door layout.js -->
-  <div id="kinder-header" data-header-src="common/header.html"></div>
+  <!-- Herbruikbare header -->
+  <div id="kinder-header" 
+       data-header-src="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/common/header.html">
+  </div>
 
-  <!-- Pagina-inhoud -->
+  <!-- Spel-container -->
   <main class="page-container">
-    <button id="startButton">Start het spel</button>
     <canvas id="gameCanvas"></canvas>
   </main>
 
   <script>
     // Zachte random pastelachtergrond
     (function(){
-      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
+      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)',
+               'var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)',
+               'var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)',
+               'var(--pastel15)','var(--pastel16)'];
       document.body.style.background = p[Math.floor(Math.random()*p.length)];
     })();
 
-    // Firebase init (veilig tegen dubbel-initialisatie)
+    // Firebase init
     const firebaseConfig = {
       apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain:"orthodoxeweg.firebaseapp.com",
@@ -78,6 +73,7 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    // Wacht tot de layout geladen is
     document.addEventListener('DOMContentLoaded', () => {
       startWhenReady();
     });
@@ -89,7 +85,7 @@
       window.KinderLayout.mountHeader({
         rootId: 'kinder-header',
         headerSrc: document.getElementById('kinder-header').dataset.headerSrc,
-        active: 'springspel' // juiste knop markeren
+        active: 'spelletjes'
       }).then(initPage).catch(initPage);
     }
 
@@ -103,28 +99,33 @@
         return;
       }
 
-      document.getElementById("startButton").addEventListener("click", async () => {
-        const parochieId = localStorage.getItem("ingelogdeParochie");
-        const ouderLogin = localStorage.getItem("loginKeuze");
-        const kindId     = localStorage.getItem("ingelogdKindId");
+      initGame();
+    }
 
-        // -20 punten bij start
-        await db.collection("parochies").doc(parochieId)
-          .collection("leden").doc(ouderLogin)
-          .collection("kinderen").doc(kindId)
-          .update({ punten: firebase.firestore.FieldValue.increment(-20) });
+    // Voorbeeld-game loop (canvas gevuld)
+    function initGame(){
+      const canvas = document.getElementById("gameCanvas");
+      const ctx = canvas.getContext("2d");
 
-        if (window.KinderLayout && typeof window.KinderLayout.refreshPoints === 'function') {
-          window.KinderLayout.refreshPoints();
-        }
+      function resizeCanvas(){
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight - document.getElementById("kinder-header").offsetHeight;
+      }
+      window.addEventListener("resize", resizeCanvas);
+      resizeCanvas();
 
-        document.getElementById("startButton").style.display = "none";
-        if (typeof startSpringSpel === "function") startSpringSpel();
-      });
+      // Eenvoudige animatie test
+      let x=50;
+      function draw(){
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        ctx.fillStyle="yellow";
+        ctx.beginPath();
+        ctx.arc(x,canvas.height-60,30,0,Math.PI*2);
+        ctx.fill();
+        requestAnimationFrame(draw);
+      }
+      draw();
     }
   </script>
-
-  <!-- Springspel logica -->
-  <script src="springspel.js"></script>
 </body>
 </html>
