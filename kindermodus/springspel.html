@@ -1,126 +1,16 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Photeinos Springspel – Orthodoxe Kinderpagina</title>
-  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
-
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Comic Sans MS', Arial, sans-serif;
-      background: #fff6e5;
-      overflow: hidden;
-    }
-    canvas {
-      display: block;
-      width: 100vw;
-      height: 70vh; /* vaste hoogte, schermbreed */
-      background: url("https://kathy-torfs.github.io/Orthodoxeweg/images/level1.png") repeat-x;
-      background-size: cover;
-    }
-  </style>
-
-  <!-- Firebase compat -->
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
-
-  <!-- Kinder lay-out: hardcoded links -->
+  <meta charset="UTF-8" />
+  <title>TEST header + layout</title>
   <script defer src="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/common/layout.js"></script>
 </head>
 <body>
-  <!-- Header (via layout.js ingeladen) -->
   <div id="kinder-header" 
        data-header-src="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/common/header.html"></div>
 
-  <!-- Het spel -->
-  <canvas id="gameCanvas"></canvas>
-
-  <script>
-    // Firebase init
-    const firebaseConfig = {
-      apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
-      authDomain:"orthodoxeweg.firebaseapp.com",
-      projectId:"orthodoxeweg",
-      storageBucket:"orthodoxeweg.appspot.com",
-      messagingSenderId:"408582263618",
-      appId:"1:408582263618:web:0a20f4bf0704989d3ceedb"
-    };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    // Layout + beveiliging
-    document.addEventListener('DOMContentLoaded', () => {
-      startWhenReady();
-    });
-
-    function startWhenReady(){
-      if (!(window.KinderLayout && window.firebase && firebase.firestore)) {
-        return setTimeout(startWhenReady, 120);
-      }
-      window.KinderLayout.mountHeader({
-        rootId: 'kinder-header',
-        headerSrc: document.getElementById('kinder-header').dataset.headerSrc,
-        active: 'spellen'
-      }).then(initPage).catch(initPage);
-    }
-
-    async function initPage(){
-      if (!localStorage.getItem('kindIngelogd') ||
-          !localStorage.getItem('ingelogdKindId') ||
-          !localStorage.getItem('loginKeuze') ||
-          !localStorage.getItem('ingelogdeParochie')) {
-        window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html";
-        return;
-      }
-      startGame();
-    }
-
-    // --- Eenvoudig spel ---
-    function startGame(){
-      const canvas = document.getElementById("gameCanvas");
-      const ctx = canvas.getContext("2d");
-
-      // Photeinos
-      let x = 50, y = canvas.height - 50, vy = 0, jumping = false;
-      const gravity = 0.8;
-
-      function draw(){
-        ctx.clearRect(0,0,canvas.width,canvas.height);
-        ctx.fillStyle = "yellow";
-        ctx.beginPath();
-        ctx.arc(x, y, 20, 0, Math.PI*2);
-        ctx.fill();
-      }
-
-      function update(){
-        vy += gravity;
-        y += vy;
-        if (y > canvas.height - 30) {
-          y = canvas.height - 30;
-          vy = 0;
-          jumping = false;
-        }
-      }
-
-      function loop(){
-        update();
-        draw();
-        requestAnimationFrame(loop);
-      }
-      loop();
-
-      // Pijltjes
-      document.addEventListener("keydown", e => {
-        if (e.key === "ArrowUp" && !jumping) {
-          vy = -12;
-          jumping = true;
-        }
-        if (e.key === "ArrowLeft") x -= 10;
-        if (e.key === "ArrowRight") x += 10;
-      });
-    }
-  </script>
+  <main style="padding:20px">
+    <h1>Als je dit leest én de menubalk ziet, werkt header/layout.</h1>
+  </main>
 </body>
 </html>
