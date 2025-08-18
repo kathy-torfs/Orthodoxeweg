@@ -7,28 +7,29 @@
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
 
   <style>
-    :root{
-      --primair:#7bb235; --donker:#67510C;
-      --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
-      --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
-      --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
-      --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
-    }
-    body{
-      margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
-      min-height:100vh; background:var(--pastel1); transition:background .6s; overflow:hidden;
+    body {
+      margin: 0;
+      font-family: 'Comic Sans MS', Arial, sans-serif;
+      background: #fff6e5;
+      overflow: hidden; /* geen scrollbalken */
     }
 
-    main.page-container{
-      margin:0; padding:0; width:100%; 
-      display:flex; align-items:center; justify-content:center;
+    .page-container {
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 0;
+      text-align: center;
     }
 
-    canvas#gameCanvas {
-      display:block;
-      width:100%;
-      height:500px;   /* vaste normale hoogte */
-      background:#000; /* kan later vervangen door jouw level-afbeelding */
+    canvas {
+      display: block;
+      width: 100%;
+      height: 70vh;      /* vaste hoogte, geen scrollen */
+      background: url("https://kathy-torfs.github.io/Orthodoxeweg/images/level1.png") repeat-x;
+      background-size: cover;
+      margin: 0 auto;
+      border: 3px solid #7bb235;
+      border-radius: 12px;
     }
   </style>
 
@@ -36,87 +37,146 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 
-  <!-- Kinder lay-out met hardcoded link -->
+  <!-- Kinder lay-out -->
   <script defer src="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/common/layout.js"></script>
 </head>
 <body>
-  <!-- Herbruikbare header -->
-  <div id="kinder-header" 
-       data-header-src="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/common/header.html">
-  </div>
+  <!-- Header en menubalk -->
+  <div id="kinder-header" data-header-src="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/common/header.html"></div>
 
-  <!-- Spel-container -->
   <main class="page-container">
     <canvas id="gameCanvas"></canvas>
   </main>
 
   <script>
-    // Zachte random pastelachtergrond
-    (function(){
-      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)',
-               'var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)',
-               'var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)',
-               'var(--pastel15)','var(--pastel16)'];
-      document.body.style.background = p[Math.floor(Math.random()*p.length)];
-    })();
+    // -------------------------------
+    // GAME SETUP
+    // -------------------------------
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
 
-    // Firebase init
-    const firebaseConfig = {
-      apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
-      authDomain:"orthodoxeweg.firebaseapp.com",
-      projectId:"orthodoxeweg",
-      storageBucket:"orthodoxeweg.appspot.com",
-      messagingSenderId:"408582263618",
-      appId:"1:408582263618:web:0a20f4bf0704989d3ceedb"
+    // Zet canvas resolutie correct
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight * 0.7; // 70vh
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    // -------------------------------
+    // IMAGES
+    // -------------------------------
+    const photeinosImg = new Image();
+    photeinosImg.src = "https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos.png";
+
+    const wingImg = new Image();
+    wingImg.src = "https://kathy-torfs.github.io/Orthodoxeweg/images/wing.png";
+
+    // -------------------------------
+    // PHOTEINOS (player)
+    // -------------------------------
+    const player = {
+      x: 50,
+      y: 0,
+      w: 60,
+      h: 60,
+      dx: 0,
+      dy: 0,
+      speed: 5,
+      jump: -12,
+      gravity: 0.6,
+      grounded: false,
+      facing: 1 // 1 = rechts, -1 = links
     };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
 
-    // Wacht tot de layout geladen is
-    document.addEventListener('DOMContentLoaded', () => {
-      startWhenReady();
+    // -------------------------------
+    // WINGS (collectables)
+    // -------------------------------
+    const wings = [];
+    function spawnWing() {
+      const y = Math.random() * (canvas.height - 100) + 40;
+      wings.push({ x: canvas.width + 40, y: y, w: 40, h: 40 });
+    }
+    setInterval(spawnWing, 2000); // elke 2s nieuwe wing
+
+    // -------------------------------
+    // INPUT
+    // -------------------------------
+    const keys = {};
+    document.addEventListener("keydown", e => {
+      keys[e.key] = true;
+      if (e.key === "ArrowLeft") player.facing = -1;
+      if (e.key === "ArrowRight") player.facing = 1;
+      if (e.key === " " && player.grounded) {
+        player.dy = player.jump;
+        player.grounded = false;
+      }
     });
+    document.addEventListener("keyup", e => keys[e.key] = false);
 
-    function startWhenReady(){
-      if (!(window.KinderLayout && window.firebase && firebase.firestore)) {
-        return setTimeout(startWhenReady, 120);
+    // -------------------------------
+    // GAME LOOP
+    // -------------------------------
+    function update() {
+      // Beweging links/rechts
+      if (keys["ArrowLeft"]) player.dx = -player.speed;
+      else if (keys["ArrowRight"]) player.dx = player.speed;
+      else player.dx = 0;
+
+      // Gravity
+      player.dy += player.gravity;
+      player.x += player.dx;
+      player.y += player.dy;
+
+      // Grond
+      const ground = canvas.height - player.h - 10;
+      if (player.y >= ground) {
+        player.y = ground;
+        player.dy = 0;
+        player.grounded = true;
       }
-      window.KinderLayout.mountHeader({
-        rootId: 'kinder-header',
-        headerSrc: document.getElementById('kinder-header').dataset.headerSrc,
-        active: 'spelletjes'
-      }).then(initPage).catch(initPage);
+
+      // Collectables bewegen
+      for (let i = wings.length - 1; i >= 0; i--) {
+        wings[i].x -= 3; // snelheid naar links
+        if (wings[i].x + wings[i].w < 0) wings.splice(i, 1);
+
+        // Collision check
+        if (player.x < wings[i]?.x + wings[i]?.w &&
+            player.x + player.w > wings[i]?.x &&
+            player.y < wings[i]?.y + wings[i]?.h &&
+            player.y + player.h > wings[i]?.y) {
+          wings.splice(i, 1); // wing gepakt
+          console.log("Wing collected!");
+        }
+      }
     }
 
-    async function initPage(){
-      // Beveiliging check
-      if (!localStorage.getItem('kindIngelogd') ||
-          !localStorage.getItem('ingelogdKindId') ||
-          !localStorage.getItem('loginKeuze') ||
-          !localStorage.getItem('ingelogdeParochie')) {
-        window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html";
-        return;
-      }
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      initGame();
+      // Player
+      ctx.save();
+      if (player.facing === -1) {
+        ctx.scale(-1, 1);
+        ctx.drawImage(photeinosImg, -player.x - player.w, player.y, player.w, player.h);
+      } else {
+        ctx.drawImage(photeinosImg, player.x, player.y, player.w, player.h);
+      }
+      ctx.restore();
+
+      // Wings
+      wings.forEach(w => {
+        ctx.drawImage(wingImg, w.x, w.y, w.w, w.h);
+      });
     }
 
-    // Voorbeeld-game loop (canvas gevuld)
-    function initGame(){
-      const canvas = document.getElementById("gameCanvas");
-      const ctx = canvas.getContext("2d");
-
-      let x=50;
-      function draw(){
-        ctx.clearRect(0,0,canvas.width,canvas.height);
-        ctx.fillStyle="yellow";
-        ctx.beginPath();
-        ctx.arc(x,canvas.height-60,30,0,Math.PI*2);
-        ctx.fill();
-        requestAnimationFrame(draw);
-      }
+    function loop() {
+      update();
       draw();
+      requestAnimationFrame(loop);
     }
+    loop();
   </script>
 </body>
 </html>
