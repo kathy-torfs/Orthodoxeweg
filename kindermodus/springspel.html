@@ -1,9 +1,9 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Photeinos Springspel – Orthodoxe Kinderpagina</title>
+  <title>Springspel – Orthodoxe Kinderpagina</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
 
   <style>
@@ -14,21 +14,18 @@
       --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
       --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
     }
-    body{
+    body {
       margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
       min-height:100vh; background:var(--pastel1); transition:background .6s; overflow-x:hidden;
     }
+    .page-container { max-width:100%; margin:0 auto; padding:0; }
 
-    /* Pagina-inhoud onder de header */
-    .page-container{ max-width:100%; margin:0 auto; padding:0; text-align:center; }
-
-    canvas {
+    #gameCanvas {
       display:block;
       width:100%;
       height:100vh;
       background:#000;
     }
-
     #startButton {
       margin:20px auto;
       padding:12px 28px;
@@ -40,6 +37,7 @@
       border-radius:15px;
       cursor:pointer;
       transition:background .2s;
+      display:block;
     }
     #startButton:hover { background:#6aa12c; }
   </style>
@@ -48,12 +46,12 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 
-  <!-- Kinder lay-out: header + beveiliging + puntenteller -->
-  <script defer src="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/common/layout.js"></script>
+  <!-- Kinder lay-out: laadt header.html + beveiliging + puntenteller -->
+  <script defer src="common/layout.js"></script>
 </head>
 <body>
   <!-- Herbruikbare header wordt hier ingeladen door layout.js -->
-  <div id="kinder-header" data-header-src="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/common/header.html"></div>
+  <div id="kinder-header" data-header-src="common/header.html"></div>
 
   <!-- Pagina-inhoud -->
   <main class="page-container">
@@ -68,7 +66,7 @@
       document.body.style.background = p[Math.floor(Math.random()*p.length)];
     })();
 
-    // Firebase init
+    // Firebase init (veilig tegen dubbel-initialisatie)
     const firebaseConfig = {
       apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain:"orthodoxeweg.firebaseapp.com",
@@ -91,7 +89,7 @@
       window.KinderLayout.mountHeader({
         rootId: 'kinder-header',
         headerSrc: document.getElementById('kinder-header').dataset.headerSrc,
-        active: 'springspel' // markeer juiste knop
+        active: 'springspel' // juiste knop markeren
       }).then(initPage).catch(initPage);
     }
 
@@ -105,13 +103,12 @@
         return;
       }
 
-      // Startknop koppelen
       document.getElementById("startButton").addEventListener("click", async () => {
-        // 20 punten aftrekken bij start
         const parochieId = localStorage.getItem("ingelogdeParochie");
         const ouderLogin = localStorage.getItem("loginKeuze");
         const kindId     = localStorage.getItem("ingelogdKindId");
 
+        // -20 punten bij start
         await db.collection("parochies").doc(parochieId)
           .collection("leden").doc(ouderLogin)
           .collection("kinderen").doc(kindId)
@@ -122,15 +119,12 @@
         }
 
         document.getElementById("startButton").style.display = "none";
-        // Spel starten
-        if (typeof startSpringSpel === "function") {
-          startSpringSpel();
-        }
+        if (typeof startSpringSpel === "function") startSpringSpel();
       });
     }
   </script>
 
   <!-- Springspel logica -->
-  <script src="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/springspel.js"></script>
+  <script src="springspel.js"></script>
 </body>
 </html>
