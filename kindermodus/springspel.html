@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Photeinos Springspel – Orthodoxe Kinderpagina</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
 
@@ -11,25 +11,14 @@
       margin: 0;
       font-family: 'Comic Sans MS', Arial, sans-serif;
       background: #fff6e5;
-      overflow: hidden; /* geen scrollbalken */
+      overflow: hidden;
     }
-
-    .page-container {
-      max-width: 100%;
-      margin: 0 auto;
-      padding: 0;
-      text-align: center;
-    }
-
     canvas {
       display: block;
-      width: 100%;
-      height: 70vh;      /* vaste hoogte, geen scrollen */
+      width: 100vw;
+      height: 70vh; /* vaste hoogte, schermbreed */
       background: url("https://kathy-torfs.github.io/Orthodoxeweg/images/level1.png") repeat-x;
       background-size: cover;
-      margin: 0 auto;
-      border: 3px solid #7bb235;
-      border-radius: 12px;
     }
   </style>
 
@@ -37,146 +26,101 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 
-  <!-- Kinder lay-out -->
+  <!-- Kinder lay-out: hardcoded links -->
   <script defer src="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/common/layout.js"></script>
 </head>
 <body>
-  <!-- Header en menubalk -->
-  <div id="kinder-header" data-header-src="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/common/header.html"></div>
+  <!-- Header (via layout.js ingeladen) -->
+  <div id="kinder-header" 
+       data-header-src="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/common/header.html"></div>
 
-  <main class="page-container">
-    <canvas id="gameCanvas"></canvas>
-  </main>
+  <!-- Het spel -->
+  <canvas id="gameCanvas"></canvas>
 
   <script>
-    // -------------------------------
-    // GAME SETUP
-    // -------------------------------
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
-
-    // Zet canvas resolutie correct
-    function resizeCanvas() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight * 0.7; // 70vh
-    }
-    window.addEventListener("resize", resizeCanvas);
-    resizeCanvas();
-
-    // -------------------------------
-    // IMAGES
-    // -------------------------------
-    const photeinosImg = new Image();
-    photeinosImg.src = "https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos.png";
-
-    const wingImg = new Image();
-    wingImg.src = "https://kathy-torfs.github.io/Orthodoxeweg/images/wing.png";
-
-    // -------------------------------
-    // PHOTEINOS (player)
-    // -------------------------------
-    const player = {
-      x: 50,
-      y: 0,
-      w: 60,
-      h: 60,
-      dx: 0,
-      dy: 0,
-      speed: 5,
-      jump: -12,
-      gravity: 0.6,
-      grounded: false,
-      facing: 1 // 1 = rechts, -1 = links
+    // Firebase init
+    const firebaseConfig = {
+      apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain:"orthodoxeweg.firebaseapp.com",
+      projectId:"orthodoxeweg",
+      storageBucket:"orthodoxeweg.appspot.com",
+      messagingSenderId:"408582263618",
+      appId:"1:408582263618:web:0a20f4bf0704989d3ceedb"
     };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-    // -------------------------------
-    // WINGS (collectables)
-    // -------------------------------
-    const wings = [];
-    function spawnWing() {
-      const y = Math.random() * (canvas.height - 100) + 40;
-      wings.push({ x: canvas.width + 40, y: y, w: 40, h: 40 });
-    }
-    setInterval(spawnWing, 2000); // elke 2s nieuwe wing
-
-    // -------------------------------
-    // INPUT
-    // -------------------------------
-    const keys = {};
-    document.addEventListener("keydown", e => {
-      keys[e.key] = true;
-      if (e.key === "ArrowLeft") player.facing = -1;
-      if (e.key === "ArrowRight") player.facing = 1;
-      if (e.key === " " && player.grounded) {
-        player.dy = player.jump;
-        player.grounded = false;
-      }
+    // Layout + beveiliging
+    document.addEventListener('DOMContentLoaded', () => {
+      startWhenReady();
     });
-    document.addEventListener("keyup", e => keys[e.key] = false);
 
-    // -------------------------------
-    // GAME LOOP
-    // -------------------------------
-    function update() {
-      // Beweging links/rechts
-      if (keys["ArrowLeft"]) player.dx = -player.speed;
-      else if (keys["ArrowRight"]) player.dx = player.speed;
-      else player.dx = 0;
+    function startWhenReady(){
+      if (!(window.KinderLayout && window.firebase && firebase.firestore)) {
+        return setTimeout(startWhenReady, 120);
+      }
+      window.KinderLayout.mountHeader({
+        rootId: 'kinder-header',
+        headerSrc: document.getElementById('kinder-header').dataset.headerSrc,
+        active: 'spellen'
+      }).then(initPage).catch(initPage);
+    }
 
-      // Gravity
-      player.dy += player.gravity;
-      player.x += player.dx;
-      player.y += player.dy;
+    async function initPage(){
+      if (!localStorage.getItem('kindIngelogd') ||
+          !localStorage.getItem('ingelogdKindId') ||
+          !localStorage.getItem('loginKeuze') ||
+          !localStorage.getItem('ingelogdeParochie')) {
+        window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html";
+        return;
+      }
+      startGame();
+    }
 
-      // Grond
-      const ground = canvas.height - player.h - 10;
-      if (player.y >= ground) {
-        player.y = ground;
-        player.dy = 0;
-        player.grounded = true;
+    // --- Eenvoudig spel ---
+    function startGame(){
+      const canvas = document.getElementById("gameCanvas");
+      const ctx = canvas.getContext("2d");
+
+      // Photeinos
+      let x = 50, y = canvas.height - 50, vy = 0, jumping = false;
+      const gravity = 0.8;
+
+      function draw(){
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        ctx.fillStyle = "yellow";
+        ctx.beginPath();
+        ctx.arc(x, y, 20, 0, Math.PI*2);
+        ctx.fill();
       }
 
-      // Collectables bewegen
-      for (let i = wings.length - 1; i >= 0; i--) {
-        wings[i].x -= 3; // snelheid naar links
-        if (wings[i].x + wings[i].w < 0) wings.splice(i, 1);
-
-        // Collision check
-        if (player.x < wings[i]?.x + wings[i]?.w &&
-            player.x + player.w > wings[i]?.x &&
-            player.y < wings[i]?.y + wings[i]?.h &&
-            player.y + player.h > wings[i]?.y) {
-          wings.splice(i, 1); // wing gepakt
-          console.log("Wing collected!");
+      function update(){
+        vy += gravity;
+        y += vy;
+        if (y > canvas.height - 30) {
+          y = canvas.height - 30;
+          vy = 0;
+          jumping = false;
         }
       }
-    }
 
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Player
-      ctx.save();
-      if (player.facing === -1) {
-        ctx.scale(-1, 1);
-        ctx.drawImage(photeinosImg, -player.x - player.w, player.y, player.w, player.h);
-      } else {
-        ctx.drawImage(photeinosImg, player.x, player.y, player.w, player.h);
+      function loop(){
+        update();
+        draw();
+        requestAnimationFrame(loop);
       }
-      ctx.restore();
+      loop();
 
-      // Wings
-      wings.forEach(w => {
-        ctx.drawImage(wingImg, w.x, w.y, w.w, w.h);
+      // Pijltjes
+      document.addEventListener("keydown", e => {
+        if (e.key === "ArrowUp" && !jumping) {
+          vy = -12;
+          jumping = true;
+        }
+        if (e.key === "ArrowLeft") x -= 10;
+        if (e.key === "ArrowRight") x += 10;
       });
     }
-
-    function loop() {
-      update();
-      draw();
-      requestAnimationFrame(loop);
-    }
-    loop();
   </script>
 </body>
 </html>
