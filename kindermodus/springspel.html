@@ -10,12 +10,13 @@
     body {
       margin: 0;
       background: #fff6e5;
-      overflow: hidden; /* geen scrollen */
+      overflow: hidden;
     }
     #gameCanvas {
       display: block;
       width: 100vw;
-      height: 100vh; /* volle schermhoogte */
+      height: calc(100vh - 60px); /* ruimte voor header */
+      background: #f0e4d7; /* tijdelijke kleur zodat je canvas ZIET */
     }
   </style>
 
@@ -23,8 +24,13 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 
- <!-- Kinder lay-out: laadt header.html + beveiliging + live puntenteller --> <script defer src="common/layout.js"></script> </head> <body>
-   <!-- Herbruikbare header wordt hier ingeladen door layout.js --> <div id="kinder-header" data-header-src="common/header.html"></div>
+  <!-- Kinder lay-out -->
+  <script defer src="common/layout.js"></script>
+</head>
+<body>
+  <!-- Herbruikbare header -->
+  <div id="kinder-header" data-header-src="common/header.html"></div>
+
   <!-- Het spel zelf -->
   <canvas id="gameCanvas"></canvas>
 
@@ -51,15 +57,20 @@
       window.KinderLayout.mountHeader({
         rootId: 'kinder-header',
         headerSrc: document.getElementById('kinder-header').dataset.headerSrc,
-        active: 'spelletjes' // juiste knop highlighten
+        active: 'spelletjes'
       }).then(startGame).catch(startGame);
     }
 
     function startGame(){
-      // hier laadt je springspel.js
       const s = document.createElement("script");
       s.src = "https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/springspel.js";
       document.body.appendChild(s);
+
+      // test: teken meteen iets in canvas zodat je het ZIET
+      const canvas = document.getElementById("gameCanvas");
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#c2a87c";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
   </script>
 </body>
