@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Onder constructie – Orthodoxe Kinderpagina</title>
+  <title>Springspel – Orthodoxe Kinderpagina</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
 
   <style>
@@ -17,19 +17,13 @@
     body{
       margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
       min-height:100vh; background:var(--pastel1); transition:background .6s;
+      overflow:hidden; /* geen scrollen bij canvas */
     }
-
-    /* Inhoud van de pagina (onder de ingeladen header + menubalk) */
-    main{
-      max-width: 900px; margin: 24px auto; padding: 0 2vw;
+    #gameCanvas{
+      display:block;
+      width:100vw;
+      height:100vh;
     }
-    .card{
-      background:#fffef9; border:1.5px solid #f1e6c8; border-radius:20px;
-      box-shadow:0 6px 24px rgba(0,0,0,.06);
-      padding:28px 22px; text-align:center;
-    }
-    .card h1{ margin:0 0 10px; color:var(--primair); }
-    .card p{ margin:8px 0; line-height:1.6; color:#4a3b20; }
   </style>
 
   <!-- Laadt de header + menubalk + beveiliging + live punten -->
@@ -39,16 +33,11 @@
   <!-- HIER komt automatisch je begroetingsbalk en menubalk uit header.html -->
   <div id="kinder-header" data-header-src="common/header.html"></div>
 
-  <!-- Eigen paginacontent (optioneel) -->
-  <main>
-    <div class="card">
-      <h1>Onder constructie</h1>
-      <p>Deze pagina vullen we binnenkort. Gebruik intussen gerust de menuknoppen bovenaan.</p>
-    </div>
-  </main>
+  <!-- Het spel -->
+  <canvas id="gameCanvas"></canvas>
 
   <script>
-    // Zachte pastelachtergrond, zoals op je andere pagina’s
+    // Zachte pastelachtergrond
     (function(){
       const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
       document.body.style.background = p[Math.floor(Math.random()*p.length)];
@@ -60,10 +49,26 @@
       const el = document.getElementById('kinder-header');
       window.KinderLayout.mountHeader({
         rootId: 'kinder-header',
-        headerSrc: el.dataset.headerSrc
-        // active weg laten = geen specifieke knop highlighten
+        headerSrc: el.dataset.headerSrc,
+        active: 'spelletjes'
       });
     })();
+
+    // Test: vul canvas even met een achtergrondkleur
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+
+    function resizeCanvas(){
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      ctx.fillStyle = "#ffe8ec"; // roze testkleur
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle = "#333";
+      ctx.font = "32px Comic Sans MS";
+      ctx.fillText("Hier komt straks Photeinos!", 50, 80);
+    }
   </script>
 </body>
 </html>
