@@ -12,7 +12,7 @@ window.addEventListener("resize", resizeCanvas);
 
 // ---- Speler (Photeinos) ----
 const photeinosImg = new Image();
-photeinosImg.src = "images/photeinos_walk.png";
+photeinosImg.src = "https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.png";
 
 const photeinos = {
   x: 50, y: 0, w: 60, h: 60,
