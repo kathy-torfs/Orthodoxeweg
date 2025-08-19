@@ -1,221 +1,197 @@
-// ---- Canvas setup ----
+// ================== CANVAS ==================
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 function resizeCanvas() {
   canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight * 0.8; // 80% hoogte
+  canvas.height = window.innerHeight * 0.85;
 }
-window.addEventListener("resize", resizeCanvas);
 resizeCanvas();
+window.addEventListener("resize", resizeCanvas);
 
-// ---- Afbeeldingen ----
-const backgrounds = [
-  "images/level1.png",
-  "images/level2.png",
-  "images/level3.png",
-  "images/level4.png",
-  "images/level5.png"
-].map(src => {
-  const img = new Image();
-  img.src = src;
-  return img;
-});
-
+// ================== IMAGES ==================
 const photeinosImg = new Image();
-photeinosImg.src = "images/photeinos_walk.png";
+photeinosImg.src = "https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.png";
 
-// ---- Speler ----
-const photeinos = {
-  x: 50,
-  y: 0,
-  w: 60,
-  h: 60,
-  vy: 0,
-  onGround: false
-};
+const levelBackgrounds = [
+  "https://kathy-torfs.github.io/Orthodoxeweg/images/level1.png",
+  "https://kathy-torfs.github.io/Orthodoxeweg/images/level2.png",
+  "https://kathy-torfs.github.io/Orthodoxeweg/images/level3.png",
+  "https://kathy-torfs.github.io/Orthodoxeweg/images/level4.png",
+  "https://kathy-torfs.github.io/Orthodoxeweg/images/level5.png"
+].map(src => { let i=new Image(); i.src=src; return i; });
 
-const gravity = 0.8;
-const jumpPower = -14;
-const speed = 5;
+const collectableImgs = [
+  "https://kathy-torfs.github.io/Orthodoxeweg/images/duif.png",
+  "https://kathy-torfs.github.io/Orthodoxeweg/images/vleugel.png",
+  "https://kathy-torfs.github.io/Orthodoxeweg/images/engel.png"
+].map(src => { let i=new Image(); i.src=src; return i; });
 
-// ---- Obstakels ----
-let obstakels = [];
-
-// ---- Collectables ----
-let collectables = [];
-let score = 0;
-
-// ---- Levels ----
-let level = 0; // start op level1.png
-let collectedInLevel = 0;
-const maxCollect = 10; // aantal collectables nodig voor volgende level
-
-// ---- Input ----
+// ================== SPELER ==================
+const photeinos = { x: 50, y: 0, w: 60, h: 60, vy: 0, onGround: false };
+const gravity = 0.8, jumpPower = -15, speed = 6;
 const keys = {};
-document.addEventListener("keydown", e => keys[e.code] = true);
-document.addEventListener("keyup", e => keys[e.code] = false);
+document.addEventListener("keydown", e => keys[e.key] = true);
+document.addEventListener("keyup", e => keys[e.key] = false);
 
-// ---- Player update ----
 function updatePlayer() {
   if (keys["ArrowRight"]) photeinos.x += speed;
   if (keys["ArrowLeft"]) photeinos.x -= speed;
-  if (keys["Space"] && photeinos.onGround) {
+  if (keys[" "] && photeinos.onGround) {
     photeinos.vy = jumpPower;
     photeinos.onGround = false;
   }
-
   photeinos.vy += gravity;
   photeinos.y += photeinos.vy;
-
   if (photeinos.y + photeinos.h > canvas.height) {
     photeinos.y = canvas.height - photeinos.h;
     photeinos.vy = 0;
     photeinos.onGround = true;
   }
 }
-
-// ---- Obstakels update ----
-function updateObstakels() {
-  obstakels.forEach(o => {
-    o.x -= 4; // snelheid obstakels
-  });
-  obstakels = obstakels.filter(o => o.x + o.w > 0);
-
-  // Nieuwe obstakels
-  if (Math.random() < 0.02) {
-    obstakels.push({
-      x: canvas.width,
-      y: canvas.height - 40,
-      w: 40,
-      h: 40
-    });
-  }
-
-  // Collision check
-  obstakels.forEach(o => {
-    if (checkCollision(photeinos, o)) {
-      alert("Je botste tegen een obstakel! Probeer opnieuw.");
-      resetGame();
-    }
-  });
-}
-
-// ---- Collectables update ----
-function updateCollectables() {
-  collectables.forEach(c => {
-    c.x -= 4; // naar links bewegen
-  });
-  collectables = collectables.filter(c => c.x + c.w > 0);
-
-  // Nieuwe collectable
-  if (Math.random() < 0.03) {
-    collectables.push({
-      x: canvas.width,
-      y: Math.random() * (canvas.height - 200) + 100, // variabele hoogte
-      w: 30,
-      h: 30
-    });
-  }
-
-  // Collision check
-  collectables.forEach((c, i) => {
-    if (checkCollision(photeinos, c)) {
-      score++;
-      collectedInLevel++;
-      collectables.splice(i, 1);
-
-      if (collectedInLevel >= maxCollect) {
-        nextLevel();
-      }
-    }
-  });
-}
-
-// ---- Collision ----
-function checkCollision(a, b) {
-  return a.x < b.x + b.w &&
-         a.x + a.w > b.x &&
-         a.y < b.y + b.h &&
-         a.y + a.h > b.y;
-}
-
-// ---- Level wisselen ----
-function nextLevel() {
-  level++;
-  collectedInLevel = 0;
-
-  if (level >= backgrounds.length) {
-    alert("Proficiat! Je hebt alle levels gehaald!");
-    resetGame();
-  } else {
-    // vraag tonen bij overgang
-    if (window.vragen && vragen.length > 0) {
-      const v = vragen[Math.floor(Math.random() * vragen.length)];
-      alert("Vraag: " + v.vraag + "\nA: " + v.antwoorden.join(" / "));
-    }
-  }
-}
-
-// ---- Reset game ----
-function resetGame() {
-  level = 0;
-  score = 0;
-  collectedInLevel = 0;
-  obstakels = [];
-  collectables = [];
-  photeinos.x = 50;
-  photeinos.y = 0;
-}
-
-// ---- Teken functies ----
-function drawBackground() {
-  const bg = backgrounds[level];
-  if (bg.complete) {
-    ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
-  } else {
-    ctx.fillStyle = "#cce";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }
-}
-
 function drawPlayer() {
   ctx.drawImage(photeinosImg, photeinos.x, photeinos.y, photeinos.w, photeinos.h);
 }
 
-function drawObstakels() {
+// ================== OBSTACLES ==================
+let obstacles = [];
+function spawnObstacle() {
+  obstacles.push({ x: canvas.width, y: canvas.height - 40, w: 50, h: 40 });
+  if (gameRunning) setTimeout(spawnObstacle, 4000 + Math.random() * 3000);
+}
+function updateObstacles() {
+  obstacles.forEach(o => o.x -= 4);
+  obstacles = obstacles.filter(o => o.x + o.w > 0);
+}
+function drawObstacles() {
   ctx.fillStyle = "brown";
-  obstakels.forEach(o => ctx.fillRect(o.x, o.y, o.w, o.h));
+  obstacles.forEach(o => ctx.fillRect(o.x, o.y, o.w, o.h));
 }
 
+// ================== COLLECTABLES ==================
+let collectables = [];
+function spawnCollectable() {
+  const img = collectableImgs[Math.floor(Math.random() * collectableImgs.length)];
+  const y = canvas.height - 120 - Math.random() * 200;
+  collectables.push({ x: canvas.width, y, w: 40, h: 40, img });
+  if (gameRunning) setTimeout(spawnCollectable, 2500 + Math.random() * 2000);
+}
+function updateCollectables() {
+  collectables.forEach(c => c.x -= 3);
+  collectables = collectables.filter(c => c.x + c.w > 0);
+}
 function drawCollectables() {
-  ctx.fillStyle = "gold";
-  collectables.forEach(c => ctx.beginPath() && ctx.arc(c.x, c.y, 15, 0, Math.PI * 2) && ctx.fill());
+  collectables.forEach(c => ctx.drawImage(c.img, c.x, c.y, c.w, c.h));
 }
 
-function drawScore() {
-  ctx.fillStyle = "#333";
-  ctx.font = "20px Comic Sans MS";
-  ctx.fillText("Score: " + score, 20, 30);
+// ================== VRAGEN ==================
+let score = 0, level = 0;
+let awaitingAnswer = false;
+
+function askQuestion(type, onCorrect, onWrong) {
+  if (awaitingAnswer) return;
+  awaitingAnswer = true;
+  const pool = questions.filter(q => q.difficulty === type);
+  const q = pool[Math.floor(Math.random() * pool.length)];
+
+  const overlay = document.createElement("div");
+  Object.assign(overlay.style,{
+    position:"fixed",top:0,left:0,right:0,bottom:0,
+    background:"rgba(0,0,0,0.8)",color:"white",
+    display:"flex",flexDirection:"column",
+    justifyContent:"center",alignItems:"center",zIndex:"9999"
+  });
+  const vraag=document.createElement("p");
+  vraag.innerText=q.q;
+  vraag.style.fontSize="24px";vraag.style.marginBottom="20px";
+  overlay.appendChild(vraag);
+
+  q.a.forEach((ans,i)=>{
+    const btn=document.createElement("button");
+    btn.innerText=ans;
+    btn.style.margin="6px";btn.style.padding="10px 18px";btn.style.fontSize="18px";
+    btn.onclick=()=>{
+      document.body.removeChild(overlay); awaitingAnswer=false;
+      if(i===q.correct){ onCorrect(); } else { onWrong(); }
+    };
+    overlay.appendChild(btn);
+  });
+  document.body.appendChild(overlay);
 }
 
-// ---- Game loop ----
-function gameLoop() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+// ================== GAME CONTROL ==================
+let gameRunning=false;
+let paused=false;
 
-  drawBackground();
-  updatePlayer();
-  updateObstakels();
-  updateCollectables();
+function gameLoop(){
+  if(!gameRunning||paused) return;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(levelBackgrounds[level],0,0,canvas.width,canvas.height);
 
-  drawPlayer();
-  drawObstakels();
-  drawCollectables();
-  drawScore();
+  updatePlayer(); updateObstacles(); updateCollectables();
+  drawObstacles(); drawCollectables(); drawPlayer();
+
+  // Obstacles
+  obstacles.forEach(o=>{
+    if(photeinos.x<o.x+o.w && photeinos.x+photeinos.w>o.x && photeinos.y<o.y+o.h && photeinos.y+photeinos.h>o.y){
+      askQuestion("zonde",
+        ()=>{}, // juist: niets
+        ()=>{ alert("Game Over!"); location.reload(); }
+      );
+    }
+  });
+  // Collectables
+  collectables.forEach((c,idx)=>{
+    if(photeinos.x<c.x+c.w && photeinos.x+photeinos.w>c.x && photeinos.y<c.y+c.h && photeinos.y+photeinos.h>c.y){
+      collectables.splice(idx,1);
+      askQuestion("meerkeuze",
+        ()=>{
+          score++;
+          if(score>=10){
+            score=0;level++;
+            if(level>=levelBackgrounds.length){alert("Proficiat! Alle levels gehaald!");location.reload();}
+          }
+        },
+        ()=>{ alert("Fout antwoord – probeer opnieuw!"); }
+      );
+    }
+  });
 
   requestAnimationFrame(gameLoop);
 }
 
-// ---- Start ----
-resetGame();
-gameLoop();
+// ================== UI KNOPPEN ==================
+
+// Startknop
+const startBtn=document.createElement("button");
+startBtn.innerText="Start spel (kost 20 punten)";
+Object.assign(startBtn.style,{
+  position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",
+  padding:"20px 30px",fontSize:"22px",zIndex:"1000"
+});
+document.body.appendChild(startBtn);
+
+startBtn.onclick=()=>{
+  // 🔥 Hier Firebase call om 20 punten af te trekken
+  // firestore.collection("leden").doc(userId).update({punten:firebase.firestore.FieldValue.increment(-20)})
+
+  document.body.removeChild(startBtn);
+  gameRunning=true;
+  spawnObstacle(); spawnCollectable();
+  gameLoop();
+};
+
+// Pauzeknop
+const pauseBtn=document.createElement("button");
+pauseBtn.innerText="⏸ Pauze";
+Object.assign(pauseBtn.style,{
+  position:"absolute",top:"20px",right:"20px",padding:"10px 18px",
+  fontSize:"18px",zIndex:"1000"
+});
+document.body.appendChild(pauseBtn);
+
+pauseBtn.onclick=()=>{
+  paused=!paused;
+  pauseBtn.innerText=paused?"▶ Hervat":"⏸ Pauze";
+  if(!paused) gameLoop();
+};
