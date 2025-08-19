@@ -10,9 +10,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
-  <!-- Vaste header en layout (kindermodus) -->
-  <link rel="stylesheet" href="header.html">
-  <script src="layout.js"></script>
+  <!-- vaste kindermodus header + layout -->
+  <script src="layout.js" defer></script>
 
   <style>
     :root{
@@ -20,6 +19,7 @@
       --brand:#7a5f35; --accent:#d28f2c; --good:#2e7d32; --bad:#c62828;
       --chip:#f0e3c6; --chip2:#f7efd9;
     }
+    *{box-sizing:border-box}
     body{ margin:0; background:var(--bg); color:var(--ink);
       font-family: system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif; line-height:1.6; }
 
@@ -62,7 +62,8 @@
 </head>
 <body>
 
-  <!-- header.html + layout.js zorgen automatisch voor begroeting en menubalk -->
+  <!-- vaste header wordt hier ingeladen -->
+  <div id="app-header" data-include="header.html"></div>
 
   <div class="wrap">
     <div class="crumb" id="crumb"></div>
@@ -124,9 +125,263 @@
     </div>
   </div>
 
-  <!-- alle oorspronkelijke JS (Firebase + dagboeklogica) blijft behouden -->
+  <!-- volledige originele dagboek-JS -->
   <script>
-    /* jouw volledige JS-code uit de originele versie komt hier gewoon terug */
+    /* ===================  FIREBASE  =================== */
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb",
+      measurementId: "G-C942F2NYQV"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    /* ===================  UI refs  =================== */
+    const daySelect   = document.getElementById('daySelect');
+    const prevBtn     = document.getElementById('prevBtn');
+    const nextBtn     = document.getElementById('nextBtn');
+    const titleEl     = document.getElementById('title');
+    const subtitleEl  = document.getElementById('subtitle');
+    const storyEl     = document.getElementById('story');
+    const quizEl      = document.getElementById('quiz');
+    const checkBtn    = document.getElementById('checkBtn');
+    const resetBtn    = document.getElementById('resetBtn');
+    const todayScoreEl= document.getElementById('todayScore');
+    const weekScoreEl = document.getElementById('weekScore');
+    const progressBar = document.getElementById('progressBar');
+    const progressLbl = document.getElementById('progressLabel');
+    const crumbEl     = document.getElementById('crumb');
+
+    /* ===================  Helpers  =================== */
+    const pad3 = (n)=> String(n).padStart(3,'0');
+    const docIdFor = (n)=> `dag${pad3(n)}`;
+
+    function renderStory(multilineText){
+      storyEl.innerHTML = '';
+      const parts = (multilineText || '').split('\n').filter(s=>s.trim().length);
+      for(const line of parts){
+        const p = document.createElement('p');
+        p.textContent = line.trim();
+        storyEl.appendChild(p);
+      }
+    }
+    function renderQuiz(questions){
+      quizEl.innerHTML = '';
+      (questions || []).forEach((q, idx)=>{
+        const box = document.createElement('div');
+        box.className = 'q';
+        const title = document.createElement('div');
+        title.className = 'q-title';
+        title.textContent = `Vraag ${idx+1}: ${q.vraag}`;
+        box.appendChild(title);
+
+        const name = `q_${idx}`;
+        (q.opties || []).forEach((opt, oi)=>{
+          const id = `${name}_${oi}`;
+          const label = document.createElement('label');
+          label.className = 'opt';
+          label.setAttribute('for', id);
+
+          const input = document.createElement('input');
+          input.type = 'radio'; input.name = name; input.id = id; input.value = opt;
+
+          const span = document.createElement('span');
+          span.textContent = opt;
+
+          label.appendChild(input); label.appendChild(span);
+          box.appendChild(label);
+        });
+
+        const fb = document.createElement('div');
+        fb.className = 'feedback'; fb.id = `fb_${idx}`;
+        box.appendChild(fb);
+        quizEl.appendChild(box);
+      });
+    }
+
+    /* ===================  Context uit sessie/URL  =================== */
+    const parochieId = sessionStorage.getItem("dagboek_parochieId") || "hasselt-drie-hierarchen";
+    const ouderId    = sessionStorage.getItem("dagboek_userId")     || "Kathy";
+    const usp        = new URLSearchParams(location.search);
+    const kindId     = usp.get("kid") || "__4285";
+
+    const childRef = db.collection("parochies").doc(parochieId)
+                       .collection("leden").doc(ouderId)
+                       .collection("kinderen").doc(kindId);
+
+    /* ===================  State  =================== */
+    let CURRENT_DAY = 1;
+    let CURRENT_QUESTIONS = [];
+    let CURRENT_DAGREF = null;
+
+    /* ===================  Punten tonen/bijwerken  =================== */
+    async function refreshKindPunten(){
+      const s = await childRef.get();
+      const pts = s.exists && typeof s.data().punten === 'number' ? s.data().punten : 0;
+      weekScoreEl.textContent = pts;
+      const pct = Math.max(0, Math.min(100, Math.round((pts % 350)/350*100)));
+      progressBar.style.width = pct + '%';
+      progressLbl.textContent = pct + '%';
+    }
+
+    /* ===================  Dag laden  =================== */
+    async function loadDay(dayNum){
+      CURRENT_DAY = dayNum;
+      const dagId = docIdFor(dayNum);
+      CURRENT_DAGREF = childRef.collection("kinderdagboek").doc(dagId);
+
+      daySelect.value = String(dayNum);
+      prevBtn.disabled = (dayNum <= 1);
+      nextBtn.disabled = (dayNum >= 7);
+
+      crumbEl.textContent = `/parochies/${parochieId}/leden/${ouderId}/kinderen/${kindId}/kinderdagboek/${dagId}`;
+
+      titleEl.textContent = 'Laden…';
+      storyEl.innerHTML = '<p style="color:#98784a">Even geduld…</p>';
+      quizEl.innerHTML  = '';
+
+      const tplSnap = await db.collection('VlaamsOrthodoxekinderdagboek').doc(dagId).get();
+      if (!tplSnap.exists){
+        titleEl.textContent = `Dag ${pad3(dayNum)} (niet gevonden)`; 
+        storyEl.innerHTML   = '<p style="color:#b5482c">Geen gegevens voor deze dag.</p>';
+        todayScoreEl.textContent = '0';
+        CURRENT_QUESTIONS = [];
+        await refreshKindPunten();
+        return;
+      }
+      const tpl = tplSnap.data();
+      CURRENT_QUESTIONS = Array.isArray(tpl.vragen) ? tpl.vragen : [];
+
+      titleEl.textContent    = tpl.titel || `Dag ${pad3(dayNum)}`;
+      subtitleEl.textContent = `Document: ${dagId}`;
+      renderStory(tpl.tekst || '');
+      renderQuiz(CURRENT_QUESTIONS);
+
+      const kidSnap = await CURRENT_DAGREF.get();
+      const best = kidSnap.exists && typeof kidSnap.data().bestScore === 'number'
+        ? kidSnap.data().bestScore : 0;
+      todayScoreEl.textContent = String(best);
+
+      const ref = kidSnap.exists && kidSnap.data().reflectie ? kidSnap.data().reflectie : "";
+      document.getElementById('reflectieText').value = ref;
+
+      await refreshKindPunten();
+    }
+
+    /* ===================  Nakijken en opslaan  =================== */
+    async function gradeNow(){
+      if (!CURRENT_DAGREF) return;
+
+      const antwoorden = {};
+      let score = 0;
+
+      CURRENT_QUESTIONS.forEach((q, idx)=>{
+        const sel = document.querySelector(`input[name="q_${idx}"]:checked`);
+        const fb  = document.getElementById(`fb_${idx}`);
+        const gekozen = sel ? sel.value : null;
+        antwoorden[idx] = gekozen;
+
+        if (!fb) return;
+        if (!gekozen){
+          fb.textContent = "Kies een antwoord.";
+          fb.className = 'feedback nok';
+        } else if (gekozen === q.correct){
+          score += 10;
+          fb.textContent = "Goed zo! (+10)";
+          fb.className = 'feedback ok';
+        } else {
+          fb.textContent = `Niet juist. Het juiste antwoord is: ${q.correct}`;
+          fb.className = 'feedback nok';
+        }
+      });
+
+      todayScoreEl.textContent = String(score);
+
+      await db.runTransaction(async (tx)=>{
+        const s = await tx.get(CURRENT_DAGREF);
+        const cur = s.exists ? s.data() : {};
+        const prevBest = typeof cur.bestScore === 'number' ? cur.bestScore : 0;
+        const delta = Math.max(0, score - prevBest);
+
+        const payload = {
+          bestScore: Math.max(prevBest, score),
+          antwoorden,
+          nagekekenOp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        if (s.exists) tx.update(CURRENT_DAGREF, payload);
+        else tx.set(CURRENT_DAGREF, { titel: document.getElementById('title').textContent, ...payload });
+
+        if (delta > 0){
+          const childSnap = await tx.get(childRef);
+          const curP = childSnap.exists && typeof childSnap.data().punten === 'number' ? childSnap.data().punten : 0;
+          tx.update(childRef, { punten: curP + delta });
+        }
+      });
+
+      await refreshKindPunten();
+    }
+
+    /* ===================  Reflectie  =================== */
+    async function saveReflectie(){
+      const txt = document.getElementById('reflectieText').value.trim();
+      if (!txt) { alert("Schrijf eerst je reflectie."); return; }
+      if (!CURRENT_DAGREF) return;
+
+      let bonus = false;
+      await db.runTransaction(async (tx)=>{
+        const s = await tx.get(CURRENT_DAGREF);
+        const cur = s.exists ? s.data() : {};
+        const al = cur.reflectiePunten === true;
+
+        const payload = {
+          reflectie: txt,
+          reflectieOp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        if (!al) payload.reflectiePunten = true;
+
+        if (s.exists) tx.update(CURRENT_DAGREF, payload);
+        else tx.set(CURRENT_DAGREF, { titel: document.getElementById('title').textContent, bestScore:0, antwoorden:{}, ...payload });
+
+        if (!al){
+          const childSnap = await tx.get(childRef);
+          const curP = childSnap.exists && typeof childSnap.data().punten === 'number' ? childSnap.data().punten : 0;
+          tx.update(childRef, { punten: curP + 20 });
+          bonus = true;
+        }
+      });
+
+      await refreshKindPunten();
+      alert(bonus ? "Reflectie opgeslagen (+20 punten)." : "Reflectie bijgewerkt.");
+    }
+
+    /* ===================  Events  =================== */
+    document.getElementById('saveReflectie').addEventListener('click', saveReflectie);
+    document.getElementById('checkBtn').addEventListener('click', gradeNow);
+    document.getElementById('resetBtn').addEventListener('click', ()=>{
+      quizEl.querySelectorAll('input[type="radio"]').forEach(i=> i.checked = false);
+      quizEl.querySelectorAll('.feedback').forEach(fb => { fb.textContent = ''; fb.className = 'feedback'; });
+      todayScoreEl.textContent = '0';
+    });
+
+    document.getElementById('prevBtn').addEventListener('click', ()=>{
+      const n = Number(daySelect.value); if (n>1) loadDay(n-1);
+    });
+    document.getElementById('nextBtn').addEventListener('click', ()=>{
+      const n = Number(daySelect.value); if (n<7) loadDay(n+1);
+    });
+    daySelect.addEventListener('change', ()=> loadDay(Number(daySelect.value)));
+
+    /* ===================  Start  =================== */
+    (function init(){
+      const qs = new URLSearchParams(location.search);
+      const start = Math.max(1, Math.min(7, Number(qs.get('dag') || 1)));
+      daySelect.value = String(start);
+      loadDay(start);
+    })();
   </script>
 </body>
 </html>
