@@ -1,119 +1,10 @@
 // -----------------------------
-// springspel.js
+// Variabelen voor band
 // -----------------------------
-
-// Canvas
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
-
-function resizeCanvas() {
-  canvas.width = window.innerWidth;
-  canvas.height = canvas.parentElement.clientHeight; // container-div (50vh in HTML)
-}
-resizeCanvas();
-window.addEventListener("resize", resizeCanvas);
-
-// -----------------------------
-// Assets
-// -----------------------------
-const photeinosImg = new Image();
-photeinosImg.src = "https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.png";
-
-const levelBackgrounds = [
-  "https://kathy-torfs.github.io/Orthodoxeweg/images/level1.png",
-  "https://kathy-torfs.github.io/Orthodoxeweg/images/level2.png",
-  "https://kathy-torfs.github.io/Orthodoxeweg/images/level3.png",
-  "https://kathy-torfs.github.io/Orthodoxeweg/images/level4.png",
-  "https://kathy-torfs.github.io/Orthodoxeweg/images/level5.png"
-].map(src => { const i = new Image(); i.src = src; return i; });
-
-const collectableImgs = [
-  "https://kathy-torfs.github.io/Orthodoxeweg/images/duif.png",
-  "https://kathy-torfs.github.io/Orthodoxeweg/images/vleugel.png",
-  "https://kathy-torfs.github.io/Orthodoxeweg/images/engel.png"
-].map(src => { const i = new Image(); i.src = src; return i; });
-
-// -----------------------------
-// Speler (Photeinos)
-// -----------------------------
-const photeinos = {
-  x: 50, y: 0, w: 100, h: 100, // groter gemaakt
-  vy: 0, onGround: false
-};
-let speed = 7;
-let gravity = 1;
-let jumpPower = -18;
-
-// -----------------------------
-// Game variabelen
-// -----------------------------
-let currentLevel = 0;
-let obstacles = [];
-let collectables = [];
-let keys = {};
-let score = 0;
-let running = false;
-let paused = false;
-
-// -----------------------------
-// Input
-// -----------------------------
-document.addEventListener("keydown", e => keys[e.key] = true);
-document.addEventListener("keyup", e => keys[e.key] = false);
-
-// -----------------------------
-// Obstakels
-// -----------------------------
-function spawnObstacle() {
-  const h = 70; // groter gemaakt
-  obstacles.push({
-    x: canvas.width,
-    y: canvas.height - h,
-    w: 60, h: h
-  });
-}
-
-// -----------------------------
-// Collectables
-// -----------------------------
-function spawnCollectable() {
-  const img = collectableImgs[Math.floor(Math.random()*collectableImgs.length)];
-  const y = Math.random() * (canvas.height - 200) + 50;
-  collectables.push({
-    x: canvas.width,
-    y: y,
-    w: 60, h: 60, // groter gemaakt
-    img: img
-  });
-}
-
-// -----------------------------
-// Player update
-// -----------------------------
-function updatePlayer() {
-  if (keys["ArrowRight"]) photeinos.x += speed;
-  if (keys["ArrowLeft"]) photeinos.x -= speed;
-  if (keys[" "] && photeinos.onGround) {
-    photeinos.vy = jumpPower;
-    photeinos.onGround = false;
-  }
-
-  photeinos.vy += gravity;
-  photeinos.y += photeinos.vy;
-
-  if (photeinos.y + photeinos.h > canvas.height) {
-    photeinos.y = canvas.height - photeinos.h;
-    photeinos.vy = 0;
-    photeinos.onGround = true;
-  }
-}
-
-// -----------------------------
-// Collision check
-// -----------------------------
-function rectsOverlap(a, b) {
-  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
-}
+let bandX = 0;
+const bandSpeed = 3;
+const bandHeight = 100;
+const bandY = canvas.height - bandHeight - 50; // bv. 50px boven de grond
 
 // -----------------------------
 // Update loop
@@ -123,31 +14,21 @@ function update() {
 
   updatePlayer();
 
-  // Obstacles bewegen
-  obstacles.forEach(o => o.x -= 5);
-  obstacles = obstacles.filter(o => o.x + o.w > 0);
+  // Band laten schuiven
+  bandX -= bandSpeed;
+  if (bandX <= -canvas.width) bandX = 0;
 
-  // Collectables bewegen
-  collectables.forEach(c => c.x -= 4);
+  // Collectables mee bewegen
+  collectables.forEach(c => c.x -= bandSpeed);
   collectables = collectables.filter(c => c.x + c.w > 0);
 
-  // Botsing met obstakels
-  for (const o of obstacles) {
-    if (rectsOverlap(photeinos, o)) {
-      running = false;
-      alert("Botsing! Game Over.");
-      return;
-    }
-  }
-
-  // Oppakken van collectables
-  for (let i=collectables.length-1; i>=0; i--) {
+  // Botsing met collectables
+  for (let i = collectables.length - 1; i >= 0; i--) {
     const c = collectables[i];
     if (rectsOverlap(photeinos, c)) {
       score++;
-      collectables.splice(i,1);
-      // 🔥 Hier roep je de vragen aan uit vragen.js
-      alert("Vraag uit vragen.js!");
+      collectables.splice(i, 1);
+      alert("Vraag uit vragen.js!"); // hier vragen.js logica
     }
   }
 }
@@ -158,65 +39,26 @@ function update() {
 function draw() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  // achtergrond
+  // Achtergrond vast
   ctx.drawImage(levelBackgrounds[currentLevel], 0, 0, canvas.width, canvas.height);
 
-  // speler
+  // Band tekenen (transparante rechthoek die scrollt)
+  ctx.fillStyle = "rgba(200,200,200,0.2)";
+  ctx.fillRect(bandX, bandY, canvas.width, bandHeight);
+  ctx.fillRect(bandX + canvas.width, bandY, canvas.width, bandHeight);
+
+  // Collectables op de band
+  collectables.forEach(c => ctx.drawImage(c.img, c.x, bandY + 10, c.w, c.h));
+
+  // Speler
   ctx.drawImage(photeinosImg, photeinos.x, photeinos.y, photeinos.w, photeinos.h);
 
-  // obstakels
+  // Obstakels (blijven vast op de grond)
   ctx.fillStyle = "brown";
   obstacles.forEach(o => ctx.fillRect(o.x, o.y, o.w, o.h));
 
-  // collectables
-  collectables.forEach(c => ctx.drawImage(c.img, c.x, c.y, c.w, c.h));
-
-  // score
+  // Score
   ctx.fillStyle = "black";
   ctx.font = "20px Comic Sans MS";
   ctx.fillText("Score: " + score, 20, 30);
 }
-
-// -----------------------------
-// Main loop
-// -----------------------------
-function loop() {
-  update();
-  draw();
-  requestAnimationFrame(loop);
-}
-loop();
-
-// -----------------------------
-// Controls: start/pauze
-// -----------------------------
-const startBtn = document.createElement("button");
-startBtn.innerText = "Start spel (-20 punten)";
-Object.assign(startBtn.style,{
-  position:"absolute",top:"10px",left:"50%",transform:"translateX(-50%)",
-  padding:"12px 20px",fontSize:"18px",zIndex:1000
-});
-canvas.parentElement.appendChild(startBtn);
-
-startBtn.onclick = () => {
-  running = true;
-  score = 0;
-  obstacles = [];
-  collectables = [];
-};
-
-const pauseBtn = document.createElement("button");
-pauseBtn.innerText = "⏸ Pauze";
-Object.assign(pauseBtn.style,{
-  position:"absolute",top:"10px",right:"20px",
-  padding:"10px 16px",fontSize:"16px",zIndex:1000
-});
-canvas.parentElement.appendChild(pauseBtn);
-
-pauseBtn.onclick = () => { paused = !paused; };
-
-// -----------------------------
-// Spawners
-// -----------------------------
-setInterval(() => { if(running && !paused) spawnObstacle(); }, 3000);
-setInterval(() => { if(running && !paused) spawnCollectable(); }, 2000);
