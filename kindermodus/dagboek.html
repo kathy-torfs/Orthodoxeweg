@@ -3,136 +3,100 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Bijbelverhaal – Orthodoxe Kinderpagina</title>
+  <title>Kinderbijbel – Orthodoxe Kinderpagina</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
-
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+  
+  <!-- Kindvriendelijk lettertype -->
+  <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
 
   <style>
     body {
-      margin: 0;
-      font-family: "Comic Sans MS", "Comic Neue", cursive, sans-serif;
-      min-height: 100vh;
-      background-color: var(--pastel1);
+      margin:0;
+      font-family: 'Patrick Hand', cursive;
       background-image: url("https://kathy-torfs.github.io/Orthodoxeweg/images/wolkjes.png");
       background-repeat: repeat;
       background-size: 900px auto;
-      transition: background-color .6s;
+      min-height: 100vh;
     }
-
-    main {
-      max-width: 1200px;
-      margin: 30px auto;
-      padding: 0 2vw;
+    .book {
+      width: 90%;
+      max-width: 1100px;
+      height: 85vh;
+      background: #fdfbf7;
+      box-shadow: 0 0 30px rgba(0,0,0,0.2);
+      border-radius: 10px;
       display: flex;
-      gap: 24px;
+      overflow: hidden;
+      margin: 20px auto;
     }
-
-    .boek {
-      flex: 1;
-      background: #fffef9;
-      border: 2px solid #e0d5b0;
-      border-radius: 14px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-      padding: 24px;
-      line-height: 1.6;
-      font-size: 1.1em;
+    .page {
+      width: 50%;
+      padding: 30px;
+      overflow-y: auto;
     }
-
-    .boek h2 {
-      margin-top: 0;
-      color: var(--primair);
-      font-family: "Comic Neue", cursive, sans-serif;
-    }
-
-    .vraagblok {
-      margin-bottom: 20px;
-      padding: 14px;
-      border: 1.5px dashed #ccc7a5;
-      border-radius: 10px;
-      background: #fffdfa;
-    }
-
-    .vraagblok h3 {
-      margin: 0 0 10px;
-      font-size: 1.1em;
-      color: var(--donker);
-    }
-
-    .vraagblok button {
-      display: block;
-      width: 100%;
-      margin: 6px 0;
-      padding: 8px;
-      border-radius: 8px;
-      border: 1.5px solid #ddd;
-      background: #fff;
-      cursor: pointer;
-      transition: background 0.2s;
-      font-family: inherit;
-    }
-    .vraagblok button:hover {
-      background: #f7ffe5;
-    }
-
-    .reflectie {
-      margin-top: 20px;
-      padding: 14px;
-      border-radius: 10px;
-      border: 1.5px dashed #bbb;
-      background: #fffdfa;
-    }
-    .reflectie textarea {
-      width: 100%;
-      min-height: 90px;
-      font-family: inherit;
-      border-radius: 8px;
-      border: 1.5px solid #ddd;
+    .left { border-right: 2px solid #d4c5a5; background: #fffef9; }
+    .right { background: #fffef9; }
+    h2 { margin-top:0; color:#7bb235; }
+    .vraag {
+      margin-bottom: 18px;
       padding: 10px;
-      resize: vertical;
-    }
-    .reflectie button {
-      margin-top: 10px;
-      padding: 8px 16px;
+      border: 1px dashed #ccc;
       border-radius: 8px;
-      border: none;
-      background: var(--primair);
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
+      background: #fffdf5;
+    }
+    .antwoord { display: block; margin-left: 15px; cursor:pointer; }
+    textarea {
+      width: 100%;
+      min-height: 100px;
+      border-radius: 10px;
+      border: 1.5px solid #ccc;
+      padding: 10px;
+      font-family: 'Patrick Hand', cursive;
+      font-size: 1em;
+      resize: vertical;
+      background: #fdfdf9;
+    }
+    button {
+      margin-top:10px;
+      background:#7bb235;
+      border:none;
+      border-radius:8px;
+      color:white;
+      padding:8px 16px;
+      font-size:1em;
+      cursor:pointer;
     }
   </style>
 
-  <!-- Header & menubalk -->
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
   <script defer src="common/layout.js"></script>
 </head>
 <body>
   <div id="kinder-header" data-header-src="common/header.html"></div>
 
-  <main>
-    <!-- Linker pagina: bijbelverhaal -->
-    <div class="boek" id="bijbelverhaal">
-      <h2>Bijbelverhaal</h2>
-      <div id="verhaal-tekst">Verhaal wordt geladen…</div>
+  <div class="book">
+    <div class="page left">
+      <h2 id="titel">Titel</h2>
+      <p id="verhaal">Laden...</p>
     </div>
+    <div class="page right">
+      <h2>Vragen</h2>
+      <div id="vragen"></div>
 
-    <!-- Rechter pagina: vragen en reflectie -->
-    <div class="boek">
-      <h2>Vragen & Reflectie</h2>
-      <div id="vragen-container">Vragen laden…</div>
-
-      <div class="reflectie">
-        <h3>Jouw reflectie</h3>
-        <textarea id="reflectieInput" placeholder="Schrijf hier jouw gedachten…"></textarea>
-        <button onclick="opslaanReflectie()">Opslaan (+20 punten)</button>
-      </div>
+      <h2>Mijn Reflectie</h2>
+      <textarea id="reflectie" placeholder="Schrijf hier jouw eigen gedachten..."></textarea>
+      <button onclick="saveReflectie()">Verstuur reflectie</button>
     </div>
-  </main>
+  </div>
 
-  <script>
-    // Firebase init
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getFirestore, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+
     const firebaseConfig = {
       apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain:"orthodoxeweg.firebaseapp.com",
@@ -141,90 +105,91 @@
       messagingSenderId:"408582263618",
       appId:"1:408582263618:web:0a20f4bf0704989d3ceedb"
     };
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
 
-    // Wacht tot ACTIVE_USER geladen is vanuit layout.js
-    function boot() {
-      if (!window.ACTIVE_USER) return setTimeout(boot, 150);
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
 
-      const verhaalRef = db.collection("parochies")
-        .doc(window.ACTIVE_USER.parochieId)
-        .collection("leden")
-        .doc(window.ACTIVE_USER.lidId)
-        .collection("kinderen")
-        .doc(window.ACTIVE_USER.kindId);
+    // Voorbeeld: dag001 ophalen
+    async function loadDagboek(dagId) {
+      const ref = doc(db, "VlaamsOrthodoxekinderdagboek", dagId);
+      const snap = await getDoc(ref);
+      if (snap.exists()) {
+        const data = snap.data();
+        document.getElementById("titel").textContent = data.titel || "Bijbelverhaal";
+        document.getElementById("verhaal").textContent = data.tekst || "";
 
-      // Verhaal ophalen
-      verhaalRef.get().then(docSnap => {
-        if (docSnap.exists) {
-          const data = docSnap.data();
-          document.getElementById("verhaal-tekst").textContent = data.bijbelverhaal || "Geen verhaal gevonden.";
-          laadVragen(data.vragen || []);
+        const vragenDiv = document.getElementById("vragen");
+        vragenDiv.innerHTML = "";
+        if (Array.isArray(data.vragen)) {
+          data.vragen.forEach((v, idx) => {
+            const blok = document.createElement("div");
+            blok.className = "vraag";
+
+            const vraagTekst = document.createElement("p");
+            vraagTekst.textContent = v.vraag || `Vraag ${idx+1}`;
+            blok.appendChild(vraagTekst);
+
+            if (Array.isArray(v.antwoorden)) {
+              v.antwoorden.forEach((antw) => {
+                const label = document.createElement("label");
+                label.className = "antwoord";
+                const radio = document.createElement("input");
+                radio.type = "radio";
+                radio.name = "vraag"+idx;
+                radio.value = antw;
+                radio.onchange = () => checkAntwoord(v.juist, antw); 
+                label.appendChild(radio);
+                label.appendChild(document.createTextNode(" " + antw));
+                blok.appendChild(label);
+              });
+            }
+
+            vragenDiv.appendChild(blok);
+          });
         }
-      });
-    }
-
-    // Vragen renderen
-    function laadVragen(vragen) {
-      const container = document.getElementById("vragen-container");
-      container.innerHTML = "";
-      vragen.forEach((vraag, i) => {
-        const blok = document.createElement("div");
-        blok.className = "vraagblok";
-        blok.innerHTML = `<h3>${vraag.vraag}</h3>`;
-        vraag.antwoorden.forEach(antwoord => {
-          const btn = document.createElement("button");
-          btn.textContent = antwoord.tekst;
-          btn.onclick = () => controleerAntwoord(vraag, antwoord.juist);
-          blok.appendChild(btn);
-        });
-        container.appendChild(blok);
-      });
-    }
-
-    // Antwoordcontrole
-    function controleerAntwoord(vraag, juist) {
-      if (juist) {
-        alert("Juist! +10 punten 🎉");
-        updatePunten(10);
       } else {
-        alert("Helaas, probeer verder!");
+        document.getElementById("verhaal").textContent = "Geen gegevens gevonden.";
       }
     }
 
-    // Reflectie opslaan
-    function opslaanReflectie() {
-      const tekst = document.getElementById("reflectieInput").value.trim();
+    async function checkAntwoord(juist, gekozen) {
+      const user = auth.currentUser;
+      if (!user) return alert("Niet ingelogd");
+      if (juist === gekozen) {
+        const ref = doc(db, "leden", user.email);
+        await updateDoc(ref, { punten: increment(10) });
+        alert("Goed gedaan! +10 punten 🎉");
+      } else {
+        alert("Helaas, dat is niet juist.");
+      }
+    }
+
+    window.saveReflectie = async function(){
+      const user = auth.currentUser;
+      if (!user) return alert("Niet ingelogd");
+      const tekst = document.getElementById("reflectie").value.trim();
       if (!tekst) return alert("Schrijf eerst iets!");
-      const ref = db.collection("parochies")
-        .doc(window.ACTIVE_USER.parochieId)
-        .collection("leden")
-        .doc(window.ACTIVE_USER.lidId)
-        .collection("kinderen")
-        .doc(window.ACTIVE_USER.kindId);
-      ref.update({
-        reflectie: tekst,
-        punten: firebase.firestore.FieldValue.increment(20)
+      const ref = doc(db, "leden", user.email);
+      await updateDoc(ref, {
+        punten: increment(20),
+        laatsteReflectie: tekst
       });
-      alert("Bedankt voor je reflectie! +20 punten 🎉");
-      document.getElementById("reflectieInput").value = "";
-    }
+      alert("Reflectie opgeslagen! +20 punten 🌟");
+      document.getElementById("reflectie").value = "";
+    };
 
-    // Punten bijwerken
-    function updatePunten(extra) {
-      const ref = db.collection("parochies")
-        .doc(window.ACTIVE_USER.parochieId)
-        .collection("leden")
-        .doc(window.ACTIVE_USER.lidId)
-        .collection("kinderen")
-        .doc(window.ACTIVE_USER.kindId);
-      ref.update({
-        punten: firebase.firestore.FieldValue.increment(extra)
+    loadDagboek("dag001");
+
+    // Header + menubalk
+    (function boot(){
+      if (!(window.KinderLayout)) return setTimeout(boot, 120);
+      const el = document.getElementById('kinder-header');
+      window.KinderLayout.mountHeader({
+        rootId: 'kinder-header',
+        headerSrc: el.dataset.headerSrc
       });
-    }
-
-    boot();
+    })();
   </script>
 </body>
 </html>
