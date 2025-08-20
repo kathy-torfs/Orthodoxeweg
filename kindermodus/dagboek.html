@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Kinderbijbel – Orthodoxe Kinderpagina</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
-  
+
   <!-- Kindvriendelijk lettertype -->
   <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
 
@@ -66,6 +66,11 @@
       font-size:1em;
       cursor:pointer;
     }
+    .nav-buttons {
+      text-align:center;
+      margin:15px;
+    }
+    .nav-buttons button { margin:0 10px; }
   </style>
 
   <!-- Firebase -->
@@ -92,6 +97,11 @@
     </div>
   </div>
 
+  <div class="nav-buttons">
+    <button onclick="prevDag()">◀ Vorige dag</button>
+    <button onclick="nextDag()">Volgende dag ▶</button>
+  </div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
     import { getFirestore, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
@@ -110,8 +120,10 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    // Voorbeeld: dag001 ophalen
-    async function loadDagboek(dagId) {
+    let huidigeDag = 1;
+
+    async function loadDagboek(dagNummer) {
+      const dagId = "dag" + dagNummer.toString().padStart(3, "0");
       const ref = doc(db, "VlaamsOrthodoxekinderdagboek", dagId);
       const snap = await getDoc(ref);
       if (snap.exists()) {
@@ -154,10 +166,9 @@
     }
 
     async function checkAntwoord(juist, gekozen) {
-      const user = auth.currentUser;
-      if (!user) return alert("Niet ingelogd");
+      const { parochieId, lidId, kindId } = window.KinderLayout.getCurrentKid();
       if (juist === gekozen) {
-        const ref = doc(db, "leden", user.email);
+        const ref = doc(db, "parochies", parochieId, "leden", lidId, "kinderen", kindId);
         await updateDoc(ref, { punten: increment(10) });
         alert("Goed gedaan! +10 punten 🎉");
       } else {
@@ -166,11 +177,10 @@
     }
 
     window.saveReflectie = async function(){
-      const user = auth.currentUser;
-      if (!user) return alert("Niet ingelogd");
+      const { parochieId, lidId, kindId } = window.KinderLayout.getCurrentKid();
       const tekst = document.getElementById("reflectie").value.trim();
       if (!tekst) return alert("Schrijf eerst iets!");
-      const ref = doc(db, "leden", user.email);
+      const ref = doc(db, "parochies", parochieId, "leden", lidId, "kinderen", kindId);
       await updateDoc(ref, {
         punten: increment(20),
         laatsteReflectie: tekst
@@ -179,7 +189,20 @@
       document.getElementById("reflectie").value = "";
     };
 
-    loadDagboek("dag001");
+    window.prevDag = function() {
+      if (huidigeDag > 1) {
+        huidigeDag--;
+        loadDagboek(huidigeDag);
+      }
+    };
+
+    window.nextDag = function() {
+      huidigeDag++;
+      loadDagboek(huidigeDag);
+    };
+
+    // Start bij dag001
+    loadDagboek(huidigeDag);
 
     // Header + menubalk
     (function boot(){
