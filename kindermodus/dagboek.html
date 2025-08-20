@@ -10,6 +10,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
 
   <style>
+    :root {
+      --primair:#7bb235; --donker:#67510C;
+      --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
+      --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
+      --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
+      --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
+    }
+
     body {
       margin:0;
       font-family: 'Patrick Hand', cursive;
@@ -18,6 +26,7 @@
       background-size: 900px auto;
       min-height: 100vh;
     }
+
     .book {
       width: 90%;
       max-width: 1100px;
@@ -36,7 +45,9 @@
     }
     .left { border-right: 2px solid #d4c5a5; background: #fffef9; }
     .right { background: #fffef9; }
-    h2 { margin-top:0; color:#7bb235; }
+    h2 { margin-top:0; color:var(--primair); }
+
+    /* Vragen */
     .vraag {
       margin-bottom: 18px;
       padding: 10px;
@@ -45,6 +56,8 @@
       background: #fffdf5;
     }
     .antwoord { display: block; margin-left: 15px; cursor:pointer; }
+
+    /* Reflectie */
     textarea {
       width: 100%;
       min-height: 100px;
@@ -58,7 +71,7 @@
     }
     button {
       margin-top:10px;
-      background:#7bb235;
+      background:var(--primair);
       border:none;
       border-radius:8px;
       color:white;
@@ -95,7 +108,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
     import { getFirestore, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-    import { getAuth } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
@@ -110,7 +123,19 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    // Voorbeeld: dag001 ophalen
+    let currentUser = null;
+
+    // ✅ Zorgt dat we weten wie is ingelogd
+    onAuthStateChanged(auth, (user) => {
+      currentUser = user;
+      if (user) {
+        console.log("Ingelogd als:", user.email);
+      } else {
+        console.log("Niet ingelogd");
+      }
+    });
+
+    // Dagboek laden
     async function loadDagboek(dagId) {
       const ref = doc(db, "VlaamsOrthodoxekinderdagboek", dagId);
       const snap = await getDoc(ref);
@@ -134,14 +159,11 @@
               v.opties.forEach((optie) => {
                 const label = document.createElement("label");
                 label.className = "antwoord";
-
                 const radio = document.createElement("input");
                 radio.type = "radio";
                 radio.name = "vraag"+idx;
                 radio.value = optie;
-
                 radio.onchange = () => checkAntwoord(v.correct, optie);
-
                 label.appendChild(radio);
                 label.appendChild(document.createTextNode(" " + optie));
                 blok.appendChild(label);
@@ -156,11 +178,10 @@
       }
     }
 
-    async function checkAntwoord(correct, gekozen) {
-      const user = auth.currentUser;
-      if (!user) return alert("Niet ingelogd");
-      if (correct === gekozen) {
-        const ref = doc(db, "leden", user.email);
+    async function checkAntwoord(juist, gekozen) {
+      if (!currentUser) return alert("Niet ingelogd!");
+      if (juist === gekozen) {
+        const ref = doc(db, "leden", currentUser.email);
         await updateDoc(ref, { punten: increment(10) });
         alert("Goed gedaan! +10 punten 🎉");
       } else {
@@ -169,11 +190,10 @@
     }
 
     window.saveReflectie = async function(){
-      const user = auth.currentUser;
-      if (!user) return alert("Niet ingelogd");
+      if (!currentUser) return alert("Niet ingelogd!");
       const tekst = document.getElementById("reflectie").value.trim();
       if (!tekst) return alert("Schrijf eerst iets!");
-      const ref = doc(db, "leden", user.email);
+      const ref = doc(db, "leden", currentUser.email);
       await updateDoc(ref, {
         punten: increment(20),
         laatsteReflectie: tekst
@@ -182,6 +202,7 @@
       document.getElementById("reflectie").value = "";
     };
 
+    // Start met dag001
     loadDagboek("dag001");
 
     // Header + menubalk
