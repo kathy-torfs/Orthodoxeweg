@@ -91,8 +91,9 @@
       localStorage.removeItem("ingelogdKindVoornaam");
       localStorage.removeItem("kindAvatarURL");
       localStorage.removeItem("kindPunten");
-      // terug naar login
-      window.location.replace(CONFIG.loginUrl);
+
+      // ✅ FIX: stuur altijd terug naar volwassenmodus/parochie.html
+      window.location.replace("https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html");
     });
   }
 
@@ -165,10 +166,10 @@
   // Exporteer een kleine API
   window.KinderLayout = {
     mountHeader,
-    refreshPoints: startLivePoints   // handig om na punten‑updates te callen
+    refreshPoints: startLivePoints   // handig om na punten-updates te callen
   };
 
-  // Auto‑mount als de standaard container aanwezig is
+  // Auto-mount als de standaard container aanwezig is
   function autoMountIfPresent() {
     const el = document.getElementById(CONFIG.headerDefaultMountId);
     if (!el) return;
