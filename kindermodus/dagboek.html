@@ -8,60 +8,48 @@
   <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
 
   <style>
-    :root {
+    :root{
       --primair:#7bb235; --donker:#67510C;
-      --pastel1:#fff6e5; --pastel2:#e7f8ff; --pastel3:#ffe8ec; --pastel4:#e6ffe5;
+      --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
+      --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
+      --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
+      --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
     }
-    body {
-      margin:0;
-      font-family: 'Patrick Hand', cursive;
-      min-height: 100vh;
-      background: linear-gradient(135deg,
-        var(--pastel1) 0%,
-        var(--pastel2) 25%,
-        var(--pastel3) 50%,
-        var(--pastel4) 100%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
+    body{
+      margin:0; font-family:'Patrick Hand', cursive;
+      min-height:100vh; background:var(--pastel1); transition:background .6s;
+      display:flex; flex-direction:column;
     }
     .book {
-      width: 95%;
-      max-width: 1400px;
-      height: 88vh;
-      background: #fdfbf7;
-      box-shadow: 0 0 30px rgba(0,0,0,0.2);
-      border-radius: 12px;
-      display: flex;
-      overflow: hidden;
-      margin: 15px auto;
-      position: relative;
+      flex:1;
+      width:95%; max-width:1200px; height:85vh;
+      background:#fdfbf7;
+      box-shadow:0 0 30px rgba(0,0,0,0.2);
+      border-radius:14px;
+      display:flex;
+      overflow:hidden;
+      margin:20px auto;
+      position:relative;
     }
     .page {
-      width: 50%;
-      padding: 30px;
-      overflow-y: auto;
-      background: #fffef9;
+      width:50%; padding:30px; overflow-y:auto;
+      background:#fffef9;
     }
-    .left { border-right: 2px solid #d4c5a5; }
-    h2 { margin-top:0; color:#7bb235; }
+    .left { border-right:2px solid #d4c5a5; }
+    h2 { margin-top:0; color:var(--primair); }
     .vraag {
-      margin-bottom: 18px;
-      padding: 10px;
-      border: 1px dashed #ccc;
-      border-radius: 8px;
-      background: #fffdf5;
+      margin-bottom:18px; padding:10px;
+      border:1px dashed #ccc; border-radius:8px;
+      background:#fffdf5;
     }
-    .antwoord { display: block; margin-left: 15px; cursor:pointer; }
-    .juist { color: green; font-weight: bold; }
-    .fout { color: red; font-weight: bold; }
+    .antwoord { display:block; margin-left:15px; cursor:pointer; }
+    .juist { color:green; font-weight:bold; }
+    .fout { color:red; font-weight:bold; }
     textarea {
-      width: 100%; min-height: 100px; border-radius: 10px;
-      border: 1.5px solid #ccc; padding: 10px;
-      font-family: 'Patrick Hand', cursive;
-      font-size: 1em; resize: vertical;
-      background: #fdfdf9;
+      width:100%; min-height:100px; border-radius:10px;
+      border:1.5px solid #ccc; padding:10px;
+      font-family:'Patrick Hand', cursive; font-size:1em;
+      resize:vertical; background:#fdfdf9;
     }
     button {
       margin-top:10px; background:#7bb235; border:none;
@@ -71,22 +59,17 @@
 
     /* bladerknoppen */
     .navBtn {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      background: rgba(123,178,53,0.85);
-      color: white;
-      border: none;
-      font-size: 2em;
-      padding: 12px;
-      border-radius: 50%;
-      cursor: pointer;
-      box-shadow: 0 0 10px rgba(0,0,0,0.3);
-      z-index: 5;
+      position:absolute;
+      top:50%; transform:translateY(-50%);
+      background:rgba(123,178,53,0.8);
+      color:white; border:none;
+      font-size:1.5em; padding:12px 16px;
+      border-radius:50%; cursor:pointer;
+      box-shadow:0 0 10px rgba(0,0,0,0.3);
     }
-    .navBtn:hover { background: rgba(103,145,40,0.95); }
-    #prevBtn { left: 8px; }
-    #nextBtn { right: 8px; }
+    .navBtn:hover{ background:rgba(103,145,40,0.9); }
+    #prevBtn{ left:-35px; }
+    #nextBtn{ right:-35px; }
   </style>
 
   <!-- Firebase -->
@@ -95,13 +78,14 @@
   <script defer src="common/layout.js"></script>
 </head>
 <body>
+  <!-- Header + menubalk -->
   <div id="kinder-header" data-header-src="common/header.html"></div>
 
   <div class="book">
     <button id="prevBtn" class="navBtn" onclick="prevDag()">⟨</button>
     <div class="page left">
       <h2 id="titel">Titel</h2>
-      <p id="verhaal">Laden...</p>
+      <div id="verhaal">Laden...</div>
     </div>
     <div class="page right">
       <h2>Vragen</h2>
@@ -116,6 +100,16 @@
   </div>
 
   <script>
+    // random pastel achtergrond
+    (function(){
+      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)',
+               'var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)',
+               'var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)',
+               'var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
+      document.body.style.background = p[Math.floor(Math.random()*p.length)];
+    })();
+
+    // Firebase init
     const firebaseConfig = {
       apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain:"orthodoxeweg.firebaseapp.com",
@@ -127,166 +121,149 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    let huidigeVragen = [];
-    let eersteKeerNakijken = true;
-    let huidigeDag = 1; // numeriek dagnummer
+    let huidigeVragen=[]; 
+    let eersteKeerNakijken=true;
+    let huidigeDag=1;
 
-    function formatDag(nr) {
-      return "dag" + nr.toString().padStart(3,"0");
-    }
+    function formatDag(nr){ return "dag"+nr.toString().padStart(3,"0"); }
 
-    async function loadDagboek(dagNr) {
-      huidigeDag = dagNr;
-      eersteKeerNakijken = true;
-      document.getElementById("nakijkBtn").disabled = false;
+    async function loadDagboek(dagNr){
+      huidigeDag=dagNr; eersteKeerNakijken=true;
+      document.getElementById("nakijkBtn").disabled=false;
 
-      const ref = db.collection("VlaamsOrthodoxekinderdagboek").doc(formatDag(dagNr));
-      const snap = await ref.get();
-      if (snap.exists) {
-        const data = snap.data();
-        document.getElementById("titel").textContent = data.titel || "Bijbelverhaal";
-        document.getElementById("verhaal").innerHTML = data.tekst || ""; // behoud <br> en emoji’s
-        const vragenDiv = document.getElementById("vragen");
-        vragenDiv.innerHTML = "";
-        huidigeVragen = data.vragen || [];
-
-        huidigeVragen.forEach((v, idx) => {
-          const blok = document.createElement("div");
-          blok.className = "vraag";
-          const vraagTekst = document.createElement("p");
-          vraagTekst.textContent = v.vraag || `Vraag ${idx+1}`;
+      const ref=db.collection("VlaamsOrthodoxekinderdagboek").doc(formatDag(dagNr));
+      const snap=await ref.get();
+      if(snap.exists){
+        const data=snap.data();
+        document.getElementById("titel").textContent=data.titel||"Bijbelverhaal";
+        document.getElementById("verhaal").innerHTML=data.tekst||"";
+        const vragenDiv=document.getElementById("vragen");
+        vragenDiv.innerHTML=""; huidigeVragen=data.vragen||[];
+        huidigeVragen.forEach((v,idx)=>{
+          const blok=document.createElement("div");
+          blok.className="vraag";
+          const vraagTekst=document.createElement("p");
+          vraagTekst.textContent=v.vraag||`Vraag ${idx+1}`;
           blok.appendChild(vraagTekst);
-          if (Array.isArray(v.opties)) {
-            v.opties.forEach(optie => {
-              const label = document.createElement("label");
-              label.className = "antwoord";
-              const radio = document.createElement("input");
-              radio.type = "radio"; radio.name = "vraag"+idx; radio.value = optie;
+          if(Array.isArray(v.opties)){
+            v.opties.forEach(optie=>{
+              const label=document.createElement("label");
+              label.className="antwoord";
+              const radio=document.createElement("input");
+              radio.type="radio"; radio.name="vraag"+idx; radio.value=optie;
               label.appendChild(radio);
-              label.appendChild(document.createTextNode(" " + optie));
+              label.appendChild(document.createTextNode(" "+optie));
               blok.appendChild(label);
             });
           }
           vragenDiv.appendChild(blok);
         });
       } else {
-        document.getElementById("titel").textContent = "Geen inhoud";
-        document.getElementById("verhaal").innerHTML = "Voor deze dag is nog geen verhaal beschikbaar.";
-        document.getElementById("vragen").innerHTML = "";
+        document.getElementById("titel").textContent="Geen inhoud";
+        document.getElementById("verhaal").innerHTML="Voor deze dag is nog geen verhaal beschikbaar.";
+        document.getElementById("vragen").innerHTML="";
       }
     }
 
-    async function nakijken() {
-      let score = 0, fouten = 0;
-      let antwoordenKind = [];
-
-      huidigeVragen.forEach((v, idx) => {
-        const gekozen = document.querySelector(`input[name="vraag${idx}"]:checked`);
-        antwoordenKind.push(gekozen ? gekozen.value : null);
-        if (gekozen && gekozen.value === v.correct) score += 10;
+    async function nakijken(){
+      let score=0,fouten=0; let antwoordenKind=[];
+      huidigeVragen.forEach((v,idx)=>{
+        const gekozen=document.querySelector(`input[name="vraag${idx}"]:checked`);
+        antwoordenKind.push(gekozen?gekozen.value:null);
+        if(gekozen && gekozen.value===v.correct) score+=10;
         else fouten++;
       });
 
-      if (eersteKeerNakijken && fouten > 0) {
+      if(eersteKeerNakijken && fouten>0){
         alert("Kijk nog eens goed na? 😊");
-        eersteKeerNakijken = false;
+        eersteKeerNakijken=false;
         return;
       }
 
-      huidigeVragen.forEach((v, idx) => {
-        document.querySelectorAll(`input[name="vraag${idx}"]`).forEach(r => {
-          r.disabled = true;
-          if (r.checked) {
-            if (r.value === v.correct) r.parentElement.classList.add("juist");
+      huidigeVragen.forEach((v,idx)=>{
+        document.querySelectorAll(`input[name="vraag${idx}"]`).forEach(r=>{
+          r.disabled=true;
+          if(r.checked){
+            if(r.value===v.correct) r.parentElement.classList.add("juist");
             else r.parentElement.classList.add("fout");
           }
         });
       });
 
-      if (score > 0) alert("Goed gedaan! +" + score + " punten 🎉");
-      else alert("Dit keer geen juiste antwoorden. Probeer later opnieuw!");
+      if(score>0) alert("Goed gedaan! +"+score+" punten 🎉");
+      else alert("Dit keer geen juiste antwoorden.");
 
-      const parochieId = localStorage.getItem("ingelogdeParochie");
-      const ouderLogin = localStorage.getItem("loginKeuze");
-      const kindId     = localStorage.getItem("ingelogdKindId");
-      if (parochieId && ouderLogin && kindId) {
-        const dagRef = db.collection("parochies").doc(parochieId)
+      const parochieId=localStorage.getItem("ingelogdeParochie");
+      const ouderLogin=localStorage.getItem("loginKeuze");
+      const kindId=localStorage.getItem("ingelogdKindId");
+      if(parochieId&&ouderLogin&&kindId){
+        const dagRef=db.collection("parochies").doc(parochieId)
                       .collection("leden").doc(ouderLogin)
                       .collection("kinderen").doc(kindId)
                       .collection("dagboek").doc(formatDag(huidigeDag));
-
         await dagRef.set({
-          antwoorden: antwoordenKind,
-          score: score,
-          voltooid: true,
-          timestamp: new Date()
-        }, { merge:true });
-
-        const kindRef = db.collection("parochies").doc(parochieId)
+          antwoorden:antwoordenKind,
+          score:score,
+          voltooid:true,
+          timestamp:new Date()
+        },{merge:true});
+        const kindRef=db.collection("parochies").doc(parochieId)
                       .collection("leden").doc(ouderLogin)
                       .collection("kinderen").doc(kindId);
-
         await kindRef.set({
-          punten: firebase.firestore.FieldValue.increment(score)
-        }, { merge:true });
+          punten:firebase.firestore.FieldValue.increment(score)
+        },{merge:true});
       }
 
-      document.getElementById("nakijkBtn").disabled = true;
+      document.getElementById("nakijkBtn").disabled=true;
     }
 
     async function saveReflectie(){
-      const tekst = document.getElementById("reflectie").value.trim();
-      if (!tekst) return alert("Schrijf eerst iets!");
-      const parochieId = localStorage.getItem("ingelogdeParochie");
-      const ouderLogin = localStorage.getItem("loginKeuze");
-      const kindId     = localStorage.getItem("ingelogdKindId");
-      if (parochieId && ouderLogin && kindId) {
-        const dagRef = db.collection("parochies").doc(parochieId)
+      const tekst=document.getElementById("reflectie").value.trim();
+      if(!tekst) return alert("Schrijf eerst iets!");
+      const parochieId=localStorage.getItem("ingelogdeParochie");
+      const ouderLogin=localStorage.getItem("loginKeuze");
+      const kindId=localStorage.getItem("ingelogdKindId");
+      if(parochieId&&ouderLogin&&kindId){
+        const dagRef=db.collection("parochies").doc(parochieId)
                       .collection("leden").doc(ouderLogin)
                       .collection("kinderen").doc(kindId)
                       .collection("dagboek").doc(formatDag(huidigeDag));
-
-        const kindRef = db.collection("parochies").doc(parochieId)
+        const kindRef=db.collection("parochies").doc(parochieId)
                       .collection("leden").doc(ouderLogin)
                       .collection("kinderen").doc(kindId);
-
-        const statSnap = await dagRef.get();
-        const eersteKeer = !statSnap.exists || !statSnap.data().reflectiePunten;
-
+        const statSnap=await dagRef.get();
+        const eersteKeer=!statSnap.exists||!statSnap.data().reflectiePunten;
         await dagRef.set({
-          reflectie: tekst,
-          timestamp: new Date(),
-          reflectiePunten: eersteKeer ? true : statSnap.data().reflectiePunten
-        }, { merge:true });
-
-        if (eersteKeer) {
+          reflectie:tekst,
+          timestamp:new Date(),
+          reflectiePunten:eersteKeer?true:statSnap.data().reflectiePunten
+        },{merge:true});
+        if(eersteKeer){
           await kindRef.set({
-            punten: firebase.firestore.FieldValue.increment(20)
-          }, { merge:true });
+            punten:firebase.firestore.FieldValue.increment(20)
+          },{merge:true});
           alert("Reflectie opgeslagen! +20 punten 🌟");
         } else {
           alert("Reflectie aangepast (geen extra punten).");
         }
-
-        document.getElementById("reflectie").value = "";
+        document.getElementById("reflectie").value="";
       }
     }
 
-    function prevDag() {
-      if (huidigeDag > 1) loadDagboek(huidigeDag - 1);
-    }
-    function nextDag() {
-      loadDagboek(huidigeDag + 1);
-    }
+    function prevDag(){ if(huidigeDag>1) loadDagboek(huidigeDag-1); }
+    function nextDag(){ loadDagboek(huidigeDag+1); }
 
+    // start bij dag 1
     loadDagboek(1);
 
+    // Header/mnbl
     (function boot(){
-      if (!(window.KinderLayout)) return setTimeout(boot, 120);
-      const el = document.getElementById('kinder-header');
+      if(!(window.KinderLayout)) return setTimeout(boot,120);
+      const el=document.getElementById('kinder-header');
       window.KinderLayout.mountHeader({
-        rootId: 'kinder-header',
-        headerSrc: el.dataset.headerSrc
+        rootId:'kinder-header',
+        headerSrc:el.dataset.headerSrc
       });
     })();
   </script>
