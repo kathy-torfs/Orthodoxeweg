@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Kinderbijbel – Orthodoxe Kinderpagina</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
-  
-  <!-- Kindvriendelijk lettertype -->
   <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
 
   <style>
@@ -17,83 +15,40 @@
       --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
       --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
     }
-
     body {
       margin:0;
       font-family: 'Patrick Hand', cursive;
       min-height: 100vh;
       background-image: 
         url("https://kathy-torfs.github.io/Orthodoxeweg/images/wolkjes.png"),
-        linear-gradient(
-          135deg,
-          var(--pastel1), var(--pastel2), var(--pastel3),
-          var(--pastel4), var(--pastel5), var(--pastel6),
-          var(--pastel7), var(--pastel8), var(--pastel9),
-          var(--pastel10), var(--pastel11), var(--pastel12),
-          var(--pastel13), var(--pastel14), var(--pastel15), var(--pastel16)
-        );
+        linear-gradient(135deg,var(--pastel1),var(--pastel2),var(--pastel3),
+          var(--pastel4),var(--pastel5),var(--pastel6),
+          var(--pastel7),var(--pastel8),var(--pastel9),
+          var(--pastel10),var(--pastel11),var(--pastel12),
+          var(--pastel13),var(--pastel14),var(--pastel15),var(--pastel16));
       background-repeat: repeat, no-repeat;
       background-size: 900px auto, 600% 600%;
-      background-attachment: fixed, fixed;
+      background-attachment: fixed;
       animation: pastelAnim 60s ease infinite;
     }
-
-    @keyframes pastelAnim {
-      0%{background-position:0% 50%}
-      50%{background-position:100% 50%}
-      100%{background-position:0% 50%}
-    }
-
-    .book {
-      width: 90%;
-      max-width: 1100px;
-      height: 85vh;
-      background: #fdfbf7;
-      box-shadow: 0 0 30px rgba(0,0,0,0.2);
-      border-radius: 10px;
-      display: flex;
-      overflow: hidden;
-      margin: 20px auto;
-    }
-    .page {
-      width: 50%;
-      padding: 30px;
-      overflow-y: auto;
-    }
-    .left { border-right: 2px solid #d4c5a5; background: #fffef9; }
-    .right { background: #fffef9; }
-    h2 { margin-top:0; color:#7bb235; }
-    .vraag {
-      margin-bottom: 18px;
-      padding: 10px;
-      border: 1px dashed #ccc;
-      border-radius: 8px;
-      background: #fffdf5;
-    }
-    .antwoord { display: block; margin-left: 15px; cursor:pointer; }
-    .juist { color: green; font-weight: bold; }
-    .fout { color: red; font-weight: bold; }
-    textarea {
-      width: 100%;
-      min-height: 100px;
-      border-radius: 10px;
-      border: 1.5px solid #ccc;
-      padding: 10px;
-      font-family: 'Patrick Hand', cursive;
-      font-size: 1em;
-      resize: vertical;
-      background: #fdfdf9;
-    }
-    button {
-      margin-top:10px;
-      background:#7bb235;
-      border:none;
-      border-radius:8px;
-      color:white;
-      padding:8px 16px;
-      font-size:1em;
-      cursor:pointer;
-    }
+    @keyframes pastelAnim {0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+    .book {width: 90%;max-width: 1100px;height: 85vh;background: #fdfbf7;
+      box-shadow: 0 0 30px rgba(0,0,0,0.2);border-radius: 10px;display: flex;
+      overflow: hidden;margin: 20px auto;}
+    .page {width: 50%;padding: 30px;overflow-y: auto;}
+    .left {border-right: 2px solid #d4c5a5; background: #fffef9;}
+    .right {background: #fffef9;}
+    h2 {margin-top:0; color:#7bb235;}
+    .vraag {margin-bottom: 18px;padding: 10px;border: 1px dashed #ccc;
+      border-radius: 8px;background: #fffdf5;}
+    .antwoord {display: block;margin-left: 15px;cursor:pointer;}
+    .juist { color: green; font-weight: bold;}
+    .fout { color: red; font-weight: bold;}
+    textarea {width: 100%;min-height: 100px;border-radius: 10px;
+      border: 1.5px solid #ccc;padding: 10px;font-family: 'Patrick Hand', cursive;
+      font-size: 1em;resize: vertical;background: #fdfdf9;}
+    button {margin-top:10px;background:#7bb235;border:none;border-radius:8px;
+      color:white;padding:8px 16px;font-size:1em;cursor:pointer;}
   </style>
 
   <!-- Firebase -->
@@ -134,15 +89,16 @@
 
     let huidigeVragen = [];
     let eersteKeerNakijken = true;
+    let huidigeDag = "dag001";
 
     async function loadDagboek(dagId) {
+      huidigeDag = dagId;
       const ref = db.collection("VlaamsOrthodoxekinderdagboek").doc(dagId);
       const snap = await ref.get();
       if (snap.exists) {
         const data = snap.data();
         document.getElementById("titel").textContent = data.titel || "Bijbelverhaal";
         document.getElementById("verhaal").textContent = data.tekst || "";
-
         const vragenDiv = document.getElementById("vragen");
         vragenDiv.innerHTML = "";
         huidigeVragen = data.vragen || [];
@@ -150,50 +106,42 @@
         huidigeVragen.forEach((v, idx) => {
           const blok = document.createElement("div");
           blok.className = "vraag";
-
           const vraagTekst = document.createElement("p");
           vraagTekst.textContent = v.vraag || `Vraag ${idx+1}`;
           blok.appendChild(vraagTekst);
-
           if (Array.isArray(v.opties)) {
             v.opties.forEach(optie => {
               const label = document.createElement("label");
               label.className = "antwoord";
               const radio = document.createElement("input");
-              radio.type = "radio";
-              radio.name = "vraag"+idx;
-              radio.value = optie;
+              radio.type = "radio";radio.name = "vraag"+idx;radio.value = optie;
               label.appendChild(radio);
               label.appendChild(document.createTextNode(" " + optie));
               blok.appendChild(label);
             });
           }
-
           vragenDiv.appendChild(blok);
         });
       }
     }
 
     async function nakijken() {
-      let score = 0;
-      let fouten = 0;
+      let score = 0, fouten = 0;
+      let antwoordenKind = [];
 
       huidigeVragen.forEach((v, idx) => {
         const gekozen = document.querySelector(`input[name="vraag${idx}"]:checked`);
-        const opties = document.querySelectorAll(`input[name="vraag${idx}"]`);
-        opties.forEach(r => {
+        antwoordenKind.push(gekozen ? gekozen.value : null);
+
+        document.querySelectorAll(`input[name="vraag${idx}"]`).forEach(r => {
           const lbl = r.parentElement;
           lbl.classList.remove("juist","fout");
-          if (eersteKeerNakijken) return; // eerste ronde nog geen kleuren
-          if (r.value === v.correct) lbl.classList.add("juist");
+          if (gekozen && r.value === v.correct) lbl.classList.add("juist");
           if (gekozen && r === gekozen && gekozen.value !== v.correct) lbl.classList.add("fout");
         });
 
-        if (gekozen && gekozen.value === v.correct) {
-          score += 10;
-        } else if (!eersteKeerNakijken) {
-          fouten++;
-        }
+        if (gekozen && gekozen.value === v.correct) score += 10;
+        else fouten++;
       });
 
       if (eersteKeerNakijken && fouten > 0) {
@@ -202,25 +150,36 @@
         return;
       }
 
-      // tweede klik → definitief
       huidigeVragen.forEach((v, idx) => {
         document.querySelectorAll(`input[name="vraag${idx}"]`).forEach(r => r.disabled = true);
       });
 
-      if (score > 0) {
-        alert("Goed gedaan! +" + score + " punten 🎉");
-      } else {
-        alert("Geen juiste antwoorden dit keer. Probeer de volgende keer opnieuw!");
-      }
+      if (score > 0) alert("Goed gedaan! +" + score + " punten 🎉");
+      else alert("Geen juiste antwoorden dit keer. Probeer opnieuw!");
 
       const parochieId = localStorage.getItem("ingelogdeParochie");
       const ouderLogin = localStorage.getItem("loginKeuze");
       const kindId     = localStorage.getItem("ingelogdKindId");
       if (parochieId && ouderLogin && kindId) {
-        const ref = db.collection("parochies").doc(parochieId)
+        // Dagboek info opslaan
+        const dagRef = db.collection("parochies").doc(parochieId)
+                      .collection("leden").doc(ouderLogin)
+                      .collection("kinderen").doc(kindId)
+                      .collection("dagboek").doc(huidigeDag);
+        await dagRef.set({
+          antwoorden: antwoordenKind,
+          score: score,
+          voltooid: true,
+          timestamp: new Date()
+        }, { merge:true });
+
+        // Totaalpunten bij kind optellen
+        const kindRef = db.collection("parochies").doc(parochieId)
                       .collection("leden").doc(ouderLogin)
                       .collection("kinderen").doc(kindId);
-        await ref.set({ punten: firebase.firestore.FieldValue.increment(score) }, { merge:true });
+        await kindRef.set({
+          punten: firebase.firestore.FieldValue.increment(score)
+        }, { merge:true });
       }
       document.getElementById("nakijkBtn").disabled = true;
     }
@@ -232,13 +191,22 @@
       const ouderLogin = localStorage.getItem("loginKeuze");
       const kindId     = localStorage.getItem("ingelogdKindId");
       if (parochieId && ouderLogin && kindId) {
-        const ref = db.collection("parochies").doc(parochieId)
+        const dagRef = db.collection("parochies").doc(parochieId)
+                      .collection("leden").doc(ouderLogin)
+                      .collection("kinderen").doc(kindId)
+                      .collection("dagboek").doc(huidigeDag);
+        await dagRef.set({
+          reflectie: tekst,
+          timestamp: new Date()
+        }, { merge:true });
+
+        const kindRef = db.collection("parochies").doc(parochieId)
                       .collection("leden").doc(ouderLogin)
                       .collection("kinderen").doc(kindId);
-        await ref.set({
-          punten: firebase.firestore.FieldValue.increment(20),
-          laatsteReflectie: tekst
+        await kindRef.set({
+          punten: firebase.firestore.FieldValue.increment(20)
         }, { merge:true });
+
         alert("Reflectie opgeslagen! +20 punten 🌟");
         document.getElementById("reflectie").value = "";
       }
