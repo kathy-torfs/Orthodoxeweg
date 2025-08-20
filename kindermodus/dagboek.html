@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
@@ -124,15 +124,31 @@
     let huidigeVragen=[]; 
     let eersteKeerNakijken=true;
     let huidigeDag=1;
+    let kindStatus=null;
 
     function formatDag(nr){ return "dag"+nr.toString().padStart(3,"0"); }
 
     async function loadDagboek(dagNr){
       huidigeDag=dagNr; eersteKeerNakijken=true;
       document.getElementById("nakijkBtn").disabled=false;
+      document.getElementById("reflectie").value="";
 
       const ref=db.collection("VlaamsOrthodoxekinderdagboek").doc(formatDag(dagNr));
       const snap=await ref.get();
+      const parochieId=localStorage.getItem("ingelogdeParochie");
+      const ouderLogin=localStorage.getItem("loginKeuze");
+      const kindId=localStorage.getItem("ingelogdKindId");
+
+      kindStatus=null;
+      if(parochieId&&ouderLogin&&kindId){
+        const dagRef=db.collection("parochies").doc(parochieId)
+                       .collection("leden").doc(ouderLogin)
+                       .collection("kinderen").doc(kindId)
+                       .collection("dagboek").doc(formatDag(huidigeDag));
+        const statSnap=await dagRef.get();
+        if(statSnap.exists) kindStatus=statSnap.data();
+      }
+
       if(snap.exists){
         const data=snap.data();
         document.getElementById("titel").textContent=data.titel||"Bijbelverhaal";
@@ -145,6 +161,7 @@
           const vraagTekst=document.createElement("p");
           vraagTekst.textContent=v.vraag||`Vraag ${idx+1}`;
           blok.appendChild(vraagTekst);
+
           if(Array.isArray(v.opties)){
             v.opties.forEach(optie=>{
               const label=document.createElement("label");
@@ -158,6 +175,27 @@
           }
           vragenDiv.appendChild(blok);
         });
+
+        // als al voltooid → invullen en blokkeren
+        if(kindStatus && kindStatus.voltooid){
+          huidigeVragen.forEach((v,idx)=>{
+            const gegeven=kindStatus.antwoorden?kindStatus.antwoorden[idx]:null;
+            document.querySelectorAll(`input[name="vraag${idx}"]`).forEach(r=>{
+              if(r.value===gegeven) r.checked=true;
+              r.disabled=true;
+              if(r.checked){
+                if(r.value===v.correct) r.parentElement.classList.add("juist");
+                else r.parentElement.classList.add("fout");
+              }
+            });
+          });
+          document.getElementById("nakijkBtn").disabled=true;
+        }
+
+        // reflectie invullen
+        if(kindStatus && kindStatus.reflectie){
+          document.getElementById("reflectie").value=kindStatus.reflectie;
+        }
       } else {
         document.getElementById("titel").textContent="Geen inhoud";
         document.getElementById("verhaal").innerHTML="Voor deze dag is nog geen verhaal beschikbaar.";
@@ -166,6 +204,11 @@
     }
 
     async function nakijken(){
+      if(kindStatus && kindStatus.voltooid){
+        alert("Deze dag is al nagekeken ✅");
+        return;
+      }
+
       let score=0,fouten=0; let antwoordenKind=[];
       huidigeVragen.forEach((v,idx)=>{
         const gekozen=document.querySelector(`input[name="vraag${idx}"]:checked`);
@@ -216,6 +259,7 @@
       }
 
       document.getElementById("nakijkBtn").disabled=true;
+      kindStatus={voltooid:true,antwoorden:antwoordenKind,score:score};
     }
 
     async function saveReflectie(){
@@ -229,9 +273,6 @@
                       .collection("leden").doc(ouderLogin)
                       .collection("kinderen").doc(kindId)
                       .collection("dagboek").doc(formatDag(huidigeDag));
-        const kindRef=db.collection("parochies").doc(parochieId)
-                      .collection("leden").doc(ouderLogin)
-                      .collection("kinderen").doc(kindId);
         const statSnap=await dagRef.get();
         const eersteKeer=!statSnap.exists||!statSnap.data().reflectiePunten;
         await dagRef.set({
@@ -240,6 +281,9 @@
           reflectiePunten:eersteKeer?true:statSnap.data().reflectiePunten
         },{merge:true});
         if(eersteKeer){
+          const kindRef=db.collection("parochies").doc(parochieId)
+                        .collection("leden").doc(ouderLogin)
+                        .collection("kinderen").doc(kindId);
           await kindRef.set({
             punten:firebase.firestore.FieldValue.increment(20)
           },{merge:true});
@@ -247,7 +291,6 @@
         } else {
           alert("Reflectie aangepast (geen extra punten).");
         }
-        document.getElementById("reflectie").value="";
       }
     }
 
