@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
 
   <style>
-    :root {
+    :root{
       --primair:#7bb235; --donker:#67510C;
       --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
       --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
@@ -33,14 +33,7 @@
           var(--pastel13), var(--pastel14), var(--pastel15), var(--pastel16)
         );
       background-repeat: repeat, no-repeat;
-      background-size: 900px auto, 600% 600%;
-      animation: pastelAnim 60s ease infinite;
-    }
-
-    @keyframes pastelAnim {
-      0%{background-position:0% 50%}
-      50%{background-position:100% 50%}
-      100%{background-position:0% 50%}
+      background-size: 900px auto, cover;
     }
 
     .book {
@@ -94,8 +87,9 @@
   </style>
 
   <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
   <script defer src="common/layout.js"></script>
 </head>
 <body>
@@ -109,131 +103,11 @@
     <div class="page right">
       <h2>Vragen</h2>
       <div id="vragen"></div>
-      <button id="nakijkBtn" onclick="nakijken()">Nakijken</button>
 
       <h2>Mijn Reflectie</h2>
       <textarea id="reflectie" placeholder="Schrijf hier jouw eigen gedachten..."></textarea>
       <button onclick="saveReflectie()">Verstuur reflectie</button>
     </div>
   </div>
-
-  <script>
-    // Firebase init
-    const firebaseConfig = {
-      apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
-      authDomain:"orthodoxeweg.firebaseapp.com",
-      projectId:"orthodoxeweg",
-      storageBucket:"orthodoxeweg.appspot.com",
-      messagingSenderId:"408582263618",
-      appId:"1:408582263618:web:0a20f4bf0704989d3ceedb"
-    };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    let huidigeVragen = [];
-
-    async function loadDagboek(dagId) {
-      const ref = db.collection("VlaamsOrthodoxekinderdagboek").doc(dagId);
-      const snap = await ref.get();
-      if (snap.exists) {
-        const data = snap.data();
-        document.getElementById("titel").textContent = data.titel || "Bijbelverhaal";
-        document.getElementById("verhaal").textContent = data.tekst || "";
-
-        const vragenDiv = document.getElementById("vragen");
-        vragenDiv.innerHTML = "";
-        huidigeVragen = data.vragen || [];
-
-        huidigeVragen.forEach((v, idx) => {
-          const blok = document.createElement("div");
-          blok.className = "vraag";
-
-          const vraagTekst = document.createElement("p");
-          vraagTekst.textContent = v.vraag || `Vraag ${idx+1}`;
-          blok.appendChild(vraagTekst);
-
-          if (Array.isArray(v.opties)) {
-            v.opties.forEach(optie => {
-              const label = document.createElement("label");
-              label.className = "antwoord";
-              const radio = document.createElement("input");
-              radio.type = "radio";
-              radio.name = "vraag"+idx;
-              radio.value = optie;
-              label.appendChild(radio);
-              label.appendChild(document.createTextNode(" " + optie));
-              blok.appendChild(label);
-            });
-          }
-
-          vragenDiv.appendChild(blok);
-        });
-      } else {
-        document.getElementById("verhaal").textContent = "Geen gegevens gevonden.";
-      }
-    }
-
-    async function nakijken() {
-      let score = 0;
-      huidigeVragen.forEach((v, idx) => {
-        const gekozen = document.querySelector(`input[name="vraag${idx}"]:checked`);
-        if (gekozen && gekozen.value === v.correct) {
-          score += 10;
-        }
-        // disable alles na nakijken
-        document.querySelectorAll(`input[name="vraag${idx}"]`).forEach(r => r.disabled = true);
-      });
-
-      if (score > 0) {
-        alert("Goed gedaan! +" + score + " punten 🎉");
-      } else {
-        alert("Geen juiste antwoorden dit keer. Probeer de volgende keer opnieuw!");
-      }
-
-      // update score in Firestore
-      const parochieId = localStorage.getItem("ingelogdeParochie");
-      const ouderLogin = localStorage.getItem("loginKeuze");
-      const kindId     = localStorage.getItem("ingelogdKindId");
-
-      if (parochieId && ouderLogin && kindId) {
-        const ref = db.collection("parochies").doc(parochieId)
-                      .collection("leden").doc(ouderLogin)
-                      .collection("kinderen").doc(kindId);
-        await ref.set({ punten: firebase.firestore.FieldValue.increment(score) }, { merge:true });
-      }
-      document.getElementById("nakijkBtn").disabled = true;
-    }
-
-    async function saveReflectie(){
-      const tekst = document.getElementById("reflectie").value.trim();
-      if (!tekst) return alert("Schrijf eerst iets!");
-      const parochieId = localStorage.getItem("ingelogdeParochie");
-      const ouderLogin = localStorage.getItem("loginKeuze");
-      const kindId     = localStorage.getItem("ingelogdKindId");
-      if (parochieId && ouderLogin && kindId) {
-        const ref = db.collection("parochies").doc(parochieId)
-                      .collection("leden").doc(ouderLogin)
-                      .collection("kinderen").doc(kindId);
-        await ref.set({
-          punten: firebase.firestore.FieldValue.increment(20),
-          laatsteReflectie: tekst
-        }, { merge:true });
-        alert("Reflectie opgeslagen! +20 punten 🌟");
-        document.getElementById("reflectie").value = "";
-      }
-    }
-
-    loadDagboek("dag001");
-
-    // Header + menubalk
-    (function boot(){
-      if (!(window.KinderLayout)) return setTimeout(boot, 120);
-      const el = document.getElementById('kinder-header');
-      window.KinderLayout.mountHeader({
-        rootId: 'kinder-header',
-        headerSrc: el.dataset.headerSrc
-      });
-    })();
-  </script>
 </body>
 </html>
