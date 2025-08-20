@@ -10,23 +10,18 @@
   <style>
     :root {
       --primair:#7bb235; --donker:#67510C;
-      --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
-      --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
-      --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
-      --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
+      --pastel1:#fff6e5;
     }
     body {
       margin:0;
       font-family: 'Patrick Hand', cursive;
       min-height: 100vh;
-      background: var(--pastel4); /* vaste pastel kleur */
-      display: flex;
-      flex-direction: column;
+      background: var(--pastel1);
     }
     .book {
-      width: 90%;
-      max-width: 1100px;
-      height: 85vh;
+      width: 95%;
+      max-width: 1300px;
+      height: 88vh;
       background: #fdfbf7;
       box-shadow: 0 0 30px rgba(0,0,0,0.2);
       border-radius: 10px;
@@ -35,54 +30,35 @@
       margin: 20px auto;
       position: relative;
     }
-    .page {
-      width: 50%;
-      padding: 30px;
-      overflow-y: auto;
-      background: #fffef9;
-    }
-    .left { border-right: 2px solid #d4c5a5; }
-    h2 { margin-top:0; color:#7bb235; }
-    .vraag {
-      margin-bottom: 18px;
-      padding: 10px;
-      border: 1px dashed #ccc;
-      border-radius: 8px;
-      background: #fffdf5;
-    }
-    .antwoord { display: block; margin-left: 15px; cursor:pointer; }
-    .juist { color: green; font-weight: bold; }
-    .fout { color: red; font-weight: bold; }
-    textarea {
-      width: 100%; min-height: 100px; border-radius: 10px;
-      border: 1.5px solid #ccc; padding: 10px;
-      font-family: 'Patrick Hand', cursive;
-      font-size: 1em; resize: vertical;
-      background: #fdfdf9;
-    }
-    button {
-      margin-top:10px; background:#7bb235; border:none;
-      border-radius:8px; color:white;
-      padding:8px 16px; font-size:1em; cursor:pointer;
-    }
+    .page {width: 50%;padding: 30px;overflow-y: auto;}
+    .left {border-right: 2px solid #d4c5a5; background: #fffef9;}
+    .right {background: #fffef9;}
+    h2 {margin-top:0; color:#7bb235;}
+    .vraag {margin-bottom: 18px;padding: 10px;border: 1px dashed #ccc;
+      border-radius: 8px;background: #fffdf5;}
+    .antwoord {display: block;margin-left: 15px;cursor:pointer;}
+    .juist { color: green; font-weight: bold;}
+    .fout { color: red; font-weight: bold;}
+    textarea {width: 100%;min-height: 100px;border-radius: 10px;
+      border: 1.5px solid #ccc;padding: 10px;font-family: 'Patrick Hand', cursive;
+      font-size: 1em;resize: vertical;background: #fdfdf9;}
+    button {margin-top:10px;background:#7bb235;border:none;border-radius:8px;
+      color:white;padding:8px 16px;font-size:1em;cursor:pointer;}
 
-    /* bladerknoppen */
+    /* Navigatieknoppen */
     .navBtn {
       position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      background: rgba(123,178,53,0.8);
-      color: white;
-      border: none;
-      font-size: 1.5em;
-      padding: 12px 16px;
-      border-radius: 50%;
-      cursor: pointer;
-      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      top: 10px;
+      background:#7bb235;
+      border:none;
+      color:white;
+      padding:8px 14px;
+      border-radius:20px;
+      cursor:pointer;
+      font-size:0.9em;
     }
-    .navBtn:hover { background: rgba(103,145,40,0.9); }
-    #prevBtn { left: -50px; }
-    #nextBtn { right: -50px; }
+    .prevBtn { left: 10px; }
+    .nextBtn { right: 10px; }
   </style>
 
   <!-- Firebase -->
@@ -94,7 +70,9 @@
   <div id="kinder-header" data-header-src="common/header.html"></div>
 
   <div class="book">
-    <button id="prevBtn" class="navBtn" onclick="prevDag()">⟨</button>
+    <button class="navBtn prevBtn" onclick="prevDag()">◀ Vorige dag</button>
+    <button class="navBtn nextBtn" onclick="nextDag()">Volgende dag ▶</button>
+
     <div class="page left">
       <h2 id="titel">Titel</h2>
       <p id="verhaal">Laden...</p>
@@ -108,7 +86,6 @@
       <textarea id="reflectie" placeholder="Schrijf hier jouw eigen gedachten..."></textarea>
       <button onclick="saveReflectie()">Verstuur reflectie</button>
     </div>
-    <button id="nextBtn" class="navBtn" onclick="nextDag()">⟩</button>
   </div>
 
   <script>
@@ -125,18 +102,11 @@
 
     let huidigeVragen = [];
     let eersteKeerNakijken = true;
-    let huidigeDag = 1; // numeriek dagnummer
+    let huidigeDag = "dag001";
 
-    function formatDag(nr) {
-      return "dag" + nr.toString().padStart(3,"0");
-    }
-
-    async function loadDagboek(dagNr) {
-      huidigeDag = dagNr;
-      eersteKeerNakijken = true;
-      document.getElementById("nakijkBtn").disabled = false;
-
-      const ref = db.collection("VlaamsOrthodoxekinderdagboek").doc(formatDag(dagNr));
+    async function loadDagboek(dagId) {
+      huidigeDag = dagId;
+      const ref = db.collection("VlaamsOrthodoxekinderdagboek").doc(dagId);
       const snap = await ref.get();
       if (snap.exists) {
         const data = snap.data();
@@ -157,7 +127,7 @@
               const label = document.createElement("label");
               label.className = "antwoord";
               const radio = document.createElement("input");
-              radio.type = "radio"; radio.name = "vraag"+idx; radio.value = optie;
+              radio.type = "radio";radio.name = "vraag"+idx;radio.value = optie;
               label.appendChild(radio);
               label.appendChild(document.createTextNode(" " + optie));
               blok.appendChild(label);
@@ -165,10 +135,6 @@
           }
           vragenDiv.appendChild(blok);
         });
-      } else {
-        document.getElementById("titel").textContent = "Geen inhoud";
-        document.getElementById("verhaal").textContent = "Voor deze dag is nog geen verhaal beschikbaar.";
-        document.getElementById("vragen").innerHTML = "";
       }
     }
 
@@ -193,8 +159,11 @@
         document.querySelectorAll(`input[name="vraag${idx}"]`).forEach(r => {
           r.disabled = true;
           if (r.checked) {
-            if (r.value === v.correct) r.parentElement.classList.add("juist");
-            else r.parentElement.classList.add("fout");
+            if (r.value === v.correct) {
+              r.parentElement.classList.add("juist");
+            } else {
+              r.parentElement.classList.add("fout");
+            }
           }
         });
       });
@@ -209,8 +178,7 @@
         const dagRef = db.collection("parochies").doc(parochieId)
                       .collection("leden").doc(ouderLogin)
                       .collection("kinderen").doc(kindId)
-                      .collection("dagboek").doc(formatDag(huidigeDag));
-
+                      .collection("dagboek").doc(huidigeDag);
         await dagRef.set({
           antwoorden: antwoordenKind,
           score: score,
@@ -221,7 +189,6 @@
         const kindRef = db.collection("parochies").doc(parochieId)
                       .collection("leden").doc(ouderLogin)
                       .collection("kinderen").doc(kindId);
-
         await kindRef.set({
           punten: firebase.firestore.FieldValue.increment(score)
         }, { merge:true });
@@ -240,22 +207,21 @@
         const dagRef = db.collection("parochies").doc(parochieId)
                       .collection("leden").doc(ouderLogin)
                       .collection("kinderen").doc(kindId)
-                      .collection("dagboek").doc(formatDag(huidigeDag));
-
-        const kindRef = db.collection("parochies").doc(parochieId)
-                      .collection("leden").doc(ouderLogin)
-                      .collection("kinderen").doc(kindId);
+                      .collection("dagboek").doc(huidigeDag);
 
         const statSnap = await dagRef.get();
         const eersteKeer = !statSnap.exists || !statSnap.data().reflectiePunten;
 
         await dagRef.set({
           reflectie: tekst,
-          timestamp: new Date(),
-          reflectiePunten: eersteKeer ? true : statSnap.data().reflectiePunten
+          reflectiePunten: true,
+          timestamp: new Date()
         }, { merge:true });
 
         if (eersteKeer) {
+          const kindRef = db.collection("parochies").doc(parochieId)
+                        .collection("leden").doc(ouderLogin)
+                        .collection("kinderen").doc(kindId);
           await kindRef.set({
             punten: firebase.firestore.FieldValue.increment(20)
           }, { merge:true });
@@ -263,19 +229,32 @@
         } else {
           alert("Reflectie aangepast (geen extra punten).");
         }
-
         document.getElementById("reflectie").value = "";
       }
     }
 
-    function prevDag() {
-      if (huidigeDag > 1) loadDagboek(huidigeDag - 1);
+    function dagNummerUitId(dagId) {
+      return parseInt(dagId.replace("dag",""));
     }
-    function nextDag() {
-      loadDagboek(huidigeDag + 1);
+    function maakDagId(nummer) {
+      return "dag" + String(nummer).padStart(3,"0");
+    }
+    async function prevDag() {
+      let nummer = dagNummerUitId(huidigeDag);
+      if (nummer > 1) {
+        nummer--;
+        await loadDagboek(maakDagId(nummer));
+      } else {
+        alert("Dit is de eerste dag van het dagboek.");
+      }
+    }
+    async function nextDag() {
+      let nummer = dagNummerUitId(huidigeDag);
+      nummer++;
+      await loadDagboek(maakDagId(nummer));
     }
 
-    loadDagboek(1);
+    loadDagboek("dag001");
 
     (function boot(){
       if (!(window.KinderLayout)) return setTimeout(boot, 120);
