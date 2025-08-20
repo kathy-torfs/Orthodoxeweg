@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>  
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
@@ -20,14 +20,13 @@
       font-family: 'Patrick Hand', cursive;
       min-height: 100vh;
       background-image: 
-        url("https://kathy-torfs.github.io/Orthodoxeweg/images/wolkjes.png"),
         linear-gradient(135deg,var(--pastel1),var(--pastel2),var(--pastel3),
           var(--pastel4),var(--pastel5),var(--pastel6),
           var(--pastel7),var(--pastel8),var(--pastel9),
           var(--pastel10),var(--pastel11),var(--pastel12),
           var(--pastel13),var(--pastel14),var(--pastel15),var(--pastel16));
-      background-repeat: repeat, no-repeat;
-      background-size: 900px auto, 600% 600%;
+      background-repeat: no-repeat;
+      background-size: 600% 600%;
       background-attachment: fixed;
       animation: pastelAnim 60s ease infinite;
     }
@@ -132,36 +131,38 @@
       huidigeVragen.forEach((v, idx) => {
         const gekozen = document.querySelector(`input[name="vraag${idx}"]:checked`);
         antwoordenKind.push(gekozen ? gekozen.value : null);
-
-        document.querySelectorAll(`input[name="vraag${idx}"]`).forEach(r => {
-          const lbl = r.parentElement;
-          lbl.classList.remove("juist","fout");
-          if (gekozen && r.value === v.correct) lbl.classList.add("juist");
-          if (gekozen && r === gekozen && gekozen.value !== v.correct) lbl.classList.add("fout");
-        });
-
         if (gekozen && gekozen.value === v.correct) score += 10;
         else fouten++;
       });
 
+      // Eerste klik -> enkel waarschuwing
       if (eersteKeerNakijken && fouten > 0) {
-        alert("Kijk je nog eens goed na? 😊");
+        alert("Kijk nog eens goed na? 😊");
         eersteKeerNakijken = false;
         return;
       }
 
+      // Tweede klik -> markeer en lock
       huidigeVragen.forEach((v, idx) => {
-        document.querySelectorAll(`input[name="vraag${idx}"]`).forEach(r => r.disabled = true);
+        document.querySelectorAll(`input[name="vraag${idx}"]`).forEach(r => {
+          r.disabled = true;
+          if (r.checked) {
+            if (r.value === v.correct) {
+              r.parentElement.classList.add("juist");
+            } else {
+              r.parentElement.classList.add("fout");
+            }
+          }
+        });
       });
 
       if (score > 0) alert("Goed gedaan! +" + score + " punten 🎉");
-      else alert("Geen juiste antwoorden dit keer. Probeer opnieuw!");
+      else alert("Dit keer geen juiste antwoorden. Probeer later opnieuw!");
 
       const parochieId = localStorage.getItem("ingelogdeParochie");
       const ouderLogin = localStorage.getItem("loginKeuze");
       const kindId     = localStorage.getItem("ingelogdKindId");
       if (parochieId && ouderLogin && kindId) {
-        // Dagboek info opslaan
         const dagRef = db.collection("parochies").doc(parochieId)
                       .collection("leden").doc(ouderLogin)
                       .collection("kinderen").doc(kindId)
@@ -173,7 +174,6 @@
           timestamp: new Date()
         }, { merge:true });
 
-        // Totaalpunten bij kind optellen
         const kindRef = db.collection("parochies").doc(parochieId)
                       .collection("leden").doc(ouderLogin)
                       .collection("kinderen").doc(kindId);
@@ -181,6 +181,7 @@
           punten: firebase.firestore.FieldValue.increment(score)
         }, { merge:true });
       }
+
       document.getElementById("nakijkBtn").disabled = true;
     }
 
@@ -200,14 +201,18 @@
           timestamp: new Date()
         }, { merge:true });
 
-        const kindRef = db.collection("parochies").doc(parochieId)
-                      .collection("leden").doc(ouderLogin)
-                      .collection("kinderen").doc(kindId);
-        await kindRef.set({
-          punten: firebase.firestore.FieldValue.increment(20)
-        }, { merge:true });
+        // enkel punten bij eerste keer reflectie
+        const statSnap = await dagRef.get();
+        if (!statSnap.exists || !statSnap.data().reflectiePunten) {
+          await kindRef.set({
+            punten: firebase.firestore.FieldValue.increment(20)
+          }, { merge:true });
+          await dagRef.set({ reflectiePunten: true }, { merge:true });
+          alert("Reflectie opgeslagen! +20 punten 🌟");
+        } else {
+          alert("Reflectie aangepast (geen extra punten).");
+        }
 
-        alert("Reflectie opgeslagen! +20 punten 🌟");
         document.getElementById("reflectie").value = "";
       }
     }
