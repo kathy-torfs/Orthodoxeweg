@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Kinderbijbel – Orthodoxe Kinderpagina</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
-
+  
   <!-- Kindvriendelijk lettertype -->
   <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
 
@@ -66,11 +66,6 @@
       font-size:1em;
       cursor:pointer;
     }
-    .nav-buttons {
-      text-align:center;
-      margin:15px;
-    }
-    .nav-buttons button { margin:0 10px; }
   </style>
 
   <!-- Firebase -->
@@ -97,11 +92,6 @@
     </div>
   </div>
 
-  <div class="nav-buttons">
-    <button onclick="prevDag()">◀ Vorige dag</button>
-    <button onclick="nextDag()">Volgende dag ▶</button>
-  </div>
-
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
     import { getFirestore, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
@@ -120,10 +110,8 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    let huidigeDag = 1;
-
-    async function loadDagboek(dagNummer) {
-      const dagId = "dag" + dagNummer.toString().padStart(3, "0");
+    // Voorbeeld: dag001 ophalen
+    async function loadDagboek(dagId) {
       const ref = doc(db, "VlaamsOrthodoxekinderdagboek", dagId);
       const snap = await getDoc(ref);
       if (snap.exists()) {
@@ -142,17 +130,20 @@
             vraagTekst.textContent = v.vraag || `Vraag ${idx+1}`;
             blok.appendChild(vraagTekst);
 
-            if (Array.isArray(v.antwoorden)) {
-              v.antwoorden.forEach((antw) => {
+            if (Array.isArray(v.opties)) {
+              v.opties.forEach((optie) => {
                 const label = document.createElement("label");
                 label.className = "antwoord";
+
                 const radio = document.createElement("input");
                 radio.type = "radio";
                 radio.name = "vraag"+idx;
-                radio.value = antw;
-                radio.onchange = () => checkAntwoord(v.juist, antw); 
+                radio.value = optie;
+
+                radio.onchange = () => checkAntwoord(v.correct, optie);
+
                 label.appendChild(radio);
-                label.appendChild(document.createTextNode(" " + antw));
+                label.appendChild(document.createTextNode(" " + optie));
                 blok.appendChild(label);
               });
             }
@@ -165,10 +156,11 @@
       }
     }
 
-    async function checkAntwoord(juist, gekozen) {
-      const { parochieId, lidId, kindId } = window.KinderLayout.getCurrentKid();
-      if (juist === gekozen) {
-        const ref = doc(db, "parochies", parochieId, "leden", lidId, "kinderen", kindId);
+    async function checkAntwoord(correct, gekozen) {
+      const user = auth.currentUser;
+      if (!user) return alert("Niet ingelogd");
+      if (correct === gekozen) {
+        const ref = doc(db, "leden", user.email);
         await updateDoc(ref, { punten: increment(10) });
         alert("Goed gedaan! +10 punten 🎉");
       } else {
@@ -177,10 +169,11 @@
     }
 
     window.saveReflectie = async function(){
-      const { parochieId, lidId, kindId } = window.KinderLayout.getCurrentKid();
+      const user = auth.currentUser;
+      if (!user) return alert("Niet ingelogd");
       const tekst = document.getElementById("reflectie").value.trim();
       if (!tekst) return alert("Schrijf eerst iets!");
-      const ref = doc(db, "parochies", parochieId, "leden", lidId, "kinderen", kindId);
+      const ref = doc(db, "leden", user.email);
       await updateDoc(ref, {
         punten: increment(20),
         laatsteReflectie: tekst
@@ -189,20 +182,7 @@
       document.getElementById("reflectie").value = "";
     };
 
-    window.prevDag = function() {
-      if (huidigeDag > 1) {
-        huidigeDag--;
-        loadDagboek(huidigeDag);
-      }
-    };
-
-    window.nextDag = function() {
-      huidigeDag++;
-      loadDagboek(huidigeDag);
-    };
-
-    // Start bij dag001
-    loadDagboek(huidigeDag);
+    loadDagboek("dag001");
 
     // Header + menubalk
     (function boot(){
