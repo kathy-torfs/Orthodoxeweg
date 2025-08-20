@@ -4,7 +4,7 @@
   const CONFIG = {
     headerDefaultMountId: "kinder-header",            // <div id="kinder-header"></div> op elke pagina
     headerDefaultSrc: "common/header.html",           // pad vanaf de kindermodus-pagina's
-    loginUrl: "https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/inloggen.html",
+    loginUrl: "https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/inlog.html",
     firebase: {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain: "orthodoxeweg.firebaseapp.com",
