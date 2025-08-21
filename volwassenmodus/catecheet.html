@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Catecheet – Orthodoxe Kinderpagina</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #fffdf5;
+      margin: 0; padding: 0;
+    }
+    header {
+      background: #7bb235;
+      color: white; padding: 14px; font-size: 1.3em; font-weight: bold;
+    }
+    main { max-width: 980px; margin: 20px auto; padding: 0 2vw; }
+    .kind-lijst { display: flex; flex-direction: column; gap: 16px; }
+    .kind-kaart {
+      background: white; border: 1px solid #ddd; border-radius: 12px;
+      padding: 14px; display: flex; align-items: center; gap: 14px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+    .kind-kaart img {
+      width: 60px; height: 60px; border-radius: 50%; object-fit: cover;
+      border: 2px solid #7bb235;
+    }
+    .kind-info { flex: 1; }
+    .kind-naam { font-weight: bold; font-size: 1.2em; margin-bottom: 6px; }
+    .knoppen { display: flex; gap: 10px; }
+    .knoppen button {
+      background: #7bb235; color: white; border: none;
+      padding: 8px 14px; border-radius: 8px;
+      cursor: pointer; font-weight: bold; transition: background 0.2s;
+    }
+    .knoppen button:hover { background: #5e8e29; }
+  </style>
+
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <header>
+    Catecheet – Kinderen van mijn parochie
+  </header>
+
+  <main>
+    <div id="kinderen" class="kind-lijst"></div>
+  </main>
+
+  <script>
+    // 🔹 Firebase init
+    if (!firebase.apps.length) {
+      firebase.initializeApp({
+        apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+        authDomain:"orthodoxeweg.firebaseapp.com",
+        projectId:"orthodoxeweg",
+      });
+    }
+    const db = firebase.firestore();
+
+    // 🔹 Ophalen kinderen (voorbeeld: parochie = testparochie)
+    const parochieId = "testparochie";  // later dynamisch maken
+    const ouderLogin = "demo@ouder.be"; // catecheet kan alle leden zien
+
+    async function laadKinderen() {
+      const container = document.getElementById("kinderen");
+      container.innerHTML = "Laden…";
+
+      try {
+        const ledenSnap = await db.collection("parochies").doc(parochieId).collection("leden").get();
+        container.innerHTML = "";
+
+        ledenSnap.forEach(lidDoc => {
+          lidDoc.ref.collection("kinderen").get().then(kindSnap => {
+            kindSnap.forEach(kindDoc => {
+              const k = kindDoc.data();
+              const kaart = document.createElement("div");
+              kaart.className = "kind-kaart";
+              kaart.innerHTML = `
+                <img src="${k.avatar || 'https://kathy-torfs.github.io/Orthodoxeweg/images/sterretje.png'}" alt="avatar">
+                <div class="kind-info">
+                  <div class="kind-naam">${k.voornaam || 'Naamloos kind'}</div>
+                </div>
+                <div class="knoppen">
+                  <button onclick="geefWachtwoord('${lidDoc.id}','${kindDoc.id}')">Wachtwoord</button>
+                  <button onclick="lesSchrijven('${lidDoc.id}','${kindDoc.id}')">Les</button>
+                  <button onclick="dagboek('${lidDoc.id}','${kindDoc.id}')">Dagboek</button>
+                </div>
+              `;
+              container.appendChild(kaart);
+            });
+          });
+        });
+      } catch (e) {
+        container.innerHTML = "Fout bij laden kinderen.";
+        console.error(e);
+      }
+    }
+
+    // 🔹 Knoppen-acties
+    function geefWachtwoord(lidId, kindId) {
+      const code = prompt("Geef logincode (bv. 1234):");
+      if (!code) return;
+      db.collection("parochies").doc(parochieId).collection("leden").doc(lidId)
+        .collection("kinderen").doc(kindId)
+        .update({ logincode: code })
+        .then(() => alert("Logincode ingesteld!"))
+        .catch(e => alert("Fout: " + e.message));
+    }
+
+    function lesSchrijven(lidId, kindId) {
+      const les = prompt("Schrijf een korte les/opdracht:");
+      if (!les) return;
+      db.collection("parochies").doc(parochieId).collection("leden").doc(lidId)
+        .collection("kinderen").doc(kindId)
+        .collection("catechese").add({
+          tekst: les,
+          datum: new Date()
+        })
+        .then(() => alert("Les opgeslagen!"))
+        .catch(e => alert("Fout: " + e.message));
+    }
+
+    function dagboek(lidId, kindId) {
+      alert("Dagboekfunctie komt later 👍");
+    }
+
+    laadKinderen();
+  </script>
+</body>
+</html>
