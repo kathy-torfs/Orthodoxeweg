@@ -1,90 +1,322 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Startpagina – Priestermodus</title>
-  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Orthodoxeweg - Dagkalender</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
+
+  <!-- ==== FIREBASE ==== -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb",
+      measurementId: "G-C942F2NYQV"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
+
   <style>
-    body {
-      margin: 0;
-      background: #fff6e5;
-      font-family: Arial, sans-serif;
-      color: #333;
-    }
+    :root{
+      --boek-bg-left:  linear-gradient(110deg, #ede4ca 90%, #fff7e2 100%);
+      --boek-bg-right: linear-gradient(-110deg, #fff9e1 90%, #ede4ca 100%);
+      --boek-line: #c6b187;
+      --boek-edge: #ceb27d;
+      --boek-shadow: #a88b5488;
+      --text-main:#6f4e1a;
 
-    /* Boek-stijl */
-    .boek-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 40px 20px;
+      --fade-duration: 320ms;
+      --fade-ease: cubic-bezier(.22,.61,.36,1);
     }
+    *{box-sizing:border-box}
+    body { background:#f5e9b8; color:var(--text-main); font-family:Arial,sans-serif; margin:0; }
 
+    /* Crossfade helper */
+    .fadeable{ opacity:1; transition: opacity var(--fade-duration) var(--fade-ease); }
+    .is-fading{ opacity:0; }
+
+    /* Taalkeuze */
+    .taalkeuze { text-align:center; margin: 18px 0 10px; }
+    .taalkeuze button{
+      background:#eee3c6; color:#6f4e1a; border:1.5px solid #b29467; border-radius:6px;
+      padding:7px 20px; font-size:1em; font-weight:bold; cursor:pointer; margin:0 6px;
+      transition:background .2s, transform .05s;
+    }
+    .taalkeuze button:active{ transform: translateY(1px) }
+    .taalkeuze button.selected{ background:#d3b87c; color:#3a2c17; border:2px solid #85652a; }
+
+    /* “Boek” (zonder flip, gewoon 2 panelen) */
+    .boek-wrapper { width: 960px; max-width: 99vw; margin: 0 auto 32px; padding: 0 1vw; }
     .boek {
       position: relative;
-      width: 90%;
-      max-width: 1000px;
-      aspect-ratio: 2 / 1.4;
-      background: #fdfaf3;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-      border-radius: 12px;
-      padding: 40px;
-      overflow-y: auto;
-      line-height: 1.6;
+      width: 940px; max-width: 100%; min-height: 590px;
+      margin: 0 auto;
+      border: 3px solid var(--boek-edge);
+      border-radius: 24px;
+      box-shadow: 0 8px 40px var(--boek-shadow);
+      background: linear-gradient(90deg, #ede4ca 48%, #fff9e1 52%);
+      display: flex; align-items: stretch;
     }
 
-    .boek h2 {
-      text-align: center;
-      color: #67510C;
-      margin-bottom: 20px;
+    .pagina {
+      position: relative;
+      flex: 0 0 50%;
+      min-height: 510px;
+      padding: 44px 28px 38px 28px;
+      font-size: 1.15em;
+    }
+    .links {
+      border-right: 2px dashed var(--boek-line);
+      background: var(--boek-bg-left);
+      box-shadow: 2px 0 12px #d2bc908a inset;
+    }
+    .rechts {
+      background: var(--boek-bg-right);
+      box-shadow: -2px 0 12px #e5dab58a inset;
     }
 
-    .boek p {
-      margin-bottom: 1em;
+    /* Navigatieknoppen */
+    .hoek-linksonder, .hoek-rechtsonder {
+      width: 52px; height: 44px; position: absolute; bottom: 2px; z-index: 2;
+      opacity: .34; cursor: pointer; transition: opacity .2s, color .2s; font-size: 2.7em; color: #9c834a;
+      background: none; border: none; display: flex; align-items: flex-end; justify-content: flex-start; user-select: none; font-family: Georgia, serif;
+    }
+    .hoek-linksonder { left: 2px; }
+    .hoek-rechtsonder { right: 2px; }
+    .hoek-linksonder:hover, .hoek-rechtsonder:hover { opacity: .8; color: #caa146; }
+    .hoek-btn-disabled{ opacity:.25 !important; cursor:not-allowed !important; }
+
+    /* Linkerpagina (grote icoon + verhaal) */
+    .heilige-naam { font-weight: bold; color:#664b1c; text-align:center; margin-bottom:10px; font-size:1.2em; letter-spacing:1px; }
+    .heilige-foto {
+      width: 80%;
+      max-height: 50vh; height: auto; object-fit: contain; display:block;
+      margin: 0 auto 16px; background:#f4e8d5; border-radius:12px;
+      box-shadow:0 1px 8px #d3be9e63; border:1.5px solid #d8caad;
+    }
+    .heilige-levensverhaal {
+      font-size:.98em; line-height:1.38; color:#3a2c17; text-align:left;
+      max-height: calc(100% - 16px - 2em - 50vh);
+      overflow:auto; padding-right:6px;
     }
 
-    /* Navigatieknoppen in de hoekjes van het boek */
-    .boek .nav-knop {
-      position: absolute;
-      font-size: 2rem;
-      color: #7bb235;
-      cursor: pointer;
-      opacity: 0.7;
-      transition: opacity 0.2s;
-      user-select: none;
+    /* Rechterpagina */
+    .dagkalender-datum { font-family: Georgia, serif; font-size: 2em; margin-bottom: 16px; color: #85652a; letter-spacing: 1px; }
+    .vastenregel-regel { margin: 0 0 15px; font-weight: 600; font-size: 1.11em; display:flex; align-items:center; gap:12px; }
+    .vastenregel-symbool { font-size: 1.65em; margin-left:7px; vertical-align: middle; }
+    .heiligenrij { margin-bottom: 15px; color: #725721; font-size: 1.08em; font-weight: 600; }
+    .lezingblok { margin-bottom: 13px; color:#444; background:#f7f1de; border-radius: 8px; padding:9px 16px; box-shadow: 0 2px 7px #e1d5ae29 inset; font-size:1.04em; }
+    .lezingblok:last-of-type { margin-bottom: 22px; }
+    .tip-blok {
+      position:absolute; left:30px; right:30px; bottom:30px; background:#f7ecd1; border-radius:10px; padding:13px 22px;
+      font-size: 1.05em; color:#a78225; text-align:center; font-style: italic; box-shadow: 0 2px 10px #d8c48c22;
     }
-    .boek .nav-knop:hover {
-      opacity: 1;
+
+    /* Responsief */
+    @media (max-width:900px){
+      .boek { flex-direction: column; }
+      .pagina{ flex: 1 1 auto; min-height: 240px; padding: 24px 7vw 32px; }
+      .tip-blok{ left:12vw; right:12vw; bottom:16px; }
+      .heilige-foto{ max-height: 38vh; width: 88%; }
     }
-    .boek .vorige { left: 10px; bottom: 10px; }
-    .boek .volgende { right: 10px; top: 10px; }
+    @media (max-width:650px){
+      .pagina{ font-size: .95em; padding: 12px 3vw 16px; }
+      .tip-blok{ left:4vw; right:4vw; font-size: .98em; }
+    }
   </style>
 </head>
 <body>
-  <!-- Hier wordt header.html automatisch ingeladen -->
-  <div id="priester-header"></div>
+  <!-- Topbar + menubalk via layout.js -->
 
-  <main>
-    <div class="boek-container">
-      <div class="boek">
-        <h2>📖 Dagboekpagina</h2>
-        <p>
-          Dit is de startpagina voor de priestermodus.  
-          Hier wordt de inhoud van het dagboek of catechese van vandaag getoond.
-        </p>
-        <p>
-          U kan hier ook verder bladeren naar de vorige of volgende dag.
-        </p>
+  <!-- ==== TAALKEUZE ==== -->
+  <div class="taalkeuze">
+    <button id="btn-vlaams" class="selected">🇧🇪 Vlaams</button>
+    <button id="btn-engels">🇬🇧 English</button>
+    <button id="btn-grieks">🇬🇷 Ελληνικά</button>
+  </div>
 
-        <!-- Knoppen -->
-        <span class="nav-knop vorige" onclick="alert('Vorige dag')">⬅</span>
-        <span class="nav-knop volgende" onclick="alert('Volgende dag')">➡</span>
+  <!-- ==== “BOEK” ==== -->
+  <div class="boek-wrapper">
+    <div class="boek" id="boek">
+      <!-- Navigatie -->
+      <button class="hoek-linksonder" id="vorigeDag" title="Vorige dag" aria-label="Vorige dag">&lt;</button>
+      <button class="hoek-rechtsonder" id="volgendeDag" title="Volgende dag" aria-label="Volgende dag">&gt;</button>
+
+      <!-- Linkerpaneel -->
+      <div class="pagina links">
+        <div id="heilige-inhoud" class="fadeable">
+          <div style="color:#a6a5a4;text-align:center;">Bezig met laden...</div>
+        </div>
+      </div>
+
+      <!-- Rechterpaneel -->
+      <div class="pagina rechts" id="boek-rechts">
+        <div id="dagkalender-inhoud" class="fadeable">
+          <div style="color:#a6a5a4;text-align:center;">Bezig met laden...</div>
+        </div>
+        <div class="tip-blok fadeable" id="dagkalender-tip"></div>
       </div>
     </div>
-  </main>
+  </div>
 
-  <!-- Layout script dat header inlaadt en beveiliging regelt -->
+  <!-- ==== SCRIPT DAGKALENDER ==== -->
+  <script>
+    /* Helpers */
+    const pad = n => (n<10 ? '0'+n : ''+n);
+    const heiligeEl = document.getElementById('heilige-inhoud');
+    const dagEl     = document.getElementById('dagkalender-inhoud');
+    const tipEl     = document.getElementById('dagkalender-tip');
+    const btnPrev   = document.getElementById('vorigeDag');
+    const btnNext   = document.getElementById('volgendeDag');
+
+    function ids(d){
+      const y=d.getFullYear(), m=pad(d.getMonth()+1), dd=pad(d.getDate());
+      return { kalenderId:`${y}${m}${dd}`, feestdag:`${dd}-${m}`, datumTekst:`${dd}-${m}-${y}` };
+    }
+    function toggleButtons(disabled){
+      [btnPrev, btnNext].forEach(b=>{
+        b.disabled = disabled;
+        b.classList.toggle('hoek-btn-disabled', disabled);
+      });
+    }
+    function fadeOutAll(){
+      heiligeEl.classList.add('is-fading');
+      dagEl.classList.add('is-fading');
+      tipEl.classList.add('is-fading');
+    }
+    function fadeInAll(){
+      heiligeEl.classList.remove('is-fading');
+      dagEl.classList.remove('is-fading');
+      tipEl.classList.remove('is-fading');
+    }
+
+    async function bouwHTMLVoorDatum(datum, taal){
+      const { kalenderId, feestdag, datumTekst } = ids(datum);
+      let leftHTML = `<div style="color:#a6a5a4;text-align:center;">Bezig met laden...</div>`;
+      let rightMain = `<div style="color:#a6a5a4;text-align:center;">Bezig met laden...</div>`;
+      let rightTip  = ``;
+
+      const pHeilige = db.collection("heiligen").where("feestdag","==",feestdag).get().then(snap=>{
+        if (snap.empty){
+          leftHTML = `
+            <div style="color:#b8b7b4;text-align:center;margin-top:22px;font-size:1.15em">
+              <br>Geen heilige van de dag gevonden.<br>
+              <div style="font-size:4em;text-align:center;margin-top:16px;">✝️</div>
+            </div>`;
+          return;
+        }
+        const data = snap.docs[Math.floor(Math.random()*snap.docs.length)].data();
+        const fotoUrl = data.icoon || data.foto_url || "https://upload.wikimedia.org/wikipedia/commons/1/12/Orthodox_Cross.svg";
+        let naam="", levensverhaal="";
+        if (taal==="engels"){ naam=data.naam_en||""; levensverhaal=data.levensverhaal_en||""; }
+        else if (taal==="grieks"){ naam=data.naam_el||""; levensverhaal=data.levensverhaal_el||""; }
+        else { naam=data.naam_nl||data.naam||data.id||"Heilige"; levensverhaal=data.levensverhaal_nl||data.levensverhaal_volwassenen||""; }
+        if (!naam) naam = "Nog geen vertaling beschikbaar.";
+        if (!levensverhaal) levensverhaal = "Nog geen vertaling beschikbaar.";
+        leftHTML = `
+          <div class="heilige-naam">${naam}</div>
+          <img src="${fotoUrl}" class="heilige-foto" alt="Heilige icoon">
+          <div class="heilige-levensverhaal">${levensverhaal}</div>`;
+      });
+
+      const pKal = db.collection("kalender2025").doc(kalenderId).get().then(doc=>{
+        if (!doc.exists){
+          rightMain = `<div style="color:#b8b7b4;text-align:center;margin-top:60px;font-size:1.1em">Geen kalenderinfo gevonden.</div>`;
+          rightTip = "";
+          return;
+        }
+        const data = doc.data();
+
+        let vasten = data[`Vastenregel NL`] || "";
+        if (taal==="engels") vasten = data[`Vastenregel EN`] || (vasten ? "Fasting Free" : "");
+        if (taal==="grieks") vasten = data[`Vastenregel EL`] || (vasten ? "Νηστεία ελεύθερη" : "");
+        if (!vasten){
+          if (taal==="vlaams") vasten="Vastenvrij";
+          else if (taal==="engels") vasten="Fasting Free";
+          else vasten="Νηστεία ελεύθερη";
+        }
+        const symb = data["Symbool"] || "";
+        let vastenRegelBlok = `<span>${vasten}</span>`;
+        if (symb) vastenRegelBlok += `<span class="vastenregel-symbool">${symb}</span>`;
+
+        let heiligen = "";
+        if (taal==="vlaams") heiligen = data[`Heiligen NL`] || "";
+        else if (taal==="engels") heiligen = data[`Heiligen EN`] || "No translation available yet.";
+        else heiligen = data[`Heiligen EL`] || "Δεν υπάρχει ακόμη μετάφραση.";
+
+        let ep="", ev="";
+        if (taal==="vlaams"){ ep=data[`Epistel Ref NL`]||"Nog geen vertaling beschikbaar."; ev=data[`Evangelie Ref NL`]||"Nog geen vertaling beschikbaar."; }
+        else if (taal==="engels"){ ep=data[`Epistel Ref EN`]||"No translation available yet."; ev=data[`Evangelie Ref EN`]||"No translation available yet."; }
+        else { ep=data[`Epistel Ref EL`]||"Δεν υπάρχει ακόμη μετάφραση."; ev=data[`Evangelie Ref EL`]||"Δεν υπάρχει ακόμη μετάφραση."; }
+
+        let epL="Apostellezing", evL="Evangelielezing";
+        if (taal==="engels"){ epL="Epistle Reading"; evL="Gospel Reading"; }
+        if (taal==="grieks"){ epL="Απόστολος"; evL="Ευαγγέλιο"; }
+
+        const tip = (taal==="vlaams") ? (data[`Tip/Wens NL`]||"")
+                 : (taal==="engels") ? (data[`Tip/Wens EN`]||"")
+                 : (data[`Tip/Wens EL`]||"");
+
+        rightMain = `
+          <div class="dagkalender-datum">${ids(new Date(datum)).datumTekst}</div>
+          <div class="vastenregel-regel">${vastenRegelBlok}</div>
+          <div class="heiligenrij">${heiligen}</div>
+          <div class="lezingblok"><b>${epL}:</b> ${ep}</div>
+          <div class="lezingblok"><b>${evL}:</b> ${ev}</div>`;
+        rightTip = tip || "";
+      });
+
+      await Promise.all([pHeilige, pKal]);
+      return { leftHTML, rightMain, rightTip };
+    }
+
+    /* State */
+    let huidigeTaal = "vlaams";
+    let actieveDatum = new Date();
+    let isBusy = false;
+
+    // taal
+    document.getElementById("btn-vlaams").onclick = () => { huidigeTaal="vlaams"; setTaal(); };
+    document.getElementById("btn-engels").onclick = () => { huidigeTaal="engels"; setTaal(); };
+    document.getElementById("btn-grieks").onclick = () => { huidigeTaal="grieks"; setTaal(); };
+    function setTaal(){
+      document.querySelectorAll('.taalkeuze button').forEach(b=>b.classList.remove('selected'));
+      document.getElementById("btn-vlaams").classList.toggle('selected', huidigeTaal === "vlaams");
+      document.getElementById("btn-engels").classList.toggle('selected', huidigeTaal === "engels");
+      document.getElementById("btn-grieks").classList.toggle('selected', huidigeTaal === "grieks");
+      toonDag(actieveDatum, true);
+    }
+
+    // navigatie
+    btnPrev.onclick = () => { if(isBusy) return; actieveDatum.setDate(actieveDatum.getDate()-1); toonDag(actieveDatum); };
+    btnNext.onclick = () => { if(isBusy) return; actieveDatum.setDate(actieveDatum.getDate()+1); toonDag(actieveDatum); };
+
+    async function toonDag(d, force=false){
+      if(isBusy) return;
+      isBusy = true; toggleButtons(true);
+      fadeOutAll();
+      setTimeout(async ()=>{
+        const htmls = await bouwHTMLVoorDatum(d, huidigeTaal);
+        heiligeEl.innerHTML = htmls.leftHTML;
+        dagEl.innerHTML = htmls.rightMain;
+        tipEl.textContent = htmls.rightTip;
+        fadeInAll(); toggleButtons(false);
+        isBusy = false;
+      }, 300);
+    }
+
+    toonDag(actieveDatum);
+  </script>
+
+  <!-- ==== PRIETER HEADER/LAYOUT ==== -->
+  <div id="priester-header"></div>
   <script src="common/layout.js"></script>
 </body>
 </html>
