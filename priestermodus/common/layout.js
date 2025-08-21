@@ -4,24 +4,17 @@
     headerDefaultSrc: "common/header.html"
   };
 
-  // ---------- Utils ----------
-  function isPriestLoggedIn() {
-    const flag = (localStorage.getItem("priesterIngelogd") || "").toLowerCase();
-    return flag === "true" || flag === "ja" || flag === "1";
-  }
-
   function ensureLoggedInOrRedirect() {
-    if (!isPriestLoggedIn()) {
-      window.location.replace("https://kathy-torfs.github.io/Orthodoxeweg/index.html");
+    if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "priester") {
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
       return false;
     }
     return true;
   }
 
   function setGreeting() {
-    const el = document.getElementById("groet-tekst");
+    const el = document.getElementById("welkom-tekst");
     if (!el) return;
-    const naam = localStorage.getItem("ingelogdePriesterNaam") || "vader";
 
     const uur = new Date().getHours();
     let moment = "goeiedag";
@@ -30,16 +23,18 @@
     else if (uur >= 17 && uur <= 22) moment = "goeienavond";
     else if (uur > 22 || uur < 5) moment = "goedenacht";
 
-    el.textContent = `${moment}, ${naam}!`;
+    const parochie = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
+    el.textContent = `${moment} vader, u bent ingelogd in: ${parochie}`;
   }
 
   function bindLogout() {
-    const btn = document.getElementById("uitlogBtn");
+    const btn = document.getElementById("uitlogKnop");
     if (!btn) return;
     btn.addEventListener("click", () => {
-      localStorage.removeItem("priesterIngelogd");
-      localStorage.removeItem("ingelogdePriesterNaam");
-      window.location.replace("https://kathy-torfs.github.io/Orthodoxeweg/index.html");
+      localStorage.removeItem("ingelogdeParochie");
+      localStorage.removeItem("ingelogdeParochieId");
+      localStorage.removeItem("modus");
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     });
   }
 
@@ -68,7 +63,6 @@
 
   window.PriesterLayout = { mountHeader };
 
-  // Auto-mount als container aanwezig is
   function autoMountIfPresent() {
     const el = document.getElementById(CONFIG.headerDefaultMountId);
     if (!el) return;
