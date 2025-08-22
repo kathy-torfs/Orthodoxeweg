@@ -24,7 +24,7 @@
     else if (uur > 22 || uur < 5) moment = "goedenacht";
 
     const parochie = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
-    el.textContent = `${moment} vader, u bent ingelogd in: ${parochie}`;
+    el.textContent = `${moment} vader, ik wens u een gezegende dag. U bent ingelogd in: ${parochie}`;
   }
 
   function bindLogout() {
