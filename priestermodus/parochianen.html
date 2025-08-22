@@ -4,12 +4,13 @@
   <meta charset="UTF-8">
   <title>Parochianen - Priestermodus</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <style>
     body { font-family: Arial, sans-serif; background: #f8f5e9; margin: 0; }
     h1 { text-align: center; color: #5d4c2f; margin-top: 32px; }
     table { width: 90%; margin: 40px auto; background: #fffef9; border-radius: 18px; box-shadow: 0 6px 32px #d7cbb142; }
     th, td { padding: 12px; text-align: left; border-bottom: 1px solid #f0e4c8; }
-    th { background: #7a5f35; color: #fff; }
+    th { background: #7bb235; color: #fff; }
     select { font-size: 1em; }
     .opslaan { background: #45a745; color: #fff; border: none; border-radius: 5px; padding: 6px 12px; cursor: pointer;}
     .opslaan:hover { background: #358135; }
@@ -17,26 +18,18 @@
     .kindlabel { font-weight: bold; color: #88865a;}
   </style>
 
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
-
-  <!-- Layout.js (zorgt voor header.html + begroeting + logout) -->
-  <script src="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/layout.js" defer></script>
-
-  <script>
-    // PRIESTERTOEGANG
-    if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "priester") {
-      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
-    }
-  </script>
 </head>
 <body>
-  <!-- HEADER WORDT INGEVOEGD DOOR layout.js -->
-  <div id="priester-header"></div>
 
-  <!-- PAGINA-INHOUD -->
+  <!-- ==== HEADER (via layout.js) ==== -->
+  <div id="priester-header"></div>
+  <script src="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/common/layout.js" defer></script>
+  <!-- ==== EINDE HEADER ==== -->
+
   <h1>Ledenlijst</h1>
+
   <table>
     <thead>
       <tr>
@@ -65,22 +58,15 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    let parochieNaam = localStorage.getItem("ingelogdeParochie");
-
-    // Parochie-id bepalen
-    let parochieIdPromise = db.collection("parochies")
-      .where("naam", "==", parochieNaam)
-      .limit(1)
-      .get()
-      .then(snap => snap.empty ? null : snap.docs[0].id);
+    const parochieId = localStorage.getItem("ingelogdeParochie");
+    if (!parochieId) {
+      alert("Geen parochie gevonden in je sessie. Log opnieuw in.");
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    }
 
     async function laadLeden() {
       const tbody = document.getElementById("ledenTabel");
-      const parochieId = await parochieIdPromise;
-      if (!parochieId) {
-        tbody.innerHTML = "<tr><td colspan='5'>Parochie niet gevonden!</td></tr>";
-        return;
-      }
+
       db.collection("parochies").doc(parochieId).collection("leden")
         .get().then(async snapshot => {
           if (snapshot.empty) {
@@ -89,11 +75,14 @@
           }
           let html = "";
           const promises = [];
+
           snapshot.forEach(doc => {
             const d = doc.data();
             const lidId = doc.id;
-            const kindPromise = db.collection("parochies").doc(parochieId).collection("leden").doc(lidId)
-              .collection("kinderen").get().then(kindSnap => {
+
+            const kindPromise = db.collection("parochies").doc(parochieId)
+              .collection("leden").doc(lidId).collection("kinderen").get()
+              .then(kindSnap => {
                 let kindList = "";
                 if (kindSnap.empty) {
                   kindList = "<span class='kindlabel'>Geen</span>";
@@ -105,6 +94,7 @@
                   });
                   kindList += "</ul>";
                 }
+
                 html += `
                   <tr>
                     <td>${d.voornaam} ${d.achternaam}</td>
@@ -116,14 +106,13 @@
                       </select>
                     </td>
                     <td>${kindList}</td>
-                    <td>
-                      <button class="opslaan" onclick="rolOpslaan('${lidId}')">Opslaan</button>
-                    </td>
+                    <td><button class="opslaan" onclick="rolOpslaan('${lidId}')">Opslaan</button></td>
                   </tr>
                 `;
               });
             promises.push(kindPromise);
           });
+
           await Promise.all(promises);
           tbody.innerHTML = html;
         });
@@ -132,14 +121,12 @@
     laadLeden();
 
     async function rolOpslaan(id) {
-      const parochieId = await parochieIdPromise;
       const nieuweRol = document.getElementById("rol-" + id).value;
-      db.collection("parochies").doc(parochieId).collection("leden").doc(id).update({
-        rol: nieuweRol
-      }).then(() => {
-        alert("Rol bijgewerkt!");
-        laadLeden();
-      });
+      db.collection("parochies").doc(parochieId).collection("leden").doc(id)
+        .update({ rol: nieuweRol }).then(() => {
+          alert("Rol bijgewerkt!");
+          laadLeden();
+        });
     }
   </script>
 </body>
