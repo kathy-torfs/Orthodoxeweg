@@ -12,27 +12,6 @@
       margin: 0;
       padding: 0;
     }
-    nav.menu {
-      background-color: #7a5f35;
-      padding: 10px 15px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      justify-content: center;
-    }
-    nav.menu a {
-      color: #f5e9b8;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 16px;
-      padding: 6px 12px;
-      border-radius: 8px;
-      transition: background-color 0.3s;
-    }
-    nav.menu a:hover {
-      background-color: #5d4726;
-      text-decoration: underline;
-    }
     .taalkeuze {
       text-align: center;
       margin: 18px 0 6px 0;
@@ -216,11 +195,11 @@
       .boek .tip-blok { left: 4vw; right: 4vw; font-size:0.98em; }
     }
   </style>
+
   <!-- FIREBASE SCRIPTS EN CONFIG -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <script>
-    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -235,15 +214,11 @@
   </script>
 </head>
 <body>
-<nav class="menu">
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/gastenmodus/startpagina.html">🏠 Home</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/gastenmodus/catechese/catechese.html">📖 Catechese</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/gastenmodus/psalmen/psalmen.html">📜 Psalmen</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/gastenmodus/gebeden/gebeden.html">🙏 Gebeden</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/gastenmodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/index.html"> ✝ start</a>
- </nav>
-  
+
+<!-- HEADER via layout.js -->
+<div id="gasten-header"></div>
+<script src="common/layout.js"></script>
+
 <div class="taalkeuze">
   <button id="btn-vlaams" class="selected">🇧🇪 Vlaams</button>
   <button id="btn-engels">🇬🇧 English</button>
@@ -273,13 +248,10 @@
 </div>
 
 <script>
-  // Taal-setup
-  let huidigeTaal = "vlaams"; // "vlaams", "engels", "grieks"
-
-  // Bijhouden van de actieve dag (initieel: vandaag)
+  // --- originele kalender code (ongewijzigd) ---
+  let huidigeTaal = "vlaams";
   let actieveDatum = new Date();
 
-  // Knoppen om dag te wisselen
   document.getElementById("vorigeDag").onclick = function() {
     actieveDatum.setDate(actieveDatum.getDate() - 1);
     laadAlles();
@@ -289,7 +261,6 @@
     laadAlles();
   }
 
-  // Taalkeuze
   document.getElementById("btn-vlaams").onclick = function() { huidigeTaal = "vlaams"; setTaal(); }
   document.getElementById("btn-engels").onclick = function() { huidigeTaal = "engels"; setTaal(); }
   document.getElementById("btn-grieks").onclick = function() { huidigeTaal = "grieks"; setTaal(); }
@@ -305,16 +276,13 @@
   function pad(n) { return n < 10 ? '0' + n : n; }
 
   function laadAlles() {
-    // Kalenderformaat voor rechts (yyyy-mm-dd)
     const jaar = actieveDatum.getFullYear();
     const maand = pad(actieveDatum.getMonth() + 1);
     const dag = pad(actieveDatum.getDate());
-    const kalenderId = `${jaar}${maand}${dag}`;  // bv 20250613
-    const feestdag = `${dag}-${maand}`;          // bv 13-06
+    const kalenderId = `${jaar}${maand}${dag}`;
+    const feestdag = `${dag}-${maand}`;
 
-    // -------------------------------
-    // LINKS: Heilige van de dag
-    // -------------------------------
+    // --- LINKS ---
     const heiligeContainer = document.getElementById('heilige-inhoud');
     heiligeContainer.innerHTML = '<div style="color:#a6a5a4;text-align:center;">Bezig met laden...</div>';
     db.collection("heiligen").where("feestdag", "==", feestdag).get().then(snapshot => {
@@ -326,35 +294,27 @@
           </div>`;
         return;
       }
-      // Random heilige als er meerdere zijn
       const docs = snapshot.docs;
       const data = docs[Math.floor(Math.random() * docs.length)].data();
-      let naam = "";
-      let levensverhaal = "";
+      let naam = "", levensverhaal = "";
       let fotoUrl = data.icoon || data.foto_url || "https://upload.wikimedia.org/wikipedia/commons/1/12/Orthodox_Cross.svg";
       if (huidigeTaal === "engels") {
-        naam = data.naam_en || "";
-        levensverhaal = data.levensverhaal_en || "";
+        naam = data.naam_en || ""; levensverhaal = data.levensverhaal_en || "";
       } else if (huidigeTaal === "grieks") {
-        naam = data.naam_el || "";
-        levensverhaal = data.levensverhaal_el || "";
+        naam = data.naam_el || ""; levensverhaal = data.levensverhaal_el || "";
       } else {
         naam = data.naam_nl || data.naam || data.id || "Heilige";
         levensverhaal = data.levensverhaal_nl || data.levensverhaal_volwassenen || "";
       }
-      // Geen fallback naar andere talen bij EN of EL
       if (!naam) naam = "Nog geen vertaling beschikbaar.";
       if (!levensverhaal) levensverhaal = "Nog geen vertaling beschikbaar.";
       heiligeContainer.innerHTML = `
         <div class="heilige-naam">${naam}</div>
         <img src="${fotoUrl}" class="heilige-foto" alt="Heilige icoon">
-        <div class="heilige-levensverhaal">${levensverhaal}</div>
-      `;
+        <div class="heilige-levensverhaal">${levensverhaal}</div>`;
     });
 
-    // -------------------------------
-    // RECHTS: Dagkalender
-    // -------------------------------
+    // --- RECHTS ---
     const kalenderContainer = document.getElementById('dagkalender-inhoud');
     const tipBlok = document.getElementById('dagkalender-tip');
     kalenderContainer.innerHTML = '<div style="color:#a6a5a4;text-align:center;">Bezig met laden...</div>';
@@ -366,7 +326,6 @@
         return;
       }
       const data = doc.data();
-      // Vastenregel en symbool
       let vasten = data[`Vastenregel NL`] || "";
       let vastenSymb = data["Symbool"] || "";
       if (huidigeTaal === "engels") vasten = data[`Vastenregel EN`] || (vasten ? "Fasting Free" : "");
@@ -379,16 +338,13 @@
       let vastenRegelBlok = `<span>${vasten}</span>`;
       if (vastenSymb) vastenRegelBlok += `<span class="vastenregel-symbool">${vastenSymb}</span>`;
 
-      // Datum als Vlaams
       let datumTekst = `${dag}-${maand}-${jaar}`;
 
-      // Heiligenrij
       let heiligen = "";
-      if (huidigeTaal === "vlaams")      heiligen = data[`Heiligen NL`] || "";
+      if (huidigeTaal === "vlaams") heiligen = data[`Heiligen NL`] || "";
       else if (huidigeTaal === "engels") heiligen = data[`Heiligen EN`] || "No translation available yet.";
       else if (huidigeTaal === "grieks") heiligen = data[`Heiligen EL`] || "Δεν υπάρχει ακόμη μετάφραση.";
 
-      // Lezingen - GEEN fallback, alleen taal of 'geen vertaling'
       let epistel = "", evangelie = "";
       if (huidigeTaal === "vlaams") {
         epistel = data[`Epistel Ref NL`] || "Nog geen vertaling beschikbaar.";
@@ -400,30 +356,25 @@
         epistel = data[`Epistel Ref EL`] || "Δεν υπάρχει ακόμη μετάφραση.";
         evangelie = data[`Evangelie Ref EL`] || "Δεν υπάρχει ακόμη μετάφραση.";
       }
-      // Benaming veld (in juiste taal)
       let epistelLabel = "Apostellezing", evangelieLabel = "Evangelielezing";
-      if (huidigeTaal === "engels")   { epistelLabel = "Epistle Reading"; evangelieLabel = "Gospel Reading"; }
-      if (huidigeTaal === "grieks")   { epistelLabel = "Απόστολος"; evangelieLabel = "Ευαγγέλιο"; }
+      if (huidigeTaal === "engels") { epistelLabel = "Epistle Reading"; evangelieLabel = "Gospel Reading"; }
+      if (huidigeTaal === "grieks") { epistelLabel = "Απόστολος"; evangelieLabel = "Ευαγγέλιο"; }
 
-      // Tip/Wens
       let tip = "";
-      if (huidigeTaal === "vlaams")      tip = data[`Tip/Wens NL`] || "";
+      if (huidigeTaal === "vlaams") tip = data[`Tip/Wens NL`] || "";
       else if (huidigeTaal === "engels") tip = data[`Tip/Wens EN`] || "";
       else if (huidigeTaal === "grieks") tip = data[`Tip/Wens EL`] || "";
 
-      // HTML opbouwen
       kalenderContainer.innerHTML = `
         <div class="dagkalender-datum">${datumTekst}</div>
         <div class="vastenregel-regel">${vastenRegelBlok}</div>
         <div class="heiligenrij">${heiligen}</div>
         <div class="lezingblok"><b>${epistelLabel}:</b> ${epistel}</div>
-        <div class="lezingblok"><b>${evangelieLabel}:</b> ${evangelie}</div>
-      `;
+        <div class="lezingblok"><b>${evangelieLabel}:</b> ${evangelie}</div>`;
       tipBlok.innerHTML = tip;
     });
   }
 
-  // Initieel laden
   laadAlles();
 </script>
 
