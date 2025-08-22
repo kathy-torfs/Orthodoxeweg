@@ -5,7 +5,7 @@
     headerDefaultSrc: "common/header.html"
   };
 
-  function setGreeting() {
+function setGreeting() {
     const el = document.getElementById("welkom-tekst");
     if (!el) return;
 
