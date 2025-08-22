@@ -13,7 +13,7 @@
       appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
     }
   };
-
+  
   let pointsUnsub = null;
 
   function isKidLoggedIn() {
