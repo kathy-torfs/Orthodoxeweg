@@ -1,9 +1,8 @@
 // common/layout.js
-// Eén centrale helper die de header mount, login controleert en punten live laadt.
 (function () {
   const CONFIG = {
-    headerDefaultMountId: "kinder-header",            // <div id="kinder-header"></div> op elke pagina
-    headerDefaultSrc: "common/header.html",           // pad vanaf de kindermodus-pagina's
+    headerDefaultMountId: "kinder-header",
+    headerDefaultSrc: "common/header.html",
     loginUrl: "https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/inlog.html",
     firebase: {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
@@ -15,32 +14,24 @@
     }
   };
 
-  let pointsUnsub = null; // Firestore unsubscribe
+  let pointsUnsub = null;
 
-  // ---------- Utils ----------
   function isKidLoggedIn() {
-    // accepteer meerdere sleutels/waarden zodat je “ingelogd blijft”
     const flags = [
       localStorage.getItem("kindIngelogd"),
       localStorage.getItem("kind_ingelogd")
     ].map(v => (v || "").toLowerCase());
 
-    const logged =
-      flags.includes("true") ||
-      flags.includes("ja") ||
-      flags.includes("1");
-
-    const mustHave =
-      localStorage.getItem("ingelogdKindId") &&
-      localStorage.getItem("ingelogdeParochie") &&
-      localStorage.getItem("loginKeuze");
+    const logged = flags.includes("true") || flags.includes("ja") || flags.includes("1");
+    const mustHave = localStorage.getItem("ingelogdKindId") &&
+                     localStorage.getItem("ingelogdeParochie") &&
+                     localStorage.getItem("loginKeuze");
 
     return logged && !!mustHave;
   }
 
   function ensureLoggedInOrRedirect() {
     if (!isKidLoggedIn()) {
-      // NIET uitloggen, alleen doorsturen naar login
       window.location.replace(CONFIG.loginUrl);
       return false;
     }
@@ -60,9 +51,7 @@
       };
       add("https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js", () => {
         add("https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js", () => {
-          if (!firebase.apps.length) {
-            firebase.initializeApp(CONFIG.firebase);
-          }
+          if (!firebase.apps.length) firebase.initializeApp(CONFIG.firebase);
           resolve();
         });
       });
@@ -84,15 +73,12 @@
     const btn = document.getElementById("uitlogBtn");
     if (!btn) return;
     btn.addEventListener("click", () => {
-      // enkel bij expliciet uitloggen alles wissen
       localStorage.removeItem("kindIngelogd");
       localStorage.removeItem("kind_ingelogd");
       localStorage.removeItem("ingelogdKindId");
       localStorage.removeItem("ingelogdKindVoornaam");
       localStorage.removeItem("kindAvatarURL");
       localStorage.removeItem("kindPunten");
-
-      // ✅ FIX: stuur altijd terug naar volwassenmodus/parochie.html
       window.location.replace("https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html");
     });
   }
@@ -146,7 +132,6 @@
       return;
     }
 
-    // Laad Firebase (eenmalig) en daarna de header
     await loadFirebaseCompatIfNeeded();
 
     try {
@@ -157,19 +142,16 @@
       return;
     }
 
-    // Zodra de header staat:
     setGreeting();
     bindLogout();
     startLivePoints();
   }
 
-  // Exporteer een kleine API
   window.KinderLayout = {
     mountHeader,
-    refreshPoints: startLivePoints   // handig om na punten-updates te callen
+    refreshPoints: startLivePoints
   };
 
-  // Auto-mount als de standaard container aanwezig is
   function autoMountIfPresent() {
     const el = document.getElementById(CONFIG.headerDefaultMountId);
     if (!el) return;
@@ -183,6 +165,5 @@
     autoMountIfPresent();
   }
 
-  // Opruimen
   window.addEventListener("beforeunload", stopLivePoints);
 })();
