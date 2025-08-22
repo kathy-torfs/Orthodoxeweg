@@ -23,6 +23,7 @@
     const db = firebase.firestore();
   </script>
 
+  <!-- ==== STYLES ==== -->
   <style>
     :root{
       --boek-bg-left:  linear-gradient(110deg, #ede4ca 90%, #fff7e2 100%);
@@ -38,6 +39,9 @@
     *{box-sizing:border-box}
     body { background:#f5e9b8; color:var(--text-main); font-family:Arial,sans-serif; margin:0; }
 
+    /* Scheidingslijnen */
+    .lijn { border-bottom: 2px solid #cbb994; margin:0; }
+
     /* Crossfade helper */
     .fadeable{ opacity:1; transition: opacity var(--fade-duration) var(--fade-ease); }
     .is-fading{ opacity:0; }
@@ -52,7 +56,7 @@
     .taalkeuze button:active{ transform: translateY(1px) }
     .taalkeuze button.selected{ background:#d3b87c; color:#3a2c17; border:2px solid #85652a; }
 
-    /* “Boek” (zonder flip, gewoon 2 panelen) */
+    /* “Boek” */
     .boek-wrapper { width: 960px; max-width: 99vw; margin: 0 auto 32px; padding: 0 1vw; }
     .boek {
       position: relative;
@@ -93,7 +97,7 @@
     .hoek-linksonder:hover, .hoek-rechtsonder:hover { opacity: .8; color: #caa146; }
     .hoek-btn-disabled{ opacity:.25 !important; cursor:not-allowed !important; }
 
-    /* Linkerpagina (grote icoon + verhaal) */
+    /* Linkerpagina */
     .heilige-naam { font-weight: bold; color:#664b1c; text-align:center; margin-bottom:10px; font-size:1.2em; letter-spacing:1px; }
     .heilige-foto {
       width: 80%;
@@ -133,16 +137,22 @@
   </style>
 </head>
 <body>
-  <!-- Topbar + menubalk via layout.js -->
+  <!-- ==== BEGIN PRIETER HEADER/LAYOUT ==== -->
+  <div id="priester-header"></div>
+  <hr class="lijn" />
+  <script src="common/layout.js"></script>
+  <!-- ==== EINDE PRIETER HEADER/LAYOUT ==== -->
 
-  <!-- ==== TAALKEUZE ==== -->
+  <!-- ==== BEGIN TAALKEUZE ==== -->
   <div class="taalkeuze">
     <button id="btn-vlaams" class="selected">🇧🇪 Vlaams</button>
     <button id="btn-engels">🇬🇧 English</button>
     <button id="btn-grieks">🇬🇷 Ελληνικά</button>
   </div>
+  <hr class="lijn" />
+  <!-- ==== EINDE TAALKEUZE ==== -->
 
-  <!-- ==== “BOEK” ==== -->
+  <!-- ==== BEGIN “BOEK” ==== -->
   <div class="boek-wrapper">
     <div class="boek" id="boek">
       <!-- Navigatie -->
@@ -165,8 +175,10 @@
       </div>
     </div>
   </div>
+  <hr class="lijn" />
+  <!-- ==== EINDE “BOEK” ==== -->
 
-  <!-- ==== SCRIPT DAGKALENDER ==== -->
+  <!-- ==== BEGIN SCRIPT DAGKALENDER ==== -->
   <script>
     /* Helpers */
     const pad = n => (n<10 ? '0'+n : ''+n);
@@ -286,37 +298,30 @@
     document.getElementById("btn-vlaams").onclick = () => { huidigeTaal="vlaams"; setTaal(); };
     document.getElementById("btn-engels").onclick = () => { huidigeTaal="engels"; setTaal(); };
     document.getElementById("btn-grieks").onclick = () => { huidigeTaal="grieks"; setTaal(); };
-    function setTaal(){
-      document.querySelectorAll('.taalkeuze button').forEach(b=>b.classList.remove('selected'));
-      document.getElementById("btn-vlaams").classList.toggle('selected', huidigeTaal === "vlaams");
-      document.getElementById("btn-engels").classList.toggle('selected', huidigeTaal === "engels");
-      document.getElementById("btn-grieks").classList.toggle('selected', huidigeTaal === "grieks");
-      toonDag(actieveDatum, true);
-    }
 
-    // navigatie
-    btnPrev.onclick = () => { if(isBusy) return; actieveDatum.setDate(actieveDatum.getDate()-1); toonDag(actieveDatum); };
-    btnNext.onclick = () => { if(isBusy) return; actieveDatum.setDate(actieveDatum.getDate()+1); toonDag(actieveDatum); };
+    function setTaal(){ laadDag(actieveDatum); document.querySelectorAll(".taalkeuze button").forEach(btn=>btn.classList.remove("selected")); document.getElementById("btn-"+huidigeTaal).classList.add("selected"); }
 
-    async function toonDag(d, force=false){
-      if(isBusy) return;
-      isBusy = true; toggleButtons(true);
+    async function laadDag(datum){
+      if (isBusy) return;
+      isBusy = true;
       fadeOutAll();
-      setTimeout(async ()=>{
-        const htmls = await bouwHTMLVoorDatum(d, huidigeTaal);
-        heiligeEl.innerHTML = htmls.leftHTML;
-        dagEl.innerHTML = htmls.rightMain;
-        tipEl.textContent = htmls.rightTip;
-        fadeInAll(); toggleButtons(false);
-        isBusy = false;
-      }, 300);
+      toggleButtons(true);
+      const html = await bouwHTMLVoorDatum(datum, huidigeTaal);
+      if (html){
+        heiligeEl.innerHTML = html.leftHTML;
+        dagEl.innerHTML     = html.rightMain;
+        tipEl.innerHTML     = html.rightTip;
+      }
+      fadeInAll();
+      toggleButtons(false);
+      isBusy = false;
     }
 
-    toonDag(actieveDatum);
+    // init
+    laadDag(actieveDatum);
+    btnPrev.onclick = ()=>{ actieveDatum.setDate(actieveDatum.getDate()-1); laadDag(actieveDatum); };
+    btnNext.onclick = ()=>{ actieveDatum.setDate(actieveDatum.getDate()+1); laadDag(actieveDatum); };
   </script>
-
-  <!-- ==== PRIETER HEADER/LAYOUT ==== -->
-  <div id="priester-header"></div>
-  <script src="common/layout.js"></script>
+  <!-- ==== EINDE SCRIPT DAGKALENDER ==== -->
 </body>
 </html>
