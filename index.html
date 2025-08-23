@@ -284,9 +284,9 @@
           snapshot.forEach(doc => {
             const data = doc.data();
             const optie = document.createElement("option");
-            optie.value = doc.id; // Firestore-ID als value!
+            optie.value = doc.id;
             optie.textContent = `${data.naam} — ${data.gemeente} (${data.postcode})`;
-            optie.setAttribute("data-naam", data.naam);  // Mooie naam (optioneel)
+            optie.setAttribute("data-naam", data.naam);
             optie.setAttribute("data-id", doc.id);
             if (el) el.appendChild(optie);
           });
@@ -313,8 +313,8 @@
     document.getElementById("registratieForm").addEventListener("submit", function(e) {
       e.preventDefault();
       const parochieSelect = document.getElementById("parochieSelect");
-      const parochieId = parochieSelect.value; // altijd Firestore-ID
-      const parochieNaam = parochieSelect.selectedOptions[0].getAttribute("data-naam"); // mooie naam
+      const parochieId = parochieSelect.value;
+      const parochieNaam = parochieSelect.selectedOptions[0].getAttribute("data-naam");
       const data = {
         voornaam: document.getElementById("voornaam").value,
         achternaam: document.getElementById("achternaam").value,
@@ -325,7 +325,8 @@
         loginKeuze: document.getElementById("loginKeuze").value,
         status: "in afwachting",
         avatarURL: document.getElementById("avatarURL").value,
-        verjaardagToevoegen: document.getElementById("verjaardagToevoegen").checked
+        verjaardagToevoegen: document.getElementById("verjaardagToevoegen").checked,
+        rol: "lid" // standaard
       };
       const loginKeuze = data.loginKeuze;
 
@@ -355,8 +356,8 @@
     // ==== LOGIN, PRIESTERLOGIN, POPUP FUNCTIES: BEGIN ====
     function login() {
       const parochieSelect = document.getElementById("loginParochie");
-      const parochieId = parochieSelect.value; // altijd Firestore-ID!
-      const parochieNaam = parochieSelect.selectedOptions[0].getAttribute("data-naam"); // mooie naam
+      const parochieId = parochieSelect.value;
+      const parochieNaam = parochieSelect.selectedOptions[0].getAttribute("data-naam");
       const loginKeuze = document.getElementById("loginNaam").value.trim();
       const wachtwoord = document.getElementById("loginWachtwoord").value;
 
@@ -374,14 +375,21 @@
         .get()
         .then(snapshot => {
           if (!snapshot.empty) {
-            const lidData = snapshot.docs[0].data();  
-            // ==== BEGIN: Set alle lokale storage velden incl. avatar en parochie-info ====
+            const lidData = snapshot.docs[0].data();
+            const naam = lidData.voornaam 
+              ? `${lidData.voornaam} ${lidData.achternaam}`
+              : (lidData.doopnaam || loginKeuze);
+
+            // ==== BEGIN: Set alle lokale storage velden ====
             localStorage.setItem("modus", "volwassene");
-            localStorage.setItem("ingelogdeParochie", parochieId);       // Firestore-ID!
-            localStorage.setItem("ingelogdeParochieNaam", parochieNaam); // Mooie naam
+            localStorage.setItem("ingelogdeParochie", parochieId);
+            localStorage.setItem("ingelogdeParochieNaam", parochieNaam);
             localStorage.setItem("loginKeuze", loginKeuze);
             localStorage.setItem("avatarURL", lidData.avatarURL || "https://cdn-icons-png.flaticon.com/512/4140/4140048.png");
+            localStorage.setItem("ingelogdeVolwasseneNaam", naam);
+            localStorage.setItem("rol", lidData.rol || "lid"); // catecheet of lid
             // ==== EINDE: Set alle lokale storage velden ====
+
             window.location.href = "volwassenmodus/startpagina.html";
           } else {
             alert("Onjuiste gebruikersnaam of wachtwoord.");
@@ -403,7 +411,7 @@
         .then(docSnap => {
           if (docSnap.exists && ww === docSnap.data().postcode) {
             localStorage.setItem("modus", "priester");
-            localStorage.setItem("ingelogdeParochie", parochieId);      // Firestore-ID!
+            localStorage.setItem("ingelogdeParochie", parochieId);
             localStorage.setItem("ingelogdeParochieNaam", parochieNaam);
             window.location.href = "priestermodus/startpagina.html";
           } else alert("Onjuiste gegevens.");
