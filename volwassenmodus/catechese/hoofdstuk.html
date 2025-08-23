@@ -7,79 +7,6 @@
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
     body { background-color: #f5e9b8; color: #6f4e1a; font-family: Arial, sans-serif; margin: 0; padding: 0; }
-    .topbar {
-      background-color: #6f4e1a;
-      color: white;
-      padding: 12px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-weight: bold;
-      flex-wrap: wrap;
-    }
-    #welkom-tekst { font-size: 1.07em; font-weight: normal; }
-    .uitlog-link {
-      background-color: #8722aa;
-      color: white;
-      border: none;
-      padding: 8px 18px;
-      border-radius: 18px;
-      cursor: pointer;
-      font-weight: bold;
-      margin-left: 12px;
-    }
-    nav.menu {
-      background-color: #7a5f35;
-      padding: 10px 15px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      justify-content: center;
-      align-items: center;
-    }
-    nav.menu a, nav.menu button {
-      color: #f5e9b8;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 16px;
-      padding: 6px 12px;
-      border-radius: 8px;
-      transition: background-color 0.3s;
-      background: none;
-      border: none;
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-    }
-    nav.menu a:hover, nav.menu button:hover {
-      background-color: #5d4726;
-      text-decoration: underline;
-    }
-    .menu-avatar {
-      padding: 0 !important;
-      background: none !important;
-      border: none !important;
-      margin-left: 2px;
-    }
-    .menu-avatar img {
-      height: 2.1em;
-      width: 2.1em;
-      border-radius: 50%;
-      border: 2.2px solid #dab97a;
-      background: #fff8eb;
-      transition: box-shadow 0.2s, border 0.2s;
-      box-shadow: 0 1px 4px rgba(160,140,80,0.13);
-      display: block;
-    }
-    .menu-avatar img:hover {
-      border: 2.2px solid #a06a19;
-      box-shadow: 0 2px 8px rgba(160,140,80,0.23);
-    }
-    @media (max-width: 650px) {
-      nav.menu { flex-wrap: wrap; gap: 8px;}
-      nav.menu a, nav.menu button { font-size: 1em; padding: 6px 6px;}
-      .menu-avatar img { height: 1.75em; width: 1.75em;}
-    }
     main {
       max-width: 860px;
       margin: 30px auto 60px auto;
@@ -98,11 +25,7 @@
       border-radius: 8px;
       white-space: pre-line;
     }
-    .summary-title {
-      font-weight: bold;
-      display: block;
-      margin-bottom: 8px;
-    }
+    .summary-title { font-weight: bold; display: block; margin-bottom: 8px; }
     footer {
       max-width: 860px;
       margin: 20px auto 40px auto;
@@ -125,9 +48,7 @@
       text-align: center;
       transition: background 0.2s;
     }
-    footer button:hover, footer a:hover {
-      background-color: #5d4726;
-    }
+    footer button:hover, footer a:hover { background-color: #5d4726; }
     .error {
       color: #fff;
       background: #b42c25;
@@ -144,62 +65,39 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <!-- ==== TOPBAR ==== -->
-  <div class="topbar">
-    <div id="welkom-tekst"></div>
-    <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
-  </div>
-  <!-- ==== MENUBALK ==== -->
-  <nav class="menu">
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html" title="Home">🏠</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/gebeden.html">🙏 Gebeden</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/heiligen.html">👼 Heiligen</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/bijbeldagboek.html">📔 Bijbeldagboek</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/verjaardagskalender.html">🎂 Verjaardagskalender</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html" class="menu-avatar" title="Mijn profiel">
-      <img id="menu-avatar-img" src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png" alt="Mijn profiel">
-    </a>
-  </nav>
+  <!-- ==== HEADER (wordt dynamisch geladen) ==== -->
+  <div id="volwassen-header"></div>
+  <script src="../common/layout.js"></script>
+
   <main>
     <h1 id="hoofdstuktitel">Laden...</h1>
     <div id="hoofdstuktekst"></div>
+
     <section class="summary" id="bijbelblok" style="display:none;">
       <span class="summary-title">📖 Bijbelverwijzingen</span>
       <div id="bijbelverwijzingen"></div>
     </section>
+
     <section class="summary" id="osbblok" style="display:none;">
       <span class="summary-title">🕊️ Samenvatting Orthodox Study Bible</span>
       <div id="osbsamenvatting"></div>
     </section>
+
     <section class="summary" id="slotblok" style="display:none;">
       <span class="summary-title">✍️ Slotbeschouwing</span>
       <div id="slot"></div>
     </section>
+
     <div id="error" class="error" style="display:none;"></div>
   </main>
+
   <footer id="hoofdstuknav" style="display:flex;">
     <button id="vorigeBtn">&lt; Vorige</button>
     <a href="catechese.html" id="overzichtBtn">Overzicht</a>
     <button id="volgendeBtn">Volgende &gt;</button>
   </footer>
-  <script>
-    // ==== BEGROETING EN AVATAR ==== 
-    const welkomTekst = document.getElementById("welkom-tekst");
-    const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
-    const parochieMooieNaam = localStorage.getItem("ingelogdeParochieNaam") || localStorage.getItem("ingelogdeParochie") || "(onbekend)";
-    welkomTekst.textContent = `Welkom, ${loginNaam}! U bent ingelogd in de ${parochieMooieNaam}.`;
-    const avatarImg = document.getElementById("menu-avatar-img");
-    const opgeslagenAvatar = localStorage.getItem("avatarURL");
-    if (opgeslagenAvatar) avatarImg.src = opgeslagenAvatar;
-    document.getElementById("uitlogKnop").onclick = () => {
-      localStorage.clear();
-      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
-    };
 
+  <script>
     // =========== FIREBASE SETUP ===========
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
@@ -214,10 +112,12 @@
 
     const minHoofdstuk = 1;
     const maxHoofdstuk = 24;
+
     function getQueryParam(param) {
       let url = new URL(window.location.href);
       return url.searchParams.get(param);
     }
+
     function setNavigatie(nr) {
       const vorigeBtn = document.getElementById("vorigeBtn");
       const volgendeBtn = document.getElementById("volgendeBtn");
@@ -230,6 +130,7 @@
         if (nr < maxHoofdstuk) window.location.href = `hoofdstuk.html?nr=${nr+1}`;
       };
     }
+
     async function laadHoofdstuk() {
       const nr = parseInt(getQueryParam("nr"), 10);
       if (isNaN(nr) || nr < minHoofdstuk || nr > maxHoofdstuk) {
@@ -240,7 +141,7 @@
         return;
       }
       setNavigatie(nr);
-      // Ophalen uit firestore
+
       const docId = "hoofdstuk_" + nr;
       let doc;
       try {
@@ -252,6 +153,7 @@
         document.getElementById("hoofdstuknav").style.display = "none";
         return;
       }
+
       if(!doc.exists) {
         document.getElementById("error").textContent = "Dit hoofdstuk bestaat niet.";
         document.getElementById("error").style.display = "";
@@ -259,16 +161,18 @@
         document.getElementById("hoofdstuknav").style.display = "none";
         return;
       }
+
       const data = doc.data();
       document.getElementById("hoofdstuktitel").textContent = data.titel || `Hoofdstuk ${nr}`;
-      // Split de tekst in blokken
       verwerkHoofdstukTekst(data.inhoud || "");
+
       if (nr === minHoofdstuk) document.getElementById("vorigeBtn").style.display = "none";
       else document.getElementById("vorigeBtn").style.display = "";
       if (nr === maxHoofdstuk) document.getElementById("volgendeBtn").style.display = "none";
       else document.getElementById("volgendeBtn").style.display = "";
     }
-    // AUTOMATISCHE OPMAAK VAN TEKST
+
+    // Automatische opmaak van tekst
     function formatHoofdstukTekst(tekst) {
       tekst = tekst.replace(/^(\d+\.\s.*)$/gm, '<h2>$1</h2>');
       tekst = tekst.replace(/^- (.*)$/gm, '<li>$1</li>');
@@ -285,12 +189,14 @@
       }).join("");
       return tekst;
     }
+
     function verwerkHoofdstukTekst(tekst) {
       const regBijbel = /📖\s*Bijbelverwijzingen/i;
       const regOSB = /🕊️?\s*Samenvatting Orthodox Study Bible/i;
       const regSlot = /✍️?\s*Slotbeschouwing/i;
       let hoofd = tekst;
       let bijbel = "", osb = "", slot = "";
+
       let mBijbel = regBijbel.exec(hoofd);
       if(mBijbel) {
         bijbel = hoofd.substring(mBijbel.index);
@@ -336,6 +242,7 @@
           }
         }
       }
+
       document.getElementById("hoofdstuktekst").innerHTML = formatHoofdstukTekst(hoofd);
       if(bijbel) {
         document.getElementById("bijbelblok").style.display = "";
@@ -356,6 +263,7 @@
         document.getElementById("slotblok").style.display = "none";
       }
     }
+
     laadHoofdstuk();
   </script>
 </body>
