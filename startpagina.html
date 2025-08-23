@@ -1,3 +1,21 @@
+<!-- ==== FIREBASE ==== -->
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+    authDomain: "orthodoxeweg.firebaseapp.com",
+    projectId: "orthodoxeweg",
+    storageBucket: "orthodoxeweg.appspot.com",
+    messagingSenderId: "408582263618",
+    appId: "1:408582263618:web:0a20f4bf0704989d3ceedb",
+    measurementId: "G-C942F2NYQV"
+  };
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
+
+<!-- ==== STYLES ==== -->
 <style>
   :root{
     --boek-bg-left:  linear-gradient(110deg, #ede4ca 90%, #fff7e2 100%);
@@ -6,18 +24,14 @@
     --boek-edge: #ceb27d;
     --boek-shadow: #a88b5488;
     --text-main:#6f4e1a;
-
     --fade-duration: 320ms;
     --fade-ease: cubic-bezier(.22,.61,.36,1);
   }
   *{box-sizing:border-box}
   body { background:#f5e9b8; color:var(--text-main); font-family:Arial,sans-serif; margin:0; }
-
   .lijn { border-bottom: 2px solid #cbb994; margin:0; }
-
   .fadeable{ opacity:1; transition: opacity var(--fade-duration) var(--fade-ease); }
   .is-fading{ opacity:0; }
-
   .taalkeuze { text-align:center; margin: 18px 0 10px; }
   .taalkeuze button{
     background:#eee3c6; color:#6f4e1a; border:1.5px solid #b29467; border-radius:6px;
@@ -26,7 +40,6 @@
   }
   .taalkeuze button:active{ transform: translateY(1px) }
   .taalkeuze button.selected{ background:#d3b87c; color:#3a2c17; border:2px solid #85652a; }
-
   .boek-wrapper { width: 960px; max-width: 99vw; margin: 0 auto 32px; padding: 0 1vw; }
   .boek {
     position: relative;
@@ -64,7 +77,6 @@
   .hoek-rechtsonder { right: 2px; }
   .hoek-linksonder:hover, .hoek-rechtsonder:hover { opacity: .8; color: #caa146; }
   .hoek-btn-disabled{ opacity:.25 !important; cursor:not-allowed !important; }
-
   .heilige-naam { font-weight: bold; color:#664b1c; text-align:center; margin-bottom:10px; font-size:1.2em; letter-spacing:1px; }
   .heilige-foto {
     width: 80%; max-height: 50vh; height: auto; object-fit: contain; display:block;
@@ -99,6 +111,7 @@
   }
 </style>
 
+<!-- ==== INHOUD ==== -->
 <div class="taalkeuze">
   <button id="btn-vlaams" class="selected">🇧🇪 Vlaams</button>
   <button id="btn-engels">🇬🇧 English</button>
@@ -125,6 +138,7 @@
   </div>
 </div>
 
+<!-- ==== SCRIPT DAGKALENDER ==== -->
 <script>
   const pad = n => (n<10 ? '0'+n : ''+n);
   const heiligeEl = document.getElementById('heilige-inhoud');
@@ -225,7 +239,11 @@
   document.getElementById("btn-engels").onclick = () => { huidigeTaal="engels"; setTaal(); };
   document.getElementById("btn-grieks").onclick = () => { huidigeTaal="grieks"; setTaal(); };
 
-  function setTaal(){ laadDag(actieveDatum); document.querySelectorAll(".taalkeuze button").forEach(btn=>btn.classList.remove("selected")); document.getElementById("btn-"+huidigeTaal).classList.add("selected"); }
+  function setTaal(){
+    laadDag(actieveDatum);
+    document.querySelectorAll(".taalkeuze button").forEach(btn=>btn.classList.remove("selected"));
+    document.getElementById("btn-"+huidigeTaal).classList.add("selected");
+  }
 
   async function laadDag(datum){
     if (isBusy) return;
