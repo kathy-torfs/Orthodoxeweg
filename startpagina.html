@@ -31,12 +31,15 @@
   }
   .hoek-linksonder { left: 10px; }
   .hoek-rechtsonder { right: 10px; }
+  .heilige-naam { font-weight: bold; font-size: 1.2em; text-align: center; margin-bottom: 10px; }
+  .heilige-foto { display: block; max-width: 80%; margin: 10px auto; }
+  .heilige-levensverhaal { text-align: justify; font-size: 0.95em; line-height: 1.4; }
+  .dagkalender-datum { text-align: center; font-weight: bold; margin-bottom: 8px; }
+  .vastenregel-regel { text-align: center; margin-bottom: 10px; font-style: italic; }
+  .heiligenrij { margin: 12px 0; font-size: 0.95em; }
+  .lezingblok { margin: 6px 0; }
   .tip-blok { margin-top: 12px; padding: 8px; background: #fff4cc; border-left: 4px solid #e6a600; }
 </style>
-
-<div style="background:yellow; color:black; text-align:center;">
-  ✅ startpagina.html werd ingeladen
-</div>
 
 <div class="taalkeuze">
   <button id="btn-vlaams" class="selected">🇧🇪 Vlaams</button>
@@ -47,83 +50,96 @@
 <div class="boek-wrapper">
   <div class="boek">
     <button class="hoek-linksonder" id="vorigeDag">&lt;</button>
-    <div class="pagina links"><div id="heilige-inhoud">⏳ Laden...</div></div>
-    <div class="pagina rechts">
-      <div id="dagkalender-inhoud">⏳ Laden...</div>
+
+    <!-- PAGINA LINKS -->
+    <div class="pagina links" id="boek-links">
+      <div id="heilige-inhoud">
+        <div style="color:#a6a5a4;text-align:center;">Bezig met laden...</div>
+      </div>
+    </div>
+
+    <!-- PAGINA RECHTS -->
+    <div class="pagina rechts" id="boek-rechts">
+      <div id="dagkalender-inhoud">
+        <div style="color:#a6a5a4;text-align:center;">Bezig met laden...</div>
+      </div>
       <div class="tip-blok" id="dagkalender-tip"></div>
     </div>
+
     <button class="hoek-rechtsonder" id="volgendeDag">&gt;</button>
   </div>
 </div>
 
 <script>
-  console.log("✅ Script in startpagina.html gestart");
+  const db = firebase.firestore();
+  let huidigeTaal = "vlaams";
+  let actieveDatum = new Date();
 
-  try {
-    const db = firebase.firestore();
-    console.log("✅ Firestore beschikbaar:", db);
+  document.getElementById("vorigeDag").onclick = () => { actieveDatum.setDate(actieveDatum.getDate()-1); laadAlles(); };
+  document.getElementById("volgendeDag").onclick = () => { actieveDatum.setDate(actieveDatum.getDate()+1); laadAlles(); };
 
-    let huidigeTaal = "vlaams";
-    let actieveDatum = new Date();
+  document.getElementById("btn-vlaams").onclick = () => { huidigeTaal="vlaams"; setTaal(); };
+  document.getElementById("btn-engels").onclick = () => { huidigeTaal="engels"; setTaal(); };
+  document.getElementById("btn-grieks").onclick = () => { huidigeTaal="grieks"; setTaal(); };
 
-    document.getElementById("vorigeDag").onclick = () => { console.log("⬅ Vorige dag"); actieveDatum.setDate(actieveDatum.getDate()-1); laadAlles(); };
-    document.getElementById("volgendeDag").onclick = () => { console.log("➡ Volgende dag"); actieveDatum.setDate(actieveDatum.getDate()+1); laadAlles(); };
-
-    document.getElementById("btn-vlaams").onclick = () => { console.log("🌐 Taal Vlaams"); huidigeTaal="vlaams"; setTaal(); };
-    document.getElementById("btn-engels").onclick = () => { console.log("🌐 Taal Engels"); huidigeTaal="engels"; setTaal(); };
-    document.getElementById("btn-grieks").onclick = () => { console.log("🌐 Taal Grieks"); huidigeTaal="grieks"; setTaal(); };
-
-    function setTaal(){
-      document.querySelectorAll('.taalkeuze button').forEach(b=>b.classList.remove('selected'));
-      document.getElementById("btn-"+huidigeTaal).classList.add("selected");
-      laadAlles();
-    }
-
-    function pad(n){ return n<10 ? "0"+n : n; }
-
-    async function laadAlles(){
-      const jaar = actieveDatum.getFullYear();
-      const maand = pad(actieveDatum.getMonth()+1);
-      const dag = pad(actieveDatum.getDate());
-      const kalenderId = `${jaar}${maand}${dag}`;
-      const feestdag = `${dag}-${maand}`;
-
-      console.log("📅 Laad datum:", kalenderId, "taal:", huidigeTaal);
-
-      // LINKS (Heilige)
-      const heiligeContainer = document.getElementById('heilige-inhoud');
-      heiligeContainer.innerHTML="⏳ Heilige laden...";
-      try {
-        const snap = await db.collection("heiligen").where("feestdag","==",feestdag).get();
-        console.log("🔎 Heiligen gevonden:", snap.size);
-        if(snap.empty){ heiligeContainer.innerHTML="❌ Geen heilige gevonden"; return; }
-        const data = snap.docs[0].data();
-        console.log("📜 Heilige data:", data);
-        heiligeContainer.innerHTML = `<b>${data.naam_nl||"?"}</b>`;
-      } catch(err){
-        console.error("⚠️ Fout bij laden heiligen:", err);
-        heiligeContainer.innerHTML="❌ Fout bij laden heiligen";
-      }
-
-      // RECHTS (Kalender)
-      const kalenderContainer = document.getElementById('dagkalender-inhoud');
-      kalenderContainer.innerHTML="⏳ Kalender laden...";
-      try {
-        const doc = await db.collection("kalender2025").doc(kalenderId).get();
-        if(!doc.exists){ kalenderContainer.innerHTML="❌ Geen kalenderinfo"; return; }
-        const data = doc.data();
-        console.log("📜 Kalenderdata:", data);
-        kalenderContainer.innerHTML = `<b>${kalenderId}</b><br>${data["Vastenregel NL"]||"?"}`;
-      } catch(err){
-        console.error("⚠️ Fout bij laden kalender:", err);
-        kalenderContainer.innerHTML="❌ Fout bij laden kalender";
-      }
-    }
-
+  function setTaal(){
+    document.querySelectorAll('.taalkeuze button').forEach(b=>b.classList.remove('selected'));
+    document.getElementById("btn-"+huidigeTaal).classList.add("selected");
     laadAlles();
-
-  } catch(e){
-    console.error("🚨 Fout in startpagina script:", e);
-    document.body.insertAdjacentHTML("afterbegin","<div style='color:red'>🚨 Fout: "+e+"</div>");
   }
+  function pad(n){ return n<10 ? "0"+n : n; }
+
+  function laadAlles(){
+    const jaar = actieveDatum.getFullYear();
+    const maand = pad(actieveDatum.getMonth()+1);
+    const dag = pad(actieveDatum.getDate());
+    const kalenderId = `${jaar}${maand}${dag}`;
+    const feestdag = `${dag}-${maand}`;
+
+    // LINKS (Heilige)
+    const heiligeContainer = document.getElementById('heilige-inhoud');
+    heiligeContainer.innerHTML="⏳ Heilige laden...";
+    db.collection("heiligen").where("feestdag","==",feestdag).get().then(snapshot=>{
+      if(snapshot.empty){
+        heiligeContainer.innerHTML=`<div style="color:#b8b7b4;text-align:center;margin-top:22px;font-size:1.15em">
+          <br>Geen heilige van de dag gevonden.<br><div style="font-size:4em;text-align:center;margin-top:16px;">✝️</div></div>`;
+        return;
+      }
+      const data = snapshot.docs[Math.floor(Math.random()*snapshot.docs.length)].data();
+      let naam="", verhaal="";
+      let foto = data.icoon || data.foto_url || "https://upload.wikimedia.org/wikipedia/commons/1/12/Orthodox_Cross.svg";
+      if(huidigeTaal==="engels"){ naam=data.naam_en||""; verhaal=data.levensverhaal_en||""; }
+      else if(huidigeTaal==="grieks"){ naam=data.naam_el||""; verhaal=data.levensverhaal_el||""; }
+      else { naam=data.naam_nl||data.naam||data.id||"Heilige"; verhaal=data.levensverhaal_nl||data.levensverhaal_volwassenen||""; }
+      if(!naam) naam="Nog geen vertaling beschikbaar."; if(!verhaal) verhaal="Nog geen vertaling beschikbaar.";
+      heiligeContainer.innerHTML=`<div class="heilige-naam">${naam}</div><img src="${foto}" class="heilige-foto"><div class="heilige-levensverhaal">${verhaal}</div>`;
+    });
+
+    // RECHTS (Kalender)
+    const kalenderContainer=document.getElementById('dagkalender-inhoud');
+    const tipBlok=document.getElementById('dagkalender-tip');
+    kalenderContainer.innerHTML="⏳ Kalender laden..."; tipBlok.innerHTML="";
+    db.collection("kalender2025").doc(kalenderId).get().then(doc=>{
+      if(!doc.exists){
+        kalenderContainer.innerHTML='<div style="color:#b8b7b4;text-align:center;margin-top:60px;font-size:1.1em">Geen kalenderinfo gevonden.</div>';
+        tipBlok.innerHTML=""; return;
+      }
+      const data=doc.data();
+      let vasten=data[`Vastenregel NL`]||""; let symb=data["Symbool"]||"";
+      if(huidigeTaal==="engels") vasten=data[`Vastenregel EN`]|| (vasten?"Fasting Free":"");
+      if(huidigeTaal==="grieks") vasten=data[`Vastenregel EL`]|| (vasten?"Νηστεία ελεύθερη":"");
+      if(!vasten){ if(huidigeTaal==="vlaams") vasten="Vastenvrij"; if(huidigeTaal==="engels") vasten="Fasting Free"; if(huidigeTaal==="grieks") vasten="Νηστεία ελεύθερη"; }
+      let vastenRegel=`<span>${vasten}</span>`; if(symb) vastenRegel+=`<span class="vastenregel-symbool">${symb}</span>`;
+      let datumTekst=`${dag}-${maand}-${jaar}`;
+      let heiligen=""; if(huidigeTaal==="vlaams") heiligen=data[`Heiligen NL`]||""; else if(huidigeTaal==="engels") heiligen=data[`Heiligen EN`]||"No translation available yet."; else if(huidigeTaal==="grieks") heiligen=data[`Heiligen EL`]||"Δεν υπάρχει ακόμη μετάφραση.";
+      let epistel="",evangelie=""; if(huidigeTaal==="vlaams"){ epistel=data[`Epistel Ref NL`]||"Nog geen vertaling beschikbaar."; evangelie=data[`Evangelie Ref NL`]||"Nog geen vertaling beschikbaar."; }
+      else if(huidigeTaal==="engels"){ epistel=data[`Epistel Ref EN`]||"No translation available yet."; evangelie=data[`Evangelie Ref EN`]||"No translation available yet."; }
+      else { epistel=data[`Epistel Ref EL`]||"Δεν υπάρχει ακόμη μετάφραση."; evangelie=data[`Evangelie Ref EL`]||"Δεν υπάρχει ακόμη μετάφραση."; }
+      let epLbl="Apostellezing", evLbl="Evangelielezing"; if(huidigeTaal==="engels"){epLbl="Epistle Reading"; evLbl="Gospel Reading";} if(huidigeTaal==="grieks"){epLbl="Απόστολος"; evLbl="Ευαγγέλιο";}
+      let tip=""; if(huidigeTaal==="vlaams") tip=data[`Tip/Wens NL`]||""; else if(huidigeTaal==="engels") tip=data[`Tip/Wens EN`]||""; else tip=data[`Tip/Wens EL`]||"";
+      kalenderContainer.innerHTML=`<div class="dagkalender-datum">${datumTekst}</div><div class="vastenregel-regel">${vastenRegel}</div><div class="heiligenrij">${heiligen}</div><div class="lezingblok"><b>${epLbl}:</b> ${epistel}</div><div class="lezingblok"><b>${evLbl}:</b> ${evangelie}</div>`;
+      tipBlok.innerHTML=tip;
+    });
+  }
+  laadAlles();
 </script>
