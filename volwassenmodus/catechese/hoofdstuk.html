@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
@@ -25,7 +25,11 @@
       border-radius: 8px;
       white-space: pre-line;
     }
-    .summary-title { font-weight: bold; display: block; margin-bottom: 8px; }
+    .summary-title {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 8px;
+    }
     footer {
       max-width: 860px;
       margin: 20px auto 40px auto;
@@ -68,26 +72,30 @@
   <!-- ==== HEADER (wordt dynamisch geladen) ==== -->
   <div id="volwassen-header"></div>
   <script src="../common/layout.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (window.VolwassenLayout) {
+        window.VolwassenLayout.mountHeader();
+      }
+    });
+  </script>
 
+  <!-- ==== INHOUD ==== -->
   <main>
     <h1 id="hoofdstuktitel">Laden...</h1>
     <div id="hoofdstuktekst"></div>
-
     <section class="summary" id="bijbelblok" style="display:none;">
       <span class="summary-title">📖 Bijbelverwijzingen</span>
       <div id="bijbelverwijzingen"></div>
     </section>
-
     <section class="summary" id="osbblok" style="display:none;">
       <span class="summary-title">🕊️ Samenvatting Orthodox Study Bible</span>
       <div id="osbsamenvatting"></div>
     </section>
-
     <section class="summary" id="slotblok" style="display:none;">
       <span class="summary-title">✍️ Slotbeschouwing</span>
       <div id="slot"></div>
     </section>
-
     <div id="error" class="error" style="display:none;"></div>
   </main>
 
@@ -117,18 +125,13 @@
       let url = new URL(window.location.href);
       return url.searchParams.get(param);
     }
-
     function setNavigatie(nr) {
       const vorigeBtn = document.getElementById("vorigeBtn");
       const volgendeBtn = document.getElementById("volgendeBtn");
       vorigeBtn.disabled = (nr <= minHoofdstuk);
       volgendeBtn.disabled = (nr >= maxHoofdstuk);
-      vorigeBtn.onclick = () => {
-        if (nr > minHoofdstuk) window.location.href = `hoofdstuk.html?nr=${nr-1}`;
-      };
-      volgendeBtn.onclick = () => {
-        if (nr < maxHoofdstuk) window.location.href = `hoofdstuk.html?nr=${nr+1}`;
-      };
+      vorigeBtn.onclick = () => { if (nr > minHoofdstuk) window.location.href = `hoofdstuk.html?nr=${nr-1}`; };
+      volgendeBtn.onclick = () => { if (nr < maxHoofdstuk) window.location.href = `hoofdstuk.html?nr=${nr+1}`; };
     }
 
     async function laadHoofdstuk() {
@@ -153,7 +156,6 @@
         document.getElementById("hoofdstuknav").style.display = "none";
         return;
       }
-
       if(!doc.exists) {
         document.getElementById("error").textContent = "Dit hoofdstuk bestaat niet.";
         document.getElementById("error").style.display = "";
@@ -172,7 +174,6 @@
       else document.getElementById("volgendeBtn").style.display = "";
     }
 
-    // Automatische opmaak van tekst
     function formatHoofdstukTekst(tekst) {
       tekst = tekst.replace(/^(\d+\.\s.*)$/gm, '<h2>$1</h2>');
       tekst = tekst.replace(/^- (.*)$/gm, '<li>$1</li>');
@@ -194,6 +195,7 @@
       const regBijbel = /📖\s*Bijbelverwijzingen/i;
       const regOSB = /🕊️?\s*Samenvatting Orthodox Study Bible/i;
       const regSlot = /✍️?\s*Slotbeschouwing/i;
+
       let hoofd = tekst;
       let bijbel = "", osb = "", slot = "";
 
@@ -244,26 +246,22 @@
       }
 
       document.getElementById("hoofdstuktekst").innerHTML = formatHoofdstukTekst(hoofd);
+
       if(bijbel) {
         document.getElementById("bijbelblok").style.display = "";
         document.getElementById("bijbelverwijzingen").innerHTML = formatHoofdstukTekst(bijbel);
-      } else {
-        document.getElementById("bijbelblok").style.display = "none";
-      }
+      } else document.getElementById("bijbelblok").style.display = "none";
+
       if(osb) {
         document.getElementById("osbblok").style.display = "";
         document.getElementById("osbsamenvatting").innerHTML = formatHoofdstukTekst(osb);
-      } else {
-        document.getElementById("osbblok").style.display = "none";
-      }
+      } else document.getElementById("osbblok").style.display = "none";
+
       if(slot) {
         document.getElementById("slotblok").style.display = "";
         document.getElementById("slot").innerHTML = formatHoofdstukTekst(slot);
-      } else {
-        document.getElementById("slotblok").style.display = "none";
+      } else document.getElementById("slotblok").style.display = "none";
       }
-    }
-
     laadHoofdstuk();
   </script>
 </body>
