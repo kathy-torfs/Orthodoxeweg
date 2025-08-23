@@ -262,7 +262,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script>
-    // ==== FIREBASE INIT: BEGIN ====
+    // ==== FIREBASE INIT ====
     const firebaseConfig = {
       apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -273,9 +273,8 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    // ==== FIREBASE INIT: EINDE ====
 
-    // ==== PAROCHIES LADEN: BEGIN ====
+    // ==== PAROCHIES LADEN ====
     function laadParochies() {
       db.collection("parochies").get().then(snapshot => {
         ["parochieSelect", "priesterParochie", "loginParochie"].forEach(id => {
@@ -284,19 +283,17 @@
           snapshot.forEach(doc => {
             const data = doc.data();
             const optie = document.createElement("option");
-            optie.value = doc.id; // Firestore-ID als value!
+            optie.value = doc.id;
             optie.textContent = `${data.naam} — ${data.gemeente} (${data.postcode})`;
-            optie.setAttribute("data-naam", data.naam);  // Mooie naam (optioneel)
-            optie.setAttribute("data-id", doc.id);
+            optie.setAttribute("data-naam", data.naam);
             if (el) el.appendChild(optie);
           });
         });
       });
     }
     window.addEventListener('DOMContentLoaded', laadParochies);
-    // ==== PAROCHIES LADEN: EINDE ====
 
-    // ==== AVATAR-SELECTIE: BEGIN ====
+    // ==== AVATAR SELECTIE ====
     const avatarImages = document.querySelectorAll('#avatarSelectie img');
     const avatarURLInput = document.getElementById('avatarURL');
     avatarImages.forEach(img => {
@@ -307,14 +304,13 @@
       });
     });
     if (avatarImages.length) avatarImages[0].classList.add('geselecteerd');
-    // ==== AVATAR-SELECTIE: EINDE ====
 
-    // ==== REGISTRATIE HANDLER: BEGIN ====
+    // ==== REGISTRATIE ====
     document.getElementById("registratieForm").addEventListener("submit", function(e) {
       e.preventDefault();
       const parochieSelect = document.getElementById("parochieSelect");
-      const parochieId = parochieSelect.value; // altijd Firestore-ID
-      const parochieNaam = parochieSelect.selectedOptions[0].getAttribute("data-naam"); // mooie naam
+      const parochieId = parochieSelect.value;
+      const parochieNaam = parochieSelect.selectedOptions[0].getAttribute("data-naam");
       const data = {
         voornaam: document.getElementById("voornaam").value,
         achternaam: document.getElementById("achternaam").value,
@@ -350,13 +346,12 @@
             });
         });
     });
-    // ==== REGISTRATIE HANDLER: EINDE ====
 
-    // ==== LOGIN, PRIESTERLOGIN, POPUP FUNCTIES: BEGIN ====
+    // ==== LOGIN FUNCTIES ====
     function login() {
       const parochieSelect = document.getElementById("loginParochie");
-      const parochieId = parochieSelect.value; // altijd Firestore-ID!
-      const parochieNaam = parochieSelect.selectedOptions[0].getAttribute("data-naam"); // mooie naam
+      const parochieId = parochieSelect.value;
+      const parochieNaam = parochieSelect.selectedOptions[0].getAttribute("data-naam");
       const loginKeuze = document.getElementById("loginNaam").value.trim();
       const wachtwoord = document.getElementById("loginWachtwoord").value;
 
@@ -365,23 +360,20 @@
         sessionStorage.setItem("hoofdletterWarned", "1");
       }
 
-      db.collection("parochies")
-        .doc(parochieId)
-        .collection("leden")
+      db.collection("parochies").doc(parochieId).collection("leden")
         .where("loginKeuze", "==", loginKeuze)
         .where("wachtwoord", "==", wachtwoord)
         .limit(1)
         .get()
         .then(snapshot => {
           if (!snapshot.empty) {
-            const lidData = snapshot.docs[0].data();  
-            // ==== BEGIN: Set alle lokale storage velden incl. avatar en parochie-info ====
+            const lidData = snapshot.docs[0].data();
             localStorage.setItem("modus", "volwassene");
-            localStorage.setItem("ingelogdeParochie", parochieId);       // Firestore-ID!
-            localStorage.setItem("ingelogdeParochieNaam", parochieNaam); // Mooie naam
+            localStorage.setItem("rol", lidData.rol || "lid"); // catecheet of lid
+            localStorage.setItem("ingelogdeParochie", parochieId);
+            localStorage.setItem("ingelogdeParochieNaam", parochieNaam);
             localStorage.setItem("loginKeuze", loginKeuze);
             localStorage.setItem("avatarURL", lidData.avatarURL || "https://cdn-icons-png.flaticon.com/512/4140/4140048.png");
-            // ==== EINDE: Set alle lokale storage velden ====
             window.location.href = "volwassenmodus/startpagina.html";
           } else {
             alert("Onjuiste gebruikersnaam of wachtwoord.");
@@ -397,17 +389,14 @@
       const parochieId = parochieSelect.value;
       const parochieNaam = parochieSelect.selectedOptions[0].getAttribute("data-naam");
       const ww = document.getElementById("priesterWachtwoord").value;
-      db.collection("parochies")
-        .doc(parochieId)
-        .get()
-        .then(docSnap => {
-          if (docSnap.exists && ww === docSnap.data().postcode) {
-            localStorage.setItem("modus", "priester");
-            localStorage.setItem("ingelogdeParochie", parochieId);      // Firestore-ID!
-            localStorage.setItem("ingelogdeParochieNaam", parochieNaam);
-            window.location.href = "priestermodus/startpagina.html";
-          } else alert("Onjuiste gegevens.");
-        });
+      db.collection("parochies").doc(parochieId).get().then(docSnap => {
+        if (docSnap.exists && ww === docSnap.data().postcode) {
+          localStorage.setItem("modus", "priester");
+          localStorage.setItem("ingelogdeParochie", parochieId);
+          localStorage.setItem("ingelogdeParochieNaam", parochieNaam);
+          window.location.href = "priestermodus/startpagina.html";
+        } else alert("Onjuiste gegevens.");
+      });
     }
 
     function openPopup(id) {
@@ -425,7 +414,6 @@
       localStorage.setItem("modus", "gast");
       window.location.href = "gastenmodus/startpagina.html";
     }
-    // ==== LOGIN, PRIESTERLOGIN, POPUP FUNCTIES: EINDE ====
   </script>
   <!-- ==== SCRIPTS: EINDE ==== -->
 </body>
