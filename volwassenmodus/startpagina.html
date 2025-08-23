@@ -35,13 +35,25 @@
   <div id="volwassen-startpagina"></div>
 
   <script>
-    // Laad de centrale startpagina.html in de container
-    (async () => {
+    async function loadStartpagina() {
       try {
         const resp = await fetch("/startpagina.html", {cache:"no-cache"});
         if (resp.ok) {
           const html = await resp.text();
-          document.getElementById("volwassen-startpagina").innerHTML = html;
+          const container = document.getElementById("volwassen-startpagina");
+          container.innerHTML = html;
+
+          // Alle scripts in de ingeladen HTML opnieuw uitvoeren
+          container.querySelectorAll("script").forEach(oldScript => {
+            const newScript = document.createElement("script");
+            if (oldScript.src) {
+              newScript.src = oldScript.src;
+            } else {
+              newScript.textContent = oldScript.textContent;
+            }
+            document.body.appendChild(newScript);
+          });
+
           console.log("startpagina.html ingeladen en scripts uitgevoerd");
         } else {
           document.getElementById("volwassen-startpagina").innerHTML =
@@ -52,7 +64,9 @@
         document.getElementById("volwassen-startpagina").innerHTML =
           "<p style='text-align:center;color:#a33;margin-top:40px;'>Fout bij laden startpagina.</p>";
       }
-    })();
+    }
+
+    loadStartpagina();
   </script>
 
 </body>
