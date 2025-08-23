@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Orthodoxeweg – Catechese Hoofdstuk (Gastenmodus)</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
+  <style>
+    body { background-color: #f5e9b8; color: #6f4e1a; font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    main { max-width: 860px; margin: 30px auto 60px auto; padding: 0 15px; }
+    h1, h2, h3 { font-weight: bold; text-decoration: underline; }
+    h1 { font-size: 28px; margin-bottom: 20px; text-align: center; }
+    h2 { margin-top: 30px; margin-bottom: 8px; font-size: 1.2em; }
+    ul { margin-top: 5px; margin-bottom: 15px; margin-left: 28px; }
+    li { margin-bottom: 6px; }
+    section.summary {
+      border: 2px solid #7a5f35;
+      background-color: #fff8dc;
+      padding: 15px;
+      margin-top: 30px;
+      border-radius: 8px;
+      white-space: pre-line;
+    }
+    .summary-title { font-weight: bold; display: block; margin-bottom: 8px; }
+    footer {
+      max-width: 860px;
+      margin: 20px auto 40px auto;
+      display: flex; justify-content: center; gap: 20px;
+    }
+    footer button, footer a {
+      background-color: #7a5f35; color: #f5e9b8;
+      padding: 10px 20px; border-radius: 8px;
+      text-decoration: none; font-weight: bold; font-size: 16px;
+      box-shadow: 0 4px 4px rgb(0 0 0 / 0.25);
+      border: none; cursor: pointer; min-width: 120px; text-align: center;
+      transition: background 0.2s;
+    }
+    footer button:hover, footer a:hover { background-color: #5d4726; }
+    .error {
+      color: #fff; background: #b42c25; border-radius: 8px;
+      padding: 14px; margin: 40px auto 0 auto;
+      max-width: 400px; font-size: 1.13em; text-align: center;
+      box-shadow: 0 4px 16px #d98f5d26;
+    }
+  </style>
+  <!-- ==== FIREBASE ==== -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <!-- ==== GEMEENSCHAPPELIJKE HEADER VAN GASTENMODUS ==== -->
+  <div id="gasten-header" data-header-src="../common/header.html"></div>
+  <script src="../common/layout.js"></script>
+
+  <!-- ==== INHOUD ==== -->
+  <main>
+    <h1 id="hoofdstuktitel">Laden...</h1>
+    <div id="hoofdstuktekst"></div>
+    <section class="summary" id="bijbelblok" style="display:none;">
+      <span class="summary-title">📖 Bijbelverwijzingen</span>
+      <div id="bijbelverwijzingen"></div>
+    </section>
+    <section class="summary" id="osbblok" style="display:none;">
+      <span class="summary-title">🕊️ Samenvatting Orthodox Study Bible</span>
+      <div id="osbsamenvatting"></div>
+    </section>
+    <section class="summary" id="slotblok" style="display:none;">
+      <span class="summary-title">✍️ Slotbeschouwing</span>
+      <div id="slot"></div>
+    </section>
+    <div id="error" class="error" style="display:none;"></div>
+  </main>
+
+  <footer id="hoofdstuknav">
+    <button id="vorigeBtn">&lt; Vorige</button>
+    <a href="catechese.html" id="overzichtBtn">Overzicht</a>
+    <button id="volgendeBtn">Volgende &gt;</button>
+  </footer>
+
+  <script>
+    // =========== FIREBASE SETUP ===========
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
+    };
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const db = firebase.firestore();
+
+    const minHoofdstuk = 1;
+    const maxHoofdstuk = 24;
+
+    function getQueryParam(param) {
+      let url = new URL(window.location.href);
+      return url.searchParams.get(param);
+    }
+
+    function setNavigatie(nr) {
+      const vorigeBtn = document.getElementById("vorigeBtn");
+      const volgendeBtn = document.getElementById("volgendeBtn");
+      vorigeBtn.disabled = (nr <= minHoofdstuk);
+      volgendeBtn.disabled = (nr >= maxHoofdstuk);
+      vorigeBtn.onclick = () => {
+        if (nr > minHoofdstuk) window.location.href = `hoofdstuk.html?nr=${nr-1}`;
+      };
+      volgendeBtn.onclick = () => {
+        if (nr < maxHoofdstuk) window.location.href = `hoofdstuk.html?nr=${nr+1}`;
+      };
+    }
+
+    async function laadHoofdstuk() {
+      const nr = parseInt(getQueryParam("nr"), 10);
+      if (isNaN(nr) || nr < minHoofdstuk || nr > maxHoofdstuk) {
+        document.getElementById("error").textContent = "Ongeldig hoofdstuknummer.";
+        document.getElementById("error").style.display = "";
+        document.querySelector("main").style.display = "none";
+        document.getElementById("hoofdstuknav").style.display = "none";
+        return;
+      }
+      setNavigatie(nr);
+
+      const docId = "hoofdstuk_" + nr;
+      let doc;
+      try {
+        doc = await db.collection("catechese_vw").doc(docId).get();
+      } catch(e) {
+        document.getElementById("error").textContent = "Fout bij het ophalen van het hoofdstuk.";
+        document.getElementById("error").style.display = "";
+        document.querySelector("main").style.display = "none";
+        document.getElementById("hoofdstuknav").style.display = "none";
+        return;
+      }
+
+      if(!doc.exists) {
+        document.getElementById("error").textContent = "Dit hoofdstuk bestaat niet.";
+        document.getElementById("error").style.display = "";
+        document.querySelector("main").style.display = "none";
+        document.getElementById("hoofdstuknav").style.display = "none";
+        return;
+      }
+
+      const data = doc.data();
+      document.getElementById("hoofdstuktitel").textContent = data.titel || `Hoofdstuk ${nr}`;
+      verwerkHoofdstukTekst(data.inhoud || "");
+    }
+
+    function formatHoofdstukTekst(tekst) {
+      tekst = tekst.replace(/^(\d+\.\s.*)$/gm, '<h2>$1</h2>');
+      tekst = tekst.replace(/^- (.*)$/gm, '<li>$1</li>');
+      tekst = tekst.replace(/(<li>[\s\S]+?<\/li>)/g, function(matchs) {
+        if (!/^<ul>/.test(matchs)) {
+          return '<ul>' + matchs.replace(/(<li>.*?<\/li>)(?!<li>)/g, '$1') + '</ul>';
+        }
+        return matchs;
+      });
+      tekst = tekst.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      tekst = tekst.split(/\n\s*\n/).map(p => {
+        if (/^<h2>.*<\/h2>$/.test(p) || /^<ul>/.test(p) || /^<\/ul>/.test(p)) return p;
+        return `<p>${p.trim()}</p>`;
+      }).join("");
+      return tekst;
+    }
+
+    function verwerkHoofdstukTekst(tekst) {
+      const regBijbel = /📖\s*Bijbelverwijzingen/i;
+      const regOSB = /🕊️?\s*Samenvatting Orthodox Study Bible/i;
+      const regSlot = /✍️?\s*Slotbeschouwing/i;
+
+      let hoofd = tekst;
+      let bijbel = "", osb = "", slot = "";
+
+      let mBijbel = regBijbel.exec(hoofd);
+      if(mBijbel) {
+        bijbel = hoofd.substring(mBijbel.index);
+        hoofd = hoofd.substring(0, mBijbel.index);
+        let mOSB = regOSB.exec(bijbel);
+        if(mOSB) {
+          osb = bijbel.substring(mOSB.index);
+          bijbel = bijbel.substring(0, mOSB.index);
+          let mSlot = regSlot.exec(osb);
+          if(mSlot) {
+            slot = osb.substring(mSlot.index);
+            osb = osb.substring(0, mSlot.index);
+            slot = slot.replace(regSlot, "").trim();
+          }
+          osb = osb.replace(regOSB, "").trim();
+        } else {
+          let mSlot2 = regSlot.exec(bijbel);
+          if(mSlot2) {
+            slot = bijbel.substring(mSlot2.index);
+            bijbel = bijbel.substring(0, mSlot2.index);
+            slot = slot.replace(regSlot, "").trim();
+          }
+        }
+        bijbel = bijbel.replace(regBijbel, "").trim();
+      }
+
+      document.getElementById("hoofdstuktekst").innerHTML = formatHoofdstukTekst(hoofd);
+
+      if(bijbel) {
+        document.getElementById("bijbelblok").style.display = "";
+        document.getElementById("bijbelverwijzingen").innerHTML = formatHoofdstukTekst(bijbel);
+      } else document.getElementById("bijbelblok").style.display = "none";
+
+      if(osb) {
+        document.getElementById("osbblok").style.display = "";
+        document.getElementById("osbsamenvatting").innerHTML = formatHoofdstukTekst(osb);
+      } else document.getElementById("osbblok").style.display = "none";
+
+      if(slot) {
+        document.getElementById("slotblok").style.display = "";
+        document.getElementById("slot").innerHTML = formatHoofdstukTekst(slot);
+      } else document.getElementById("slotblok").style.display = "none";
+    }
+
+    laadHoofdstuk();
+  </script>
+</body>
+</html>
