@@ -18,17 +18,30 @@
     const el = document.getElementById("welkom-tekst");
     if (!el) return;
 
-    const naam = localStorage.getItem("ingelogdeVolwasseneNaam") || "bezoeker";
-    const uur  = new Date().getHours();
+    const naam = localStorage.getItem("ingelogdeVolwasseneNaam")
+              || localStorage.getItem("loginKeuze")
+              || "bezoeker";
 
+    const uur  = new Date().getHours();
     let moment = "goeiedag";
     if (uur >= 5 && uur <= 10) moment = "goeiemorgen";
     else if (uur >= 11 && uur <= 13) moment = "goeiemiddag";
     else if (uur >= 17 && uur <= 22) moment = "goeienavond";
     else if (uur > 22 || uur < 5) moment = "goedenacht";
 
-    const parochie = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
+    const parochie = localStorage.getItem("ingelogdeParochieNaam") 
+                  || localStorage.getItem("ingelogdeParochie") 
+                  || "(onbekend)";
+
     el.textContent = `${moment}, ${naam}. Je bent ingelogd in: ${parochie}`;
+  }
+
+  function setAvatar() {
+    const img = document.getElementById("menu-avatar-img");
+    if (img) {
+      const url = localStorage.getItem("avatarURL");
+      if (url) img.src = url;
+    }
   }
 
   function bindLogout() {
@@ -38,6 +51,8 @@
       localStorage.removeItem("ingelogdeParochie");
       localStorage.removeItem("ingelogdeParochieId");
       localStorage.removeItem("ingelogdeVolwasseneNaam");
+      localStorage.removeItem("loginKeuze");
+      localStorage.removeItem("avatarURL");
       localStorage.removeItem("modus");
       window.location.href = CONFIG.loginUrl;
     });
@@ -63,6 +78,7 @@
     }
 
     setWelcome();
+    setAvatar();
     bindLogout();
   }
 
@@ -81,3 +97,4 @@
     autoMountIfPresent();
   }
 })();
+
