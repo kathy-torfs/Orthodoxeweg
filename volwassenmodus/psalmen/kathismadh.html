@@ -7,80 +7,6 @@
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
     body { background-color: #f5e9b8; color: #6f4e1a; font-family: Arial, sans-serif; margin: 0; padding: 0; }
-    .topbar {
-      background-color: #6f4e1a;
-      color: white;
-      padding: 12px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-weight: bold;
-      flex-wrap: wrap;
-    }
-    #welkom-tekst { font-size: 1.07em; font-weight: normal; }
-    .uitlog-link {
-      background-color: #8722aa;
-      color: white;
-      border: none;
-      padding: 8px 18px;
-      border-radius: 18px;
-      cursor: pointer;
-      font-weight: bold;
-      margin-left: 12px;
-    }
-    nav.menu {
-      background-color: #7a5f35;
-      padding: 10px 15px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      justify-content: center;
-      align-items: center;
-    }
-    nav.menu a,
-    nav.menu button {
-      color: #f5e9b8;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 16px;
-      padding: 6px 12px;
-      border-radius: 8px;
-      transition: background-color 0.3s;
-      background: none;
-      border: none;
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-    }
-    nav.menu a:hover, nav.menu button:hover {
-      background-color: #5d4726;
-      text-decoration: underline;
-    }
-    .menu-avatar {
-      padding: 0 !important;
-      background: none !important;
-      border: none !important;
-      margin-left: 2px;
-    }
-    .menu-avatar img {
-      height: 2.1em;
-      width: 2.1em;
-      border-radius: 50%;
-      border: 2.2px solid #dab97a;
-      background: #fff8eb;
-      transition: box-shadow 0.2s, border 0.2s;
-      box-shadow: 0 1px 4px rgba(160,140,80,0.13);
-      display: block;
-    }
-    .menu-avatar img:hover {
-      border: 2.2px solid #a06a19;
-      box-shadow: 0 2px 8px rgba(160,140,80,0.23);
-    }
-    @media (max-width: 650px) {
-      nav.menu { flex-wrap: wrap; gap: 8px;}
-      nav.menu a, nav.menu button { font-size: 1em; padding: 6px 6px;}
-      .menu-avatar img { height: 1.75em; width: 1.75em;}
-    }
 
     main { max-width: 860px; margin: 30px auto 60px auto; padding: 0 15px; }
     h1 { font-size: 28px; margin-bottom: 16px; text-align: center; font-weight: bold; text-decoration: underline; }
@@ -104,27 +30,11 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <!-- ==== TOPBAR + BEGROETING ==== -->
-  <div class="topbar">
-    <div id="welkom-tekst"></div>
-    <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
-  </div>
-  <!-- ==== MENUBALK ==== -->
-  <nav class="menu">
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html" title="Home">🏠</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/gebeden.html">🙏 Gebeden</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/heiligen.html">👼 Heiligen</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/bijbeldagboek.html">📔 Bijbeldagboek</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/verjaardagskalender.html">🎂 Verjaardagskalender</a>
-    <!-- Avatar rechts als profiel -->
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html" class="menu-avatar" title="Mijn profiel">
-      <img id="menu-avatar-img" src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png" alt="Mijn profiel">
-    </a>
-  </nav>
+  <!-- ==== GEMEENSCHAPPELIJKE HEADER ==== -->
+  <div id="volwassen-header" data-header-src="../common/header.html"></div>
+  <script src="../common/layout.js"></script>
+
+  <!-- ==== INHOUD ==== -->
   <main>
     <div style="margin:16px 0 18px 0; background:#f5f1e2; border-radius:8px; padding:12px 18px; color:#775c28;">
       <b>Let op:</b> Dit is de <b>Kathisma van Den Haag</b>, <br>voor gebruik in parochie, gebed en studie.<br>
@@ -139,22 +49,8 @@
     <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/kathismatadh.html" id="overzichtBtn">Alle Kathismata</a>
     <a href="#" id="volgendeBtn">Volgende →</a>
   </footer>
+
   <script>
-    // ==== BEGROETING EN UITLOGGEN ====
-    const welkomTekst = document.getElementById("welkom-tekst");
-    const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
-    const parochie = localStorage.getItem("ingelogdeParochieNaam") || localStorage.getItem("ingelogdeParochie") || "(onbekend)";
-    welkomTekst.textContent = `Welkom, ${loginNaam}! U bent ingelogd in de ${parochie}.`;
-    // Avatar tonen indien ingesteld
-    const avatarImg = document.getElementById("menu-avatar-img");
-    const opgeslagenAvatar = localStorage.getItem("avatarURL");
-    if (opgeslagenAvatar) avatarImg.src = opgeslagenAvatar;
-
-    document.getElementById("uitlogKnop").onclick = function() {
-      localStorage.clear();
-      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
-    };
-
     // ==== FIREBASE CONFIG ====
     const firebaseConfig = {
       apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
@@ -217,12 +113,10 @@
           blok += `<div class="stasis-blok" id="stasis${idx+1}">
               <div class="stasis-titel">Stasis ${idx+1}</div>
               <div class="psalm-navi">`;
-          // Binnen stasis: klikbare psalmnummers
           Object.keys(stasisObj.psalms).forEach(psnr => {
             blok += `<a href="#psalm${psnr}">Psalm ${psnr}</a>`;
           });
           blok += `</div>`;
-          // Psalmen zelf
           Object.entries(stasisObj.psalms).forEach(([psnr, tekst]) => {
             blok += `
               <div class="psalm" id="psalm${psnr}">
