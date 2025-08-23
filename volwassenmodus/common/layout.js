@@ -77,7 +77,7 @@
     a.href = "https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/mijnklasje.html";
     a.innerHTML = "👩‍🏫 <span class=\"label\">Mijn klasje</span>";
 
-    tweedeRij.insertBefore(a, tweedeRij.firstChild);
+    tweedeRij.appendChild(a); // altijd achteraan toevoegen
   }
 
   async function mountHeader({ rootId, headerSrc } = {}) {
@@ -102,7 +102,7 @@
     setWelcome();
     setAvatar();
     bindLogout();
-    voegCatecheetKnopToe(); // <-- catecheet menu toevoegen
+    voegCatecheetKnopToe(); // catecheet menu toevoegen
   }
 
   window.VolwassenLayout = { mountHeader };
