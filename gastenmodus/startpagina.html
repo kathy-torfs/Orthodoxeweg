@@ -22,8 +22,21 @@
         const resp = await fetch("/startpagina.html", { cache: "no-cache" });
         if (resp.ok) {
           const html = await resp.text();
-          document.getElementById("gasten-startpagina").innerHTML = html;
-          console.log("✅ startpagina.html ingeladen");
+          const container = document.getElementById("gasten-startpagina");
+          container.innerHTML = html;
+
+          // ✅ Scripts uit ingeladen HTML heractiveren
+          container.querySelectorAll("script").forEach(oldScript => {
+            const newScript = document.createElement("script");
+            if (oldScript.src) {
+              newScript.src = oldScript.src;
+            } else {
+              newScript.textContent = oldScript.textContent;
+            }
+            document.body.appendChild(newScript);
+          });
+
+          console.log("✅ startpagina.html ingeladen en scripts uitgevoerd");
         } else {
           document.getElementById("gasten-startpagina").innerHTML =
             "<p style='text-align:center;color:#a33;margin-top:40px;'>Kon startpagina niet laden.</p>";
