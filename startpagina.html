@@ -28,20 +28,10 @@
 </div>
 
 <script>
-  // Firebase config
-  const firebaseConfig = {
-    apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
-    authDomain: "orthodoxeweg.firebaseapp.com",
-    projectId: "orthodoxeweg",
-    storageBucket: "orthodoxeweg.appspot.com",
-    messagingSenderId: "408582263618",
-    appId: "1:408582263618:web:0a20f4bf0704989d3ceedb",
-    measurementId: "G-C942F2NYQV"
-  };
-  firebase.initializeApp(firebaseConfig);
+  // Firestore is al geïnitialiseerd in de hoofd-html
   const db = firebase.firestore();
 
-  // Kalender logica (exact zoals je had)
+  // Kalender logica
   let huidigeTaal = "vlaams";
   let actieveDatum = new Date();
 
@@ -75,7 +65,7 @@
     const kalenderId = `${jaar}${maand}${dag}`;
     const feestdag = `${dag}-${maand}`;
 
-    // --- LINKS ---
+    // --- LINKS (heilige) ---
     const heiligeContainer = document.getElementById('heilige-inhoud');
     heiligeContainer.innerHTML = '<div style="color:#a6a5a4;text-align:center;">Bezig met laden...</div>';
     db.collection("heiligen").where("feestdag", "==", feestdag).get().then(snapshot => {
@@ -107,7 +97,7 @@
         <div class="heilige-levensverhaal">${levensverhaal}</div>`;
     });
 
-    // --- RECHTS ---
+    // --- RECHTS (dagkalender) ---
     const kalenderContainer = document.getElementById('dagkalender-inhoud');
     const tipBlok = document.getElementById('dagkalender-tip');
     kalenderContainer.innerHTML = '<div style="color:#a6a5a4;text-align:center;">Bezig met laden...</div>';
