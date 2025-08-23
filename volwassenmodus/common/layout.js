@@ -1,4 +1,4 @@
-// Volwassenmodus layout.js
+// Volwassenmodus layout.js 
 (function () {
   const CONFIG = {
     headerDefaultMountId: "volwassen-header",
@@ -54,8 +54,30 @@
       localStorage.removeItem("loginKeuze");
       localStorage.removeItem("avatarURL");
       localStorage.removeItem("modus");
+      localStorage.removeItem("rol");
       window.location.href = CONFIG.loginUrl;
     });
+  }
+
+  function voegCatecheetKnopToe() {
+    const rol = localStorage.getItem("rol");
+    if (rol !== "catecheet") return;
+
+    const menuRows = document.querySelectorAll("nav.menu .menu-row");
+    if (!menuRows.length) return;
+
+    const tweedeRij = menuRows[1];
+    if (!tweedeRij) return;
+
+    if (document.getElementById("catecheet-menu-item")) return;
+
+    const a = document.createElement("a");
+    a.className = "menu-item";
+    a.id = "catecheet-menu-item";
+    a.href = "https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/mijnklasje.html";
+    a.innerHTML = "👩‍🏫 <span class=\"label\">Mijn klasje</span>";
+
+    tweedeRij.insertBefore(a, tweedeRij.firstChild);
   }
 
   async function mountHeader({ rootId, headerSrc } = {}) {
@@ -80,6 +102,7 @@
     setWelcome();
     setAvatar();
     bindLogout();
+    voegCatecheetKnopToe(); // <-- catecheet menu toevoegen
   }
 
   window.VolwassenLayout = { mountHeader };
@@ -97,4 +120,3 @@
     autoMountIfPresent();
   }
 })();
-
