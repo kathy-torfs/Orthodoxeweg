@@ -1,17 +1,13 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Orthodoxeweg – Catechese Hoofdstuk</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
     body { background-color: #f5e9b8; color: #6f4e1a; font-family: Arial, sans-serif; margin: 0; padding: 0; }
-    main {
-      max-width: 860px;
-      margin: 30px auto 60px auto;
-      padding: 0 15px;
-    }
+    main { max-width: 860px; margin: 30px auto 60px auto; padding: 0 15px; }
     h1, h2, h3 { font-weight: bold; text-decoration: underline; }
     h1 { font-size: 28px; margin-bottom: 20px; text-align: center; }
     h2 { margin-top: 30px; margin-bottom: 8px; font-size: 1.2em; }
@@ -25,43 +21,25 @@
       border-radius: 8px;
       white-space: pre-line;
     }
-    .summary-title {
-      font-weight: bold;
-      display: block;
-      margin-bottom: 8px;
-    }
+    .summary-title { font-weight: bold; display: block; margin-bottom: 8px; }
     footer {
       max-width: 860px;
       margin: 20px auto 40px auto;
-      display: flex;
-      justify-content: center;
-      gap: 20px;
+      display: flex; justify-content: center; gap: 20px;
     }
     footer button, footer a {
-      background-color: #7a5f35;
-      color: #f5e9b8;
-      padding: 10px 20px;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: bold;
-      font-size: 16px;
+      background-color: #7a5f35; color: #f5e9b8;
+      padding: 10px 20px; border-radius: 8px;
+      text-decoration: none; font-weight: bold; font-size: 16px;
       box-shadow: 0 4px 4px rgb(0 0 0 / 0.25);
-      border: none;
-      cursor: pointer;
-      min-width: 120px;
-      text-align: center;
+      border: none; cursor: pointer; min-width: 120px; text-align: center;
       transition: background 0.2s;
     }
     footer button:hover, footer a:hover { background-color: #5d4726; }
     .error {
-      color: #fff;
-      background: #b42c25;
-      border-radius: 8px;
-      padding: 14px;
-      margin: 40px auto 0 auto;
-      max-width: 400px;
-      font-size: 1.13em;
-      text-align: center;
+      color: #fff; background: #b42c25; border-radius: 8px;
+      padding: 14px; margin: 40px auto 0 auto;
+      max-width: 400px; font-size: 1.13em; text-align: center;
       box-shadow: 0 4px 16px #d98f5d26;
     }
   </style>
@@ -69,16 +47,9 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <!-- ==== HEADER (wordt dynamisch geladen) ==== -->
-  <div id="volwassen-header"></div>
+  <!-- ==== GEMEENSCHAPPELIJKE HEADER ==== -->
+  <div id="volwassen-header" data-header-src="../common/header.html"></div>
   <script src="../common/layout.js"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      if (window.VolwassenLayout) {
-        window.VolwassenLayout.mountHeader();
-      }
-    });
-  </script>
 
   <!-- ==== INHOUD ==== -->
   <main>
@@ -99,7 +70,7 @@
     <div id="error" class="error" style="display:none;"></div>
   </main>
 
-  <footer id="hoofdstuknav" style="display:flex;">
+  <footer id="hoofdstuknav">
     <button id="vorigeBtn">&lt; Vorige</button>
     <a href="catechese.html" id="overzichtBtn">Overzicht</a>
     <button id="volgendeBtn">Volgende &gt;</button>
@@ -125,13 +96,18 @@
       let url = new URL(window.location.href);
       return url.searchParams.get(param);
     }
+
     function setNavigatie(nr) {
       const vorigeBtn = document.getElementById("vorigeBtn");
       const volgendeBtn = document.getElementById("volgendeBtn");
       vorigeBtn.disabled = (nr <= minHoofdstuk);
       volgendeBtn.disabled = (nr >= maxHoofdstuk);
-      vorigeBtn.onclick = () => { if (nr > minHoofdstuk) window.location.href = `hoofdstuk.html?nr=${nr-1}`; };
-      volgendeBtn.onclick = () => { if (nr < maxHoofdstuk) window.location.href = `hoofdstuk.html?nr=${nr+1}`; };
+      vorigeBtn.onclick = () => {
+        if (nr > minHoofdstuk) window.location.href = `hoofdstuk.html?nr=${nr-1}`;
+      };
+      volgendeBtn.onclick = () => {
+        if (nr < maxHoofdstuk) window.location.href = `hoofdstuk.html?nr=${nr+1}`;
+      };
     }
 
     async function laadHoofdstuk() {
@@ -145,6 +121,7 @@
       }
       setNavigatie(nr);
 
+      // Ophalen uit firestore
       const docId = "hoofdstuk_" + nr;
       let doc;
       try {
@@ -156,6 +133,7 @@
         document.getElementById("hoofdstuknav").style.display = "none";
         return;
       }
+
       if(!doc.exists) {
         document.getElementById("error").textContent = "Dit hoofdstuk bestaat niet.";
         document.getElementById("error").style.display = "";
@@ -167,11 +145,6 @@
       const data = doc.data();
       document.getElementById("hoofdstuktitel").textContent = data.titel || `Hoofdstuk ${nr}`;
       verwerkHoofdstukTekst(data.inhoud || "");
-
-      if (nr === minHoofdstuk) document.getElementById("vorigeBtn").style.display = "none";
-      else document.getElementById("vorigeBtn").style.display = "";
-      if (nr === maxHoofdstuk) document.getElementById("volgendeBtn").style.display = "none";
-      else document.getElementById("volgendeBtn").style.display = "";
     }
 
     function formatHoofdstukTekst(tekst) {
@@ -223,26 +196,6 @@
           }
         }
         bijbel = bijbel.replace(regBijbel, "").trim();
-      } else {
-        let mOSB = regOSB.exec(hoofd);
-        if(mOSB) {
-          osb = hoofd.substring(mOSB.index);
-          hoofd = hoofd.substring(0, mOSB.index);
-          let mSlot = regSlot.exec(osb);
-          if(mSlot) {
-            slot = osb.substring(mSlot.index);
-            osb = osb.substring(0, mSlot.index);
-            slot = slot.replace(regSlot, "").trim();
-          }
-          osb = osb.replace(regOSB, "").trim();
-        } else {
-          let mSlot = regSlot.exec(hoofd);
-          if(mSlot) {
-            slot = hoofd.substring(mSlot.index);
-            hoofd = hoofd.substring(0, mSlot.index);
-            slot = slot.replace(regSlot, "").trim();
-          }
-        }
       }
 
       document.getElementById("hoofdstuktekst").innerHTML = formatHoofdstukTekst(hoofd);
@@ -261,7 +214,8 @@
         document.getElementById("slotblok").style.display = "";
         document.getElementById("slot").innerHTML = formatHoofdstukTekst(slot);
       } else document.getElementById("slotblok").style.display = "none";
-      }
+    }
+
     laadHoofdstuk();
   </script>
 </body>
