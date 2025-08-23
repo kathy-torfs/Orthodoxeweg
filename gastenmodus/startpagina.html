@@ -22,7 +22,7 @@
     const db = firebase.firestore();
   </script>
 
-  <!-- Layout script laadt header + inhoud -->
+  <!-- Layout script laadt header -->
   <script src="common/layout.js" defer></script>
 </head>
 <body>
@@ -37,16 +37,18 @@
     // Laad de centrale startpagina.html in de container
     (async () => {
       try {
-        const resp = await fetch("https://kathy-torfs.github.io/Orthodoxeweg/startpagina.html", {cache:"no-cache"});
-        if(resp.ok){
+        const resp = await fetch("/startpagina.html", { cache: "no-cache" });
+        if (resp.ok) {
           const html = await resp.text();
           document.getElementById("gasten-startpagina").innerHTML = html;
+          console.log("✅ startpagina.html ingeladen vanaf hetzelfde domein");
         } else {
           document.getElementById("gasten-startpagina").innerHTML =
             "<p style='text-align:center;color:#a33;margin-top:40px;'>Kon startpagina niet laden.</p>";
+          console.error("⚠️ Fout bij ophalen startpagina.html:", resp.status);
         }
-      } catch(e){
-        console.error("Fout bij laden startpagina:", e);
+      } catch (e) {
+        console.error("🚨 Fout bij laden startpagina:", e);
         document.getElementById("gasten-startpagina").innerHTML =
           "<p style='text-align:center;color:#a33;margin-top:40px;'>Fout bij laden startpagina.</p>";
       }
