@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ik bid – Orthodoxeweg Volwassenmodus</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
+
+  <style>
+    :root{
+      --primair:#7bb235; --donker:#67510C;
+      --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
+      --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
+      --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
+      --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
+    }
+    body{
+      margin:0; font-family:Arial, sans-serif; color:#333;
+      min-height:100vh; background:var(--pastel1); transition:background .6s; overflow-x:hidden;
+    }
+
+    .page-container{ max-width:650px; margin:0 auto; padding:0 12px 44px 12px; }
+
+    .gebed-card{
+      background:#fff6e2; border-radius:22px; box-shadow:0 2px 8px #0002;
+      margin-bottom:22px; padding:20px 18px; position:relative; opacity:1;
+      transition:opacity .4s, max-height .4s, padding .3s, margin .3s;
+    }
+    .gebed-card.fade{ opacity:0; max-height:0!important; padding:0 18px; margin-bottom:0; overflow:hidden; }
+
+    .gebed-titel{ color:#795020; font-size:1.13em; font-weight:bold; margin-bottom:8px; }
+    .gebed-tekst{ color:#46351F; font-size:1em; line-height:1.45; margin-bottom:15px; }
+
+    .gebed-punten{
+      display:inline-block; background:#d8ffdf; color:#20641e; border-radius:8px;
+      padding:2px 11px; font-size:.95em; margin-right:10px; margin-bottom:7px;
+    }
+
+    .gebed-btn{
+      background:#7bb235; color:#fff; border:none; border-radius:13px; padding:11px 0;
+      width:100%; font-size:1em; font-weight:bold; cursor:pointer; transition:background .2s;
+    }
+    .gebed-btn:hover{ background:#6aa12c; }
+    .gebed-btn:disabled{ background:#d8ffdf; color:#888; cursor:default; }
+
+    .photeinos-gif{
+      position:fixed; left:0; bottom:50px; width:110px; height:110px; z-index:1000;
+      display:none; pointer-events:none; animation:photeinosInOut 2.2s linear forwards;
+    }
+    @keyframes photeinosInOut{
+      0%{transform:translateX(-120%);} 15%{transform:translateX(12%);}
+      80%{transform:translateX(10%);} 100%{transform:translateX(-120%);}
+    }
+  </style>
+
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+
+  <!-- Volwassen lay-out -->
+  <script defer src="common/layout.js"></script>
+</head>
+<body>
+  <!-- Volwassen header wordt hier ingeladen door layout.js -->
+  <div id="volwassen-header"></div>
+
+  <main class="page-container">
+    <div id="gebedenLijst">
+      <div id="loadingMsg" style="font-size:1.2em;color:#888;text-align:center;margin:28px 0;">Laden...</div>
+    </div>
+  </main>
+
+  <img id="photeinosGif" class="photeinos-gif" src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_kiekeboeduim.gif" alt="Photeinos duim" />
+
+  <script>
+    (function(){
+      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
+      document.body.style.background = p[Math.floor(Math.random()*p.length)];
+    })();
+
+    const firebaseConfig = {
+      apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain:"orthodoxeweg.firebaseapp.com",
+      projectId:"orthodoxeweg",
+      storageBucket:"orthodoxeweg.appspot.com",
+      messagingSenderId:"408582263618",
+      appId:"1:408582263618:web:0a20f4bf0704989d3ceedb"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      startWhenReady();
+    });
+
+    function startWhenReady(){
+      if (!(window.VolwassenLayout && window.firebase && firebase.firestore)) {
+        return setTimeout(startWhenReady, 120);
+      }
+      window.VolwassenLayout.mountHeader({
+        rootId: 'volwassen-header',
+        headerSrc: 'common/header.html',
+        active: 'gebeden'
+      }).then(initPage).catch(initPage);
+    }
+
+    async function initPage(){
+      if (!localStorage.getItem('ingelogdeParochie') ||
+          localStorage.getItem('modus') !== 'volwassene' ||
+          !localStorage.getItem('loginKeuze')) {
+        window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+        return;
+      }
+      laadGebeden();
+    }
+
+    async function laadGebeden() {
+      const lijst = document.getElementById('gebedenLijst');
+      lijst.innerHTML = '<div id="loadingMsg" style="font-size:1.2em;color:#888;text-align:center;margin:28px 0;">Laden...</div>';
+
+      let gebeden = [];
+      try {
+        const doc = await db.collection("gebedenboek").doc("dagschema").get();
+        if (doc.exists && Array.isArray(doc.data().blocks)) gebeden = doc.data().blocks;
+      } catch(e) {
+        lijst.innerHTML = '<div style="color:red;text-align:center;margin:28px 0;">Kan gebeden niet laden: ' + (e.message||e) + '</div>';
+        return;
+      }
+
+      const parochieId = localStorage.getItem("ingelogdeParochie");
+      const loginNaam = localStorage.getItem("loginKeuze");
+      const today = new Date().toISOString().slice(0,10);
+
+      let statusData = {};
+      try {
+        const statDoc = await db
+          .collection("parochies").doc(parochieId)
+          .collection("leden").doc(loginNaam)
+          .collection("gebeden_status").doc(today)
+          .get();
+        if (statDoc.exists) statusData = statDoc.data() || {};
+      } catch(e) {}
+
+      lijst.innerHTML = '';
+      for (const blok of gebeden) {
+        const done = !!statusData[blok.id];
+        lijst.appendChild(maakGebedCard(blok, done, {parochieId, loginNaam, today}));
+      }
+    }
+
+    function toonPhoteinosGif() {
+      const gif = document.getElementById('photeinosGif');
+      if (!gif) return;
+      gif.style.display = 'block';
+      gif.style.animation = 'none';
+      void gif.offsetWidth;
+      gif.style.animation = 'photeinosInOut 2.2s linear forwards';
+      setTimeout(() => { gif.style.display = 'none'; }, 2200);
+    }
+
+    function maakGebedCard(gebed, checked, ctx) {
+      const card = document.createElement('div');
+      card.className = 'gebed-card';
+      card.id = gebed.id;
+
+      const puntenBadge = document.createElement('span');
+      puntenBadge.className = 'gebed-punten';
+      puntenBadge.textContent = `+${gebed.punten} punt${gebed.punten > 1 ? 'en' : ''}`;
+      card.appendChild(puntenBadge);
+
+      const titel = document.createElement('div');
+      titel.className = 'gebed-titel';
+      titel.textContent = gebed.titel;
+      card.appendChild(titel);
+
+      const tekst = document.createElement('div');
+      tekst.className = 'gebed-tekst';
+      tekst.textContent = gebed.tekst;
+      card.appendChild(tekst);
+
+      const btn = document.createElement('button');
+      btn.className = 'gebed-btn';
+      btn.textContent = checked ? "✔ Gedaan" : 'Ik heb gebeden!';
+      btn.disabled = checked;
+
+      btn.onclick = async function() {
+        if (btn.disabled) return;
+        btn.disabled = true;
+        card.classList.add('fade');
+
+        const today = ctx.today;
+        await db.collection("parochies").doc(ctx.parochieId)
+          .collection("leden").doc(ctx.loginNaam)
+          .collection("gebeden_status").doc(today)
+          .set({ [gebed.id]: true }, { merge: true });
+
+        await db.collection("parochies").doc(ctx.parochieId)
+          .collection("leden").doc(ctx.loginNaam)
+          .update({ punten: firebase.firestore.FieldValue.increment(gebed.punten) });
+
+        if (window.VolwassenLayout && typeof window.VolwassenLayout.refreshPoints === 'function') {
+          window.VolwassenLayout.refreshPoints();
+        }
+
+        toonPhoteinosGif();
+        setTimeout(() => card.remove(), 600);
+      };
+      card.appendChild(btn);
+
+      if (checked) setTimeout(() => card.remove(), 1100);
+
+      return card;
+    }
+  </script>
+</body>
+</html>
