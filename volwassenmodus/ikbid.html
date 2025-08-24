@@ -31,11 +31,6 @@
     .gebed-titel{ color:#795020; font-size:1.13em; font-weight:bold; margin-bottom:8px; }
     .gebed-tekst{ color:#46351F; font-size:1em; line-height:1.45; margin-bottom:15px; }
 
-    .gebed-punten{
-      display:inline-block; background:#d8ffdf; color:#20641e; border-radius:8px;
-      padding:2px 11px; font-size:.95em; margin-right:10px; margin-bottom:7px;
-    }
-
     .gebed-btn{
       background:#7bb235; color:#fff; border:none; border-radius:13px; padding:11px 0;
       width:100%; font-size:1em; font-weight:bold; cursor:pointer; transition:background .2s;
@@ -162,11 +157,6 @@
       card.className = 'gebed-card';
       card.id = gebed.id;
 
-      const puntenBadge = document.createElement('span');
-      puntenBadge.className = 'gebed-punten';
-      puntenBadge.textContent = `+${gebed.punten} punt${gebed.punten > 1 ? 'en' : ''}`;
-      card.appendChild(puntenBadge);
-
       const titel = document.createElement('div');
       titel.className = 'gebed-titel';
       titel.textContent = gebed.titel;
@@ -192,14 +182,6 @@
           .collection("leden").doc(ctx.loginNaam)
           .collection("gebeden_status").doc(today)
           .set({ [gebed.id]: true }, { merge: true });
-
-        await db.collection("parochies").doc(ctx.parochieId)
-          .collection("leden").doc(ctx.loginNaam)
-          .update({ punten: firebase.firestore.FieldValue.increment(gebed.punten) });
-
-        if (window.VolwassenLayout && typeof window.VolwassenLayout.refreshPoints === 'function') {
-          window.VolwassenLayout.refreshPoints();
-        }
 
         toonPhoteinosGif();
         setTimeout(() => card.remove(), 600);
