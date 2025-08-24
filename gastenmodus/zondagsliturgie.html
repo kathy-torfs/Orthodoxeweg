@@ -10,6 +10,23 @@
     h1,h2 {font-weight:bold; text-decoration:underline;}
     .variable { background:#fffbd2; padding:8px; border:1px dashed #8a732f; margin:10px 0;}
   </style>
+
+  <!-- FIREBASE SCRIPTS -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb",
+      measurementId: "G-C942F2NYQV"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
 </head>
 
 <body>
@@ -23,24 +40,60 @@
 
     <div id="content">
       <h2>Blok 1 – Aanvangsgebeden en Zegen</h2>
+      <p><b>Priester:</b> Gezegend is het Koninkrijk van de Vader en de Zoon en de Heilige Geest, nu en altijd en in de eeuwen der eeuwen.</p>
+      <p><b>Koor:</b> Amen.</p>
 
-      <p><span style="color:#6f4e1a; font-weight:bold;">Priester:</span> Gezegend is het Koninkrijk van de Vader en de Zoon en de Heilige Geest, nu en altijd en in de eeuwen der eeuwen.</p>
-      <p><span style="color:#1a3d6f; font-weight:bold;">Koor:</span> Amen.</p>
+      <!-- … vaste teksten, litanieën enz. … -->
 
-      <h3>Grote Litanie (Ektenie van Vrede)</h3>
+      <h2>Blok 5 – Kleine Intrede & Troparia</h2>
+      <h3>Troparion van de heilige van de dag</h3>
+      <div class="variable" id="heilige-troparion">[laden…]</div>
 
-      <p><span style="color:#6f4e1a; font-weight:bold;">Priester:</span> In vrede, laat ons tot de Heer bidden.<br>
-      <span style="color:#1a3d6f; font-weight:bold;">Koor:</span> Heer, ontferm U.</p>
+      <h3>Kondakion</h3>
+      <div class="variable" id="kondakion">[laden…]</div>
 
-      <!-- … alle andere blokken van je liturgie behouden … -->
+      <h2>Blok 6 – Trisagion & Apostellezing</h2>
+      <h3>Apostellezing</h3>
+      <div class="variable" id="apostel">[laden…]</div>
 
-      <h2>Blok 11 – Slotgebeden & Ontslag</h2>
-      <p><span style="color:#6f4e1a; font-weight:bold;">Priester:</span> De zegen van de Heer en Zijn barmhartigheid moge over u komen, door Zijn goddelijke genade en door de liefde voor de mensheid, nu en altijd en in de eeuwen der eeuwen.</p>
-      <p><span style="color:#1a3d6f; font-weight:bold;">Koor:</span> Amen.</p>
+      <h2>Blok 7 – Evangelielezing</h2>
+      <div class="variable" id="evangelie">[laden…]</div>
 
-      <p><span style="color:#6f4e1a; font-weight:bold;">Priester (tot het volk):</span> Moge de Heer u zegenen.</p>
+      <!-- … rest liturgie, slot enz. … -->
     </div>
   </main>
+
+  <script>
+    function pad(n){return n<10?'0'+n:n;}
+    let vandaag = new Date();
+    const jaar = vandaag.getFullYear();
+    const maand = pad(vandaag.getMonth()+1);
+    const dag = pad(vandaag.getDate());
+    const kalenderId = `${jaar}${maand}${dag}`;
+
+    db.collection("kalender2025").doc(kalenderId).get().then(doc=>{
+      if(!doc.exists){
+        document.getElementById("heilige-troparion").innerText = "Geen troparion gevonden.";
+        document.getElementById("kondakion").innerText = "Geen kondakion gevonden.";
+        document.getElementById("apostel").innerText = "Geen apostellezing gevonden.";
+        document.getElementById("evangelie").innerText = "Geen evangelielezing gevonden.";
+        return;
+      }
+      const data = doc.data();
+
+      // Troparion en Kondakion
+      document.getElementById("heilige-troparion").innerText =
+        data["Troparion NL"] || "Geen troparion beschikbaar.";
+      document.getElementById("kondakion").innerText =
+        data["Kondakion NL"] || "Geen kondakion beschikbaar.";
+
+      // Apostel & Evangelie
+      document.getElementById("apostel").innerText =
+        data["Epistel Ref NL"] || "Geen epistel gevonden.";
+      document.getElementById("evangelie").innerText =
+        data["Evangelie Ref NL"] || "Geen evangelie gevonden.";
+    });
+  </script>
 
 </body>
 </html>
