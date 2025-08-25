@@ -1,1 +1,132 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Strikte Vasten – Recepten</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
+  <style>
+    body { background:#f5e9b8; font-family:Arial, sans-serif; color:#6f4e1a; margin:0; padding:0; }
 
+    .container { max-width:960px; margin:24px auto; padding:0 15px; }
+    h1 { text-align:center; color:#7a5f35; margin-bottom:22px; }
+
+    .grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(250px,1fr));
+      gap:16px;
+    }
+
+    .card {
+      background:#fffef6;
+      border:1.6px solid #dbc592;
+      border-radius:12px;
+      padding:14px 16px;
+      box-shadow:0 4px 14px rgba(0,0,0,.15);
+      cursor:pointer;
+      transition:.25s;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+    }
+    .card:hover { transform:translateY(-4px); box-shadow:0 8px 20px rgba(0,0,0,.22); }
+
+    .card h3 { margin:0; font-size:1.2em; color:#7a5f35; }
+    .card .details { margin-top:10px; display:none; }
+    .card.open .details { display:block; }
+
+    .plus-card {
+      background:#e3d3a6;
+      color:#5a4215;
+      font-size:2.5em;
+      text-align:center;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+    }
+    .plus-card:hover { background:#d3c08a; }
+  </style>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <!-- ==== GEMEENSCHAPPELIJKE HEADER ==== -->
+  <div id="volwassen-header" data-header-src="../common/header.html"></div>
+  <script src="../common/layout.js"></script>
+
+  <div class="container">
+    <h1>🍲 Strikte Vasten Recepten</h1>
+    <div class="grid" id="receptGrid"></div>
+  </div>
+
+  <script>
+    // Firebase setup
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const grid = document.getElementById("receptGrid");
+
+    async function laadRecepten() {
+      grid.innerHTML = "";
+      const snap = await db.collection("recepten").doc("strikte-vasten").collection("items").get();
+
+      snap.forEach(doc => {
+        const data = doc.data();
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <h3>${data.titel}</h3>
+          <div class="details">
+            <strong>Ingrediënten:</strong><br>${(data.ingredienten||"").replace(/\n/g,"<br>")}<br><br>
+            <strong>Bereiding:</strong><br>${(data.bereiding||"").replace(/\n/g,"<br>")}
+          </div>
+        `;
+        card.addEventListener("click", () => card.classList.toggle("open"));
+        grid.appendChild(card);
+      });
+
+      // Pluskaart voor nieuw recept
+      const plus = document.createElement("div");
+      plus.className = "card plus-card";
+      plus.textContent = "+";
+      plus.title = "Nieuw recept toevoegen";
+      plus.onclick = nieuwRecept;
+      grid.appendChild(plus);
+    }
+
+    async function nieuwRecept() {
+      const titel = prompt("Titel van het recept:");
+      if (!titel) return;
+      const ingredienten = prompt("Ingrediënten (Enter = nieuwe regel):");
+      const bereiding = prompt("Bereiding:");
+      if (!ingredienten || !bereiding) return;
+
+      // Opslaan in Firestore
+      await db.collection("recepten")
+        .doc("strikte-vasten")
+        .collection("items")
+        .add({
+          titel,
+          ingredienten,
+          bereiding,
+          gemaaktOp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+      laadRecepten();
+    }
+
+    laadRecepten();
+  </script>
+</body>
+</html>
