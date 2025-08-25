@@ -1,69 +1,96 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Strikte Vasten – Recepten</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Recepten – Orthodoxeweg</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
-    body { background:#f5e9b8; font-family:Arial, sans-serif; color:#6f4e1a; margin:0; padding:0; }
-
-    .container { max-width:960px; margin:24px auto; padding:0 15px; }
-    h1 { text-align:center; color:#7a5f35; margin-bottom:22px; }
-
-    .grid {
-      display:grid;
-      grid-template-columns:repeat(auto-fit, minmax(250px,1fr));
-      gap:16px;
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f5e9b8;
+      color: #6f4e1a;
     }
 
-    .card {
-      background:#fffef6;
-      border:1.6px solid #dbc592;
-      border-radius:12px;
-      padding:14px 16px;
-      box-shadow:0 4px 14px rgba(0,0,0,.15);
-      cursor:pointer;
-      transition:.25s;
-      display:flex;
-      flex-direction:column;
-      justify-content:space-between;
+    h1 {
+      text-align: center;
+      padding: 20px;
+      margin: 0;
     }
-    .card:hover { transform:translateY(-4px); box-shadow:0 8px 20px rgba(0,0,0,.22); }
 
-    .card h3 { margin:0; font-size:1.2em; color:#7a5f35; }
-    .card .details { margin-top:10px; display:none; }
-    .card.open .details { display:block; }
-
-    .plus-card {
-      background:#e3d3a6;
-      color:#5a4215;
-      font-size:2.5em;
-      text-align:center;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      cursor:pointer;
+    /* Receptenbak */
+    #receptenBak {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      justify-content: center;
+      max-width: 1000px;
+      margin: 0 auto 50px;
+      padding: 0 15px;
     }
-    .plus-card:hover { background:#d3c08a; }
+
+    .kaart {
+      width: 220px;
+      min-height: 140px;
+      background: #fffdf6;
+      border: 2px solid #d8c087;
+      border-radius: 14px;
+      box-shadow: 0 3px 10px #00000025;
+      padding: 14px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .kaart:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 6px 18px #00000030;
+    }
+
+    .kaart h3 {
+      margin: 0 0 8px;
+      font-size: 1.1em;
+      text-align: center;
+      color: #6f4e1a;
+    }
+
+    /* Plus kaartje */
+    .kaart.plus {
+      background: #faf1d7;
+      font-size: 2.8em;
+      font-weight: bold;
+      color: #7a5f35;
+      justify-content: center;
+    }
+
+    /* Melding als leeg */
+    #emptyMsg {
+      text-align: center;
+      font-size: 1.1em;
+      color: #8c6a2b;
+      margin-bottom: 25px;
+    }
   </style>
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <!-- ==== GEMEENSCHAPPELIJKE HEADER ==== -->
-  <div id="volwassen-header" data-header-src="../common/header.html"></div>
-  <script src="../common/layout.js"></script>
+  <h1>📚 Receptenbak</h1>
 
-  <div class="container">
-    <h1>🍲 Strikte Vasten Recepten</h1>
-    <div class="grid" id="receptGrid"></div>
+  <div id="emptyMsg">Nog geen recepten toegevoegd. Klik op ➕ om te starten.</div>
+
+  <div id="receptenBak">
+    <!-- Vaste kaart met plus -->
+    <div class="kaart plus" id="addRecipeCard">➕</div>
+    <!-- Dynamisch komen hier de recepten -->
   </div>
 
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <script>
-    // Firebase setup
+    // Firebase init
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -75,56 +102,46 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    const grid = document.getElementById("receptGrid");
+    const receptenBak = document.getElementById("receptenBak");
+    const emptyMsg = document.getElementById("emptyMsg");
 
+    // Recepten ophalen en tonen
     async function laadRecepten() {
-      grid.innerHTML = "";
       const snap = await db.collection("recepten").doc("strikte-vasten").collection("items").get();
+      const docs = snap.docs;
 
-      snap.forEach(doc => {
+      if (docs.length > 0) {
+        emptyMsg.style.display = "none";
+      } else {
+        emptyMsg.style.display = "block";
+      }
+
+      // Eerst alles behalve de pluskaart wissen
+      Array.from(receptenBak.querySelectorAll(".kaart:not(.plus)")).forEach(el => el.remove());
+
+      // Voeg elk recept toe
+      docs.forEach(doc => {
         const data = doc.data();
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `
-          <h3>${data.titel}</h3>
-          <div class="details">
-            <strong>Ingrediënten:</strong><br>${(data.ingredienten||"").replace(/\n/g,"<br>")}<br><br>
-            <strong>Bereiding:</strong><br>${(data.bereiding||"").replace(/\n/g,"<br>")}
-          </div>
-        `;
-        card.addEventListener("click", () => card.classList.toggle("open"));
-        grid.appendChild(card);
+        const kaart = document.createElement("div");
+        kaart.className = "kaart";
+        kaart.innerHTML = `<h3>${data.titel || "Zonder titel"}</h3>`;
+        kaart.onclick = () => toonRecept(data);
+        receptenBak.appendChild(kaart);
       });
-
-      // Pluskaart voor nieuw recept
-      const plus = document.createElement("div");
-      plus.className = "card plus-card";
-      plus.textContent = "+";
-      plus.title = "Nieuw recept toevoegen";
-      plus.onclick = nieuwRecept;
-      grid.appendChild(plus);
     }
 
-    async function nieuwRecept() {
-      const titel = prompt("Titel van het recept:");
-      if (!titel) return;
-      const ingredienten = prompt("Ingrediënten (Enter = nieuwe regel):");
-      const bereiding = prompt("Bereiding:");
-      if (!ingredienten || !bereiding) return;
+    function toonRecept(data) {
+      alert("Titel: " + data.titel + "\n\nIngrediënten & bereidingswijze:\n" + data.tekst);
+    }
 
-      // Opslaan in Firestore
-      await db.collection("recepten")
-        .doc("strikte-vasten")
-        .collection("items")
-        .add({
-          titel,
-          ingredienten,
-          bereiding,
-          gemaaktOp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
+    // Nieuw recept toevoegen
+    document.getElementById("addRecipeCard").onclick = async () => {
+      const titel = prompt("Titel van recept:");
+      const tekst = prompt("Ingrediënten en bereidingswijze:");
+      if (!titel || !tekst) return;
+      await db.collection("recepten").doc("strikte-vasten").collection("items").add({ titel, tekst });
       laadRecepten();
-    }
+    };
 
     laadRecepten();
   </script>
