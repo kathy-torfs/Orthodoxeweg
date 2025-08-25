@@ -1,77 +1,151 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Recepten – Orthodoxeweg</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: "Georgia", serif;
       margin: 0;
       background: #f5e9b8;
       color: #6f4e1a;
     }
-
     h1 {
       text-align: center;
       padding: 20px;
       margin: 0;
     }
 
-    /* Receptenbak */
+    /* Bak */
     #receptenBak {
       display: flex;
       flex-wrap: wrap;
-      gap: 18px;
+      gap: 20px;
       justify-content: center;
-      max-width: 1000px;
+      max-width: 1100px;
       margin: 0 auto 50px;
       padding: 0 15px;
     }
 
+    /* Steekkaart basis */
     .kaart {
-      width: 220px;
-      min-height: 140px;
-      background: #fffdf6;
-      border: 2px solid #d8c087;
-      border-radius: 14px;
-      box-shadow: 0 3px 10px #00000025;
-      padding: 14px;
+      width: 260px;
+      min-height: 160px;
+      background: #fffefb;
+      border: 2px solid #d2b97a;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px #00000025;
+      padding: 14px 16px;
       cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
+      position: relative;
       transition: transform 0.2s, box-shadow 0.2s;
+      line-height: 1.5em;
+      background-image: repeating-linear-gradient(
+        to bottom,
+        #fffefb,
+        #fffefb 27px,
+        #e8dcc2 28px
+      );
     }
     .kaart:hover {
       transform: translateY(-4px);
-      box-shadow: 0 6px 18px #00000030;
+      box-shadow: 0 8px 20px #00000035;
     }
 
+    /* Titel bovenaan */
     .kaart h3 {
-      margin: 0 0 8px;
+      margin: 0 0 12px;
       font-size: 1.1em;
       text-align: center;
       color: #6f4e1a;
+      font-family: Arial, sans-serif;
+      background: #fdf4dd;
+      border: 1px solid #e3ca8a;
+      border-radius: 6px;
+      padding: 5px;
     }
 
-    /* Plus kaartje */
+    /* Tekst */
+    .kaart p {
+      margin: 0;
+      font-size: 0.95em;
+      color: #4a3a1c;
+      white-space: pre-wrap;
+      max-height: 100px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Plus-kaart */
     .kaart.plus {
-      background: #faf1d7;
-      font-size: 2.8em;
-      font-weight: bold;
-      color: #7a5f35;
+      display: flex;
       justify-content: center;
+      align-items: center;
+      font-size: 3em;
+      background: #fdf1d9;
+      border: 2px dashed #d2b97a;
+      color: #7a5f35;
+      line-height: normal;
+      background-image: none;
     }
 
-    /* Melding als leeg */
+    /* Leegmelding */
     #emptyMsg {
       text-align: center;
       font-size: 1.1em;
       color: #8c6a2b;
-      margin-bottom: 25px;
+      margin-bottom: 20px;
+    }
+
+    /* Overlay popup */
+    #overlay {
+      position: fixed;
+      top:0; left:0; right:0; bottom:0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    #overlay .modal {
+      background: #fffefb;
+      border-radius: 12px;
+      max-width: 600px;
+      width: 90%;
+      padding: 20px;
+      box-shadow: 0 6px 20px #0006;
+      background-image: repeating-linear-gradient(
+        to bottom,
+        #fffefb,
+        #fffefb 27px,
+        #e8dcc2 28px
+      );
+    }
+    #overlay h2 {
+      margin-top:0;
+      text-align: center;
+      background: #fdf4dd;
+      border: 1px solid #e3ca8a;
+      border-radius: 6px;
+      padding: 5px;
+      font-size: 1.2em;
+    }
+    #overlay p {
+      white-space: pre-wrap;
+      line-height: 1.6em;
+    }
+    #overlay .close {
+      display: block;
+      margin: 20px auto 0;
+      padding: 8px 20px;
+      background: #7a5f35;
+      color: #fff;
+      border:none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight:bold;
     }
   </style>
 </head>
@@ -81,16 +155,22 @@
   <div id="emptyMsg">Nog geen recepten toegevoegd. Klik op ➕ om te starten.</div>
 
   <div id="receptenBak">
-    <!-- Vaste kaart met plus -->
     <div class="kaart plus" id="addRecipeCard">➕</div>
-    <!-- Dynamisch komen hier de recepten -->
+  </div>
+
+  <!-- Overlay -->
+  <div id="overlay">
+    <div class="modal">
+      <h2 id="overlayTitel"></h2>
+      <p id="overlayTekst"></p>
+      <button class="close" onclick="sluitOverlay()">Sluiten</button>
+    </div>
   </div>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <script>
-    // Firebase init
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -105,36 +185,34 @@
     const receptenBak = document.getElementById("receptenBak");
     const emptyMsg = document.getElementById("emptyMsg");
 
-    // Recepten ophalen en tonen
+    // Recepten laden
     async function laadRecepten() {
       const snap = await db.collection("recepten").doc("strikte-vasten").collection("items").get();
       const docs = snap.docs;
 
-      if (docs.length > 0) {
-        emptyMsg.style.display = "none";
-      } else {
-        emptyMsg.style.display = "block";
-      }
+      emptyMsg.style.display = docs.length > 0 ? "none" : "block";
 
-      // Eerst alles behalve de pluskaart wissen
       Array.from(receptenBak.querySelectorAll(".kaart:not(.plus)")).forEach(el => el.remove());
 
-      // Voeg elk recept toe
       docs.forEach(doc => {
         const data = doc.data();
         const kaart = document.createElement("div");
         kaart.className = "kaart";
-        kaart.innerHTML = `<h3>${data.titel || "Zonder titel"}</h3>`;
+        kaart.innerHTML = `<h3>${data.titel || "Zonder titel"}</h3><p>${data.tekst || ""}</p>`;
         kaart.onclick = () => toonRecept(data);
         receptenBak.appendChild(kaart);
       });
     }
 
     function toonRecept(data) {
-      alert("Titel: " + data.titel + "\n\nIngrediënten & bereidingswijze:\n" + data.tekst);
+      document.getElementById("overlayTitel").textContent = data.titel || "Zonder titel";
+      document.getElementById("overlayTekst").textContent = data.tekst || "";
+      document.getElementById("overlay").style.display = "flex";
+    }
+    function sluitOverlay(){
+      document.getElementById("overlay").style.display="none";
     }
 
-    // Nieuw recept toevoegen
     document.getElementById("addRecipeCard").onclick = async () => {
       const titel = prompt("Titel van recept:");
       const tekst = prompt("Ingrediënten en bereidingswijze:");
