@@ -4,164 +4,185 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Recepten – Orthodoxeweg</title>
-  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5e9b8;
-      margin: 0;
-      padding: 0;
-      color: #333;
+    body { background:#f5e9b8; font-family:Arial,sans-serif; margin:0; padding:0; color:#6f4e1a; }
+
+    /* Container */
+    .bak-container {
+      max-width: 1000px;
+      margin: 30px auto;
+      padding: 0 16px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
     }
 
-    h1 {
-      text-align: center;
-      padding: 20px;
-      margin: 0;
-      color: #6f4e1a;
-    }
-
-    #receptenLijst {
-      max-width: 860px;
-      margin: 0 auto 60px auto;
-      padding: 0 15px;
-    }
-
+    /* Receptkaart */
     .kaart {
       background: #fffdf6;
-      border: 2px solid #d8c087;
-      border-radius: 10px;
-      margin: 12px 0;
-      box-shadow: 0 2px 8px #00000020;
-      overflow: hidden;
-      transition: all 0.3s ease;
-    }
-
-    .kaart-header {
-      padding: 14px 18px;
-      cursor: pointer;
+      border: 2px solid #e0c88c;
+      border-radius: 14px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+      padding: 18px 16px;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #fff5dc;
-      font-weight: bold;
-      color: #6f4e1a;
+      flex-direction: column;
+      transition: transform 0.15s;
+    }
+    .kaart:hover { transform: translateY(-3px); }
+
+    .kaart h3 {
+      margin: 0 0 12px 0;
+      font-size: 1.25em;
+      color:#7a5f35;
+      border-bottom: 1px solid #e6d4a5;
+      padding-bottom: 4px;
     }
 
-    .kaart-header:hover {
-      background: #fbeabf;
+    .kaart .sectie {
+      margin-bottom: 12px;
+    }
+    .kaart .sectie strong {
+      display:block;
+      margin-bottom:4px;
+      color:#5b4116;
     }
 
-    .kaart-content {
-      max-height: 0;
-      overflow: hidden;
-      padding: 0 18px;
-      background: #fff;
-      transition: max-height 0.4s ease, padding 0.4s ease;
+    .kaart p {
+      margin: 0 0 8px 0;
+      line-height:1.5;
+      white-space: pre-line;
     }
 
-    .kaart.open .kaart-content {
-      max-height: 600px;
-      padding: 18px;
+    /* Pluskaart */
+    .plus-kaart {
+      background:#fdf1d2;
+      border:2px dashed #c79c43;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:3em;
+      color:#a6792d;
+      cursor:pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .plus-kaart:hover {
+      background:#fde6b1;
+      transform: scale(1.05);
     }
 
-    .kaart-content h3 {
-      margin-top: 0;
-      font-size: 1.1em;
-      color: #7a5f35;
+    /* Bewerkbare kaart */
+    .kaart input, .kaart textarea {
+      width:100%;
+      border:1.5px solid #d1b670;
+      border-radius:8px;
+      padding:8px;
+      font-family:inherit;
+      font-size:1em;
+      margin-bottom:10px;
+      box-sizing:border-box;
     }
+    .kaart textarea { min-height:80px; resize:vertical; }
 
-    .ingredienten, .bereiding {
-      margin-bottom: 14px;
+    .kaart .btn-row {
+      display:flex; gap:10px; justify-content:flex-end; margin-top:8px;
     }
-
-    .pluskaart {
-      text-align: center;
-      font-size: 1.6em;
-      padding: 20px;
-      background: #faf1d7;
-      border: 2px dashed #b09765;
-      border-radius: 10px;
-      cursor: pointer;
-      margin-top: 16px;
+    .kaart button {
+      border:none;
+      border-radius:8px;
+      padding:8px 14px;
+      font-size:0.95em;
+      cursor:pointer;
+      font-weight:bold;
     }
-    .pluskaart:hover {
-      background: #fff3cc;
-    }
+    .opslaan-btn { background:#7bb235; color:white; }
+    .annuleer-btn { background:#b09765; color:white; }
   </style>
 </head>
 <body>
-  <h1>📚 Recepten</h1>
-  <div id="receptenLijst"></div>
-  <div class="pluskaart" id="addRecipe">➕ Nieuw recept toevoegen</div>
+
+  <!-- ==== GEMEENSCHAPPELIJKE HEADER ==== -->
+  <div id="volwassen-header" data-header-src="../common/header.html"></div>
+  <script src="../common/layout.js"></script>
+
+  <main>
+    <h1 style="text-align:center; margin:20px 0; color:#7a5f35;">📖 Receptenbak</h1>
+    <div class="bak-container" id="receptenBak">
+      <!-- Kaarten komen hier -->
+      <div class="kaart plus-kaart" id="plusKaart">➕</div>
+    </div>
+  </main>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <script>
-    // Firebase init
     const firebaseConfig = {
-      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
-      authDomain: "orthodoxeweg.firebaseapp.com",
-      projectId: "orthodoxeweg",
-      storageBucket: "orthodoxeweg.appspot.com",
-      messagingSenderId: "408582263618",
-      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
+      apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain:"orthodoxeweg.firebaseapp.com",
+      projectId:"orthodoxeweg",
+      storageBucket:"orthodoxeweg.appspot.com",
+      messagingSenderId:"408582263618",
+      appId:"1:408582263618:web:0a20f4bf0704989d3ceedb"
     };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    const lijst = document.getElementById("receptenLijst");
+    const bak = document.getElementById("receptenBak");
+    const plusKaart = document.getElementById("plusKaart");
 
+    // Recept laden
     async function laadRecepten() {
-      lijst.innerHTML = "";
       const snap = await db.collection("recepten").doc("strikte-vasten").collection("items").get();
-
-      if (snap.empty) {
-        lijst.innerHTML = "<p style='text-align:center;color:#7a5f35;'>Nog geen recepten toegevoegd.</p>";
-      }
-
       snap.forEach(doc => {
-        const data = doc.data();
-        const kaart = document.createElement("div");
-        kaart.className = "kaart";
-
-        const header = document.createElement("div");
-        header.className = "kaart-header";
-        header.innerHTML = `<span>${data.titel || "Zonder titel"}</span><span>▼</span>`;
-        header.onclick = () => kaart.classList.toggle("open");
-
-        const content = document.createElement("div");
-        content.className = "kaart-content";
-        content.innerHTML = `
-          <div class="ingredienten">
-            <h3>Ingrediënten</h3>
-            <p>${(data.ingredienten || "").replace(/\n/g,"<br>")}</p>
-          </div>
-          <div class="bereiding">
-            <h3>Bereiding</h3>
-            <p>${(data.bereiding || data.tekst || "").replace(/\n/g,"<br>")}</p>
-          </div>
-        `;
-
-        kaart.appendChild(header);
-        kaart.appendChild(content);
-        lijst.appendChild(kaart);
+        toonKaart({id:doc.id, ...doc.data()});
       });
     }
 
-    // Nieuw recept
-    document.getElementById("addRecipe").onclick = async () => {
-      const titel = prompt("Titel van recept:");
-      const ingredienten = prompt("Ingrediënten (elk op nieuwe lijn):");
-      const bereiding = prompt("Bereiding:");
-      if (!titel || !ingredienten || !bereiding) return;
-      await db.collection("recepten").doc("strikte-vasten").collection("items").add({
-        titel, ingredienten, bereiding
-      });
-      laadRecepten();
-    };
+    // Nieuwe kaart tonen
+    function toonKaart(data) {
+      const div = document.createElement("div");
+      div.className="kaart";
+      div.innerHTML = `
+        <h3>${data.titel||"Naamloos recept"}</h3>
+        <div class="sectie"><strong>Ingrediënten</strong><p>${data.ingredienten||"-"}</p></div>
+        <div class="sectie"><strong>Bereiding</strong><p>${data.bereiding||"-"}</p></div>
+      `;
+      bak.insertBefore(div, plusKaart);
+    }
 
+    // Nieuwe invulkaarten
+    plusKaart.addEventListener("click", ()=> {
+      const editDiv = document.createElement("div");
+      editDiv.className="kaart";
+      editDiv.innerHTML = `
+        <input type="text" id="newTitel" placeholder="Titel van recept">
+        <textarea id="newIngred" placeholder="Ingrediënten..."></textarea>
+        <textarea id="newBereiding" placeholder="Bereiding..."></textarea>
+        <div class="btn-row">
+          <button class="opslaan-btn">Opslaan</button>
+          <button class="annuleer-btn">Annuleren</button>
+        </div>
+      `;
+      bak.insertBefore(editDiv, plusKaart);
+
+      const opslaanBtn = editDiv.querySelector(".opslaan-btn");
+      const annuleerBtn = editDiv.querySelector(".annuleer-btn");
+
+      opslaanBtn.onclick = async ()=>{
+        const titel = editDiv.querySelector("#newTitel").value.trim();
+        const ingred = editDiv.querySelector("#newIngred").value.trim();
+        const bereid = editDiv.querySelector("#newBereiding").value.trim();
+        if(!titel){ alert("Titel invullen"); return; }
+        const nieuw = {titel, ingredienten:ingred, bereiding:bereid, gemaaktOp:new Date()};
+        const docRef = await db.collection("recepten").doc("strikte-vasten").collection("items").add(nieuw);
+        bak.removeChild(editDiv);
+        toonKaart({id:docRef.id, ...nieuw});
+      };
+      annuleerBtn.onclick = ()=> bak.removeChild(editDiv);
+    });
+
+    // Init
     laadRecepten();
   </script>
 </body>
