@@ -5,21 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Bijbeldagboek – Index</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
+
   <style>
     body { background:#f5e9b8; font-family: Arial, sans-serif; color:#6f4e1a; margin:0; padding:0; }
-    /* Topbar */
-    .topbar{background:#6f4e1a;color:#fff;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;font-weight:bold}
-    #welkom-tekst{font-size:1.07em;font-weight:normal}
-    .uitlog-link{background:#8722aa;color:#fff;border:none;padding:8px 18px;border-radius:18px;cursor:pointer;font-weight:bold;margin-left:12px}
-
-    /* Menu */
-    nav.menu{background:#7a5f35;padding:10px 15px;display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:center}
-    nav.menu a,nav.menu button{color:#f5e9b8;text-decoration:none;font-weight:600;font-size:16px;padding:6px 12px;border-radius:8px;transition:.3s;background:none;border:none;display:flex;align-items:center;cursor:pointer}
-    nav.menu a:hover,nav.menu button:hover{background:#5d4726;text-decoration:underline}
-    .menu-avatar{padding:0!important;background:none!important;border:none!important;margin-left:2px}
-    .menu-avatar img{height:2.1em;width:2.1em;border-radius:50%;border:2.2px solid #dab97a;background:#fff8eb;transition:.2s;box-shadow:0 1px 4px rgba(160,140,80,.13)}
-    .menu-avatar img:hover{border:2.2px solid #a06a19;box-shadow:0 2px 8px rgba(160,140,80,.23)}
-    @media (max-width:650px){nav.menu{gap:8px}nav.menu a,nav.menu button{font-size:1em;padding:6px 6px}.menu-avatar img{height:1.75em;width:1.75em}}
 
     /* Page container */
     .page{max-width:1100px;margin:26px auto 40px;padding:0 14px}
@@ -69,30 +57,16 @@
     .modal .row{display:flex;gap:8px;justify-content:flex-end;align-items:center}
     .modal .err{color:#b9311e;min-height:22px;font-size:.95em}
   </style>
+
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+  <!-- Volwassen lay-out -->
+  <script defer src="common/layout.js"></script>
 </head>
 <body>
-  <!-- Top -->
-  <div class="topbar">
-    <div id="welkom-tekst"></div>
-    <div>
-      <button class="uitlog-link" id="uitlogKnop" title="Hele sessie afsluiten">🚪 Uitloggen</button>
-    </div>
-  </div>
-  <!-- Menu -->
-  <nav class="menu">
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html" title="Home">🏠</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/gebeden.html">🙏 Gebeden</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
-    <a href="#" title="Bijbeldagboek">📔 Bijbeldagboek</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/verjaardagskalender.html">🎂 Verjaardagskalender</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html" class="menu-avatar" title="Mijn profiel">
-      <img id="menu-avatar-img" src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png" alt="Mijn profiel">
-    </a>
-  </nav>
+  <!-- Header wordt automatisch ingeladen -->
+  <div id="volwassen-header"></div>
 
   <div class="page">
     <h1><span class="icon">📔</span> Bijbeldagboek – Index</h1>
@@ -129,23 +103,6 @@
   </div>
 
   <script>
-    // Begroeting / avatar
-    const welkomTekst = document.getElementById("welkom-tekst");
-    const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
-    const parochieMooieNaam = localStorage.getItem("ingelogdeParochieNaam") || localStorage.getItem("ingelogdeParochie") || "(onbekend)";
-    welkomTekst.textContent = `Welkom, ${loginNaam}! U bent ingelogd in de ${parochieMooieNaam}.`;
-    const avatarImg = document.getElementById("menu-avatar-img");
-    const opgeslagenAvatar = localStorage.getItem("avatarURL"); if (opgeslagenAvatar) avatarImg.src = opgeslagenAvatar;
-
-    // Uitloggen hele sessie
-    document.getElementById("uitlogKnop").onclick = () => {
-      sessionStorage.removeItem("dagboek_userId");
-      sessionStorage.removeItem("dagboek_parochieId");
-      sessionStorage.removeItem("dagboek_authed");
-      localStorage.removeItem("dagboekOpenId");
-      window.location.reload();
-    };
-
     // Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
@@ -257,7 +214,7 @@
         window.location.href = "bijbeldagboek.html";
       };
       qs("btnHerstartTip").onclick = ()=>{
-        localStorage.setItem("dagboekOpenId", "dag001"); // als jouw id's dag001..dagnnn zijn
+        localStorage.setItem("dagboekOpenId", "dag001");
         window.location.href = "bijbeldagboek.html";
       };
     }
@@ -273,7 +230,7 @@
       const email = (qs("loginEmail").value||"").trim().toLowerCase();
       const ww = (qs("loginWw").value||"").trim();
       qs("loginErr").textContent = "";
-      if (!email || !ww){ qs("loginErr").textContent = "Vul e‑mail en wachtwoord in."; return; }
+      if (!email || !ww){ qs("loginErr").textContent = "Vul e-mail en wachtwoord in."; return; }
 
       db.collection("parochies").get().then(snapshot=>{
         if (snapshot.empty){ qs("loginErr").textContent="Geen parochies gevonden."; return; }
@@ -299,7 +256,7 @@
       });
     }
 
-    // Start: alleen modal tonen als er nog geen sessie is
+    // Start
     window.addEventListener("load", ()=>{
       const authed = sessionStorage.getItem("dagboek_authed")==="1";
       if (!authed){ showLogin(true); }
