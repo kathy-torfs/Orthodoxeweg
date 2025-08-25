@@ -1,233 +1,104 @@
-<!DOCTYPE html>
-<html lang="nl">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Orthodoxeweg – Recepten</title>
-  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
+<!-- /volwassenmodus/common/header.html -->
+<div id="ow-topbar-and-menu">
   <style>
-    body {
-      background-color: #f5e9b8;
-      color: #6f4e1a;
-      font-family: Arial, sans-serif;
-      margin: 0; padding: 0;
-      position: relative;
-      min-height: 100vh;
-      overflow-x: hidden;
+    :root{
+      --bg:#f5e9b8; --text:#6f4e1a; --bar:#6f4e1a; --menu:#7a5f35;
+      --menu-hover:#5d4726; --chip:#f5e9b8; --accent:#8722aa; --ring:#dab97a;
+      --active-bg:#5b4525; --focus:#e9d39a;
     }
-    .taal-row {
-      display: flex;
-      justify-content: flex-end;
-      max-width: 860px;
-      margin: 22px auto 0 auto;
-      padding: 0 15px;
+    *{box-sizing:border-box}
+
+    /* Topbar */
+    .topbar{
+      background-color:var(--bar); color:#fff; padding:12px 20px;
+      display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;
     }
-    .taal-btn {
-      background: #b34d1d;
-      color: #fff;
-      border: none;
-      padding: 7px 18px;
-      margin-left: 6px;
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 1em;
-      font-weight: 600;
-      transition: background 0.17s;
-      box-shadow: 0 2px 7px #fff5c9a1;
-      letter-spacing: 0.5px;
+    #welkom-tekst{font-size:1.05em; font-weight:normal}
+    .uitlog-link{
+      background-color:var(--accent); color:#fff; border:none; padding:8px 18px;
+      border-radius:18px; cursor:pointer; font-weight:bold;
     }
-    .taal-btn.active, .taal-btn:hover {
-      background: #e37b39;
+
+    /* Menubalk */
+    nav.menu{
+      background-color:var(--menu); padding:12px 14px 14px; display:flex; flex-direction:column; gap:8px;
+      align-items:center; box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
     }
-    main {
-      max-width: 860px;
-      margin: 18px auto 60px auto;
-      padding: 0 15px;
-      position: relative;
-      z-index: 2;
+    .menu-row{
+      display:flex; flex-wrap:wrap; justify-content:center; gap:10px;
+      width:100%; max-width:1100px;
     }
-    h1 {
-      font-size: 32px;
-      text-align: center;
-      margin-bottom: 12px;
-      text-decoration: underline;
-      letter-spacing: 1px;
+    .menu-row + .menu-row{
+      border-top:1px dashed rgba(255,255,255,.18);
+      padding-top:8px;
+      margin-top:2px;
     }
-    .intro {
-      text-align: center;
-      font-size: 1.19em;
-      margin-bottom: 38px;
-      color: #83652c;
-      background: rgba(255,255,255,0.7);
-      padding: 20px 12px;
-      border-radius: 15px;
-      box-shadow: 0 3px 15px #ffe7b25c;
+
+    .menu-item{
+      display:inline-flex; align-items:center; gap:8px; text-decoration:none; color:var(--chip);
+      font-weight:600; font-size:15px; line-height:1; padding:9px 12px; border-radius:12px;
+      transition:background-color .2s ease, transform .05s ease, box-shadow .2s ease;
+      position:relative;
     }
-    .categorieen {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 24px;
-      justify-content: center;
-      margin-bottom: 32px;
+    .menu-item:hover{background-color:var(--menu-hover); text-decoration:none; box-shadow:0 2px 10px rgba(0,0,0,.15) inset;}
+    .menu-item:active{transform:translateY(1px)}
+    .menu-item:focus-visible{
+      outline:2px solid var(--focus);
+      outline-offset:2px;
     }
-    .cat-blok {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      width: 180px;
-      min-height: 145px;
-      padding: 20px 14px 14px 14px;
-      background: linear-gradient(135deg,#fffbe9 70%,#f9e3b7 100%);
-      border-radius: 19px;
-      border: 2.5px solid #e6c77b;
-      box-shadow: 0 2px 9px #f9e9c77a;
-      text-align: center;
-      text-decoration: none;
-      color: #6f4e1a;
-      font-size: 1.09em;
-      transition: transform 0.18s, box-shadow 0.19s;
-      font-weight: 600;
-      position: relative;
+    .menu-item.active{
+      background:var(--active-bg);
+      box-shadow:0 0 0 2px rgba(233,211,154,.35) inset;
     }
-    .cat-blok:hover, .cat-blok:focus {
-      transform: scale(1.07) rotate(-2deg);
-      box-shadow: 0 8px 18px #ebdbbb8b;
-      background: linear-gradient(120deg,#fffbe9 50%,#f7e6c3 100%);
-      z-index: 10;
+
+    .label{white-space:nowrap}
+
+    .menu-avatar{padding:0!important; background:none!important; border:none!important; margin-left:2px; display:inline-flex; align-items:center}
+    .menu-avatar img{
+      height:2.05em; width:2.05em; border-radius:50%; border:2.2px solid var(--ring); background:#fff8eb;
+      transition:box-shadow .2s, border .2s; box-shadow:0 1px 4px rgba(160,140,80,0.13); display:block;
     }
-    .cat-icon {
-      font-size: 2.9em;
-      margin-bottom: 9px;
-      display: block;
-      filter: drop-shadow(0 1px 6px #ffe7d7e0);
-    }
-    .boek-blok {
-      margin-top: 12px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      color: #96702d;
-      font-size: 1.07em;
-      font-weight: 600;
-    }
-    .boek-icoon {
-      font-size: 2.4em;
-      margin-bottom: 2px;
-      filter: drop-shadow(0 2px 8px #e8d8a8b4);
-    }
-    .boek-blok span {
-      margin-top: 0;
-      font-weight: 500;
-      font-size: 0.97em;
-      text-align: center;
-      display: block;
-    }
-    @media (max-width: 750px) {
-      .categorieen { flex-direction: column; align-items: center;}
-      .cat-blok { width: 90vw; margin-bottom: 12px; }
-      main { margin: 7vw 0 7vw 0;}
-    }
-    /* Emoji decoratie */
-    .ingredient-emoji {
-      position: fixed;
-      z-index: 0;
-      font-size: 3.6em;
-      pointer-events: none;
-      opacity: 0.91;
-      filter: drop-shadow(0 3px 17px #f8e8c7d1);
-      animation: float 8s infinite ease-in-out;
-      user-select: none;
-      transition: font-size 0.15s;
-    }
-    .ingredient1 { top: 18px; left: 14px; animation-delay: 0s;}
-    .ingredient2 { top: 24px; right: 70px; animation-delay: 1.2s;}
-    .ingredient3 { bottom: 32px; left: 60px; animation-delay: 2.1s;}
-    .ingredient4 { bottom: 20px; right: 45px; animation-delay: 0.8s;}
-    .ingredient5 { top: 46%; left: 0; font-size: 2.4em; animation-delay: 2.7s;}
-    .ingredient6 { top: 69%; right: 0; font-size: 3.1em; animation-delay: 2.4s;}
-    .ingredient7 { bottom: 14%; left: 16vw; font-size: 2.7em; animation-delay: 1.6s;}
-    .ingredient8 { top: 10vw; right: 17vw; font-size: 2.8em; animation-delay: 2.2s;}
-    .ingredient9 { top: 29%; left: 35vw; font-size: 3.1em; animation-delay: 3.5s;}
-    .ingredient10 { bottom: 30%; right: 41vw; font-size: 2.5em; animation-delay: 1.9s;}
-    .ingredient11 { top: 71%; left: 11vw; font-size: 3em; animation-delay: 3.1s;}
-    .ingredient12 { top: 13vw; right: 31vw; font-size: 2.9em; animation-delay: 2.5s;}
-    .ingredient13 { top: 70px; left: 70vw; font-size: 4em; animation-delay: 2.9s;}
-    .ingredient14 { bottom: 20vw; left: 7vw; font-size: 2.5em; animation-delay: 2.3s;}
-    .ingredient15 { bottom: 8vw; right: 16vw; font-size: 2.5em; animation-delay: 1.2s;}
-    @keyframes float {
-      0%,100% { transform: translateY(0);}
-      50% { transform: translateY(-19px);}
+    .menu-avatar img:hover{border:2.2px solid #a06a19; box-shadow:0 2px 8px rgba(160,140,80,0.23)}
+
+    /* Mobiel: alleen tekst verbergen, grotere tap targets blijven */
+    @media (max-width:650px){
+      .menu-item{font-size:14px; padding:8px 10px; gap:7px}
+      .menu-avatar img{height:1.8em; width:1.8em}
+      .label{display:none}
     }
   </style>
-  <script defer src="common/layout.js"></script>
-</head>
-<body>
-  <!-- Volwassen header -->
-  <div id="volwassen-header"></div>
 
-  <!-- Emoji decoratie -->
-  <span class="ingredient-emoji ingredient1">🍅</span>
-  <span class="ingredient-emoji ingredient2">🥕</span>
-  <span class="ingredient-emoji ingredient3">🌿</span>
-  <span class="ingredient-emoji ingredient4">🫑</span>
-  <span class="ingredient-emoji ingredient5">🍚</span>
-  <span class="ingredient-emoji ingredient6">🥔</span>
-  <span class="ingredient-emoji ingredient7">🧄</span>
-  <span class="ingredient-emoji ingredient8">🧅</span>
-  <span class="ingredient-emoji ingredient9">🥒</span>
-  <span class="ingredient-emoji ingredient10">🍋</span>
-  <span class="ingredient-emoji ingredient11">🥦</span>
-  <span class="ingredient-emoji ingredient12">🍞</span>
-  <span class="ingredient-emoji ingredient13">🍄</span>
-  <span class="ingredient-emoji ingredient14">🥬</span>
-  <span class="ingredient-emoji ingredient15">🌰</span>
-
-  <div class="taal-row">
-    <button class="taal-btn active" onclick="switchTaal('nl')">Vlaams</button>
-    <button class="taal-btn" onclick="switchTaal('en')">English</button>
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div id="welkom-tekst"></div>
+    <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
   </div>
 
-  <main>
-    <!-- Vlaams -->
-    <div class="taal-blok" id="blok-nl" style="display:block">
-      <h1>Recepten</h1>
-      <div class="intro">
-        Welkom in de Orthodoxeweg receptenhoek! Hier vind je allerlei lekkere, eenvoudige en seizoensgebonden gerechten voor de grote en kleine vasten, maar ook op feestdagen en gewone dagen.<br>
-        Klik hieronder op een kookboek om meteen naar de recepten te gaan!
-      </div>
-      <div class="categorieen">
-        <a class="cat-blok" href="recepten/strikte-vasten.html"><span class="cat-icon">📙<br>🥕🌿</span>Strikte vasten<br><small>(geen vlees, olie, wijn, vis, zuivel of eieren)</small></a>
-        <a class="cat-blok" href="recepten/olie-wijn-toegelaten.html"><span class="cat-icon">📘<br>🍞🫒🍷</span>Olie &amp; wijn toegelaten</a>
-        <a class="cat-blok" href="recepten/vis.html"><span class="cat-icon">📗<br>🐟🍋</span>Vis toegelaten</a>
-        <a class="cat-blok" href="recepten/zuivel.html"><span class="cat-icon">📕<br>🧀🥛</span>Zuivel toegelaten</a>
-        <a class="cat-blok" href="recepten/vastenvrij.html"><span class="cat-icon">📒<br>🍰🥚</span>Vastenvrij<br><small>(alle ingrediënten)</small></a>
-      </div>
+  <!-- MENUBALK -->
+  <nav class="menu" aria-label="Hoofdmenu">
+    <!-- Rij 1 — Algemeen -->
+    <div class="menu-row">
+      <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html" title="Home">🏠 <span class="label">Home</span></a>
+      <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/bijbel.html">📔 <span class="label">Bijbel</span></a>
+      <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 <span class="label">Catechese</span></a>
+      <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/gebeden.html">🙏 <span class="label">Gebeden</span></a>
+      <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/geloofsbelijdenis.html">✝ <span class="label">Geloofsbelijdenis</span></a>
+      <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 <span class="label">Psalmen</span></a>
+      <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/heiligen.html">👼 <span class="label">Heiligen</span></a>
     </div>
 
-    <!-- Engels -->
-    <div class="taal-blok" id="blok-en" style="display:none">
-      <h1>Recipes</h1>
-      <div class="intro">
-        Welcome to the Orthodoxeweg recipes corner! Here you'll find a variety of delicious, simple, and seasonal dishes for Great and Little Lent, as well as feast days and everyday use.<br>
-        Click on a cookbook below to go directly to the recipes!
-      </div>
-      <div class="categorieen">
-        <a class="cat-blok" href="recepten/strikte-vasten.html"><span class="cat-icon">📙<br>🥕🌿</span>Strict fasting<br><small>(no meat, oil, wine, fish, dairy or eggs)</small></a>
-        <a class="cat-blok" href="recepten/olie-wijn-toegelaten.html"><span class="cat-icon">📘<br>🍞🫒🍷</span>Oil &amp; wine allowed</a>
-        <a class="cat-blok" href="recepten/vis.html"><span class="cat-icon">📗<br>🐟🍋</span>Fish allowed</a>
-        <a class="cat-blok" href="recepten/zuivel.html"><span class="cat-icon">📕<br>🧀🥛</span>Dairy allowed</a>
-        <a class="cat-blok" href="recepten/vastenvrij.html"><span class="cat-icon">📒<br>🍰🥚</span>Not fasting<br><small>(all ingredients)</small></a>
-      </div>
+    <!-- Rij 2 — Persoonlijk -->
+    <div class="menu-row">
+      <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 <span class="label">Mijn parochie</span></a>
+      <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/ikbid.html">🙏 <span class="label">Ik bid</span></a>
+      <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/bijbeldagboek.html">📔 <span class="label">Bijbeldagboek</span></a>
+      <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/menu/recepten.html">🍲 <span class="label">Kookboek</span></a>
+      <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/verjaardagskalender.html">🎂 <span class="label">Verjaardagskalender</span></a>
+      <a class="menu-item" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/orthodoxe_tuin.html" title="Orthodoxe Tuin">🌻🌻🌻 <span class="label">Tuin</span></a>
+      <a class="menu-item menu-avatar" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html" title="Mijn profiel">
+        <img id="menu-avatar-img" src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png" alt="Mijn profiel">
+        <span class="label">Profiel</span>
+      </a>
     </div>
-  </main>
-
-  <script>
-    function switchTaal(taal) {
-      document.getElementById('blok-nl').style.display = (taal === 'nl') ? 'block' : 'none';
-      document.getElementById('blok-en').style.display = (taal === 'en') ? 'block' : 'none';
-      document.querySelectorAll('.taal-btn')[0].classList.toggle('active', taal === 'nl');
-      document.querySelectorAll('.taal-btn')[1].classList.toggle('active', taal === 'en');
-    }
-  </script>
-</body>
-</html>
+  </nav>
+</div>
