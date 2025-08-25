@@ -10,41 +10,82 @@
       background:#f5e9b8;
       font-family: Arial, sans-serif;
       color:#6f4e1a;
-      margin:0; padding:20px;
+      margin:0; padding:0;
     }
 
     h1 {
       text-align:center;
-      margin-bottom:20px;
+      padding:20px 0;
+      margin:0;
     }
 
-    .recepten-bak {
+    .container {
+      display:grid;
+      grid-template-columns: 280px 1fr;
+      gap:20px;
+      max-width:1200px;
+      margin:0 auto;
+      padding:20px;
+    }
+
+    /* Zijbalk met titels */
+    .sidebar {
+      background:#fff9e2;
+      border:2px solid #d6c290;
+      border-radius:12px;
+      padding:12px;
       display:flex;
       flex-direction:column;
-      align-items:center;
-      gap:20px;
+      gap:10px;
+      max-height:80vh;
+      overflow-y:auto;
     }
 
-    .recept-card {
-      width:700px;
-      min-height:500px;
+    .sidebar h3 {
+      margin:0 0 8px;
+      font-size:1.1em;
+      text-align:center;
+    }
+
+    .recept-titel {
+      padding:10px;
+      border-radius:8px;
+      background:#fff;
+      border:1px solid #dbc592;
+      cursor:pointer;
+      font-weight:600;
+      transition: background 0.2s;
+    }
+    .recept-titel:hover { background:#f7eecb; }
+    .recept-titel.active { background:#e9dba9; }
+
+    .plus-btn {
+      padding:10px;
+      text-align:center;
+      border:2px dashed #c7b177;
+      border-radius:8px;
+      cursor:pointer;
+      background:#fff9e2;
+      font-size:1.3em;
+      font-weight:bold;
+    }
+    .plus-btn:hover { background:#fff5cc; }
+
+    /* Detailweergave */
+    .detail {
       background:#fffef9;
       border:2px solid #e2d1a5;
       border-radius:12px;
       box-shadow:0 6px 18px rgba(0,0,0,0.12);
       padding:20px;
-      display:flex;
-      flex-direction:column;
-      justify-content:space-between;
-      page-break-inside:avoid;
+      min-height:500px;
       position:relative;
     }
 
-    .recept-card h3 {
+    .detail h2 {
       text-align:center;
       margin:0 0 15px;
       font-size:1.8em;
-      color:#6f4e1a;
       border-bottom:2px solid #d6c290;
       padding-bottom:8px;
     }
@@ -53,7 +94,6 @@
       display:grid;
       grid-template-columns:1fr 2fr;
       gap:20px;
-      flex-grow:1;
     }
 
     .sectie {
@@ -61,21 +101,8 @@
       border:1px dashed #d8cfa8;
       border-radius:8px;
       padding:12px;
-      overflow:auto;
     }
-
-    .sectie h4 {
-      margin:0 0 8px;
-      font-size:1.2em;
-      color:#7a5f35;
-    }
-
-    .recept-footer {
-      text-align:right;
-      font-size:0.9em;
-      color:#8f7437;
-      margin-top:12px;
-    }
+    .sectie h4 { margin:0 0 8px; }
 
     /* Printknop */
     .print-btn {
@@ -90,39 +117,19 @@
       height:38px;
       cursor:pointer;
       font-size:1.1em;
-      box-shadow:0 2px 6px rgba(0,0,0,0.25);
     }
-    .print-btn:hover { background:#8d6b3c; }
 
-    /* Pluskaart */
-    .plus-card {
-      width:300px;
-      height:200px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:3em;
-      background:#fff9e2;
-      border:2px dashed #c7b177;
-      border-radius:12px;
-      cursor:pointer;
-      transition:0.2s;
-    }
-    .plus-card:hover { background:#fff5cc; }
-
-    /* Invulkaarten */
-    .recept-card input,
-    .recept-card textarea {
+    /* Invulvelden */
+    input, textarea {
       width:100%;
       border:1px solid #dbc592;
       border-radius:8px;
       padding:8px;
-      margin-top:6px;
       font-family:inherit;
       font-size:1em;
       background:#fffdf5;
     }
-    .recept-card textarea { min-height:150px; resize:vertical; }
+    textarea { min-height:150px; resize:vertical; }
 
     .btn-row {
       display:flex;
@@ -140,19 +147,12 @@
       font-size:1em;
     }
     .btn.secondary { background:#b09765; }
-    .btn:hover { opacity:0.9; }
 
-    /* Print */
     @media print {
       body { background:#fff; }
-      .plus-card, nav, .print-btn, .btn-row { display:none !important; }
-      .recept-card {
-        box-shadow:none;
-        border:1px solid #000;
-        width:100%;
-        page-break-after:always;
-      }
-      input, textarea { border:none !important; background:transparent !important; }
+      .sidebar, .btn-row, .print-btn { display:none !important; }
+      .detail { box-shadow:none; border:1px solid #000; width:100%; }
+      input, textarea { border:none; background:transparent; }
     }
   </style>
 
@@ -161,15 +161,24 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <!-- ==== GEMEENSCHAPPELIJKE HEADER ==== -->
+  <!-- ==== HEADER ==== -->
   <div id="volwassen-header" data-header-src="../common/header.html"></div>
   <script src="../common/layout.js"></script>
 
   <h1>🍽️ Recepten – Strikte vasten</h1>
 
-  <div class="recepten-bak" id="receptenBak">
-    <!-- Pluskaart altijd zichtbaar -->
-    <div class="plus-card" onclick="nieuwRecept()">＋</div>
+  <div class="container">
+    <!-- Zijbalk -->
+    <div class="sidebar">
+      <h3>📋 Receptenlijst</h3>
+      <div id="receptLijst"></div>
+      <div class="plus-btn" onclick="nieuwRecept()">＋ Nieuw recept</div>
+    </div>
+
+    <!-- Detailweergave -->
+    <div class="detail" id="receptDetail">
+      <p style="text-align:center;color:#888;margin-top:200px;">⬅️ Kies links een recept of voeg er een toe</p>
+    </div>
   </div>
 
   <script>
@@ -185,86 +194,71 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    const categorie = "strikte-vasten"; // vaste map
+    const categorie = "strikte-vasten";
 
-    // Laad alle recepten
+    // Laad lijst
     async function laadRecepten() {
-      const bak = document.getElementById("receptenBak");
+      const lijst = document.getElementById("receptLijst");
+      lijst.innerHTML = "";
       const snap = await db.collection("recepten").doc(categorie).collection("recepten").get();
       snap.forEach(doc => {
         const d = doc.data();
-        const card = document.createElement("div");
-        card.className = "recept-card";
-        card.innerHTML = `
-          <button class="print-btn" onclick="printRecept(this)">🖨️</button>
-          <h3>${d.titel}</h3>
-          <div class="recept-content">
-            <div class="sectie">
-              <h4>Ingrediënten</h4>
-              <p>${(d.ingredienten||"").replace(/\n/g,"<br>")}</p>
-            </div>
-            <div class="sectie">
-              <h4>Bereiding</h4>
-              <p>${(d.bereiding||"").replace(/\n/g,"<br>")}</p>
-            </div>
-          </div>
-          <div class="recept-footer">📔 Orthodoxeweg Recepten</div>
-        `;
-        bak.appendChild(card);
+        const div = document.createElement("div");
+        div.className = "recept-titel";
+        div.textContent = d.titel;
+        div.onclick = ()=>toonRecept(doc.id, d);
+        lijst.appendChild(div);
       });
     }
 
-    // Nieuw recept toevoegen
-    function nieuwRecept() {
-      const bak = document.getElementById("receptenBak");
-      const editCard = document.createElement("div");
-      editCard.className = "recept-card";
-      editCard.innerHTML = `
-        <h3><input id="newTitel" placeholder="Titel recept"></h3>
+    function toonRecept(id, d) {
+      const detail = document.getElementById("receptDetail");
+      detail.innerHTML = `
+        <button class="print-btn" onclick="printRecept()">🖨️</button>
+        <h2>${d.titel}</h2>
         <div class="recept-content">
           <div class="sectie">
             <h4>Ingrediënten</h4>
-            <textarea id="newIngred" placeholder="Ingrediënten..."></textarea>
+            <p>${(d.ingredienten||"").replace(/\n/g,"<br>")}</p>
           </div>
           <div class="sectie">
             <h4>Bereiding</h4>
-            <textarea id="newBereiding" placeholder="Bereidingswijze..."></textarea>
+            <p>${(d.bereiding||"").replace(/\n/g,"<br>")}</p>
           </div>
         </div>
+      `;
+    }
+
+    function nieuwRecept() {
+      const detail = document.getElementById("receptDetail");
+      detail.innerHTML = `
+        <h2>Nieuw recept</h2>
+        <label>Titel<br><input id="newTitel"></label><br><br>
+        <label>Ingrediënten<br><textarea id="newIngred"></textarea></label><br><br>
+        <label>Bereiding<br><textarea id="newBereiding"></textarea></label>
         <div class="btn-row">
-          <button class="btn secondary" onclick="this.closest('.recept-card').remove()">Annuleren</button>
-          <button class="btn" onclick="opslaanRecept(this)">Opslaan</button>
+          <button class="btn secondary" onclick="laadRecepten();document.getElementById('receptDetail').innerHTML='<p style=\\'text-align:center;color:#888;margin-top:200px;\\'>⬅️ Kies links een recept of voeg er een toe</p>'">Annuleren</button>
+          <button class="btn" onclick="opslaanRecept()">Opslaan</button>
         </div>
       `;
-      bak.appendChild(editCard);
     }
 
-    async function opslaanRecept(btn) {
-      const card = btn.closest(".recept-card");
-      const titel = card.querySelector("#newTitel").value.trim();
-      const ingredienten = card.querySelector("#newIngred").value.trim();
-      const bereiding = card.querySelector("#newBereiding").value.trim();
-      if(!titel){ alert("Titel invullen"); return; }
-
-      // Veilige document-ID maken
+    async function opslaanRecept() {
+      const titel = document.getElementById("newTitel").value.trim();
+      const ingredienten = document.getElementById("newIngred").value.trim();
+      const bereiding = document.getElementById("newBereiding").value.trim();
+      if (!titel){ alert("Titel invullen"); return; }
       const id = titel.toLowerCase().replace(/[^a-z0-9\s]/g,"").trim().replace(/\s+/g,"_");
-
       await db.collection("recepten").doc(categorie).collection("recepten")
-        .doc(id).set({ titel, ingredienten, bereiding, aangemaakt: new Date() });
-
-      location.reload();
+        .doc(id).set({titel, ingredienten, bereiding, aangemaakt:new Date()});
+      laadRecepten();
+      toonRecept(id,{titel, ingredienten, bereiding});
     }
 
-    // Print één recept
-    function printRecept(btn) {
-      const card = btn.closest(".recept-card");
-      const allCards = document.querySelectorAll(".recept-card, .plus-card");
-      allCards.forEach(c => { if(c!==card) c.style.display="none"; });
+    function printRecept(){
       window.print();
-      allCards.forEach(c => c.style.display="");
     }
 
-    // Start
     laadRecepten();
   </script>
 </body>
