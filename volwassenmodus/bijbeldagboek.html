@@ -7,19 +7,6 @@
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
     body { background:#f5e9b8; font-family: Arial, sans-serif; color:#6f4e1a; margin:0; padding:0; }
-    /* Topbar */
-    .topbar{background:#6f4e1a;color:#fff;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;font-weight:bold}
-    #welkom-tekst{font-size:1.07em;font-weight:normal}
-    .uitlog-link{background:#8722aa;color:#fff;border:none;padding:8px 18px;border-radius:18px;cursor:pointer;font-weight:bold;margin-left:12px}
-
-    /* Menu */
-    nav.menu{background:#7a5f35;padding:10px 15px;display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:center}
-    nav.menu a,nav.menu button{color:#f5e9b8;text-decoration:none;font-weight:600;font-size:16px;padding:6px 12px;border-radius:8px;transition:.3s;background:none;border:none;display:flex;align-items:center;cursor:pointer}
-    nav.menu a:hover,nav.menu button:hover{background:#5d4726;text-decoration:underline}
-    .menu-avatar{padding:0!important;background:none!important;border:none!important;margin-left:2px}
-    .menu-avatar img{height:2.1em;width:2.1em;border-radius:50%;border:2.2px solid #dab97a;background:#fff8eb;transition:.2s;box-shadow:0 1px 4px rgba(160,140,80,.13)}
-    .menu-avatar img:hover{border:2.2px solid #a06a19;box-shadow:0 2px 8px rgba(160,140,80,.23)}
-    @media (max-width:650px){nav.menu{gap:8px}nav.menu a,nav.menu button{font-size:1em;padding:6px 6px}.menu-avatar img{height:1.75em;width:1.75em}}
 
     /* Page */
     .page{max-width:1100px;margin:28px auto 40px;padding:0 14px}
@@ -85,28 +72,13 @@
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+  <!-- Volwassen lay-out -->
+  <script defer src="common/layout.js"></script>
 </head>
 <body>
-  <!-- Top -->
-  <div class="topbar">
-    <div id="welkom-tekst"></div>
-    <div>
-      <button class="uitlog-link" id="uitlogKnop" title="Hele sessie afsluiten">🚪 Uitloggen</button>
-    </div>
-  </div>
-  <!-- Menu -->
-  <nav class="menu">
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html" title="Home">🏠</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/gebeden.html">🙏 Gebeden</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
-    <a href="bijbeldagboek_index.html" title="Bijbeldagboek">📔 Bijbeldagboek</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/verjaardagskalender.html">🎂 Verjaardagskalender</a>
-    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html" class="menu-avatar" title="Mijn profiel">
-      <img id="menu-avatar-img" src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png" alt="Mijn profiel">
-    </a>
-  </nav>
+  <!-- Volwassen header wordt hier ingeladen -->
+  <div id="volwassen-header"></div>
 
   <div class="page">
     <div class="headerline">
@@ -120,7 +92,7 @@
       <div class="small" id="saveHint" style="display:none;">Je notities en reflectie worden privé opgeslagen bij jouw lidprofiel.</div>
     </div>
 
-    <!-- “Open boek”: links tekst, rechts één notitieblok -->
+    <!-- “Open boek”: links tekst, rechts notities -->
     <div class="book">
       <div class="pane">
         <h3>Bijbeltekst</h3>
@@ -163,7 +135,7 @@
     </div>
   </div>
 
-  <!-- Login Modal (alleen als sessie ontbreekt) -->
+  <!-- Login Modal -->
   <div class="overlay" id="loginOverlay" aria-modal="true" role="dialog">
     <div class="modal">
       <h3>Bijbeldagboek openen</h3>
@@ -180,24 +152,7 @@
   </div>
 
   <script>
-    // Begroeting / avatar
-    const welkomTekst = document.getElementById("welkom-tekst");
-    const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
-    const parochieMooieNaam = localStorage.getItem("ingelogdeParochieNaam") || localStorage.getItem("ingelogdeParochie") || "(onbekend)";
-    welkomTekst.textContent = `Welkom, ${loginNaam}! U bent ingelogd in de ${parochieMooieNaam}.`;
-    const avatarImg = document.getElementById("menu-avatar-img");
-    const opgeslagenAvatar = localStorage.getItem("avatarURL"); if (opgeslagenAvatar) avatarImg.src = opgeslagenAvatar;
-
-    // Uitloggen hele sessie
-    document.getElementById("uitlogKnop").onclick = () => {
-      sessionStorage.removeItem("dagboek_userId");
-      sessionStorage.removeItem("dagboek_parochieId");
-      sessionStorage.removeItem("dagboek_authed");
-      localStorage.removeItem("dagboekOpenId");
-      window.location.href = "bijbeldagboek_index.html";
-    };
-
-    // Firebase
+    // Firebase init
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -209,37 +164,23 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Session
+    // Session vars
     let userId = sessionStorage.getItem("dagboek_userId") || null;
     let parochieId = sessionStorage.getItem("dagboek_parochieId") || null;
     let memberRef = null;
     let opdrachten = []; let index = 0;
-
-    // Selected day from index (fallback: current)
     let openId = localStorage.getItem("dagboekOpenId") || null;
 
     // Helpers
     const qs = id => document.getElementById(id);
-    const esc = (s='') => String(s)
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
-    function renderParagraphs(txt=''){
-      const norm = String(txt).replace(/\r\n/g,'\n').trim();
-      if(!norm) return '';
-      const blocks = norm.split(/\n\s*\n/);
-      return blocks.map(b=>`<p>${esc(b).replace(/\n/g,'<br>')}</p>`).join('');
-    }
-    function showLogin(show){
-      qs("loginOverlay").style.display = show ? "flex" : "none";
-      if (show) { qs("loginEmail").focus(); } else { qs("loginErr").textContent=""; }
-    }
+    const esc = (s='') => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+    function renderParagraphs(txt=''){ const blocks = String(txt).trim().split(/\n\s*\n/); return blocks.map(b=>`<p>${esc(b).replace(/\n/g,'<br>')}</p>`).join(''); }
+    function showLogin(show){ qs("loginOverlay").style.display = show ? "flex" : "none"; if(show) qs("loginEmail").focus(); }
 
     async function getTemplateSnapshot(){
-      const primary = await db.collection("vlaamseOrthodoxeBijbelstudie")
-        .orderBy(firebase.firestore.FieldPath.documentId(),"asc").get().catch(()=>({empty:true,docs:[]}));
+      const primary = await db.collection("vlaamseOrthodoxeBijbelstudie").orderBy(firebase.firestore.FieldPath.documentId(),"asc").get().catch(()=>({empty:true,docs:[]}));
       if (!primary.empty) return primary;
-      const fallback = await db.collection("vlaamseOrthodoxeBijbelstudie_Genesis")
-        .orderBy(firebase.firestore.FieldPath.documentId(),"asc").get().catch(()=>({empty:true,docs:[]}));
+      const fallback = await db.collection("vlaamseOrthodoxeBijbelstudie_Genesis").orderBy(firebase.firestore.FieldPath.documentId(),"asc").get().catch(()=>({empty:true,docs:[]}));
       return fallback;
     }
 
@@ -252,205 +193,103 @@
         if(!heeft.has(doc.id)){
           const d = doc.data()||{};
           batch.set(coll.doc(doc.id),{
-            templateId:doc.id,
-            titel:d.titel||d.titelNL||("Dag "+doc.id),
-            intro:d.intro||d.inleiding||"",
-            lezing:d.lezing||d.lezen||"",
-            tekst:d.tekst||"",
-            vragen:Array.isArray(d.vragen)?d.vragen:[],
-            vragenAntwoorden:{},
-            notitiesAlgemeen:"",
-            reflectie:"",
-            voltooid:false,
-            gestartOp: firebase.firestore.FieldValue.serverTimestamp(),
-            voltooidOp:null,
-            lastEdit:null
+            templateId:doc.id, titel:d.titel||d.titelNL||("Dag "+doc.id), intro:d.intro||d.inleiding||"",
+            lezing:d.lezing||d.lezen||"", tekst:d.tekst||"", vragen:Array.isArray(d.vragen)?d.vragen:[],
+            vragenAntwoorden:{}, notitiesAlgemeen:"", reflectie:"", voltooid:false,
+            gestartOp: firebase.firestore.FieldValue.serverTimestamp(), voltooidOp:null, lastEdit:null
           },{merge:true});
           toWrite++;
         }
       });
-      if (toWrite>0) await batch.commit();
+      if(toWrite>0) await batch.commit();
     }
 
     async function ensureProgressStart(){
       const first = await db.collection("parochies").doc(parochieId).collection("leden").doc(userId)
         .collection("dagboek").orderBy(firebase.firestore.FieldPath.documentId(),"asc").limit(1).get();
-      const firstId = first.empty ? null : first.docs[0].id;
+      const firstId = first.empty?null:first.docs[0].id;
       if (!firstId) return;
       const m = await memberRef.get(); const data = m.exists?m.data():{};
       if (!data.dagboekCurrentId) await memberRef.set({dagboekCurrentId:firstId},{merge:true});
     }
-    async function updateProgressCurrent(currentId){
-      if (!memberRef) return;
-      await memberRef.set({dagboekCurrentId: currentId},{merge:true});
-    }
+    async function updateProgressCurrent(currentId){ if(memberRef) await memberRef.set({dagboekCurrentId: currentId},{merge:true}); }
 
     async function laadOpdrachten(){
       const coll = memberRef.collection("dagboek");
-      const [snap, memberSnap] = await Promise.all([
-        coll.orderBy(firebase.firestore.FieldPath.documentId(),"asc").get(),
-        memberRef.get()
-      ]);
+      const [snap, memberSnap] = await Promise.all([coll.orderBy(firebase.firestore.FieldPath.documentId(),"asc").get(), memberRef.get()]);
       opdrachten = snap.docs.map(d=>({id:d.id, ...d.data()}));
-      if (!opdrachten.length){
-        qs("dagTitel").textContent = "Geen dagboek-items.";
-        qs("bijbelTekst").innerHTML = "";
-        qs("introWrap").style.display="none";
-        qs("lezingChip").style.display="none";
-        return;
-      }
-      let targetIndex = 0;
-      if (openId){
-        const pos = opdrachten.findIndex(o=>o.id===openId);
-        targetIndex = (pos>=0?pos:0);
-      } else {
-        const currentId = (memberSnap.exists && memberSnap.data().dagboekCurrentId) ? memberSnap.data().dagboekCurrentId : null;
-        const pos = currentId ? opdrachten.findIndex(o=>o.id===currentId) : -1;
-        targetIndex = pos>=0 ? pos : 0;
-      }
-      index = targetIndex;
-      toonOpdracht(index);
+      if (!opdrachten.length){ qs("dagTitel").textContent="Geen dagboek-items."; return; }
+      let targetIndex=0;
+      if(openId){ const pos = opdrachten.findIndex(o=>o.id===openId); targetIndex=(pos>=0?pos:0); }
+      else{ const currentId = memberSnap.exists?memberSnap.data().dagboekCurrentId:null; const pos=currentId?opdrachten.findIndex(o=>o.id===currentId):-1; targetIndex=pos>=0?pos:0; }
+      index=targetIndex; toonOpdracht(index);
     }
 
     function toonOpdracht(i){
       const op = opdrachten[i];
-      const titel = op.titel || ("Dag " + (i+1));
-      qs("dagTitel").textContent = titel;
-
-      // Lezing chip
-      if (op.lezing){
-        qs("lezingChip").style.display="inline-block";
-        qs("lezingChip").textContent = "Lezing: " + op.lezing;
-      } else {
-        qs("lezingChip").style.display="none";
-      }
-
-      // Intro bovenaan
-      if (op.intro){
-        qs("introWrap").style.display="block";
-        qs("introText").textContent = op.intro;
-        qs("saveHint").style.display="block";
-      } else {
-        qs("introWrap").style.display="none";
-      }
-
-      // Bijbeltekst links
-      qs("bijbelTekst").innerHTML = renderParagraphs(op.tekst || "");
-
-      // Notities rechts
-      const notities = (op.notitiesAlgemeen != null ? op.notitiesAlgemeen : op.notities) || "";
-      qs("notesArea").value = notities;
-
-      // Vragen + reflectie
-      const vragen = Array.isArray(op.vragen) ? op.vragen : [];
-      const vragenBlok = qs("vragenBlok");
-      const vragenLijst = qs("vragenLijst");
-      vragenLijst.innerHTML = "";
-      if (vragen.length){
-        vragen.forEach(v=>{
-          const li = document.createElement("li");
-          li.textContent = v;
-          vragenLijst.appendChild(li);
-        });
-        vragenBlok.style.display="block";
-      } else {
-        vragenBlok.style.display="none";
-      }
-      qs("reflectieTekst").value = op.reflectie || "";
-
-      // Navigatie
-      qs("prevBtn").disabled = (i===0);
-      qs("nextBtn").disabled = (i===opdrachten.length-1);
-      qs("dagBadge").textContent = `Dag ${i+1} van ${opdrachten.length}`;
-
-      // Bewaar gekozen openId
-      localStorage.setItem("dagboekOpenId", op.id);
-      updateProgressCurrent(op.id);
+      qs("dagTitel").textContent = op.titel || ("Dag "+(i+1));
+      if(op.lezing){ qs("lezingChip").style.display="inline-block"; qs("lezingChip").textContent="Lezing: "+op.lezing; }
+      else{ qs("lezingChip").style.display="none"; }
+      if(op.intro){ qs("introWrap").style.display="block"; qs("introText").textContent=op.intro; qs("saveHint").style.display="block"; }
+      else{ qs("introWrap").style.display="none"; }
+      qs("bijbelTekst").innerHTML = renderParagraphs(op.tekst||"");
+      qs("notesArea").value = op.notitiesAlgemeen||"";
+      const vragen = Array.isArray(op.vragen)?op.vragen:[]; const vragenLijst=qs("vragenLijst"); vragenLijst.innerHTML="";
+      if(vragen.length){ vragen.forEach(v=>{ const li=document.createElement("li"); li.textContent=v; vragenLijst.appendChild(li); }); qs("vragenBlok").style.display="block"; }
+      else{ qs("vragenBlok").style.display="none"; }
+      qs("reflectieTekst").value=op.reflectie||"";
+      qs("prevBtn").disabled=(i===0); qs("nextBtn").disabled=(i===opdrachten.length-1);
+      qs("dagBadge").textContent=`Dag ${i+1} van ${opdrachten.length}`;
+      localStorage.setItem("dagboekOpenId", op.id); updateProgressCurrent(op.id);
     }
 
     // Opslaan notities
-    qs("saveNotesBtn").onclick = async ()=>{
-      if (!opdrachten.length) return;
-      const op = opdrachten[index];
-      const docRef = db.collection("parochies").doc(parochieId).collection("leden").doc(userId)
-        .collection("dagboek").doc(op.id);
-      const val = qs("notesArea").value.trim();
-      await docRef.set({ notitiesAlgemeen: val, lastEdit: firebase.firestore.FieldValue.serverTimestamp() }, {merge:true});
-      opdrachten[index].notitiesAlgemeen = val;
-      qs("notesFeedback").textContent = "Opgeslagen!";
-      setTimeout(()=>qs("notesFeedback").textContent="",1200);
+    qs("saveNotesBtn").onclick=async()=>{ if(!opdrachten.length) return; const op=opdrachten[index];
+      const docRef=db.collection("parochies").doc(parochieId).collection("leden").doc(userId).collection("dagboek").doc(op.id);
+      const val=qs("notesArea").value.trim(); await docRef.set({notitiesAlgemeen:val,lastEdit:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+      opdrachten[index].notitiesAlgemeen=val; qs("notesFeedback").textContent="Opgeslagen!"; setTimeout(()=>qs("notesFeedback").textContent="",1200);
     };
 
     // Opslaan reflectie
-    qs("saveReflectieBtn").onclick = async ()=>{
-      if (!opdrachten.length) return;
-      const op = opdrachten[index];
-      const docRef = db.collection("parochies").doc(parochieId).collection("leden").doc(userId)
-        .collection("dagboek").doc(op.id);
-      const val = qs("reflectieTekst").value.trim();
-      await docRef.set({ reflectie: val, lastEdit: firebase.firestore.FieldValue.serverTimestamp() }, {merge:true});
-      opdrachten[index].reflectie = val;
-      qs("reflectieFeedback").textContent = "Opgeslagen!";
-      setTimeout(()=>qs("reflectieFeedback").textContent="",1200);
+    qs("saveReflectieBtn").onclick=async()=>{ if(!opdrachten.length) return; const op=opdrachten[index];
+      const docRef=db.collection("parochies").doc(parochieId).collection("leden").doc(userId).collection("dagboek").doc(op.id);
+      const val=qs("reflectieTekst").value.trim(); await docRef.set({reflectie:val,lastEdit:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+      opdrachten[index].reflectie=val; qs("reflectieFeedback").textContent="Opgeslagen!"; setTimeout(()=>qs("reflectieFeedback").textContent="",1200);
     };
 
-    // Navigatie knoppen
-    qs("prevBtn").onclick = ()=>{ if(index>0){ index--; toonOpdracht(index);} };
-    qs("nextBtn").onclick = ()=>{ if(index<opdrachten.length-1){ index++; toonOpdracht(index);} };
-    qs("btnBackIndex").onclick = ()=>{ window.location.href = "bijbeldagboek_index.html"; };
+    // Navigatie
+    qs("prevBtn").onclick=()=>{ if(index>0){ index--; toonOpdracht(index);} };
+    qs("nextBtn").onclick=()=>{ if(index<opdrachten.length-1){ index++; toonOpdracht(index);} };
+    qs("btnBackIndex").onclick=()=>{ window.location.href="bijbeldagboek_index.html"; };
 
-    // Login modal handlers
-    qs("loginCancel").onclick = ()=> showLogin(false);
-    qs("loginOk").onclick = doLogin;
+    // Login modal
+    qs("loginCancel").onclick=()=>showLogin(false);
+    qs("loginOk").onclick=doLogin;
     function onEnter(e){ if(e.key==="Enter"){ doLogin(); } }
-    qs("loginEmail").addEventListener("keydown", onEnter);
-    qs("loginWw").addEventListener("keydown", onEnter);
+    qs("loginEmail").addEventListener("keydown",onEnter); qs("loginWw").addEventListener("keydown",onEnter);
 
     function doLogin(){
-      const email = (qs("loginEmail").value||"").trim().toLowerCase();
-      const ww = (qs("loginWw").value||"").trim();
-      qs("loginErr").textContent = "";
-      if (!email || !ww){ qs("loginErr").textContent = "Vul e‑mail en wachtwoord in."; return; }
-
+      const email=(qs("loginEmail").value||"").trim().toLowerCase(); const ww=(qs("loginWw").value||"").trim();
+      qs("loginErr").textContent=""; if(!email||!ww){ qs("loginErr").textContent="Vul e-mail en wachtwoord in."; return; }
       db.collection("parochies").get().then(snapshot=>{
-        if (snapshot.empty){ qs("loginErr").textContent="Geen parochies gevonden."; return; }
-        const lookups=[]; let ok=false, lidDoc=null, pId=null;
-        snapshot.forEach(p=>{
-          const leden = db.collection("parochies").doc(p.id).collection("leden");
-          lookups.push( leden.where("email","==",email).limit(1).get().then(s=>{
-            if(!s.empty){ const d=s.docs[0].data(); if((d.wachtwoord||"")===ww){ ok=true; lidDoc=s.docs[0]; pId=p.id; } }
-          }) );
+        if(snapshot.empty){ qs("loginErr").textContent="Geen parochies gevonden."; return; }
+        const lookups=[]; let ok=false,lidDoc=null,pId=null;
+        snapshot.forEach(p=>{ const leden=db.collection("parochies").doc(p.id).collection("leden");
+          lookups.push(leden.where("email","==",email).limit(1).get().then(s=>{ if(!s.empty){ const d=s.docs[0].data(); if((d.wachtwoord||"")===ww){ ok=true; lidDoc=s.docs[0]; pId=p.id; } } }));
         });
-        Promise.all(lookups).then(async ()=>{
-          if(ok && lidDoc){
-            userId = lidDoc.id; parochieId = pId;
-            sessionStorage.setItem("dagboek_userId", userId);
-            sessionStorage.setItem("dagboek_parochieId", parochieId);
-            sessionStorage.setItem("dagboek_authed", "1");
-            showLogin(false);
-            memberRef = db.collection("parochies").doc(parochieId).collection("leden").doc(userId);
-            await syncTemplatesToUser();
-            await ensureProgressStart();
-            await laadOpdrachten();
-          }else{
-            qs("loginErr").textContent="Geen lid gevonden met dit e-mailadres of fout wachtwoord.";
-          }
-        });
+        Promise.all(lookups).then(async()=>{ if(ok&&lidDoc){ userId=lidDoc.id; parochieId=pId;
+          sessionStorage.setItem("dagboek_userId",userId); sessionStorage.setItem("dagboek_parochieId",parochieId); sessionStorage.setItem("dagboek_authed","1");
+          showLogin(false); memberRef=db.collection("parochies").doc(parochieId).collection("leden").doc(userId);
+          await syncTemplatesToUser(); await ensureProgressStart(); await laadOpdrachten();
+        } else{ qs("loginErr").textContent="Geen lid gevonden met dit e-mailadres of fout wachtwoord."; } });
       });
     }
 
     // Start
-    window.addEventListener("load", async ()=>{
-      const authed = sessionStorage.getItem("dagboek_authed")==="1";
-      if (!authed){ showLogin(true); }
-      else {
-        userId = sessionStorage.getItem("dagboek_userId");
-        parochieId = sessionStorage.getItem("dagboek_parochieId");
-        memberRef = db.collection("parochies").doc(parochieId).collection("leden").doc(userId);
-        await syncTemplatesToUser();
-        await ensureProgressStart();
-        await laadOpdrachten();
-      }
+    window.addEventListener("load", async()=>{ const authed=sessionStorage.getItem("dagboek_authed")==="1";
+      if(!authed){ showLogin(true); } else { userId=sessionStorage.getItem("dagboek_userId"); parochieId=sessionStorage.getItem("dagboek_parochieId");
+        memberRef=db.collection("parochies").doc(parochieId).collection("leden").doc(userId);
+        await syncTemplatesToUser(); await ensureProgressStart(); await laadOpdrachten(); }
     });
   </script>
 </body>
