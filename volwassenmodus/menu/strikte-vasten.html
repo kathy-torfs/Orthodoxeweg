@@ -1,188 +1,270 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Recepten – Orthodoxeweg</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recepten – Volwassenmodus</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
-    body { background:#f5e9b8; font-family:Arial,sans-serif; margin:0; padding:0; color:#6f4e1a; }
-
-    /* Container */
-    .bak-container {
-      max-width: 1000px;
-      margin: 30px auto;
-      padding: 0 16px;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 20px;
+    body {
+      background:#f5e9b8;
+      font-family: Arial, sans-serif;
+      color:#6f4e1a;
+      margin:0; padding:20px;
     }
 
-    /* Receptkaart */
-    .kaart {
-      background: #fffdf6;
-      border: 2px solid #e0c88c;
-      border-radius: 14px;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.15);
-      padding: 18px 16px;
-      display: flex;
-      flex-direction: column;
-      transition: transform 0.15s;
+    h1 {
+      text-align:center;
+      margin-bottom:20px;
     }
-    .kaart:hover { transform: translateY(-3px); }
 
-    .kaart h3 {
-      margin: 0 0 12px 0;
-      font-size: 1.25em;
+    .recepten-bak {
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:20px;
+    }
+
+    .recept-card {
+      width:700px;
+      min-height:500px;
+      background:#fffef9;
+      border:2px solid #e2d1a5;
+      border-radius:12px;
+      box-shadow:0 6px 18px rgba(0,0,0,0.12);
+      padding:20px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      page-break-inside:avoid;
+      position:relative;
+    }
+
+    .recept-card h3 {
+      text-align:center;
+      margin:0 0 15px;
+      font-size:1.8em;
+      color:#6f4e1a;
+      border-bottom:2px solid #d6c290;
+      padding-bottom:8px;
+    }
+
+    .recept-content {
+      display:grid;
+      grid-template-columns:1fr 2fr;
+      gap:20px;
+      flex-grow:1;
+    }
+
+    .sectie {
+      background:#faf9f3;
+      border:1px dashed #d8cfa8;
+      border-radius:8px;
+      padding:12px;
+      overflow:auto;
+    }
+
+    .sectie h4 {
+      margin:0 0 8px;
+      font-size:1.2em;
       color:#7a5f35;
-      border-bottom: 1px solid #e6d4a5;
-      padding-bottom: 4px;
     }
 
-    .kaart .sectie {
-      margin-bottom: 12px;
-    }
-    .kaart .sectie strong {
-      display:block;
-      margin-bottom:4px;
-      color:#5b4116;
+    .recept-footer {
+      text-align:right;
+      font-size:0.9em;
+      color:#8f7437;
+      margin-top:12px;
     }
 
-    .kaart p {
-      margin: 0 0 8px 0;
-      line-height:1.5;
-      white-space: pre-line;
+    /* Printknop */
+    .print-btn {
+      position:absolute;
+      top:12px;
+      right:12px;
+      background:#7a5f35;
+      color:#fff;
+      border:none;
+      border-radius:50%;
+      width:38px;
+      height:38px;
+      cursor:pointer;
+      font-size:1.1em;
+      box-shadow:0 2px 6px rgba(0,0,0,0.25);
     }
+    .print-btn:hover { background:#8d6b3c; }
 
     /* Pluskaart */
-    .plus-kaart {
-      background:#fdf1d2;
-      border:2px dashed #c79c43;
+    .plus-card {
+      width:300px;
+      height:200px;
       display:flex;
       align-items:center;
       justify-content:center;
       font-size:3em;
-      color:#a6792d;
+      background:#fff9e2;
+      border:2px dashed #c7b177;
+      border-radius:12px;
       cursor:pointer;
-      transition: background 0.2s, transform 0.15s;
+      transition:0.2s;
     }
-    .plus-kaart:hover {
-      background:#fde6b1;
-      transform: scale(1.05);
-    }
+    .plus-card:hover { background:#fff5cc; }
 
-    /* Bewerkbare kaart */
-    .kaart input, .kaart textarea {
+    /* Invulkaarten */
+    .recept-card input,
+    .recept-card textarea {
       width:100%;
-      border:1.5px solid #d1b670;
+      border:1px solid #dbc592;
       border-radius:8px;
       padding:8px;
+      margin-top:6px;
       font-family:inherit;
       font-size:1em;
-      margin-bottom:10px;
-      box-sizing:border-box;
+      background:#fffdf5;
     }
-    .kaart textarea { min-height:80px; resize:vertical; }
+    .recept-card textarea { min-height:150px; resize:vertical; }
 
-    .kaart .btn-row {
-      display:flex; gap:10px; justify-content:flex-end; margin-top:8px;
+    .btn-row {
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      margin-top:10px;
     }
-    .kaart button {
+    .btn {
+      background:#7a5f35;
+      color:#fff;
       border:none;
       border-radius:8px;
-      padding:8px 14px;
-      font-size:0.95em;
+      padding:8px 16px;
       cursor:pointer;
-      font-weight:bold;
+      font-size:1em;
     }
-    .opslaan-btn { background:#7bb235; color:white; }
-    .annuleer-btn { background:#b09765; color:white; }
+    .btn.secondary { background:#b09765; }
+    .btn:hover { opacity:0.9; }
+
+    /* Print */
+    @media print {
+      body { background:#fff; }
+      .plus-card, nav, .print-btn, .btn-row { display:none !important; }
+      .recept-card {
+        box-shadow:none;
+        border:1px solid #000;
+        width:100%;
+        page-break-after:always;
+      }
+      input, textarea { border:none !important; background:transparent !important; }
+    }
   </style>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
-
   <!-- ==== GEMEENSCHAPPELIJKE HEADER ==== -->
   <div id="volwassen-header" data-header-src="../common/header.html"></div>
   <script src="../common/layout.js"></script>
 
-  <main>
-    <h1 style="text-align:center; margin:20px 0; color:#7a5f35;">📖 Receptenbak</h1>
-    <div class="bak-container" id="receptenBak">
-      <!-- Kaarten komen hier -->
-      <div class="kaart plus-kaart" id="plusKaart">➕</div>
-    </div>
-  </main>
+  <h1>🍽️ Recepten – Strikte vasten</h1>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+  <div class="recepten-bak" id="receptenBak">
+    <!-- Pluskaart altijd zichtbaar -->
+    <div class="plus-card" onclick="nieuwRecept()">＋</div>
+  </div>
+
   <script>
+    // Firebase init
     const firebaseConfig = {
-      apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
-      authDomain:"orthodoxeweg.firebaseapp.com",
-      projectId:"orthodoxeweg",
-      storageBucket:"orthodoxeweg.appspot.com",
-      messagingSenderId:"408582263618",
-      appId:"1:408582263618:web:0a20f4bf0704989d3ceedb"
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
     };
-    if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    const bak = document.getElementById("receptenBak");
-    const plusKaart = document.getElementById("plusKaart");
+    const categorie = "strikte-vasten"; // vaste map
 
-    // Recept laden
+    // Laad alle recepten
     async function laadRecepten() {
-      const snap = await db.collection("recepten").doc("strikte-vasten").collection("items").get();
+      const bak = document.getElementById("receptenBak");
+      const snap = await db.collection("recepten").doc(categorie).collection("recepten").get();
       snap.forEach(doc => {
-        toonKaart({id:doc.id, ...doc.data()});
+        const d = doc.data();
+        const card = document.createElement("div");
+        card.className = "recept-card";
+        card.innerHTML = `
+          <button class="print-btn" onclick="printRecept(this)">🖨️</button>
+          <h3>${d.titel}</h3>
+          <div class="recept-content">
+            <div class="sectie">
+              <h4>Ingrediënten</h4>
+              <p>${(d.ingredienten||"").replace(/\n/g,"<br>")}</p>
+            </div>
+            <div class="sectie">
+              <h4>Bereiding</h4>
+              <p>${(d.bereiding||"").replace(/\n/g,"<br>")}</p>
+            </div>
+          </div>
+          <div class="recept-footer">📔 Orthodoxeweg Recepten</div>
+        `;
+        bak.appendChild(card);
       });
     }
 
-    // Nieuwe kaart tonen
-    function toonKaart(data) {
-      const div = document.createElement("div");
-      div.className="kaart";
-      div.innerHTML = `
-        <h3>${data.titel||"Naamloos recept"}</h3>
-        <div class="sectie"><strong>Ingrediënten</strong><p>${data.ingredienten||"-"}</p></div>
-        <div class="sectie"><strong>Bereiding</strong><p>${data.bereiding||"-"}</p></div>
-      `;
-      bak.insertBefore(div, plusKaart);
-    }
-
-    // Nieuwe invulkaarten
-    plusKaart.addEventListener("click", ()=> {
-      const editDiv = document.createElement("div");
-      editDiv.className="kaart";
-      editDiv.innerHTML = `
-        <input type="text" id="newTitel" placeholder="Titel van recept">
-        <textarea id="newIngred" placeholder="Ingrediënten..."></textarea>
-        <textarea id="newBereiding" placeholder="Bereiding..."></textarea>
+    // Nieuw recept toevoegen
+    function nieuwRecept() {
+      const bak = document.getElementById("receptenBak");
+      const editCard = document.createElement("div");
+      editCard.className = "recept-card";
+      editCard.innerHTML = `
+        <h3><input id="newTitel" placeholder="Titel recept"></h3>
+        <div class="recept-content">
+          <div class="sectie">
+            <h4>Ingrediënten</h4>
+            <textarea id="newIngred" placeholder="Ingrediënten..."></textarea>
+          </div>
+          <div class="sectie">
+            <h4>Bereiding</h4>
+            <textarea id="newBereiding" placeholder="Bereidingswijze..."></textarea>
+          </div>
+        </div>
         <div class="btn-row">
-          <button class="opslaan-btn">Opslaan</button>
-          <button class="annuleer-btn">Annuleren</button>
+          <button class="btn secondary" onclick="this.closest('.recept-card').remove()">Annuleren</button>
+          <button class="btn" onclick="opslaanRecept(this)">Opslaan</button>
         </div>
       `;
-      bak.insertBefore(editDiv, plusKaart);
+      bak.appendChild(editCard);
+    }
 
-      const opslaanBtn = editDiv.querySelector(".opslaan-btn");
-      const annuleerBtn = editDiv.querySelector(".annuleer-btn");
+    async function opslaanRecept(btn) {
+      const card = btn.closest(".recept-card");
+      const titel = card.querySelector("#newTitel").value.trim();
+      const ingredienten = card.querySelector("#newIngred").value.trim();
+      const bereiding = card.querySelector("#newBereiding").value.trim();
+      if(!titel){ alert("Titel invullen"); return; }
 
-      opslaanBtn.onclick = async ()=>{
-        const titel = editDiv.querySelector("#newTitel").value.trim();
-        const ingred = editDiv.querySelector("#newIngred").value.trim();
-        const bereid = editDiv.querySelector("#newBereiding").value.trim();
-        if(!titel){ alert("Titel invullen"); return; }
-        const nieuw = {titel, ingredienten:ingred, bereiding:bereid, gemaaktOp:new Date()};
-        const docRef = await db.collection("recepten").doc("strikte-vasten").collection("items").add(nieuw);
-        bak.removeChild(editDiv);
-        toonKaart({id:docRef.id, ...nieuw});
-      };
-      annuleerBtn.onclick = ()=> bak.removeChild(editDiv);
-    });
+      // Veilige document-ID maken
+      const id = titel.toLowerCase().replace(/[^a-z0-9\s]/g,"").trim().replace(/\s+/g,"_");
 
-    // Init
+      await db.collection("recepten").doc(categorie).collection("recepten")
+        .doc(id).set({ titel, ingredienten, bereiding, aangemaakt: new Date() });
+
+      location.reload();
+    }
+
+    // Print één recept
+    function printRecept(btn) {
+      const card = btn.closest(".recept-card");
+      const allCards = document.querySelectorAll(".recept-card, .plus-card");
+      allCards.forEach(c => { if(c!==card) c.style.display="none"; });
+      window.print();
+      allCards.forEach(c => c.style.display="");
+    }
+
+    // Start
     laadRecepten();
   </script>
 </body>
