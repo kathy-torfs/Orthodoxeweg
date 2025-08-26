@@ -1,4 +1,6 @@
-<!DOCTYPE html>
+kan je deze code onveranderd laten en enkel de gezinssituatie bijvoegen?
+
+<!DOCTYPE html> 
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
@@ -7,6 +9,26 @@
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
     body { background-color: #f5e9b8; color: #6f4e1a; font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    .topbar { background-color: #6f4e1a; color: white; padding: 12px 20px;
+      display: flex; justify-content: space-between; align-items: center; font-weight: bold; flex-wrap: wrap;}
+    #welkom-tekst { font-size: 1.07em; font-weight: normal;}
+    .uitlog-link { background-color: #8722aa; color: white; border: none;
+      padding: 8px 18px; border-radius: 18px; cursor: pointer; font-weight: bold; margin-left: 12px;}
+    nav.menu { background-color: #7a5f35; padding: 10px 15px; display: flex; flex-wrap: wrap; gap: 12px;
+      justify-content: center; align-items: center;}
+    nav.menu a, nav.menu button { color: #f5e9b8; text-decoration: none; font-weight: 600; font-size: 16px;
+      padding: 6px 12px; border-radius: 8px; transition: background-color 0.3s; background: none; border: none;
+      display: flex; align-items: center; cursor: pointer;}
+    nav.menu a:hover, nav.menu button:hover { background-color: #5d4726; text-decoration: underline;}
+    .menu-avatar { padding: 0 !important; background: none !important; border: none !important; margin-left: 2px;}
+    .menu-avatar img { height: 2.1em; width: 2.1em; border-radius: 50%; border: 2.2px solid #dab97a; background: #fff8eb;
+      transition: box-shadow 0.2s, border 0.2s; box-shadow: 0 1px 4px rgba(160,140,80,0.13); display: block;}
+    .menu-avatar img:hover { border: 2.2px solid #a06a19; box-shadow: 0 2px 8px rgba(160,140,80,0.23);}
+    @media (max-width: 650px) {
+      nav.menu { flex-wrap: wrap; gap: 8px;}
+      nav.menu a, nav.menu button { font-size: 1em; padding: 6px 6px;}
+      .menu-avatar img { height: 1.75em; width: 1.75em;}
+    }
     main { max-width: 900px; margin: 38px auto 40px auto; background: #fffef9; padding: 30px 22px 22px 22px; border-radius: 20px; box-shadow: 0 6px 32px #d7cbb142; display: flex; gap: 36px;}
     .profiel-links, .profiel-rechts { flex: 1 1 0; min-width: 320px; }
     h1 { text-align: center; margin-bottom: 12px; font-size: 2.1em; }
@@ -33,6 +55,7 @@
     .kind-punten { font-size: 1em; background: #f6f6f6; color: #498615; border: 1px solid #bbb; border-radius: 7px; padding: 6px 10px; margin-top: 8px; margin-bottom: 5px; width: 100%; font-weight: bold; }
     .verwijder-profiel-knop { background: #e24343; color: #fff; border: none; padding: 11px 26px; border-radius: 8px; font-weight: bold; margin-top: 45px; cursor: pointer; float: right;}
     .verwijder-profiel-knop:hover { background: #b72828; }
+    /* Kinderavatars */
     .avatar-selectie-kid { display: flex; gap: 9px; margin-top: 10px;}
     .avatar-selectie-kid img { width: 42px; height: 42px; border-radius: 50%; border: 2px solid #dab97a; background: #fff8eb; cursor: pointer; }
     .avatar-selectie-kid img.selected, .avatar-selectie-kid img:hover { border: 2.5px solid #7bb235; box-shadow: 0 2px 7px #7bb23555; }
@@ -42,16 +65,33 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <!-- ==== GEMEENSCHAPPELIJKE HEADER ==== -->
-  <div id="volwassen-header" data-header-src="../common/header.html"></div>
-  <script src="../common/layout.js"></script>
+  <div class="topbar">
+    <div id="welkom-tekst"></div>
+    <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
+  </div>
+  <nav class="menu">
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/startpagina.html" title="Home">🏠</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/parochie.html">🛐 Mijn parochie</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/catechese/catechese.html">📖 Catechese</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/gebeden.html">🙏 Gebeden</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/psalmen/psalmen.html">📜 Psalmen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/heiligen.html">👼 Heiligen</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/bijbeldagboek.html">📔 Bijbeldagboek</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/verjaardagskalender.html">🎂 Verjaardagskalender</a>
+    <a href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/profiel.html" class="menu-avatar" title="Mijn profiel">
+      <img id="menu-avatar-img" src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png" alt="Mijn profiel">
+    </a>
+  </nav>
 
   <main>
     <!-- PROFIEL LINKS -->
     <div class="profiel-links">
       <h1>Mijn profiel</h1>
       <img id="avatarGroot" class="avatar-groot" src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png" alt="Avatar">
-      <div class="avatar-selectie" id="avatarSelectieVolw"></div>
+      <div class="avatar-selectie" id="avatarSelectieVolw">
+        <!-- Avatars worden met JS toegevoegd -->
+      </div>
       <form id="profielForm" autocomplete="off">
         <label>Voornaam: <input type="text" id="voornaam"></label>
         <label>Achternaam: <input type="text" id="achternaam"></label>
@@ -84,6 +124,7 @@
   </main>
 
   <script>
+    // ==== BEGROETING EN AVATAR INLADEN: BEGIN ====
     const welkomTekst = document.getElementById("welkom-tekst");
     const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
     const parochie = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
@@ -96,6 +137,7 @@
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     };
 
+    // ==== FIREBASE CONFIG ====
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -107,6 +149,7 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    // ==== AVATAR SELECTIES VOLWASSENEN ====
     const volwassenAvatars = [
       "https://cdn-icons-png.flaticon.com/512/4140/4140048.png",
       "https://cdn-icons-png.flaticon.com/512/4140/4140037.png",
@@ -124,11 +167,13 @@
         avatarGroot.src = url;
         document.querySelectorAll('#avatarSelectieVolw img').forEach(i => i.classList.remove('selected'));
         img.classList.add('selected');
+        // Sla direct op in firebase
         if(window.saveAvatarVolwassene) saveAvatarVolwassene(url);
       }
       avatarSelectieVolw.appendChild(img);
     });
 
+    // ==== Profiel ophalen en tonen ====
     const parochieId = localStorage.getItem("ingelogdeParochie");
     const loginKeuze = localStorage.getItem("loginKeuze");
     const profielForm = document.getElementById("profielForm");
@@ -155,6 +200,7 @@
         document.querySelectorAll('#avatarSelectieVolw img').forEach(i => {
           if(i.src === d.avatarURL) i.classList.add('selected'); else i.classList.remove('selected');
         });
+        // Kinderen ophalen
         kinderenData = [];
         const kinderenSnapshot = await docRef.collection("kinderen").get();
         kinderenSnapshot.forEach(childDoc => {
@@ -169,6 +215,7 @@
     }
     window.addEventListener('DOMContentLoaded', laadProfiel);
 
+    // Profiel opslaan
     async function opslaanProfiel() {
       const melding = document.getElementById("melding");
       melding.textContent = "Bezig met opslaan...";
@@ -188,18 +235,24 @@
       }
     }
 
+    // Avatar direct opslaan
     window.saveAvatarVolwassene = async function(url) {
-      await db.collection("parochies").doc(parochieId).collection("leden").doc(loginKeuze).update({ avatarURL: url });
+      await db.collection("parochies").doc(parochieId).collection("leden").doc(loginKeuze).update({
+        avatarURL: url
+      });
+      // update ook localStorage zodat menu-avatar ook verandert
       localStorage.setItem("avatarURL", url);
       document.getElementById("menu-avatar-img").src = url;
     }
 
+    // Wachtwoord tonen/verbergen
     document.getElementById("pwToggle").onclick = function() {
       let w = document.getElementById("wachtwoord");
       if (w.type === "password") { w.type = "text"; this.textContent = "🙈"; }
       else { w.type = "password"; this.textContent = "👁️"; }
     };
 
+    // Profiel verwijderen
     async function verwijderProfiel() {
       if (!confirm("Weet je zeker dat je jouw profiel wil verwijderen? Dit kan niet ongedaan worden.")) return;
       try {
@@ -212,6 +265,7 @@
       }
     }
 
+    // ==== Kinderavatars ====
     const kinderAvatars = [
       "https://cdn-icons-png.flaticon.com/512/4140/4140070.png",
       "https://cdn-icons-png.flaticon.com/512/4140/4140071.png",
@@ -221,6 +275,7 @@
       "https://cdn-icons-png.flaticon.com/512/4140/4140075.png",
     ];
 
+    // ==== Kinderen Blok ====
     function toonKinderen() {
       const lijst = document.getElementById("kinderen-lijst");
       lijst.innerHTML = "";
@@ -235,4 +290,87 @@
           <label><input type="checkbox" ${kind.verjaardagToevoegen ? "checked" : ""} data-veld="verjaardagToevoegen" style="width:auto;margin-right:7px;"> Zichtbaar op verjaardagskalender</label>
           <label>Toegang tot kindermodus: <input type="checkbox" ${kind.kindermodus ? "checked" : ""} data-veld="kindermodus" style="width:auto;margin-left:7px;"></label>
           <label>Wachtwoord kind: <input class="kind-wachtwoord" type="text" value="${kind.wachtwoord || ""}" readonly></label>
-          ${typeof kind.punten !== 'undefined' && kind.punten
+          ${typeof kind.punten !== 'undefined' && kind.punten !== null ? `<label>Punten: <input class="kind-punten" type="text" value="${kind.punten}" readonly></label>` : ''}
+          <div class="avatar-selectie-kid">
+            ${kinderAvatars.map(url =>
+              `<img src="${url}" ${kind.avatarURL === url ? 'class="selected"' : ''} onclick="bewaarKindAvatar(${idx},'${url}')">`
+            ).join('')}
+          </div>
+          <div class="kind-acties">
+            <button onclick="bewaarKind(${idx})">💾 Bewaar</button>
+            <button onclick="verwijderKind(${idx})">❌ Verwijder</button>
+          </div>
+        `;
+        lijst.appendChild(blok);
+      });
+    }
+
+    // Kind toevoegen
+    document.getElementById("voeg-kind-btn").onclick = async function() {
+      let nieuwKind = {
+        voornaam: "",
+        achternaam: "",
+        geboortedatum: "",
+        verjaardagToevoegen: false,
+        kindermodus: false,
+        wachtwoord: "",
+        punten: 0,
+        avatarURL: kinderAvatars[0]
+      };
+      kinderenData.push(nieuwKind);
+      toonKinderen();
+    };
+
+    // Kind avatar selecteren en direct opslaan
+    window.bewaarKindAvatar = async function(idx, url) {
+      kinderenData[idx].avatarURL = url;
+      await bewaarKind(idx, true); // true: alleen avatar opslaan
+    }
+
+    // Kind bewerken/bewaren
+    window.bewaarKind = async function(idx, onlyAvatar = false) {
+      const lijst = document.getElementById("kinderen-lijst");
+      const blok = lijst.children[idx];
+      let kind = kinderenData[idx];
+      if (!onlyAvatar) {
+        kind.voornaam = blok.querySelector('input[data-veld="voornaam"]').value;
+        kind.achternaam = blok.querySelector('input[data-veld="achternaam"]').value;
+        kind.geboortedatum = blok.querySelector('input[data-veld="geboortedatum"]').value;
+        kind.verjaardagToevoegen = blok.querySelector('input[data-veld="verjaardagToevoegen"]').checked;
+        kind.kindermodus = blok.querySelector('input[data-veld="kindermodus"]').checked;
+      }
+      // wachtwoord blijft hetzelfde/wordt in de kindermodus gezet
+      // ID genereren of behouden
+      const kindId = kind.id || `${kind.voornaam}_${kind.geboortedatum}_${Math.floor(Math.random()*10000)}`;
+      kind.id = kindId;
+      try {
+        await db.collection("parochies").doc(parochieId).collection("leden").doc(loginKeuze).collection("kinderen").doc(kindId).set(kind);
+        document.getElementById("melding").textContent = "Kind opgeslagen!";
+        // opnieuw ophalen zodat wachtwoord (indien ooit gezet) up-to-date blijft
+        laadProfiel();
+      } catch {
+        document.getElementById("melding").textContent = "Fout bij opslaan kind!";
+      }
+    }
+
+    // Kind verwijderen
+    window.verwijderKind = async function(idx) {
+      let kind = kinderenData[idx];
+      if (!kind.id) {
+        kinderenData.splice(idx, 1);
+        toonKinderen();
+        return;
+      }
+      if (!confirm("Dit kind verwijderen?")) return;
+      try {
+        await db.collection("parochies").doc(parochieId).collection("leden").doc(loginKeuze).collection("kinderen").doc(kind.id).delete();
+        kinderenData.splice(idx, 1);
+        toonKinderen();
+        document.getElementById("melding").textContent = "Kind verwijderd!";
+      } catch {
+        document.getElementById("melding").textContent = "Fout bij verwijderen kind!";
+      }
+    }
+  </script>
+</body>
+</html>
