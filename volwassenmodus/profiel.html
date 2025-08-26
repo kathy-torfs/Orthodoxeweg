@@ -35,9 +35,7 @@
     .avatar-selectie img { width: 54px; height: 54px; border-radius: 50%; border: 2.2px solid #bba868; cursor: pointer; background: #fcfaf5; transition: border 0.2s, box-shadow 0.2s;}
     .avatar-selectie img.selected, .avatar-selectie img:hover { border: 3px solid #8722aa; box-shadow: 0 2px 8px #dab97a77;}
     label { display: block; margin-top: 18px; font-weight: bold; }
-    input[type="text"], input[type="date"], input[type="email"], input[type="password"], select {
-      width: 100%; padding: 9px 12px; border: 1px solid #bba868; border-radius: 7px; margin-top: 6px; font-size: 1em; background: #fcfaf5;
-    }
+    input[type="text"], input[type="date"], input[type="email"], input[type="password"], select { width: 100%; padding: 9px 12px; border: 1px solid #bba868; border-radius: 7px; margin-top: 6px; font-size: 1em; background: #fcfaf5; }
     input[readonly] { background: #f6f6f6; color: #998a5f; }
     .pw-row { position: relative; }
     .pw-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 1.15em; }
@@ -55,8 +53,10 @@
     .kind-punten { font-size: 1em; background: #f6f6f6; color: #498615; border: 1px solid #bbb; border-radius: 7px; padding: 6px 10px; margin-top: 8px; margin-bottom: 5px; width: 100%; font-weight: bold; }
     .verwijder-profiel-knop { background: #e24343; color: #fff; border: none; padding: 11px 26px; border-radius: 8px; font-weight: bold; margin-top: 45px; cursor: pointer; float: right;}
     .verwijder-profiel-knop:hover { background: #b72828; }
+    .avatar-selectie-kid { display: flex; gap: 9px; margin-top: 10px;}
+    .avatar-selectie-kid img { width: 42px; height: 42px; border-radius: 50%; border: 2px solid #dab97a; background: #fff8eb; cursor: pointer; }
+    .avatar-selectie-kid img.selected, .avatar-selectie-kid img:hover { border: 2.5px solid #7bb235; box-shadow: 0 2px 7px #7bb23555; }
   </style>
-  <!-- FIREBASE -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 </head>
@@ -81,7 +81,6 @@
   </nav>
 
   <main>
-    <!-- PROFIEL LINKS -->
     <div class="profiel-links">
       <h1>Mijn profiel</h1>
       <img id="avatarGroot" class="avatar-groot" src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png" alt="Avatar">
@@ -97,26 +96,21 @@
             <span style="font-weight:normal;font-size:0.98em;">Zichtbaar op verjaardagskalender</span>
           </span>
         </label>
-
-        <!-- NIEUW: Gezinssituatie -->
         <label>Gezinssituatie:
           <select id="gezinSituatie">
-            <option value="">-- kies --</option>
-            <option value="single_vrouw">🌷 Single vrouw</option>
-            <option value="single_man">🪻 Single man</option>
+            <option value="">-- Kies --</option>
+            <option value="vrouw">🌷 Vrouw (single)</option>
+            <option value="man">🪻 Man (single)</option>
             <option value="koppel">🌷+🪻 Koppel</option>
-            <option value="gezin_zonder_kinderen">🌷+🪻 Gezin zonder kinderen</option>
-            <option value="gezin_met_kinderen">🌷+🪻+🌱 Gezin met kinderen</option>
-            <option value="alleenstaande_mama">🌷+🌱 Alleenstaande mama</option>
-            <option value="alleenstaande_papa">🪻+🌱 Alleenstaande papa</option>
+            <option value="gezin">🌷+🪻+🌱 Gezin</option>
+            <option value="alleenstaande_ouder">🌷/🪻 + 🌱 Alleenstaande ouder</option>
           </select>
         </label>
-
         <label>Loginnaam: <input type="text" id="loginKeuze" readonly></label>
         <label>Wachtwoord:
           <div class="pw-row">
             <input type="password" id="wachtwoord" autocomplete="off">
-            <span class="pw-toggle" id="pwToggle" title="Toon/verberg wachtwoord">👁️</span>
+            <span class="pw-toggle" id="pwToggle">👁️</span>
           </div>
         </label>
         <button type="button" onclick="opslaanProfiel()">💾 Wijzigingen opslaan</button>
@@ -125,7 +119,6 @@
       <div id="melding"></div>
     </div>
 
-    <!-- PROFIEL RECHTS: KINDEREN -->
     <div class="profiel-rechts">
       <h2>Kinderen</h2>
       <div id="kinderen-lijst"></div>
@@ -134,65 +127,61 @@
   </main>
 
   <script>
-    // ==== BEGROETING ==== 
     const welkomTekst = document.getElementById("welkom-tekst");
     const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
     const parochie = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
-    const avatarImg = document.getElementById("menu-avatar-img");
-    const opgeslagenAvatar = localStorage.getItem("avatarURL");
-    if (opgeslagenAvatar) avatarImg.src = opgeslagenAvatar;
     welkomTekst.textContent = `Welkom, ${loginNaam}! U bent ingelogd in de ${parochie}.`;
-    document.getElementById("uitlogKnop").onclick = () => {
-      localStorage.clear();
-      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
-    };
+    document.getElementById("uitlogKnop").onclick = () => { localStorage.clear(); window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html"; };
 
-    // ==== FIREBASE CONFIG ====
-    const firebaseConfig = { /* jouw config */ };
+    const firebaseConfig = { apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ", authDomain: "orthodoxeweg.firebaseapp.com", projectId: "orthodoxeweg", storageBucket: "orthodoxeweg.appspot.com", messagingSenderId: "408582263618", appId: "1:408582263618:web:0a20f4bf0704989d3ceedb" };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    const volwassenAvatars = [
+      "https://cdn-icons-png.flaticon.com/512/4140/4140048.png",
+      "https://cdn-icons-png.flaticon.com/512/4140/4140037.png",
+      "https://cdn-icons-png.flaticon.com/512/4140/4140051.png",
+      "https://cdn-icons-png.flaticon.com/512/4140/4140061.png",
+      "https://cdn-icons-png.flaticon.com/512/4140/4140047.png",
+      "https://cdn-icons-png.flaticon.com/512/4140/4140039.png"
+    ];
+    const avatarSelectieVolw = document.getElementById('avatarSelectieVolw');
+    const avatarGroot = document.getElementById('avatarGroot');
+    volwassenAvatars.forEach(url => {
+      const img = document.createElement('img'); img.src = url;
+      img.onclick = function() {
+        avatarGroot.src = url;
+        document.querySelectorAll('#avatarSelectieVolw img').forEach(i => i.classList.remove('selected'));
+        img.classList.add('selected');
+        saveAvatarVolwassene(url);
+      }
+      avatarSelectieVolw.appendChild(img);
+    });
+
     const parochieId = localStorage.getItem("ingelogdeParochie");
     const loginKeuze = localStorage.getItem("loginKeuze");
+    const profielForm = document.getElementById("profielForm");
+    let kinderenData = [];
 
-    // === PROFIEL LADEN ===
     async function laadProfiel() {
-      let docRef = db.collection("parochies").doc(parochieId).collection("leden").doc(loginKeuze);
-      let doc = await docRef.get();
-      if (!doc.exists) return;
-      let d = doc.data();
-      document.getElementById("voornaam").value = d.voornaam || "";
-      document.getElementById("achternaam").value = d.achternaam || "";
-      document.getElementById("doopnaam").value = d.doopnaam || "";
-      document.getElementById("email").value = d.email || "";
-      document.getElementById("geboortedatum").value = d.geboortedatum || "";
-      document.getElementById("loginKeuze").value = d.loginKeuze || "";
-      document.getElementById("wachtwoord").value = d.wachtwoord || "";
-      document.getElementById("toonVerjaardag").checked = !!d.verjaardagToevoegen;
-      document.getElementById("gezinSituatie").value = d.gezinSituatie || "";
-    }
-    window.addEventListener("DOMContentLoaded", laadProfiel);
-
-    // === OPSLAAN PROFIEL ===
-    async function opslaanProfiel() {
-      const melding = document.getElementById("melding");
-      melding.textContent = "Bezig met opslaan...";
       try {
-        await db.collection("parochies").doc(parochieId).collection("leden").doc(loginKeuze).update({
-          voornaam: document.getElementById("voornaam").value,
-          achternaam: document.getElementById("achternaam").value,
-          doopnaam: document.getElementById("doopnaam").value,
-          email: document.getElementById("email").value,
-          geboortedatum: document.getElementById("geboortedatum").value,
-          wachtwoord: document.getElementById("wachtwoord").value,
-          verjaardagToevoegen: document.getElementById("toonVerjaardag").checked,
-          gezinSituatie: document.getElementById("gezinSituatie").value
-        });
-        melding.textContent = "Wijzigingen opgeslagen!";
-      } catch {
-        melding.textContent = "Fout bij opslaan!";
-      }
-    }
-  </script>
-</body>
-</html>
+        let docRef = db.collection("parochies").doc(parochieId).collection("leden").doc(loginKeuze);
+        let doc = await docRef.get();
+        if (!doc.exists) { profielForm.style.display="none"; document.getElementById("melding").textContent="Profiel niet gevonden!"; return; }
+        let d = doc.data();
+        document.getElementById("voornaam").value = d.voornaam || "";
+        document.getElementById("achternaam").value = d.achternaam || "";
+        document.getElementById("doopnaam").value = d.doopnaam || "";
+        document.getElementById("email").value = d.email || "";
+        document.getElementById("geboortedatum").value = d.geboortedatum || "";
+        document.getElementById("loginKeuze").value = d.loginKeuze || "";
+        document.getElementById("wachtwoord").value = d.wachtwoord || "";
+        document.getElementById("toonVerjaardag").checked = !!d.verjaardagToevoegen;
+        document.getElementById("gezinSituatie").value = d.gezinSituatie || "";
+        avatarGroot.src = d.avatarURL || volwassenAvatars[0];
+        document.querySelectorAll('#avatarSelectieVolw img').forEach(i => { if(i.src===d.avatarURL) i.classList.add('selected'); });
+        kinderenData = [];
+        const kinderenSnapshot = await docRef.collection("kinderen").get();
+        kinderenSnapshot.forEach(childDoc => { let child=childDoc.data(); child.id=childDoc.id; kinderenData.push(child); });
+        toonKinderen();
+      } catch (e) { document.getElementById("melding").textContent="Fout bij
