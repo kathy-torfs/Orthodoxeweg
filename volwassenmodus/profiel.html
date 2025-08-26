@@ -1,3 +1,6 @@
+ja graag 
+
+
 <!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -35,7 +38,7 @@
     .avatar-selectie img { width: 54px; height: 54px; border-radius: 50%; border: 2.2px solid #bba868; cursor: pointer; background: #fcfaf5; transition: border 0.2s, box-shadow 0.2s;}
     .avatar-selectie img.selected, .avatar-selectie img:hover { border: 3px solid #8722aa; box-shadow: 0 2px 8px #dab97a77;}
     label { display: block; margin-top: 18px; font-weight: bold; }
-    input[type="text"], input[type="date"], input[type="email"], input[type="password"], select { width: 100%; padding: 9px 12px; border: 1px solid #bba868; border-radius: 7px; margin-top: 6px; font-size: 1em; background: #fcfaf5; }
+    input[type="text"], input[type="date"], input[type="email"], input[type="password"] { width: 100%; padding: 9px 12px; border: 1px solid #bba868; border-radius: 7px; margin-top: 6px; font-size: 1em; background: #fcfaf5; }
     input[readonly] { background: #f6f6f6; color: #998a5f; }
     .pw-row { position: relative; }
     .pw-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 1.15em; }
@@ -53,10 +56,12 @@
     .kind-punten { font-size: 1em; background: #f6f6f6; color: #498615; border: 1px solid #bbb; border-radius: 7px; padding: 6px 10px; margin-top: 8px; margin-bottom: 5px; width: 100%; font-weight: bold; }
     .verwijder-profiel-knop { background: #e24343; color: #fff; border: none; padding: 11px 26px; border-radius: 8px; font-weight: bold; margin-top: 45px; cursor: pointer; float: right;}
     .verwijder-profiel-knop:hover { background: #b72828; }
+    /* Kinderavatars */
     .avatar-selectie-kid { display: flex; gap: 9px; margin-top: 10px;}
     .avatar-selectie-kid img { width: 42px; height: 42px; border-radius: 50%; border: 2px solid #dab97a; background: #fff8eb; cursor: pointer; }
     .avatar-selectie-kid img.selected, .avatar-selectie-kid img:hover { border: 2.5px solid #7bb235; box-shadow: 0 2px 7px #7bb23555; }
   </style>
+  <!-- FIREBASE -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 </head>
@@ -81,10 +86,13 @@
   </nav>
 
   <main>
+    <!-- PROFIEL LINKS -->
     <div class="profiel-links">
       <h1>Mijn profiel</h1>
       <img id="avatarGroot" class="avatar-groot" src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png" alt="Avatar">
-      <div class="avatar-selectie" id="avatarSelectieVolw"></div>
+      <div class="avatar-selectie" id="avatarSelectieVolw">
+        <!-- Avatars worden met JS toegevoegd -->
+      </div>
       <form id="profielForm" autocomplete="off">
         <label>Voornaam: <input type="text" id="voornaam"></label>
         <label>Achternaam: <input type="text" id="achternaam"></label>
@@ -96,21 +104,11 @@
             <span style="font-weight:normal;font-size:0.98em;">Zichtbaar op verjaardagskalender</span>
           </span>
         </label>
-        <label>Gezinssituatie:
-          <select id="gezinSituatie">
-            <option value="">-- Kies --</option>
-            <option value="vrouw">🌷 Vrouw (single)</option>
-            <option value="man">🪻 Man (single)</option>
-            <option value="koppel">🌷+🪻 Koppel</option>
-            <option value="gezin">🌷+🪻+🌱 Gezin</option>
-            <option value="alleenstaande_ouder">🌷/🪻 + 🌱 Alleenstaande ouder</option>
-          </select>
-        </label>
         <label>Loginnaam: <input type="text" id="loginKeuze" readonly></label>
         <label>Wachtwoord:
           <div class="pw-row">
             <input type="password" id="wachtwoord" autocomplete="off">
-            <span class="pw-toggle" id="pwToggle">👁️</span>
+            <span class="pw-toggle" id="pwToggle" title="Toon/verberg wachtwoord">👁️</span>
           </div>
         </label>
         <button type="button" onclick="opslaanProfiel()">💾 Wijzigingen opslaan</button>
@@ -118,7 +116,7 @@
       <button class="verwijder-profiel-knop" onclick="verwijderProfiel()">Verwijder profiel</button>
       <div id="melding"></div>
     </div>
-
+    <!-- PROFIEL RECHTS: KINDEREN -->
     <div class="profiel-rechts">
       <h2>Kinderen</h2>
       <div id="kinderen-lijst"></div>
@@ -127,47 +125,69 @@
   </main>
 
   <script>
+    // ==== BEGROETING EN AVATAR INLADEN: BEGIN ====
     const welkomTekst = document.getElementById("welkom-tekst");
     const loginNaam = localStorage.getItem("loginKeuze") || "gebruiker";
     const parochie = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
+    const avatarImg = document.getElementById("menu-avatar-img");
+    const opgeslagenAvatar = localStorage.getItem("avatarURL");
+    if (opgeslagenAvatar) avatarImg.src = opgeslagenAvatar;
     welkomTekst.textContent = `Welkom, ${loginNaam}! U bent ingelogd in de ${parochie}.`;
-    document.getElementById("uitlogKnop").onclick = () => { localStorage.clear(); window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html"; };
+    document.getElementById("uitlogKnop").onclick = () => {
+      localStorage.clear();
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    };
 
-    const firebaseConfig = { apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ", authDomain: "orthodoxeweg.firebaseapp.com", projectId: "orthodoxeweg", storageBucket: "orthodoxeweg.appspot.com", messagingSenderId: "408582263618", appId: "1:408582263618:web:0a20f4bf0704989d3ceedb" };
+    // ==== FIREBASE CONFIG ====
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
+    };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    // ==== AVATAR SELECTIES VOLWASSENEN ====
     const volwassenAvatars = [
       "https://cdn-icons-png.flaticon.com/512/4140/4140048.png",
       "https://cdn-icons-png.flaticon.com/512/4140/4140037.png",
       "https://cdn-icons-png.flaticon.com/512/4140/4140051.png",
       "https://cdn-icons-png.flaticon.com/512/4140/4140061.png",
       "https://cdn-icons-png.flaticon.com/512/4140/4140047.png",
-      "https://cdn-icons-png.flaticon.com/512/4140/4140039.png"
+      "https://cdn-icons-png.flaticon.com/512/4140/4140039.png",
     ];
     const avatarSelectieVolw = document.getElementById('avatarSelectieVolw');
     const avatarGroot = document.getElementById('avatarGroot');
     volwassenAvatars.forEach(url => {
-      const img = document.createElement('img'); img.src = url;
+      const img = document.createElement('img');
+      img.src = url;
       img.onclick = function() {
         avatarGroot.src = url;
         document.querySelectorAll('#avatarSelectieVolw img').forEach(i => i.classList.remove('selected'));
         img.classList.add('selected');
-        saveAvatarVolwassene(url);
+        // Sla direct op in firebase
+        if(window.saveAvatarVolwassene) saveAvatarVolwassene(url);
       }
       avatarSelectieVolw.appendChild(img);
     });
 
+    // ==== Profiel ophalen en tonen ====
     const parochieId = localStorage.getItem("ingelogdeParochie");
     const loginKeuze = localStorage.getItem("loginKeuze");
     const profielForm = document.getElementById("profielForm");
     let kinderenData = [];
-
     async function laadProfiel() {
       try {
         let docRef = db.collection("parochies").doc(parochieId).collection("leden").doc(loginKeuze);
         let doc = await docRef.get();
-        if (!doc.exists) { profielForm.style.display="none"; document.getElementById("melding").textContent="Profiel niet gevonden!"; return; }
+        if (!doc.exists) {
+          profielForm.style.display = "none";
+          document.getElementById("melding").textContent = "Profiel niet gevonden!";
+          return;
+        }
         let d = doc.data();
         document.getElementById("voornaam").value = d.voornaam || "";
         document.getElementById("achternaam").value = d.achternaam || "";
@@ -177,11 +197,181 @@
         document.getElementById("loginKeuze").value = d.loginKeuze || "";
         document.getElementById("wachtwoord").value = d.wachtwoord || "";
         document.getElementById("toonVerjaardag").checked = !!d.verjaardagToevoegen;
-        document.getElementById("gezinSituatie").value = d.gezinSituatie || "";
         avatarGroot.src = d.avatarURL || volwassenAvatars[0];
-        document.querySelectorAll('#avatarSelectieVolw img').forEach(i => { if(i.src===d.avatarURL) i.classList.add('selected'); });
+        document.querySelectorAll('#avatarSelectieVolw img').forEach(i => {
+          if(i.src === d.avatarURL) i.classList.add('selected'); else i.classList.remove('selected');
+        });
+        // Kinderen ophalen
         kinderenData = [];
         const kinderenSnapshot = await docRef.collection("kinderen").get();
-        kinderenSnapshot.forEach(childDoc => { let child=childDoc.data(); child.id=childDoc.id; kinderenData.push(child); });
+        kinderenSnapshot.forEach(childDoc => {
+          let child = childDoc.data();
+          child.id = childDoc.id;
+          kinderenData.push(child);
+        });
         toonKinderen();
-      } catch (e) { document.getElementById("melding").textContent="Fout bij
+      } catch (e) {
+        document.getElementById("melding").textContent = "Fout bij laden profiel.";
+      }
+    }
+    window.addEventListener('DOMContentLoaded', laadProfiel);
+
+    // Profiel opslaan
+    async function opslaanProfiel() {
+      const melding = document.getElementById("melding");
+      melding.textContent = "Bezig met opslaan...";
+      try {
+        await db.collection("parochies").doc(parochieId).collection("leden").doc(loginKeuze).update({
+          voornaam: document.getElementById("voornaam").value,
+          achternaam: document.getElementById("achternaam").value,
+          doopnaam: document.getElementById("doopnaam").value,
+          email: document.getElementById("email").value,
+          geboortedatum: document.getElementById("geboortedatum").value,
+          wachtwoord: document.getElementById("wachtwoord").value,
+          verjaardagToevoegen: document.getElementById("toonVerjaardag").checked
+        });
+        melding.textContent = "Wijzigingen opgeslagen!";
+      } catch (e) {
+        melding.textContent = "Fout bij opslaan!";
+      }
+    }
+
+    // Avatar direct opslaan
+    window.saveAvatarVolwassene = async function(url) {
+      await db.collection("parochies").doc(parochieId).collection("leden").doc(loginKeuze).update({
+        avatarURL: url
+      });
+      // update ook localStorage zodat menu-avatar ook verandert
+      localStorage.setItem("avatarURL", url);
+      document.getElementById("menu-avatar-img").src = url;
+    }
+
+    // Wachtwoord tonen/verbergen
+    document.getElementById("pwToggle").onclick = function() {
+      let w = document.getElementById("wachtwoord");
+      if (w.type === "password") { w.type = "text"; this.textContent = "🙈"; }
+      else { w.type = "password"; this.textContent = "👁️"; }
+    };
+
+    // Profiel verwijderen
+    async function verwijderProfiel() {
+      if (!confirm("Weet je zeker dat je jouw profiel wil verwijderen? Dit kan niet ongedaan worden.")) return;
+      try {
+        await db.collection("parochies").doc(parochieId).collection("leden").doc(loginKeuze).delete();
+        alert("Profiel verwijderd!");
+        localStorage.clear();
+        window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+      } catch (e) {
+        alert("Fout bij verwijderen!");
+      }
+    }
+
+    // ==== Kinderavatars ====
+    const kinderAvatars = [
+      "https://cdn-icons-png.flaticon.com/512/4140/4140070.png",
+      "https://cdn-icons-png.flaticon.com/512/4140/4140071.png",
+      "https://cdn-icons-png.flaticon.com/512/4140/4140072.png",
+      "https://cdn-icons-png.flaticon.com/512/4140/4140073.png",
+      "https://cdn-icons-png.flaticon.com/512/4140/4140074.png",
+      "https://cdn-icons-png.flaticon.com/512/4140/4140075.png",
+    ];
+
+    // ==== Kinderen Blok ====
+    function toonKinderen() {
+      const lijst = document.getElementById("kinderen-lijst");
+      lijst.innerHTML = "";
+      if (!kinderenData.length) lijst.innerHTML = "<em>Geen kinderen toegevoegd.</em>";
+      kinderenData.forEach((kind, idx) => {
+        const blok = document.createElement("div");
+        blok.className = "kindblok";
+        blok.innerHTML = `
+          <label>Voornaam: <input type="text" value="${kind.voornaam || ""}" data-veld="voornaam"></label>
+          <label>Achternaam: <input type="text" value="${kind.achternaam || ""}" data-veld="achternaam"></label>
+          <label>Geboortedatum: <input type="date" value="${kind.geboortedatum || ""}" data-veld="geboortedatum"></label>
+          <label><input type="checkbox" ${kind.verjaardagToevoegen ? "checked" : ""} data-veld="verjaardagToevoegen" style="width:auto;margin-right:7px;"> Zichtbaar op verjaardagskalender</label>
+          <label>Toegang tot kindermodus: <input type="checkbox" ${kind.kindermodus ? "checked" : ""} data-veld="kindermodus" style="width:auto;margin-left:7px;"></label>
+          <label>Wachtwoord kind: <input class="kind-wachtwoord" type="text" value="${kind.wachtwoord || ""}" readonly></label>
+          ${typeof kind.punten !== 'undefined' && kind.punten !== null ? `<label>Punten: <input class="kind-punten" type="text" value="${kind.punten}" readonly></label>` : ''}
+          <div class="avatar-selectie-kid">
+            ${kinderAvatars.map(url =>
+              `<img src="${url}" ${kind.avatarURL === url ? 'class="selected"' : ''} onclick="bewaarKindAvatar(${idx},'${url}')">`
+            ).join('')}
+          </div>
+          <div class="kind-acties">
+            <button onclick="bewaarKind(${idx})">💾 Bewaar</button>
+            <button onclick="verwijderKind(${idx})">❌ Verwijder</button>
+          </div>
+        `;
+        lijst.appendChild(blok);
+      });
+    }
+
+    // Kind toevoegen
+    document.getElementById("voeg-kind-btn").onclick = async function() {
+      let nieuwKind = {
+        voornaam: "",
+        achternaam: "",
+        geboortedatum: "",
+        verjaardagToevoegen: false,
+        kindermodus: false,
+        wachtwoord: "",
+        punten: 0,
+        avatarURL: kinderAvatars[0]
+      };
+      kinderenData.push(nieuwKind);
+      toonKinderen();
+    };
+
+    // Kind avatar selecteren en direct opslaan
+    window.bewaarKindAvatar = async function(idx, url) {
+      kinderenData[idx].avatarURL = url;
+      await bewaarKind(idx, true); // true: alleen avatar opslaan
+    }
+
+    // Kind bewerken/bewaren
+    window.bewaarKind = async function(idx, onlyAvatar = false) {
+      const lijst = document.getElementById("kinderen-lijst");
+      const blok = lijst.children[idx];
+      let kind = kinderenData[idx];
+      if (!onlyAvatar) {
+        kind.voornaam = blok.querySelector('input[data-veld="voornaam"]').value;
+        kind.achternaam = blok.querySelector('input[data-veld="achternaam"]').value;
+        kind.geboortedatum = blok.querySelector('input[data-veld="geboortedatum"]').value;
+        kind.verjaardagToevoegen = blok.querySelector('input[data-veld="verjaardagToevoegen"]').checked;
+        kind.kindermodus = blok.querySelector('input[data-veld="kindermodus"]').checked;
+      }
+      // wachtwoord blijft hetzelfde/wordt in de kindermodus gezet
+      // ID genereren of behouden
+      const kindId = kind.id || `${kind.voornaam}_${kind.geboortedatum}_${Math.floor(Math.random()*10000)}`;
+      kind.id = kindId;
+      try {
+        await db.collection("parochies").doc(parochieId).collection("leden").doc(loginKeuze).collection("kinderen").doc(kindId).set(kind);
+        document.getElementById("melding").textContent = "Kind opgeslagen!";
+        // opnieuw ophalen zodat wachtwoord (indien ooit gezet) up-to-date blijft
+        laadProfiel();
+      } catch {
+        document.getElementById("melding").textContent = "Fout bij opslaan kind!";
+      }
+    }
+
+    // Kind verwijderen
+    window.verwijderKind = async function(idx) {
+      let kind = kinderenData[idx];
+      if (!kind.id) {
+        kinderenData.splice(idx, 1);
+        toonKinderen();
+        return;
+      }
+      if (!confirm("Dit kind verwijderen?")) return;
+      try {
+        await db.collection("parochies").doc(parochieId).collection("leden").doc(loginKeuze).collection("kinderen").doc(kind.id).delete();
+        kinderenData.splice(idx, 1);
+        toonKinderen();
+        document.getElementById("melding").textContent = "Kind verwijderd!";
+      } catch {
+        document.getElementById("melding").textContent = "Fout bij verwijderen kind!";
+      }
+    }
+  </script>
+</body>
+</html>
