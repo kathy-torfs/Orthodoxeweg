@@ -18,8 +18,10 @@
       height: 100vh;
       width: 100%;
     }
-    .leaflet-popup-content {
-      font-size: 1em;
+    .emoji-icon {
+      font-size: 28px;   /* Grootte van de emoji marker */
+      line-height: 1;
+      text-align: center;
     }
   </style>
 </head>
@@ -29,47 +31,43 @@
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
-  // 1. Kaartcentrering en zoomniveau
-  const map = L.map('map').setView([50.85, 4.35], 8); // België
+  // Kaart centreren op België
+  const map = L.map('map').setView([50.85, 4.35], 8);
 
-  // 2. Groene kaartlaag (met sobere stijl)
+  // Achtergrondlaag
   L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
     attribution: 'Kaartgegevens © OpenStreetMap-bijdragers',
   }).addTo(map);
 
-  // 3. Bloemetje-icoon (voorbeeld)
-  const bloemIcon = L.icon({
-    iconUrl: 'https://kathy-torfs.github.io/Orthodoxeweg/images/bloem_roze.png',
-    iconSize: [38, 38],
-    iconAnchor: [19, 38],
-    popupAnchor: [0, -38]
-  });
+  // Emoji markers per type
+  function emojiMarker(emoji) {
+    return L.divIcon({
+      className: 'emoji-icon',
+      html: emoji,
+      iconSize: [40, 40],
+      iconAnchor: [20, 20]
+    });
+  }
 
-  // 4. Testdata (gebruikerlocaties)
   const gebruikers = [
-    {
-      naam: "Anna uit Gent",
-      locatie: [51.05, 3.72],
-      parochie: "Gent",
-      type: "single"
-    },
-    {
-      naam: "Koppel uit Antwerpen",
-      locatie: [51.22, 4.40],
-      parochie: "Antwerpen",
-      type: "koppel"
-    },
-    {
-      naam: "Gezin nabij Brussel",
-      locatie: [50.83, 4.35],
-      parochie: "Brussel",
-      type: "gezin"
-    }
+    { naam: "Sofie uit Gent", locatie: [51.05, 3.72], parochie: "Gent", type: "vrouw" },
+    { naam: "Peter uit Antwerpen", locatie: [51.22, 4.40], parochie: "Antwerpen", type: "man" },
+    { naam: "Koppel uit Leuven", locatie: [50.88, 4.7], parochie: "Leuven", type: "koppel" },
+    { naam: "Gezin uit Brussel", locatie: [50.83, 4.35], parochie: "Brussel", type: "gezin" },
+    { naam: "Alleenstaande mama in Hasselt", locatie: [50.93, 5.33], parochie: "Hasselt", type: "mama" },
+    { naam: "Alleenstaande papa in Brugge", locatie: [51.21, 3.22], parochie: "Brugge", type: "papa" }
   ];
 
-  // 5. Plaats bloemen op de kaart
   gebruikers.forEach(persoon => {
-    L.marker(persoon.locatie, { icon: bloemIcon })
+    let emoji = "🌸"; // standaard
+    if (persoon.type === "vrouw") emoji = "🌸";
+    if (persoon.type === "man") emoji = "🌹";
+    if (persoon.type === "koppel") emoji = "🌺🌺";
+    if (persoon.type === "gezin") emoji = "🌻👶🌻";
+    if (persoon.type === "mama") emoji = "🌸👶";
+    if (persoon.type === "papa") emoji = "🌹👶";
+
+    L.marker(persoon.locatie, { icon: emojiMarker(emoji) })
       .addTo(map)
       .bindPopup(`<strong>${persoon.naam}</strong><br>Parochie: ${persoon.parochie}`);
   });
