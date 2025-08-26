@@ -1,1 +1,95 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Recepten – Zuivel toegestaan</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
+  <style>
+    body { margin:0; font-family:Arial, sans-serif; background:#f5e9b8; color:#6f4e1a; }
+    h1 { text-align:center; margin:20px 0; }
+    .container { display:flex; gap:20px; max-width:1200px; margin:auto; padding:20px; }
+    .lijst { flex:1; background:#fff; padding:15px; border-radius:12px; box-shadow:0 2px 10px #0002; }
+    .lijst h2 { margin-top:0; }
+    .lijst ul { list-style:none; padding:0; }
+    .lijst li { padding:10px; margin:6px 0; background:#f9f3da; border-radius:8px; cursor:pointer; }
+    .lijst li:hover { background:#e7dca8; }
+    .kaart { flex:2; background:#fff; padding:20px; border-radius:14px; box-shadow:0 2px 10px #0002; min-height:400px; }
+    .kaart h2 { margin-top:0; }
+    .input { width:100%; margin:6px 0; padding:8px; border:1px solid #cbb17a; border-radius:8px; font-family:inherit; }
+    .btn { background:#7a5f35; color:#fff; border:none; padding:10px 16px; border-radius:8px; cursor:pointer; margin-top:10px; }
+    .btn:hover { background:#6a4e2d; }
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <!-- ==== GEMEENSCHAPPELIJKE HEADER ==== -->
+  <div id="volwassen-header" data-header-src="../common/header.html"></div>
+  <script src="../common/layout.js"></script>
 
+  <h1>📕 Recepten – Zuivel toegestaan</h1>
+  <div class="container">
+    <div class="lijst">
+      <h2>Alle recepten</h2>
+      <ul id="receptenLijst"></ul>
+      <button class="btn" onclick="nieuwRecept()">➕ Nieuw recept</button>
+    </div>
+    <div class="kaart" id="receptKaart">
+      <p>Klik op een recept of voeg er eentje toe.</p>
+    </div>
+  </div>
+
+  <script>
+    const firebaseConfig={apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",authDomain:"orthodoxeweg.firebaseapp.com",projectId:"orthodoxeweg",storageBucket:"orthodoxeweg.appspot.com",messagingSenderId:"408582263618",appId:"1:408582263618:web:0a20f4bf0704989d3ceedb"};
+    if(!firebase.apps.length)firebase.initializeApp(firebaseConfig);
+    const db=firebase.firestore();
+    const categorie="zuivel";
+
+    const lijst=document.getElementById("receptenLijst");
+    const kaart=document.getElementById("receptKaart");
+
+    function laadRecepten(){
+      lijst.innerHTML="";
+      db.collection("recepten").doc(categorie).collection("recepten").orderBy("titel").get().then(snap=>{
+        snap.forEach(doc=>{
+          const li=document.createElement("li");
+          li.textContent=doc.data().titel;
+          li.onclick=()=>toonRecept(doc.id,doc.data());
+          lijst.appendChild(li);
+        });
+      });
+    }
+    function toonRecept(id,data){
+      kaart.innerHTML=`
+        <h2>${data.titel}</h2>
+        <h4>Ingrediënten:</h4>
+        <p>${(data.ingredienten||"").replace(/\n/g,"<br>")}</p>
+        <h4>Bereiding:</h4>
+        <p>${(data.bereiding||"").replace(/\n/g,"<br>")}</p>
+      `;
+    }
+    function nieuwRecept(){
+      kaart.innerHTML=`
+        <h2>Nieuw recept</h2>
+        <input class="input" id="titel" placeholder="Titel" />
+        <textarea class="input" id="ingredienten" placeholder="Ingrediënten"></textarea>
+        <textarea class="input" id="bereiding" placeholder="Bereiding"></textarea>
+        <button class="btn" onclick="opslaan()">Opslaan</button>
+      `;
+    }
+    function opslaan(){
+      const t=document.getElementById("titel").value.trim();
+      const i=document.getElementById("ingredienten").value.trim();
+      const b=document.getElementById("bereiding").value.trim();
+      if(!t)return alert("Titel verplicht");
+      const id = t.toLowerCase().replace(/[^a-z0-9\s]/g,"").trim().replace(/\s+/g,"_");
+      db.collection("recepten").doc(categorie).collection("recepten").doc(id).set({titel:t,ingredienten:i,bereiding:b}).then(()=>{
+        laadRecepten();
+        kaart.innerHTML="<p>Recept opgeslagen!</p>";
+      });
+    }
+    window.onload=laadRecepten;
+  </script>
+</body>
+</html>
