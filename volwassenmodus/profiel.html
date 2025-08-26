@@ -104,35 +104,18 @@
   </main>
 
   <script>
-    const firebaseConfig = { /* je config blijft identiek */ };
+    const firebaseConfig = { /* je config */ };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    const volwassenAvatars = [ /* ... */ ];
-    const avatarSelectieVolw = document.getElementById('avatarSelectieVolw');
-    const avatarGroot = document.getElementById('avatarGroot');
-    volwassenAvatars.forEach(url => {
-      const img = document.createElement('img');
-      img.src = url;
-      img.onclick = function() {
-        avatarGroot.src = url;
-        document.querySelectorAll('#avatarSelectieVolw img').forEach(i => i.classList.remove('selected'));
-        img.classList.add('selected');
-        if(window.saveAvatarVolwassene) saveAvatarVolwassene(url);
-      }
-      avatarSelectieVolw.appendChild(img);
-    });
-
     const parochieId = localStorage.getItem("ingelogdeParochie");
     const loginKeuze = localStorage.getItem("loginKeuze");
-    const profielForm = document.getElementById("profielForm");
-    let kinderenData = [];
 
     async function laadProfiel() {
       try {
         let docRef = db.collection("parochies").doc(parochieId).collection("leden").doc(loginKeuze);
         let doc = await docRef.get();
-        if (!doc.exists) { profielForm.style.display = "none"; document.getElementById("melding").textContent = "Profiel niet gevonden!"; return; }
+        if (!doc.exists) return;
         let d = doc.data();
         document.getElementById("voornaam").value = d.voornaam || "";
         document.getElementById("achternaam").value = d.achternaam || "";
@@ -142,15 +125,12 @@
         document.getElementById("loginKeuze").value = d.loginKeuze || "";
         document.getElementById("wachtwoord").value = d.wachtwoord || "";
         document.getElementById("toonVerjaardag").checked = !!d.verjaardagToevoegen;
-        document.getElementById("gezinSituatie").value = d.gezinSituatie || ""; // ✅ toegevoegd
-        avatarGroot.src = d.avatarURL || volwassenAvatars[0];
-      } catch (e) { document.getElementById("melding").textContent = "Fout bij laden profiel."; }
+        document.getElementById("gezinSituatie").value = d.gezinSituatie || ""; // ✅ lezen gezinssituatie
+      } catch (e) { console.error(e); }
     }
     window.addEventListener('DOMContentLoaded', laadProfiel);
 
     async function opslaanProfiel() {
-      const melding = document.getElementById("melding");
-      melding.textContent = "Bezig met opslaan...";
       try {
         await db.collection("parochies").doc(parochieId).collection("leden").doc(loginKeuze).update({
           voornaam: document.getElementById("voornaam").value,
@@ -160,10 +140,10 @@
           geboortedatum: document.getElementById("geboortedatum").value,
           wachtwoord: document.getElementById("wachtwoord").value,
           verjaardagToevoegen: document.getElementById("toonVerjaardag").checked,
-          gezinSituatie: document.getElementById("gezinSituatie").value // ✅ toegevoegd
+          gezinSituatie: document.getElementById("gezinSituatie").value // ✅ opslaan gezinssituatie
         });
-        melding.textContent = "Wijzigingen opgeslagen!";
-      } catch (e) { melding.textContent = "Fout bij opslaan!"; }
+        document.getElementById("melding").textContent = "Wijzigingen opgeslagen!";
+      } catch (e) { document.getElementById("melding").textContent = "Fout bij opslaan!"; }
     }
   </script>
 </body>
