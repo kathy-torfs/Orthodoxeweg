@@ -15,7 +15,7 @@
     .avatar-selectie img { width: 54px; height: 54px; border-radius: 50%; border: 2.2px solid #bba868; cursor: pointer; background: #fcfaf5; transition: border 0.2s, box-shadow 0.2s;}
     .avatar-selectie img.selected, .avatar-selectie img:hover { border: 3px solid #8722aa; box-shadow: 0 2px 8px #dab97a77;}
     label { display: block; margin-top: 18px; font-weight: bold; }
-    input[type="text"], input[type="date"], input[type="email"], input[type="password"] { width: 100%; padding: 9px 12px; border: 1px solid #bba868; border-radius: 7px; margin-top: 6px; font-size: 1em; background: #fcfaf5; }
+    input[type="text"], input[type="date"], input[type="email"], input[type="password"], select { width: 100%; padding: 9px 12px; border: 1px solid #bba868; border-radius: 7px; margin-top: 6px; font-size: 1em; background: #fcfaf5; }
     input[readonly] { background: #f6f6f6; color: #998a5f; }
     .pw-row { position: relative; }
     .pw-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 1.15em; }
@@ -43,7 +43,6 @@
 </head>
 <body>
   <!-- ==== GEMEENSCHAPPELIJKE HEADER ==== -->
-   <!-- HEADER (gedeeld via layout.js) -->
   <div id="volwassen-header"></div>
   <script src="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/common/layout.js"></script>
 
@@ -52,13 +51,30 @@
     <div class="profiel-links">
       <h1>Mijn profiel</h1>
       <img id="avatarGroot" class="avatar-groot" src="https://cdn-icons-png.flaticon.com/512/4140/4140048.png" alt="Avatar">
-      <div class="avatar-selectie" id="avatarSelectieVolw">
-        <!-- Avatars worden met JS toegevoegd -->
-      </div>
+      <div class="avatar-selectie" id="avatarSelectieVolw"></div>
+
       <form id="profielForm" autocomplete="off">
         <label>Voornaam: <input type="text" id="voornaam"></label>
         <label>Achternaam: <input type="text" id="achternaam"></label>
         <label>Doopnaam: <input type="text" id="doopnaam"></label>
+
+        <!-- ✅ Nieuw toegevoegd: Geslacht en Gezinssituatie -->
+        <label>Geslacht:
+          <select id="geslacht">
+            <option value="">Kies...</option>
+            <option value="man">Man</option>
+            <option value="vrouw">Vrouw</option>
+          </select>
+        </label>
+        <label>Gezinssituatie:
+          <select id="gezinssituatie">
+            <option value="">Kies...</option>
+            <option value="alleenstaand">Alleenstaand</option>
+            <option value="relatie">In relatie / getrouwd</option>
+          </select>
+        </label>
+        <!-- einde toevoeging -->
+
         <label>E-mailadres: <input type="email" id="email"></label>
         <label>Geboortedatum: <input type="date" id="geboortedatum">
           <span class="formrow-inline">
@@ -75,9 +91,11 @@
         </label>
         <button type="button" onclick="opslaanProfiel()">💾 Wijzigingen opslaan</button>
       </form>
+
       <button class="verwijder-profiel-knop" onclick="verwijderProfiel()">Verwijder profiel</button>
       <div id="melding"></div>
     </div>
+
     <!-- PROFIEL RECHTS: KINDEREN -->
     <div class="profiel-rechts">
       <h2>Kinderen</h2>
@@ -127,6 +145,7 @@
     const loginKeuze = localStorage.getItem("loginKeuze");
     const profielForm = document.getElementById("profielForm");
     let kinderenData = [];
+
     async function laadProfiel() {
       try {
         let docRef = db.collection("parochies").doc(parochieId).collection("leden").doc(loginKeuze);
@@ -140,6 +159,8 @@
         document.getElementById("voornaam").value = d.voornaam || "";
         document.getElementById("achternaam").value = d.achternaam || "";
         document.getElementById("doopnaam").value = d.doopnaam || "";
+        document.getElementById("geslacht").value = d.geslacht || "";
+        document.getElementById("gezinssituatie").value = d.gezinssituatie || "";
         document.getElementById("email").value = d.email || "";
         document.getElementById("geboortedatum").value = d.geboortedatum || "";
         document.getElementById("loginKeuze").value = d.loginKeuze || "";
@@ -173,6 +194,8 @@
           voornaam: document.getElementById("voornaam").value,
           achternaam: document.getElementById("achternaam").value,
           doopnaam: document.getElementById("doopnaam").value,
+          geslacht: document.getElementById("geslacht").value,
+          gezinssituatie: document.getElementById("gezinssituatie").value,
           email: document.getElementById("email").value,
           geboortedatum: document.getElementById("geboortedatum").value,
           wachtwoord: document.getElementById("wachtwoord").value,
@@ -189,7 +212,6 @@
       await db.collection("parochies").doc(parochieId).collection("leden").doc(loginKeuze).update({
         avatarURL: url
       });
-      // update ook localStorage zodat menu-avatar ook verandert
       localStorage.setItem("avatarURL", url);
       document.getElementById("menu-avatar-img").src = url;
     }
@@ -203,7 +225,7 @@
 
     // Profiel verwijderen
     async function verwijderProfiel() {
-      if (!confirm("Weet je zeker dat je jouw profiel wil verwijderen? Dit kan niet ongedaan worden.")) return;
+      if (!confirm("Weet je zeker dat je jouw profiel wil verwijderen?")) return;
       try {
         await db.collection("parochies").doc(parochieId).collection("leden").doc(loginKeuze).delete();
         alert("Profiel verwijderd!");
@@ -236,50 +258,34 @@
           <label>Voornaam: <input type="text" value="${kind.voornaam || ""}" data-veld="voornaam"></label>
           <label>Achternaam: <input type="text" value="${kind.achternaam || ""}" data-veld="achternaam"></label>
           <label>Geboortedatum: <input type="date" value="${kind.geboortedatum || ""}" data-veld="geboortedatum"></label>
-          <label><input type="checkbox" ${kind.verjaardagToevoegen ? "checked" : ""} data-veld="verjaardagToevoegen" style="width:auto;margin-right:7px;"> Zichtbaar op verjaardagskalender</label>
-          <label>Toegang tot kindermodus: <input type="checkbox" ${kind.kindermodus ? "checked" : ""} data-veld="kindermodus" style="width:auto;margin-left:7px;"></label>
+          <label><input type="checkbox" ${kind.verjaardagToevoegen ? "checked" : ""} data-veld="verjaardagToevoegen"> Zichtbaar op verjaardagskalender</label>
+          <label>Toegang tot kindermodus: <input type="checkbox" ${kind.kindermodus ? "checked" : ""} data-veld="kindermodus"></label>
           <label>Wachtwoord kind: <input class="kind-wachtwoord" type="text" value="${kind.wachtwoord || ""}" readonly></label>
-          ${typeof kind.punten !== 'undefined' && kind.punten !== null ? `<label>Punten: <input class="kind-punten" type="text" value="${kind.punten}" readonly></label>` : ''}
+          ${typeof kind.punten !== 'undefined' ? `<label>Punten: <input class="kind-punten" type="text" value="${kind.punten}" readonly></label>` : ''}
           <div class="avatar-selectie-kid">
-            ${kinderAvatars.map(url =>
-              `<img src="${url}" ${kind.avatarURL === url ? 'class="selected"' : ''} onclick="bewaarKindAvatar(${idx},'${url}')">`
-            ).join('')}
+            ${kinderAvatars.map(url => `<img src="${url}" ${kind.avatarURL === url ? 'class="selected"' : ''} onclick="bewaarKindAvatar(${idx},'${url}')">`).join('')}
           </div>
           <div class="kind-acties">
             <button onclick="bewaarKind(${idx})">💾 Bewaar</button>
             <button onclick="verwijderKind(${idx})">❌ Verwijder</button>
-          </div>
-        `;
+          </div>`;
         lijst.appendChild(blok);
       });
     }
 
-    // Kind toevoegen
-    document.getElementById("voeg-kind-btn").onclick = async function() {
-      let nieuwKind = {
-        voornaam: "",
-        achternaam: "",
-        geboortedatum: "",
-        verjaardagToevoegen: false,
-        kindermodus: false,
-        wachtwoord: "",
-        punten: 0,
-        avatarURL: kinderAvatars[0]
-      };
+    document.getElementById("voeg-kind-btn").onclick = function() {
+      let nieuwKind = { voornaam: "", achternaam: "", geboortedatum: "", verjaardagToevoegen: false, kindermodus: false, wachtwoord: "", punten: 0, avatarURL: kinderAvatars[0]};
       kinderenData.push(nieuwKind);
       toonKinderen();
     };
 
-    // Kind avatar selecteren en direct opslaan
     window.bewaarKindAvatar = async function(idx, url) {
       kinderenData[idx].avatarURL = url;
-      await bewaarKind(idx, true); // true: alleen avatar opslaan
+      await bewaarKind(idx, true);
     }
 
-    // Kind bewerken/bewaren
     window.bewaarKind = async function(idx, onlyAvatar = false) {
-      const lijst = document.getElementById("kinderen-lijst");
-      const blok = lijst.children[idx];
+      const blok = document.getElementById("kinderen-lijst").children[idx];
       let kind = kinderenData[idx];
       if (!onlyAvatar) {
         kind.voornaam = blok.querySelector('input[data-veld="voornaam"]').value;
@@ -288,7 +294,7 @@
         kind.verjaardagToevoegen = blok.querySelector('input[data-veld="verjaardagToevoegen"]').checked;
         kind.kindermodus = blok.querySelector('input[data-veld="kindermodus"]').checked;
       }
-      const kindId = kind.id || `${kind.voornaam}_${kind.geboortedatum}_${Math.floor(Math.random()*10000)}`;
+      const kindId = kind.id || `${kind.voornaam}_${kind.geboortedatum}_${Math.random()*10000}`;
       kind.id = kindId;
       try {
         await db.collection("parochies").doc(parochieId).collection("leden").doc(loginKeuze).collection("kinderen").doc(kindId).set(kind);
@@ -299,7 +305,6 @@
       }
     }
 
-    // Kind verwijderen
     window.verwijderKind = async function(idx) {
       let kind = kinderenData[idx];
       if (!kind.id) {
