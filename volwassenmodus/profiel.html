@@ -58,7 +58,7 @@
         <label>Achternaam: <input type="text" id="achternaam"></label>
         <label>Doopnaam: <input type="text" id="doopnaam"></label>
 
-        <!-- ✅ Nieuw toegevoegd: Geslacht en Gezinssituatie -->
+        <!-- ✅ Nieuw toegevoegd -->
         <label>Geslacht:
           <select id="geslacht">
             <option value="">Kies...</option>
@@ -140,6 +140,21 @@
       avatarSelectieVolw.appendChild(img);
     });
 
+    // ==== Bloemenlogica ====
+    function berekenBloemen(geslacht, gezinssituatie, kinderenAantal) {
+      let bloemen = "";
+      if (gezinssituatie === "relatie") {
+        bloemen = "🌷🪻";
+      } else {
+        if (geslacht === "vrouw") bloemen = "🌷";
+        else if (geslacht === "man") bloemen = "🪻";
+      }
+      for (let i = 0; i < kinderenAantal; i++) {
+        bloemen += "🌱";
+      }
+      return bloemen;
+    }
+
     // ==== Profiel ophalen en tonen ====
     const parochieId = localStorage.getItem("ingelogdeParochie");
     const loginKeuze = localStorage.getItem("loginKeuze");
@@ -190,6 +205,12 @@
       const melding = document.getElementById("melding");
       melding.textContent = "Bezig met opslaan...";
       try {
+        const kinderenAantal = kinderenData.length;
+        const bloemen = berekenBloemen(
+          document.getElementById("geslacht").value,
+          document.getElementById("gezinssituatie").value,
+          kinderenAantal
+        );
         await db.collection("parochies").doc(parochieId).collection("leden").doc(loginKeuze).update({
           voornaam: document.getElementById("voornaam").value,
           achternaam: document.getElementById("achternaam").value,
@@ -199,7 +220,8 @@
           email: document.getElementById("email").value,
           geboortedatum: document.getElementById("geboortedatum").value,
           wachtwoord: document.getElementById("wachtwoord").value,
-          verjaardagToevoegen: document.getElementById("toonVerjaardag").checked
+          verjaardagToevoegen: document.getElementById("toonVerjaardag").checked,
+          bloemen: bloemen
         });
         melding.textContent = "Wijzigingen opgeslagen!";
       } catch (e) {
