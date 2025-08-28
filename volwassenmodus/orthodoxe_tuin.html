@@ -2,39 +2,29 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Orthodoxe Tuin</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #d9f2d0;
-    }
-    #map {
-      height: calc(100vh - 80px);
-      width: 100%;
-    }
-    .leaflet-popup-content {
-      font-size: 0.95em;
-    }
+    body { margin:0; font-family: Arial, sans-serif; background: #d7f5c0; }
+    #map { width:100%; height: calc(100vh - 60px); }
+    .marker-bloem { font-size:1.6em; }
   </style>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 </head>
 <body>
-  <!-- ==== GEMEENSCHAPPELIJKE HEADER ==== -->
+  <!-- Gemeenschappelijke header -->
   <div id="volwassen-header"></div>
   <script src="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/common/layout.js"></script>
 
   <div id="map"></div>
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <!-- FIREBASE -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 
   <script>
-    // === Firebase Config ===
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -46,46 +36,51 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Maak een custom emoji-icoon voor Leaflet
-    function emojiIcon(emoji) {
+    // Initialize map centered on Belgium
+    const map = L.map('map').setView([50.85, 4.35], 8);
+    L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+      attribution: 'Kaartgegevens © OpenStreetMap'
+    }).addTo(map);
+
+    // Create marker icons from emoji
+    function flowerIcon(emoji) {
       return L.divIcon({
-        html: `<span style="font-size:28px;">${emoji}</span>`,
-        className: "",
-        iconSize: [30, 30],
-        iconAnchor: [15, 30],
-        popupAnchor: [0, -28]
+        className: 'marker-bloem',
+        html: emoji
       });
     }
 
-    // === Kaart ===
-    const map = L.map('map').setView([50.85, 4.35], 8); // België centrum
-    L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
-      attribution: 'Kaartgegevens © OpenStreetMap-bijdragers'
-    }).addTo(map);
-
-    // === Data laden uit Firestore ===
-    async function laadLeden() {
+    // GeoNames lookup for Belgian postal codes
+    async function geocodeBelgium(postcode, gemeente) {
+      const url = `https://api.geonames.org/postalCodeSearchJSON?postalcode=${encodeURIComponent(postcode)}&placename=${encodeURIComponent(gemeente)}&country=BE&maxRows=1&username=demo`;
       try {
-        const parochies = await db.collection("parochies").get();
-        for (let paroDoc of parochies.docs) {
-          const leden = await paroDoc.ref.collection("leden").get();
-          leden.forEach(lidDoc => {
-            const lid = lidDoc.data();
-
-            // enkel tonen als er een locatie is
-            if (!lid.locatie || !lid.locatie.lat || !lid.locatie.lng) return;
-
-            // bloemen rechtstreeks uit Firestore
-            const bloemen = lid.bloemen || "🌷";
-
-            // marker toevoegen
-            L.marker([lid.locatie.lat, lid.locatie.lng], { icon: emojiIcon(bloemen) })
-              .addTo(map)
-              .bindPopup(`<strong>${lid.voornaam} ${lid.achternaam}</strong><br>Parochie: ${paroDoc.id}<br>${bloemen}`);
-          });
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.postalCodes && data.postalCodes[0]) {
+          return [data.postalCodes[0].lat, data.postalCodes[0].lng];
         }
-      } catch (err) {
-        console.error("Fout bij laden leden:", err);
+      } catch (e) {
+        console.error("Geocode error:", e);
+      }
+      return null;
+    }
+
+    // Load members and display on map
+    async function laadLeden() {
+      const parochies = await db.collection("parochies").get();
+      for (const paro of parochies.docs) {
+        const leden = await paro.ref.collection("leden").get();
+        for (const lidDoc of leden.docs) {
+          const lid = lidDoc.data();
+          if (!lid.gemeente || !lid.postcode || !lid.bloemen) continue;
+
+          const coords = await geocodeBelgium(lid.postcode, lid.gemeente);
+          if (!coords) continue;
+
+          L.marker(coords, { icon: flowerIcon(lid.bloemen) })
+           .addTo(map)
+           .bindPopup(`<strong>${lid.voornaam} ${lid.achternaam}</strong><br>${lid.gemeente} ${lid.postcode}<br>${lid.bloemen}`);
+        }
       }
     }
 
