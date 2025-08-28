@@ -1,77 +1,95 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Orthodoxe Tuin</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <style>
-    html, body {
+    body {
       margin: 0;
-      padding: 0;
-      height: 100%;
-      font-family: Comic Sans MS, sans-serif;
-      background-color: #d7f5c0;
+      font-family: Arial, sans-serif;
+      background: #d9f2d0;
     }
     #map {
-      height: 100vh;
+      height: calc(100vh - 80px);
       width: 100%;
     }
-    .emoji-icon {
-      font-size: 28px;   /* Grootte van de emoji marker */
-      line-height: 1;
-      text-align: center;
+    .leaflet-popup-content {
+      font-size: 0.95em;
     }
   </style>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 </head>
 <body>
+  <!-- ==== GEMEENSCHAPPELIJKE HEADER ==== -->
+  <div id="volwassen-header"></div>
+  <script src="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/common/layout.js"></script>
 
-<div id="map"></div>
+  <div id="map"></div>
 
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script>
-  // Kaart centreren op België
-  const map = L.map('map').setView([50.85, 4.35], 8);
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <!-- FIREBASE -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 
-  // Achtergrondlaag
-  L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
-    attribution: 'Kaartgegevens © OpenStreetMap-bijdragers',
-  }).addTo(map);
+  <script>
+    // === Firebase Config ===
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-  // Emoji markers per type
-  function emojiMarker(emoji) {
-    return L.divIcon({
-      className: 'emoji-icon',
-      html: emoji,
-      iconSize: [40, 40],
-      iconAnchor: [20, 20]
-    });
-  }
+    // Maak een custom emoji-icoon voor Leaflet
+    function emojiIcon(emoji) {
+      return L.divIcon({
+        html: `<span style="font-size:28px;">${emoji}</span>`,
+        className: "",
+        iconSize: [30, 30],
+        iconAnchor: [15, 30],
+        popupAnchor: [0, -28]
+      });
+    }
 
-  const gebruikers = [
-    { naam: "Sofie uit Gent", locatie: [51.05, 3.72], parochie: "Gent", type: "vrouw" },
-    { naam: "Peter uit Antwerpen", locatie: [51.22, 4.40], parochie: "Antwerpen", type: "man" },
-    { naam: "Koppel uit Leuven", locatie: [50.88, 4.7], parochie: "Leuven", type: "koppel" },
-    { naam: "Gezin uit Brussel", locatie: [50.83, 4.35], parochie: "Brussel", type: "gezin" },
-    { naam: "Alleenstaande mama in Hasselt", locatie: [50.93, 5.33], parochie: "Hasselt", type: "mama" },
-    { naam: "Alleenstaande papa in Brugge", locatie: [51.21, 3.22], parochie: "Brugge", type: "papa" }
-  ];
+    // === Kaart ===
+    const map = L.map('map').setView([50.85, 4.35], 8); // België centrum
+    L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+      attribution: 'Kaartgegevens © OpenStreetMap-bijdragers'
+    }).addTo(map);
 
-  gebruikers.forEach(persoon => {
-    let emoji = "🌸"; // standaard
-    if (persoon.type === "vrouw") emoji = "🌸";
-    if (persoon.type === "man") emoji = "🌹";
-    if (persoon.type === "koppel") emoji = "🌺🌺";
-    if (persoon.type === "gezin") emoji = "🌻👶🌻";
-    if (persoon.type === "mama") emoji = "🌸👶";
-    if (persoon.type === "papa") emoji = "🌹👶";
+    // === Data laden uit Firestore ===
+    async function laadLeden() {
+      try {
+        const parochies = await db.collection("parochies").get();
+        for (let paroDoc of parochies.docs) {
+          const leden = await paroDoc.ref.collection("leden").get();
+          leden.forEach(lidDoc => {
+            const lid = lidDoc.data();
 
-    L.marker(persoon.locatie, { icon: emojiMarker(emoji) })
-      .addTo(map)
-      .bindPopup(`<strong>${persoon.naam}</strong><br>Parochie: ${persoon.parochie}`);
-  });
-</script>
+            // enkel tonen als er een locatie is
+            if (!lid.locatie || !lid.locatie.lat || !lid.locatie.lng) return;
 
+            // bloemen rechtstreeks uit Firestore
+            const bloemen = lid.bloemen || "🌷";
+
+            // marker toevoegen
+            L.marker([lid.locatie.lat, lid.locatie.lng], { icon: emojiIcon(bloemen) })
+              .addTo(map)
+              .bindPopup(`<strong>${lid.voornaam} ${lid.achternaam}</strong><br>Parochie: ${paroDoc.id}<br>${bloemen}`);
+          });
+        }
+      } catch (err) {
+        console.error("Fout bij laden leden:", err);
+      }
+    }
+
+    laadLeden();
+  </script>
 </body>
 </html>
