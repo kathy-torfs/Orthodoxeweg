@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Orthodoxe Tuin – Orthodoxeweg</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
@@ -45,12 +45,20 @@
     let map;
 
     function initMap() {
-      // Start boven België
       map = new google.maps.Map(document.getElementById("map"), {
-        center: { lat: 50.85, lng: 4.35 }, // Brussel
-        zoom: 8,
         mapTypeId: "roadmap"
       });
+
+      // 📍 Grenzen van België
+      const belgieBounds = {
+        north: 51.505, // bovenkust
+        south: 49.49,  // grens Luxemburg/Frankrijk
+        west: 2.54,    // grens Frankrijk (Westhoek)
+        east: 6.4      // grens Duitsland/Luxemburg
+      };
+
+      // Stel in dat de kaart altijd start met België in beeld
+      map.fitBounds(belgieBounds);
 
       laadBloemen();
     }
