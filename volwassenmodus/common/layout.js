@@ -59,6 +59,7 @@
     });
   }
 
+  // === Catecheet knop ===
   function voegCatecheetKnopToe() {
     const rol = localStorage.getItem("rol");
     if (rol !== "catecheet") return;
@@ -77,7 +78,60 @@
     a.href = "https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/mijnklasje.html";
     a.innerHTML = "👩‍🏫 <span class=\"label\">Mijn klasje</span>";
 
-    tweedeRij.appendChild(a); // altijd achteraan toevoegen
+    tweedeRij.appendChild(a);
+  }
+
+  // === Kindermodus knop ===
+  async function voegKindermodusKnopToe() {
+    const parochieId = localStorage.getItem("ingelogdeParochie");
+    const loginKeuze = localStorage.getItem("loginKeuze");
+
+    if (!parochieId || !loginKeuze) return;
+
+    // Firestore initialisatie
+    if (typeof firebase !== "undefined" && !firebase.apps.length) {
+      firebase.initializeApp({
+        apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+        authDomain: "orthodoxeweg.firebaseapp.com",
+        projectId: "orthodoxeweg"
+      });
+    }
+    const db = firebase.firestore();
+
+    try {
+      const kinderenSnap = await db.collection("parochies")
+        .doc(parochieId)
+        .collection("leden")
+        .doc(loginKeuze)
+        .collection("kinderen")
+        .get();
+
+      let heeftToegang = false;
+      kinderenSnap.forEach(doc => {
+        const d = doc.data();
+        if (d.kindermodus === true) {
+          heeftToegang = true;
+        }
+      });
+
+      if (heeftToegang) {
+        const menuRows = document.querySelectorAll("nav.menu .menu-row");
+        if (!menuRows.length) return;
+        const tweedeRij = menuRows[1];
+
+        if (document.getElementById("kindermodus-menu-item")) return;
+
+        const a = document.createElement("a");
+        a.className = "menu-item";
+        a.id = "kindermodus-menu-item";
+        a.href = "https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/index.html";
+        a.innerHTML = "🌟 <span class=\"label\">Kindermodus</span>";
+
+        tweedeRij.appendChild(a);
+      }
+    } catch (e) {
+      console.error("Fout bij ophalen kindermodus:", e);
+    }
   }
 
   async function mountHeader({ rootId, headerSrc } = {}) {
@@ -102,7 +156,8 @@
     setWelcome();
     setAvatar();
     bindLogout();
-    voegCatecheetKnopToe(); // catecheet menu toevoegen
+    voegCatecheetKnopToe();  // catecheet menu toevoegen
+    voegKindermodusKnopToe(); // kindermodus menu toevoegen
   }
 
   window.VolwassenLayout = { mountHeader };
