@@ -20,6 +20,12 @@
       gap: 130px;
       flex-wrap: wrap;
     }
+    .onderste-rij {
+      display: flex;
+      justify-content: center;
+      gap: 130px;
+      flex-wrap: wrap;
+    }
     .bord-blok {
       width: 530px;
       height: 340px;
@@ -32,7 +38,6 @@
       overflow: hidden;
       background: #eaf5ff;
     }
-    .bord-blok:last-child { background: #e7ffe9; }
     .bord-titel {
       position: absolute;
       top: 13px;
@@ -175,17 +180,7 @@
     .vlam-geel { fill: #ffe953; }
     .vlam-rood { fill: #e92e30; }
     .vlam-transp { fill: transparent; opacity: 0.10;}
-    .bijbel-link {
-      display: block;
-      text-align: center;
-      margin: 48px auto 0 auto;
-    }
-    .bijbel-link img {
-      width: 160px;
-      border-radius: 12px;
-      border: 2px solid #d2ba86;
-      box-shadow: 0 4px 12px #cbb77750;
-    }
+
     @media (max-width: 700px) {
       .kaarsjes-grid-blok { width: 97vw; padding: 12px 0 14px 0;}
       .kaarsjes-grid { gap: 12px 7px;}
@@ -217,7 +212,7 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // PRIKBORD PAROCHIENIEUWS (POST-ITS)
+    // === POST-ITS PRIKBORD ===
     const postitMapping = [
       { kleur: "#fff86b", top: "18%", left: "11%" },
       { kleur: "#a6e3ff", top: "17%", left: "38%" },
@@ -258,6 +253,8 @@
       }
       Promise.all(promises).catch(console.error);
     }
+
+    // === KRANTEN ZOEKERTJES ===
     const krantenMapping = [
       { top: "15%", left: "5%" },   { top: "15%", left: "38%" },   { top: "15%", left: "70%" },
       { top: "36%", left: "8%" },   { top: "34%", left: "41%" },   { top: "36%", left: "73%" },
@@ -296,7 +293,7 @@
       Promise.all(promises).catch(console.error);
     }
 
-    // === KAARSEN - VANUIT FIREBASE (STATUS PER KAARSJE) ===
+    // === KAARSEN ===
     function laadKaarsjes() {
       const grid = document.getElementById("kaarsjesGrid");
       grid.innerHTML = '';
@@ -359,9 +356,10 @@
   </script>
 </head>
 <body>
-  <!-- Header wordt automatisch ingeladen uit common/header.html via layout.js -->
+  <!-- Header automatisch uit common/header.html via layout.js -->
 
   <div class="borden-raster">
+    <!-- Bovenste rij -->
     <div class="bovenste-rij">
       <a href="nieuws.html" class="bord-blok">
         <div class="bord-titel">Parochienieuws</div>
@@ -372,13 +370,21 @@
         <div class="krant-container" id="postitsRechts"></div>
       </a>
     </div>
-    <!-- KAARSEN BLOK -->
+
+    <!-- Midden: kaarsen -->
     <div class="kaarsjes-grid-blok">
       <div class="kaarsjes-grid" id="kaarsjesGrid"></div>
     </div>
+
+    <!-- Onderste rij: Multimedia + Priesterbrieven -->
+    <div class="onderste-rij">
+      <a href="multimedia.html" class="bord-blok">
+        <div class="bord-titel">Multimedia</div>
+      </a>
+      <a href="priesterbrieven.html" class="bord-blok">
+        <div class="bord-titel">Priesterbrieven</div>
+      </a>
+    </div>
   </div>
-  <a class="bijbel-link" href="bijbeldagboek.html">
-    <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/boek.png" alt="Bijbeldagboek">
-  </a>
 </body>
 </html>
