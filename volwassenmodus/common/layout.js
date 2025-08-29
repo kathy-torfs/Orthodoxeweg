@@ -3,7 +3,7 @@
   const CONFIG = {
     headerDefaultMountId: "volwassen-header",
     headerDefaultSrc: "common/header.html",
-    loginUrl: "https://kathy-torfs.github.io/Orthodoxeweg/startpagina.html"
+    loginUrl: "https://kathy-torfs.github.io/Orthodoxeweg/index.html"
   };
 
   function ensureLoggedInOrRedirect() {
