@@ -1,1 +1,390 @@
+<!DOCTYPE html> 
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Orthodoxeweg – mijn parochie</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
+  <style>
+    body { background-color: #f5e9b8; color: #6f4e1a; font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    .borden-raster {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 52px 0 0 0;
+      gap: 54px;
+    }
+    .bovenste-rij {
+      display: flex;
+      justify-content: center;
+      gap: 130px;
+      flex-wrap: wrap;
+    }
+    .onderste-rij {
+      display: flex;
+      justify-content: center;
+      gap: 130px;
+      flex-wrap: wrap;
+    }
+    .bord-blok {
+      width: 530px;
+      height: 340px;
+      border: 18px solid #8a663c;
+      border-radius: 22px;
+      box-shadow: 0 8px 22px #00000033;
+      position: relative;
+      display: block;
+      text-decoration: none;
+      overflow: hidden;
+      background: #eaf5ff;
+    }
+    .bord-titel {
+      position: absolute;
+      top: 13px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #f7e3b2;
+      color: #7a5f35;
+      padding: 8px 34px 7px 34px;
+      font-weight: bold;
+      font-size: 1.24em;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px #0003;
+      letter-spacing: 1px;
+      text-align: center;
+      z-index: 5;
+      pointer-events: none;
+    }
+    .postit-container, .krant-container {
+      position: absolute;
+      top: 60px;
+      left: 0; right: 0; bottom: 0;
+      width: 100%; height: calc(100% - 60px);
+      pointer-events: none;
+    }
+    .postit {
+      width: 68px;
+      height: 68px;
+      border-radius: 7px;
+      box-shadow: 2px 3px 10px #0001;
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #222;
+      font-size: 0.98em;
+      font-weight: bold;
+      text-align: center;
+      padding: 8px;
+      overflow: hidden;
+      word-break: break-word;
+      user-select: none;
+      opacity: 0.96;
+      background: #fff86b;
+      border: 1.5px solid #e6d600;
+    }
+    .krant-knipsel {
+      min-width: 130px;
+      max-width: 165px;
+      min-height: 48px;
+      max-height: 76px;
+      border-radius: 8px;
+      font-size: 1em;
+      background: #fcfbf9;
+      border: 1.8px solid #beb7a8;
+      box-shadow: 0 2px 14px #cec8b04c, 0 0.7px 0 #a59d8d;
+      font-family: Georgia, 'Times New Roman', serif;
+      color: #3a2c17;
+      padding: 10px 12px 8px 12px;
+      opacity: 0.99;
+      position: absolute;
+      z-index: 2;
+      display: flex;
+      align-items: flex-start;
+      justify-content: flex-start;
+      pointer-events: none;
+      overflow: hidden;
+      word-break: break-word;
+    }
 
+    /* KAARSENRASTER EN KAARSEN */
+    .kaarsjes-grid-blok {
+      margin: 40px auto 0 auto;
+      background: #f9f5e1;
+      border: 5px solid gold;
+      border-radius: 22px;
+      box-shadow: 0 4px 32px #dac04835;
+      padding: 34px 32px 38px 32px;
+      width: 540px;
+      min-height: 260px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .kaarsjes-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      grid-template-rows: repeat(2, 110px);
+      gap: 30px 26px;
+      width: 100%;
+      justify-items: center;
+      align-items: end;
+    }
+    .kaarsje-houder {
+      width: 58px;
+      height: 112px;
+      position: relative;
+      display: flex;
+      align-items: end;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 2;
+      transition: transform 0.08s;
+    }
+    .kaarsje-houder:hover {
+      transform: scale(1.03);
+      filter: drop-shadow(0 0 8px #ffe282a4);
+    }
+    .kaars-svg {
+      width: 38px;
+      height: 98px;
+      display: block;
+      margin-top: 16px;
+      z-index: 2;
+    }
+    .vlam-svg {
+      width: 36px;
+      height: 46px;
+      position: absolute;
+      left: 50%;
+      top: -36px;
+      transform: translateX(-50%);
+      z-index: 4;
+      pointer-events: none;
+    }
+    .flikkerpad {
+      stroke: #d69800;
+      stroke-width: 2.7;
+      filter: url(#vlam-glow);
+      animation: flikkerVlam 1.17s infinite;
+      transform-origin: 50% 80%;
+    }
+    @keyframes flikkerVlam {
+      0% { transform: scaleY(1) scaleX(1); opacity: 1;}
+      38% { transform: scaleY(1.07) scaleX(1.17); opacity: 0.95;}
+      62% { transform: scaleY(0.91) scaleX(1.13); opacity: 1;}
+      100% { transform: scaleY(1) scaleX(1); opacity: 1;}
+    }
+    .vlam-geel { fill: #ffe953; }
+    .vlam-rood { fill: #e92e30; }
+    .vlam-transp { fill: transparent; opacity: 0.10;}
+
+    @media (max-width: 700px) {
+      .kaarsjes-grid-blok { width: 97vw; padding: 12px 0 14px 0;}
+      .kaarsjes-grid { gap: 12px 7px;}
+    }
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+   <!-- Layout script (laadt header en css) -->
+  <script src="common/layout.js" defer></script>
+</head>
+<body>
+
+  <!-- HEADER komt uit volwassenmodus/common/header.html -->
+  <div id="volwassen-header"></div>
+
+  <script>
+    if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "volwassene") {
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    }
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // === POST-ITS PRIKBORD ===
+    const postitMapping = [
+      { kleur: "#fff86b", top: "18%", left: "11%" },
+      { kleur: "#a6e3ff", top: "17%", left: "38%" },
+      { kleur: "#e39aff", top: "16%", left: "65%" },
+      { kleur: "#c1ff8e", top: "44%", left: "13%" },
+      { kleur: "#ffc39a", top: "41%", left: "45%" },
+      { kleur: "#bba5ff", top: "44%", left: "75%" },
+      { kleur: "#ffa49a", top: "72%", left: "12%" },
+      { kleur: "#d0ffcc", top: "68%", left: "44%" },
+      { kleur: "#ffe2ae", top: "70%", left: "74%" }
+    ];
+    function laadPostitsPrikbord() {
+      const parochieId = localStorage.getItem("ingelogdeParochie");
+      if (!parochieId) return;
+      const container = document.getElementById("postitsLinks");
+      if (!container) return;
+      container.innerHTML = "";
+      let promises = [];
+      for (let i = 0; i < 9; i++) {
+        let ref = db.collection("parochies")
+          .doc(parochieId)
+          .collection("prikbord_priester")
+          .doc("postit" + i);
+        promises.push(ref.get().then(doc => {
+          if (doc.exists) {
+            const tekst = doc.data().tekst || "";
+            let preview = tekst.split(/\s+/).slice(0, 5).join(" ");
+            if (tekst.split(/\s+/).length > 5) preview += "…";
+            const postit = document.createElement("div");
+            postit.className = "postit";
+            postit.style.backgroundColor = postitMapping[i].kleur;
+            postit.style.top = postitMapping[i].top;
+            postit.style.left = postitMapping[i].left;
+            postit.textContent = preview;
+            container.appendChild(postit);
+          }
+        }));
+      }
+      Promise.all(promises).catch(console.error);
+    }
+
+    // === KRANTEN ZOEKERTJES ===
+    const krantenMapping = [
+      { top: "15%", left: "5%" },   { top: "15%", left: "38%" },   { top: "15%", left: "70%" },
+      { top: "36%", left: "8%" },   { top: "34%", left: "41%" },   { top: "36%", left: "73%" },
+      { top: "60%", left: "5%" },   { top: "58%", left: "38%" },   { top: "61%", left: "71%" },
+      { top: "80%", left: "18%" },  { top: "82%", left: "47%" },   { top: "80%", left: "77%" }
+    ];
+    function laadZoekertjesPrikbord() {
+      const parochieId = localStorage.getItem("ingelogdeParochie");
+      if (!parochieId) return;
+      const container = document.getElementById("postitsRechts");
+      if (!container) return;
+      container.innerHTML = "";
+      let promises = [];
+      for (let i = 0; i < 12; i++) {
+        let ref = db.collection("parochies")
+          .doc(parochieId)
+          .collection("zoekertjes")
+          .doc("krant" + i);
+        promises.push(ref.get().then(doc => {
+          if (doc.exists) {
+            const data = doc.data();
+            const titel = data.titel || "";
+            const tekst = data.tekst || "";
+            let preview = titel;
+            if (tekst) preview += ": " + tekst.split(/\s+/).slice(0, 6).join(" ");
+            if (tekst.split(/\s+/).length > 6) preview += "…";
+            const knipsel = document.createElement("div");
+            knipsel.className = "krant-knipsel";
+            knipsel.style.top = krantenMapping[i].top;
+            knipsel.style.left = krantenMapping[i].left;
+            knipsel.textContent = preview;
+            container.appendChild(knipsel);
+          }
+        }));
+      }
+      Promise.all(promises).catch(console.error);
+    }
+
+    // === KAARSEN ===
+    function laadKaarsjes() {
+      const grid = document.getElementById("kaarsjesGrid");
+      grid.innerHTML = '';
+      const n = 12;
+      const parochieId = localStorage.getItem("ingelogdeParochie");
+      const lidId = localStorage.getItem("loginKeuze");
+      if (!parochieId || !lidId) return;
+      db.collection("parochies")
+        .doc(parochieId)
+        .collection("leden")
+        .doc(lidId)
+        .collection("kaarsjes")
+        .get()
+        .then(snapshot => {
+          for (let i = 1; i <= n; i++) {
+            const doc = snapshot.docs.find(d => d.id === 'kaars' + i);
+            let vlamClass = "vlam-transp";
+            let vlamFill = "#ffe953";
+            if (doc && doc.data().status === "verzonden") {
+              vlamClass = "vlam-geel flikkerpad";
+              vlamFill = "#ffe953";
+            }
+            if (doc && doc.data().status === "gelezen") {
+              vlamClass = "vlam-rood flikkerpad";
+              vlamFill = "#e92e30";
+            }
+            const houder = document.createElement("div");
+            houder.className = "kaarsje-houder";
+            houder.title = "Kaarsje " + i;
+            houder.onclick = () => { window.location.href = "kaarsjes.html"; };
+            houder.innerHTML = `
+              <svg class="kaars-svg" viewBox="0 0 38 98" width="38" height="98">
+                <rect x="9" y="12" width="20" height="80" rx="9" fill="#f7f1e2" stroke="#ccb99d" stroke-width="2.4"/>
+                <ellipse cx="19" cy="12" rx="10" ry="10" fill="#faf2cf" stroke="#e9e0c1" stroke-width="1.5"/>
+              </svg>
+              <svg class="vlam-svg" viewBox="0 0 36 46" width="36" height="46">
+                <defs>
+                  <filter id="vlam-glow" x="-50%" y="-50%" width="220%" height="220%">
+                    <feGaussianBlur stdDeviation="3.4" result="glow"/>
+                    <feMerge>
+                      <feMergeNode in="glow"/>
+                      <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                  </filter>
+                </defs>
+                <path d="M18 10 Q33 30 18 41 Q3 30 18 10 Z"
+                  class="${vlamClass}" fill="${vlamFill}" filter="url(#vlam-glow)"/>
+              </svg>
+            `;
+            grid.appendChild(houder);
+          }
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+      laadPostitsPrikbord();
+      laadZoekertjesPrikbord();
+      laadKaarsjes();
+    });
+  </script>
+</head>
+<body>
+  <!-- Header automatisch uit common/header.html via layout.js -->
+
+  <div class="borden-raster">
+    <!-- Bovenste rij -->
+    <div class="bovenste-rij">
+      <a href="nieuws.html" class="bord-blok">
+        <div class="bord-titel">Parochienieuws</div>
+        <div class="postit-container" id="postitsLinks"></div>
+      </a>
+      <a href="zoekertjes.html" class="bord-blok">
+        <div class="bord-titel">Zoekertjes</div>
+        <div class="krant-container" id="postitsRechts"></div>
+      </a>
+    </div>
+
+    <!-- Midden: kaarsen -->
+    <div class="kaarsjes-grid-blok">
+      <div class="kaarsjes-grid" id="kaarsjesGrid"></div>
+    </div>
+
+    <!-- Onderste rij: Multimedia + Priesterbrieven -->
+    <div class="onderste-rij">
+      <a href="multimedia.html" class="bord-blok">
+        <div class="bord-titel">Multimedia</div>
+      </a>
+      <a href="priesterbrieven.html" class="bord-blok">
+        <div class="bord-titel">Priesterbrieven</div>
+      </a>
+    </div>
+  </div>
+</body>
+</html>
