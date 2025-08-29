@@ -1,9 +1,9 @@
-// Volwassenmodus layout.js 
+// Volwassenmodus layout.js  
 (function () {
   const CONFIG = {
     headerDefaultMountId: "volwassen-header",
     headerDefaultSrc: "common/header.html",
-    loginUrl: "https://kathy-torfs.github.io/Orthodoxeweg/index.html"
+    loginUrl: "https://kathy-torfs.github.io/Orthodoxeweg/startpagina.html"
   };
 
   function ensureLoggedInOrRedirect() {
@@ -124,7 +124,7 @@
         const a = document.createElement("a");
         a.className = "menu-item";
         a.id = "kindermodus-menu-item";
-        a.href = "https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/index.html";
+        a.href = "https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/startpagina.html";
         a.innerHTML = "🌟 <span class=\"label\">Kindermodus</span>";
 
         tweedeRij.appendChild(a);
@@ -156,7 +156,7 @@
     setWelcome();
     setAvatar();
     bindLogout();
-    voegCatecheetKnopToe();  // catecheet menu toevoegen
+    voegCatecheetKnopToe();   // catecheet menu toevoegen
     voegKindermodusKnopToe(); // kindermodus menu toevoegen
   }
 
