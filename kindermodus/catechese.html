@@ -30,7 +30,6 @@
     .card h3{margin:8px 0;color:var(--primair)}
     .card img{max-width:100%;border-radius:12px;margin-bottom:10px}
 
-    /* Detailvenster */
     #lesModal{position:fixed;inset:0;background:rgba(0,0,0,.5);
       display:none;align-items:center;justify-content:center;z-index:1000}
     #lesModal .content{
@@ -51,7 +50,7 @@
   <script defer src="common/layout.js"></script>
 </head>
 <body>
-  <!-- Header kindermodus -->
+  <!-- Kindermodus header -->
   <div id="kinder-header" data-header-src="common/header.html"></div>
 
   <main>
@@ -59,7 +58,7 @@
     <div id="lessenGrid" class="grid">Laden…</div>
   </main>
 
-  <!-- Detailvenster voor 1 les -->
+  <!-- Modal voor details -->
   <div id="lesModal">
     <div class="content">
       <button class="btn" onclick="sluitLes()">❌ Sluiten</button>
@@ -68,7 +67,6 @@
   </div>
 
   <script>
-    // 🔹 Firebase init
     if (!firebase.apps.length) {
       firebase.initializeApp({
         apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
@@ -78,15 +76,17 @@
     }
     const db=firebase.firestore();
 
-    const parochieId=sessionStorage.getItem("dagboek_parochieId");
-    const userId=sessionStorage.getItem("dagboek_userId");
-    const kindId=sessionStorage.getItem("dagboek_kindId"); // ⚠️ Zorg dat dit wordt gezet bij login kind
+    // 🔹 Belangrijk: juiste parochie + ouder + kind ophalen
+    const parochieId = sessionStorage.getItem("parochieId");
+    const ouderId    = sessionStorage.getItem("ouderId");
+    const kindId     = sessionStorage.getItem("kindId");
 
     const grid=document.getElementById("lessenGrid");
     const modal=document.getElementById("lesModal");
     const detail=document.getElementById("lesDetail");
 
     async function laadLessen(){
+      if(!parochieId){ grid.innerHTML="⚠️ Geen parochie gevonden."; return; }
       grid.innerHTML="Laden…";
       const snap=await db.collection("parochies").doc(parochieId).collection("catecheselessen")
         .where("zichtbaar","==",true).orderBy("aangemaaktOp","desc").get();
@@ -133,6 +133,7 @@
     }
 
     async function indienenQuiz(lesId,aantal){
+      if(!parochieId||!ouderId||!kindId){alert("Geen kind-context gevonden.");return;}
       const antwoorden=[];
       for(let i=0;i<aantal;i++){
         const sel=document.querySelector(`input[name="q${i}"]:checked`);
@@ -140,7 +141,7 @@
       }
       if(antwoorden.includes(-1)){alert("Beantwoord alle vragen!");return;}
 
-      // Resultaat vergelijken met juiste oplossingen
+      // Score berekenen
       const doc=await db.collection("parochies").doc(parochieId).collection("catecheselessen").doc(lesId).get();
       const les=doc.data();
       let score=0;
@@ -148,14 +149,14 @@
 
       // Opslaan bij kind
       await db.collection("parochies").doc(parochieId)
-        .collection("leden").doc(userId)
+        .collection("leden").doc(ouderId)
         .collection("kinderen").doc(kindId)
         .collection("lessen").doc(lesId)
         .set({
           antwoorden,score,totaal:aantal,datum:new Date()
         });
 
-      alert(`Je scoorde ${score} van de ${aantal}!`);
+      alert(`🎉 Je scoorde ${score} van de ${aantal}!`);
       sluitLes();
     }
 
