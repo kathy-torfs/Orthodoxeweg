@@ -1,104 +1,167 @@
-<script>
-  if (!firebase.apps.length) {
-    firebase.initializeApp({
-      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
-      authDomain: "orthodoxeweg.firebaseapp.com",
-      projectId: "orthodoxeweg"
-    });
-  }
-  const db = firebase.firestore();
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Catechese – Orthodoxe Kinderpagina</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
 
-  // Gebruik de waarden die layout.js al zet
-  const parochieId = localStorage.getItem("ingelogdeParochie");
-  const ouderId    = localStorage.getItem("loginKeuze");
-  const kindId     = localStorage.getItem("ingelogdKindId");
-
-  const grid   = document.getElementById("lessenGrid");
-  const modal  = document.getElementById("lesModal");
-  const detail = document.getElementById("lesDetail");
-
-  async function laadLessen(){
-    if (!parochieId) {
-      grid.innerHTML = "⚠️ Geen parochie gevonden.";
-      return;
+  <style>
+    :root{
+      --primair:#7bb235; --donker:#67510C;
+      --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
+      --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
+      --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
+      --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
     }
-    const snap = await db.collection("parochies").doc(parochieId)
-      .collection("catecheselessen")
-      .where("zichtbaar","==",true)
-      .orderBy("aangemaaktOp","desc").get();
-
-    grid.innerHTML = "";
-    if (snap.empty) {
-      grid.innerHTML = "<p>Geen lessen beschikbaar.</p>";
-      return;
+    body{
+      margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
+      min-height:100vh; background:var(--pastel1); transition:background .6s;
     }
-    snap.forEach(doc=>{
-      const d = doc.data();
-      const kaart = document.createElement("div");
-      kaart.className = "card";
-      kaart.innerHTML = `
-        ${d.mediaURL ? `<img src="${d.mediaURL}">` : ""}
-        <h3>${d.titel}</h3>
-        <p>${(d.inhoud||"").substring(0,60)}...</p>
-      `;
-      kaart.onclick = ()=>openLes(doc.id,d);
-      grid.appendChild(kaart);
-    });
-  }
+    main{ max-width: 900px; margin: 24px auto; padding: 0 2vw; }
 
-  function openLes(id,d){
-    modal.style.display="flex";
-    let html=`<h2>${d.titel}</h2>`;
-    if(d.mediaURL) html+=`<img src="${d.mediaURL}" style="max-width:100%;border-radius:10px">`;
-    html+=`<p>${d.inhoud}</p>`;
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+    .card{
+      background:#fffef9; border:1.5px solid #f1e6c8; border-radius:20px;
+      box-shadow:0 6px 24px rgba(0,0,0,.06); padding:18px; text-align:center;
+      cursor:pointer; transition:transform .2s, box-shadow .2s;
+    }
+    .card:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(0,0,0,.15);}
+    .card h3{margin:8px 0;color:var(--primair)}
+    .card img{max-width:100%;border-radius:12px;margin-bottom:10px}
 
-    if(d.vragen && d.vragen.length){
-      html+="<h3>Quiz</h3>";
-      d.vragen.forEach((v,i)=>{
-        html+=`<div class="quiz-vraag"><h4>${v.vraag}</h4>`;
-        v.antwoorden.forEach((a,ai)=>{
-          html+=`<label><input type="radio" name="q${i}" value="${ai}"> ${a}</label>`;
-        });
-        html+="</div>";
+    #lesModal{position:fixed;inset:0;background:rgba(0,0,0,.5);
+      display:none;align-items:center;justify-content:center;z-index:1000}
+    #lesModal .content{
+      background:#fffef9;max-width:700px;width:92%;max-height:90vh;overflow:auto;
+      border-radius:14px;padding:20px;box-shadow:0 8px 30px rgba(0,0,0,.25)
+    }
+    #lesModal h2{margin-top:0;color:var(--primair)}
+    .quiz-vraag{margin:14px 0;padding:12px;border:1px solid #dab97a;border-radius:10px;background:#fffdf5}
+    .quiz-vraag h4{margin:0 0 8px;color:#7a5f35}
+    .quiz-vraag label{display:block;margin:4px 0}
+    .btn{background:var(--primair);color:#fff;border:none;border-radius:8px;
+      padding:8px 16px;font-weight:bold;cursor:pointer;margin-top:10px}
+    .btn:hover{background:#5e8e29}
+  </style>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script defer src="common/layout.js"></script>
+</head>
+<body>
+  <!-- Header kindermodus -->
+  <div id="kinder-header" data-header-src="common/header.html"></div>
+
+  <main>
+    <h1>📖 Catechese</h1>
+    <div id="lessenGrid" class="grid">Laden…</div>
+  </main>
+
+  <!-- Modal voor details -->
+  <div id="lesModal">
+    <div class="content">
+      <button class="btn" onclick="sluitLes()">❌ Sluiten</button>
+      <div id="lesDetail"></div>
+    </div>
+  </div>
+
+  <script>
+    if (!firebase.apps.length) {
+      firebase.initializeApp({
+        apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+        authDomain:"orthodoxeweg.firebaseapp.com",
+        projectId:"orthodoxeweg",
       });
-      html+=`<button class="btn" onclick="indienenQuiz('${id}',${d.vragen.length})">Indienen</button>`;
     }
-    detail.innerHTML=html;
-  }
+    const db=firebase.firestore();
 
-  function sluitLes(){
-    modal.style.display="none";
-    detail.innerHTML="";
-  }
+    // ✅ Haal context uit localStorage (wordt gezet door login/header)
+    const parochieId = localStorage.getItem("ingelogdeParochie");
+    const ouderId    = localStorage.getItem("loginKeuze");
+    const kindId     = localStorage.getItem("ingelogdKindId");
 
-  async function indienenQuiz(lesId,aantal){
-    if (!parochieId || !ouderId || !kindId) {
-      alert("Niet ingelogd.");
-      return;
+    const grid=document.getElementById("lessenGrid");
+    const modal=document.getElementById("lesModal");
+    const detail=document.getElementById("lesDetail");
+
+    async function laadLessen(){
+      if(!parochieId){ grid.innerHTML="⚠️ Geen parochie gevonden."; return; }
+      const snap=await db.collection("parochies").doc(parochieId).collection("catecheselessen")
+        .where("zichtbaar","==",true).orderBy("aangemaaktOp","desc").get();
+      grid.innerHTML="";
+      if(snap.empty){grid.innerHTML="<p>Geen lessen beschikbaar.</p>";return;}
+      snap.forEach(doc=>{
+        const d=doc.data();
+        const kaart=document.createElement("div");
+        kaart.className="card";
+        kaart.innerHTML=`
+          ${d.mediaURL?`<img src="${d.mediaURL}">`:""}
+          <h3>${d.titel}</h3>
+          <p>${(d.inhoud||"").substring(0,60)}...</p>
+        `;
+        kaart.onclick=()=>openLes(doc.id,d);
+        grid.appendChild(kaart);
+      });
     }
-    const antwoorden=[];
-    for(let i=0;i<aantal;i++){
-      const sel=document.querySelector(`input[name="q${i}"]:checked`);
-      antwoorden.push(sel?parseInt(sel.value):-1);
+
+    function openLes(id,d){
+      modal.style.display="flex";
+      let html=`<h2>${d.titel}</h2>`;
+      if(d.mediaURL) html+=`<img src="${d.mediaURL}" style="max-width:100%;border-radius:10px">`;
+      html+=`<p>${d.inhoud}</p>`;
+
+      if(d.vragen&&d.vragen.length){
+        html+="<h3>Quiz</h3>";
+        d.vragen.forEach((v,i)=>{
+          html+=`<div class="quiz-vraag"><h4>${v.vraag}</h4>`;
+          v.antwoorden.forEach((a,ai)=>{
+            html+=`<label><input type="radio" name="q${i}" value="${ai}"> ${a}</label>`;
+          });
+          html+="</div>";
+        });
+        html+=`<button class="btn" onclick="indienenQuiz('${id}',${d.vragen.length})">Indienen</button>`;
+      }
+      detail.innerHTML=html;
     }
-    if(antwoorden.includes(-1)){alert("Beantwoord alle vragen!");return;}
 
-    const doc=await db.collection("parochies").doc(parochieId)
-      .collection("catecheselessen").doc(lesId).get();
-    const les=doc.data();
-    let score=0;
-    antwoorden.forEach((a,i)=>{if(a===les.vragen[i].correct) score++;});
+    function sluitLes(){
+      modal.style.display="none";
+      detail.innerHTML="";
+    }
 
-    // ✅ resultaat opslaan bij dit kind
-    await db.collection("parochies").doc(parochieId)
-      .collection("leden").doc(ouderId)
-      .collection("kinderen").doc(kindId)
-      .collection("lessen").doc(lesId)
-      .set({antwoorden,score,totaal:aantal,datum:new Date()});
+    async function indienenQuiz(lesId,aantal){
+      if(!parochieId||!ouderId||!kindId){alert("Niet ingelogd.");return;}
+      const antwoorden=[];
+      for(let i=0;i<aantal;i++){
+        const sel=document.querySelector(`input[name="q${i}"]:checked`);
+        antwoorden.push(sel?parseInt(sel.value):-1);
+      }
+      if(antwoorden.includes(-1)){alert("Beantwoord alle vragen!");return;}
 
-    alert(`🎉 Je scoorde ${score} van de ${aantal}!`);
-    sluitLes();
-  }
+      const doc=await db.collection("parochies").doc(parochieId).collection("catecheselessen").doc(lesId).get();
+      const les=doc.data();
+      let score=0;
+      antwoorden.forEach((a,i)=>{if(a===les.vragen[i].correct) score++;});
 
-  laadLessen();
-</script>
+      // ✅ resultaat opslaan bij dit kind
+      await db.collection("parochies").doc(parochieId)
+        .collection("leden").doc(ouderId)
+        .collection("kinderen").doc(kindId)
+        .collection("lessen").doc(lesId)
+        .set({antwoorden,score,totaal:aantal,datum:new Date()});
+
+      alert(`🎉 Je scoorde ${score} van de ${aantal}!`);
+      sluitLes();
+    }
+
+    // 🎨 Random pastelachtergrond
+    (function(){
+      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
+      document.body.style.background = p[Math.floor(Math.random()*p.length)];
+    })();
+
+    laadLessen();
+  </script>
+</body>
+</html>
