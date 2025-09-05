@@ -86,13 +86,31 @@
         return;
       }
       try{
-        const snap=await db.collection("parochies").doc(parochieId)
-          .collection("catecheselessen")
-          .where("zichtbaar","==",true)
-          .orderBy("aangemaaktOp","desc").get();
+        let snap;
+        try {
+          // Probeer mét sortering (vereist index)
+          snap = await db.collection("parochies").doc(parochieId)
+            .collection("catecheselessen")
+            .where("zichtbaar","==",true)
+            .orderBy("aangemaaktOp","desc")
+            .get();
+        } catch(err) {
+          if (err.code === "failed-precondition") {
+            console.warn("Geen index: laden zonder sortering.");
+            snap = await db.collection("parochies").doc(parochieId)
+              .collection("catecheselessen")
+              .where("zichtbaar","==",true)
+              .get();
+          } else {
+            throw err;
+          }
+        }
 
         grid.innerHTML="";
-        if(snap.empty){grid.innerHTML="<p>Geen lessen beschikbaar.</p>";return;}
+        if(snap.empty){
+          grid.innerHTML="<p>Nog geen lessen beschikbaar.</p>";
+          return;
+        }
         snap.forEach(doc=>{
           const d=doc.data();
           const kaart=document.createElement("div");
