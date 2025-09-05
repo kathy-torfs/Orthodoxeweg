@@ -8,7 +8,8 @@
     body{
       margin:0;
       font-family:'Comic Sans MS',Arial,sans-serif;
-      background:linear-gradient(to bottom, #cfefff 0%, #cfefff 70%, #b6e6a3 70%, #b6e6a3 100%);
+      background:#cfefff; /* lucht */
+      overflow-x:hidden;
       min-height:100vh;
     }
     h1{
@@ -16,46 +17,31 @@
       margin:20px;
       color:#2a7ac5;
       font-size:2.2em;
+      text-shadow:1px 1px 3px #fff;
     }
     .dorp{
       display:grid;
       grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-      gap:40px;
+      gap:60px;
       max-width:1200px;
-      margin:0 auto;
+      margin:0 auto 200px auto;
       padding:20px;
     }
     .huis{
       text-align:center;
       transition:transform .25s;
+      position:relative;
     }
-    .huis:hover{
-      transform:translateY(-8px);
-    }
+    .huis:hover{ transform:translateY(-6px); }
 
     /* Dak */
     .dak{
       width:0; height:0;
       border-left:120px solid transparent;
       border-right:120px solid transparent;
-      border-bottom:80px solid #7bb235;
-      position:relative;
+      border-bottom:90px solid #7bb235;
       margin:0 auto;
     }
-    .dak::after{
-      content:attr(data-leerjaar);
-      position:absolute;
-      top:20%;
-      left:50%;
-      transform:translateX(-50%);
-      color:#fff;
-      font-weight:bold;
-      font-size:1.1em;
-      text-shadow:1px 1px 4px rgba(0,0,0,0.4);
-      white-space:nowrap;
-    }
-
-    /* Verschillende kleuren per leerjaar */
     .kleur0{border-bottom-color:#7bb235;} /* voorbereiding */
     .kleur1{border-bottom-color:#f39c12;}
     .kleur2{border-bottom-color:#3498db;}
@@ -75,7 +61,9 @@
       align-items:end;
       padding:12px;
       box-shadow:0 6px 16px rgba(0,0,0,0.15);
-      border-radius:4px;
+      border-radius:6px;
+      position:relative;
+      z-index:1;
     }
 
     /* Deur */
@@ -83,9 +71,30 @@
       background:#7a5f35;
       width:55px; height:100px;
       margin:0 auto;
-      border-radius:4px;
+      border-radius:6px;
       position:relative;
       grid-column:2;
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+      padding-top:6px;
+    }
+    .nummer{
+      background:#fff;
+      color:#2a2a2a;
+      font-weight:bold;
+      font-size:1em;
+      border-radius:50%;
+      width:30px; height:30px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:0 1px 4px rgba(0,0,0,0.3);
+    }
+    .sterretje{
+      font-size:1.5em;
+      color:#ffd93b;
+      text-shadow:0 0 4px #fff;
     }
     .klink{
       width:10px; height:10px;
@@ -113,79 +122,196 @@
     }
     .raam.links{grid-column:1}
     .raam.rechts{grid-column:3}
+
+    /* Padjes */
+    .pad{
+      position:absolute;
+      bottom:-50px;
+      left:50%;
+      transform:translateX(-50%);
+      width:60px; height:80px;
+      background:#e3c27d;
+      border-radius:30px 30px 0 0;
+      z-index:0;
+      box-shadow:inset 0 10px 20px rgba(0,0,0,0.15);
+    }
+    .bloem{
+      position:absolute;
+      bottom:-20px;
+      font-size:1.2em;
+    }
+    .bloem.left{ left:calc(50% - 70px); }
+    .bloem.right{ left:calc(50% + 50px); }
+
+    /* Zon en wolken */
+    .zon {
+      position:absolute;
+      top:40px; right:60px;
+      width:100px; height:100px;
+      background:#ffd93b;
+      border-radius:50%;
+      box-shadow:0 0 30px #ffea94, 0 0 60px #ffe066;
+      z-index:-1;
+    }
+    .wolk {
+      position:absolute;
+      background:#fff;
+      border-radius:50%;
+      opacity:0.9;
+      animation:drift 60s linear infinite;
+    }
+    .wolk::before, .wolk::after {
+      content:"";
+      position:absolute;
+      background:#fff;
+      border-radius:50%;
+    }
+    .wolk1 { top:80px; left:-200px; width:120px; height:60px; animation-duration:80s; }
+    .wolk1::before{ width:80px;height:80px;left:30px;top:-20px; }
+    .wolk1::after { width:100px;height:100px;left:60px;top:-30px; }
+
+    .wolk2 { top:160px; left:-300px; width:160px; height:80px; animation-duration:100s; }
+    .wolk2::before{ width:100px;height:100px;left:50px;top:-30px; }
+    .wolk2::after { width:120px;height:90px;left:90px;top:-20px; }
+
+    @keyframes drift {
+      from { transform:translateX(0); }
+      to   { transform:translateX(140vw); }
+    }
+
+    /* Grasstrook */
+    .grond {
+      width:100%;
+      height:200px;
+      background:#8fd98f;
+      position:fixed;
+      bottom:0;
+      left:0;
+      z-index:-2;
+      box-shadow:inset 0 40px 60px rgba(0,0,0,0.15);
+    }
   </style>
 </head>
 <body>
   <h1>🏫 Schooldorp</h1>
+
+  <!-- Zon, wolken en gras -->
+  <div class="zon"></div>
+  <div class="wolk wolk1"></div>
+  <div class="wolk wolk2"></div>
+  <div class="grond"></div>
+
   <div class="dorp">
     <!-- Voorbereiding -->
     <div class="huis">
-      <div class="dak kleur0" data-leerjaar="Voorbereiding"></div>
+      <div class="dak kleur0"></div>
       <div class="muur">
         <div class="raam links" onclick="openVak('voorbereiding','nl')">📖</div>
-        <div class="deur"><div class="klink"></div></div>
+        <div class="deur">
+          <div class="sterretje">⭐</div>
+          <div class="klink"></div>
+        </div>
         <div class="raam rechts" onclick="openVak('voorbereiding','wis')">➕</div>
       </div>
+      <div class="pad"></div>
+      <div class="bloem left">🌸</div>
+      <div class="bloem right">🌻</div>
     </div>
 
     <!-- 1e leerjaar -->
     <div class="huis">
-      <div class="dak kleur1" data-leerjaar="1e leerjaar"></div>
+      <div class="dak kleur1"></div>
       <div class="muur">
         <div class="raam links" onclick="openVak(1,'nl')">📖</div>
-        <div class="deur"><div class="klink"></div></div>
+        <div class="deur">
+          <div class="nummer">1</div>
+          <div class="klink"></div>
+        </div>
         <div class="raam rechts" onclick="openVak(1,'wis')">➕</div>
       </div>
+      <div class="pad"></div>
+      <div class="bloem left">🌼</div>
+      <div class="bloem right">🌸</div>
     </div>
 
     <!-- 2e leerjaar -->
     <div class="huis">
-      <div class="dak kleur2" data-leerjaar="2e leerjaar"></div>
+      <div class="dak kleur2"></div>
       <div class="muur">
         <div class="raam links" onclick="openVak(2,'nl')">📖</div>
-        <div class="deur"><div class="klink"></div></div>
+        <div class="deur">
+          <div class="nummer">2</div>
+          <div class="klink"></div>
+        </div>
         <div class="raam rechts" onclick="openVak(2,'wis')">➕</div>
       </div>
+      <div class="pad"></div>
+      <div class="bloem left">🌻</div>
+      <div class="bloem right">🌷</div>
     </div>
 
     <!-- 3e leerjaar -->
     <div class="huis">
-      <div class="dak kleur3" data-leerjaar="3e leerjaar"></div>
+      <div class="dak kleur3"></div>
       <div class="muur">
         <div class="raam links" onclick="openVak(3,'nl')">📖</div>
-        <div class="deur"><div class="klink"></div></div>
+        <div class="deur">
+          <div class="nummer">3</div>
+          <div class="klink"></div>
+        </div>
         <div class="raam rechts" onclick="openVak(3,'wis')">➕</div>
       </div>
+      <div class="pad"></div>
+      <div class="bloem left">🌼</div>
+      <div class="bloem right">🌸</div>
     </div>
 
     <!-- 4e leerjaar -->
     <div class="huis">
-      <div class="dak kleur4" data-leerjaar="4e leerjaar"></div>
+      <div class="dak kleur4"></div>
       <div class="muur">
         <div class="raam links" onclick="openVak(4,'nl')">📖</div>
-        <div class="deur"><div class="klink"></div></div>
+        <div class="deur">
+          <div class="nummer">4</div>
+          <div class="klink"></div>
+        </div>
         <div class="raam rechts" onclick="openVak(4,'wis')">➕</div>
       </div>
+      <div class="pad"></div>
+      <div class="bloem left">🌻</div>
+      <div class="bloem right">🌷</div>
     </div>
 
     <!-- 5e leerjaar -->
     <div class="huis">
-      <div class="dak kleur5" data-leerjaar="5e leerjaar"></div>
+      <div class="dak kleur5"></div>
       <div class="muur">
         <div class="raam links" onclick="openVak(5,'nl')">📖</div>
-        <div class="deur"><div class="klink"></div></div>
+        <div class="deur">
+          <div class="nummer">5</div>
+          <div class="klink"></div>
+        </div>
         <div class="raam rechts" onclick="openVak(5,'wis')">➕</div>
       </div>
+      <div class="pad"></div>
+      <div class="bloem left">🌸</div>
+      <div class="bloem right">🌼</div>
     </div>
 
     <!-- 6e leerjaar -->
     <div class="huis">
-      <div class="dak kleur6" data-leerjaar="6e leerjaar"></div>
+      <div class="dak kleur6"></div>
       <div class="muur">
         <div class="raam links" onclick="openVak(6,'nl')">📖</div>
-        <div class="deur"><div class="klink"></div></div>
+        <div class="deur">
+          <div class="nummer">6</div>
+          <div class="klink"></div>
+        </div>
         <div class="raam rechts" onclick="openVak(6,'wis')">➕</div>
       </div>
+      <div class="pad"></div>
+      <div class="bloem left">🌷</div>
+      <div class="bloem right">🌻</div>
     </div>
   </div>
 
