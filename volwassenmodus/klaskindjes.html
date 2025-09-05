@@ -7,83 +7,23 @@
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
 
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f5e9b8;
-      color: #6f4e1a;
-    }
-    .container {
-      max-width: 1000px;
-      margin: 30px auto;
-      padding: 0 20px;
-    }
-    h1 {
-      text-align: center;
-      color: #4e2710;
-      margin-bottom: 30px;
-    }
-    .kind-lijst {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
-    }
-    .kind-kaart {
-      background: #fff8eb;
-      border: 2px solid #dab97a;
-      border-radius: 12px;
-      padding: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-    }
-    .kind-kaart img {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 2px solid #7bb235;
-      margin-bottom: 12px;
-    }
-    .kind-naam {
-      font-size: 1.2rem;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-    .wachtwoord-veld {
-      display: flex;
-      gap: 6px;
-      margin-top: 10px;
-      justify-content: center;
-      align-items: center;
-    }
-    .wachtwoord-veld input {
-      padding: 6px 8px;
-      border: 1px solid #dab97a;
-      border-radius: 6px;
-      font-size: 1rem;
-      width: 90px;
-      text-align: center;
-      background: #fffdf6;
-    }
-    .wachtwoord-veld button {
-      background: #7bb235;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    .wachtwoord-veld button:hover {
-      background: #5e8e29;
-    }
+    body {margin:0;font-family:Arial,sans-serif;background:#f5e9b8;color:#6f4e1a}
+    .container{max-width:1000px;margin:30px auto;padding:0 20px}
+    h1{text-align:center;color:#4e2710;margin-bottom:30px}
+    .kind-lijst{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+    .kind-kaart{background:#fff8eb;border:2px solid #dab97a;border-radius:12px;
+      padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.12);display:flex;flex-direction:column;align-items:center;text-align:center}
+    .kind-kaart img{width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid #7bb235;margin-bottom:12px}
+    .kind-naam{font-size:1.2rem;font-weight:bold;margin-bottom:10px}
+    .punten{font-size:0.95rem;color:#7a5f35;margin-bottom:8px}
+    .wachtwoord-veld{display:flex;gap:6px;margin-top:10px;justify-content:center;align-items:center}
+    .wachtwoord-veld input{padding:6px 8px;border:1px solid #dab97a;border-radius:6px;font-size:1rem;width:90px;text-align:center;background:#fffdf6}
+    .wachtwoord-veld button{background:#7bb235;color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-weight:bold}
+    .wachtwoord-veld button:hover{background:#5e8e29}
   </style>
 </head>
 <body>
-  <!-- Header wordt automatisch geladen -->
+  <!-- Volwassenmodus header -->
   <div id="volwassen-header"></div>
 
   <div class="container">
@@ -96,7 +36,6 @@
   <script src="../common/layout.js" defer></script>
 
   <script>
-    // Firebase init
     if (!firebase.apps.length) {
       firebase.initializeApp({
         apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
@@ -104,64 +43,60 @@
         projectId:"orthodoxeweg",
       });
     }
-    const db = firebase.firestore();
+    const db=firebase.firestore();
+    const parochieId=sessionStorage.getItem("dagboek_parochieId");
 
-    const parochieId = sessionStorage.getItem("dagboek_parochieId");
+    async function laadKinderen(){
+      const container=document.getElementById("kinderen");
+      container.innerHTML="Laden…";
+      try{
+        const ledenSnap=await db.collection("parochies").doc(parochieId).collection("leden").get();
+        container.innerHTML="";
+        for(const lidDoc of ledenSnap.docs){
+          const kindSnap=await lidDoc.ref.collection("kinderen").get();
+          kindSnap.forEach(kindDoc=>{
+            const k=kindDoc.data();
+            const naam=(k.voornaam||"Naamloos")+(k.achternaam?" "+k.achternaam:"");
+            const foto=k.avatarURL||"https://kathy-torfs.github.io/Orthodoxeweg/images/sterretje.png";
+            const wachtwoord=k.wachtwoord||"";
+            const punten=k.punten||0;
 
-    async function laadKinderen() {
-      const container = document.getElementById("kinderen");
-      container.innerHTML = "Laden…";
-
-      try {
-        const ledenSnap = await db.collection("parochies").doc(parochieId).collection("leden").get();
-        container.innerHTML = "";
-
-        for (const lidDoc of ledenSnap.docs) {
-          const kindSnap = await lidDoc.ref.collection("kinderen").get();
-          kindSnap.forEach(kindDoc => {
-            const k = kindDoc.data();
-
-            const naam = (k.voornaam || "Naamloos") + (k.achternaam ? " " + k.achternaam : "");
-            const foto = k.avatarURL || "https://kathy-torfs.github.io/Orthodoxeweg/images/sterretje.png";
-            const wachtwoord = k.wachtwoord || "";
-
-            const kaart = document.createElement("div");
-            kaart.className = "kind-kaart";
-
-            kaart.innerHTML = `
+            const kaart=document.createElement("div");
+            kaart.className="kind-kaart";
+            kaart.innerHTML=`
               <img src="${foto}" alt="avatar">
               <div class="kind-naam">${naam}</div>
+              <div class="punten">⭐ ${punten} punten</div>
               <div class="wachtwoord-veld">
                 <input type="password" id="code-${lidDoc.id}-${kindDoc.id}" value="${wachtwoord}" placeholder="code">
                 <button onclick="toggleVisibility('code-${lidDoc.id}-${kindDoc.id}')">👁</button>
                 <button onclick="bewaarWachtwoord('${lidDoc.id}','${kindDoc.id}')">Opslaan</button>
-              </div>
-            `;
+              </div>`;
             container.appendChild(kaart);
           });
         }
-      } catch (e) {
+      }catch(e){
         console.error(e);
-        container.innerHTML = "❌ Fout bij laden van de kindjes.";
+        container.innerHTML="❌ Fout bij laden van de kindjes.";
       }
     }
 
-    function toggleVisibility(inputId) {
-      const input = document.getElementById(inputId);
-      input.type = input.type === "password" ? "text" : "password";
+    function toggleVisibility(inputId){
+      const input=document.getElementById(inputId);
+      input.type=input.type==="password"?"text":"password";
     }
 
-    async function bewaarWachtwoord(lidId, kindId) {
-      const input = document.getElementById(`code-${lidId}-${kindId}`);
-      const code = input.value.trim();
-      if (!code) { alert("Geef een code in!"); return; }
-      try {
+    async function bewaarWachtwoord(lidId,kindId){
+      const input=document.getElementById(`code-${lidId}-${kindId}`);
+      const code=input.value.trim();
+      if(!code){alert("Geef een code in!");return;}
+      try{
         await db.collection("parochies").doc(parochieId).collection("leden").doc(lidId)
           .collection("kinderen").doc(kindId)
-          .update({ wachtwoord: code });
+          .update({wachtwoord:code});
         alert("✅ Wachtwoord opgeslagen!");
-      } catch (e) {
-        alert("❌ Fout: " + e.message);
+      }catch(e){
+        alert("❌ Fout: "+e.message);
       }
     }
 
