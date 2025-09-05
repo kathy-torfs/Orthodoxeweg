@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
@@ -8,13 +8,10 @@
 
   <style>
     body { background:#f5e9b8; font-family: Arial, sans-serif; color:#6f4e1a; margin:0; padding:0; }
-
-    /* Page container */
     .page{max-width:1100px;margin:26px auto 40px;padding:0 14px}
     h1{display:flex;gap:10px;align-items:center;justify-content:center;color:#7a5f35}
     h1 .icon{font-size:1.1em}
 
-    /* Banner */
     .banner{
       background:#fffbe7;border:1.5px solid #decaa1;border-radius:14px;
       padding:14px 16px;margin:12px auto 18px;color:#6f4e1a;max-width:980px;
@@ -27,7 +24,6 @@
     .btn.secondary{background:#b09765}
     .btn:disabled{opacity:.7;background:#ccb58d}
 
-    /* Grid of days */
     .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;max-width:980px;margin:0 auto}
     @media (max-width:1000px){.grid{grid-template-columns:repeat(5,1fr)}}
     @media (max-width:820px){.grid{grid-template-columns:repeat(4,1fr)}}
@@ -45,7 +41,6 @@
     .tile.done .meta{color:#5a7a33}
     .tile:hover{transform:translateY(-2px);box-shadow:0 10px 22px #a88b5430}
 
-    /* Login Modal */
     .overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:1000}
     .modal{
       width:min(92vw,420px);background:#fffef6;border:1.6px solid #dbc592;border-radius:14px;
@@ -60,12 +55,9 @@
 
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-
-  <!-- Volwassen lay-out -->
   <script defer src="common/layout.js"></script>
 </head>
 <body>
-  <!-- Header wordt automatisch ingeladen -->
   <div id="volwassen-header"></div>
 
   <div class="page">
@@ -86,7 +78,6 @@
     <div class="grid" id="dagenGrid"></div>
   </div>
 
-  <!-- Login Modal -->
   <div class="overlay" id="loginOverlay" aria-modal="true" role="dialog">
     <div class="modal">
       <h3>Bijbeldagboek openen</h3>
@@ -103,7 +94,6 @@
   </div>
 
   <script>
-    // Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -115,18 +105,15 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Session state
     let userId = sessionStorage.getItem("dagboek_userId") || null;
     let parochieId = sessionStorage.getItem("dagboek_parochieId") || null;
     let memberRef = null;
 
-    // Helpers
     const qs = id => document.getElementById(id);
     function showLogin(show){
       qs("loginOverlay").style.display = show ? "flex" : "none";
-      if (show) {
-        qs("loginEmail").focus();
-      } else {
+      if (show) qs("loginEmail").focus();
+      else {
         qs("loginErr").textContent = "";
         qs("loginEmail").value = "";
         qs("loginWw").value = "";
@@ -134,12 +121,7 @@
     }
 
     async function getTemplateSnapshot(){
-      const primary = await db.collection("vlaamseOrthodoxeBijbelstudie")
-        .orderBy(firebase.firestore.FieldPath.documentId(),"asc").get().catch(()=>({empty:true,docs:[]}));
-      if (!primary.empty) return primary;
-      const fallback = await db.collection("vlaamseOrthodoxeBijbelstudie_Genesis")
-        .orderBy(firebase.firestore.FieldPath.documentId(),"asc").get().catch(()=>({empty:true,docs:[]}));
-      return fallback;
+      return db.collection("dagboek").orderBy(firebase.firestore.FieldPath.documentId(),"asc").get().catch(()=>({empty:true,docs:[]}));
     }
 
     async function syncTemplatesToUser(){
@@ -152,9 +134,9 @@
           const d = doc.data()||{};
           batch.set(coll.doc(doc.id),{
             templateId:doc.id,
-            titel:d.titel||d.titelNL||("Dag "+doc.id),
-            intro:d.intro||d.inleiding||"",
-            lezing:d.lezing||d.lezen||"",
+            lezing:d.lezing||"",
+            titel:d.titel||("Dag "+doc.id),
+            intro:d.intro||"",
             tekst:d.tekst||"",
             vragen:Array.isArray(d.vragen)?d.vragen:[],
             vragenAntwoorden:{},
@@ -198,7 +180,8 @@
         const div = document.createElement("div");
         const done = !!d.voltooid || (!!(d.reflectie) && String(d.reflectie).trim().length>0);
         div.className = "tile" + (done ? " done" : "");
-        const label = d.titel || ("Dag " + doc.id);
+        // ✅ Toon de lezing ipv titel
+        const label = d.lezing || d.titel || ("Dag " + doc.id);
         div.innerHTML = `<h4>${label}</h4>
                          <div class="meta">${done ? "voltooid" : (doc.id===currentId ? "huidig" : "open")}</div>`;
         div.onclick = ()=>{
@@ -219,7 +202,6 @@
       };
     }
 
-    // Modal bediening
     qs("loginCancel").onclick = ()=> showLogin(false);
     qs("loginOk").onclick = doLogin;
     function onEnter(e){ if(e.key==="Enter"){ doLogin(); } }
@@ -256,7 +238,6 @@
       });
     }
 
-    // Start
     window.addEventListener("load", ()=>{
       const authed = sessionStorage.getItem("dagboek_authed")==="1";
       if (!authed){ showLogin(true); }
