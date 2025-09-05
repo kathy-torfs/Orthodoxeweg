@@ -1,148 +1,163 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>School – Orthodoxe Kinderpagina</title>
-  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
   <style>
     body{
-      margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
-      background:#f0f9ff;
+      margin:0;
+      font-family:'Comic Sans MS',Arial,sans-serif;
+      background:#e6f7ff;
+      color:#333;
     }
-    main{max-width:1100px;margin:24px auto;padding:0 2vw;}
-    h1{color:#2a7ac5;text-align:center;margin-bottom:28px}
+    h1{text-align:center;margin:20px;color:#2a7ac5}
 
-    .jaarblok{margin-bottom:36px}
-    .jaarblok h2{color:#2a7ac5;margin-bottom:14px;text-align:center}
-
-    .grid{
+    .dorp{
       display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-      gap:18px;
+      grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+      gap:28px;
+      max-width:1100px;
+      margin:0 auto;
+      padding:20px;
     }
-    .kaart{
-      background:#fff;border:2px solid #d6e9ff;border-radius:16px;
-      box-shadow:0 6px 22px rgba(0,0,0,.08);
-      padding:20px;text-align:center;cursor:pointer;
-      transition:transform .2s,box-shadow .2s;
-    }
-    .kaart:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(0,0,0,.15);}
-    .kaart h3{margin:12px 0;color:#2a7ac5}
-    .kaart img{width:64px;height:64px;object-fit:contain;margin-bottom:10px}
-  </style>
 
-  <script defer src="common/layout.js"></script>
+    .huis{
+      text-align:center;
+    }
+    .dak{
+      width:0;
+      height:0;
+      border-left:100px solid transparent;
+      border-right:100px solid transparent;
+      border-bottom:60px solid #7bb235;
+      position:relative;
+      margin:0 auto;
+    }
+    .dak::after{
+      content:attr(data-leerjaar);
+      position:absolute;
+      top:25%;
+      left:50%;
+      transform:translateX(-50%);
+      color:#fff;
+      font-weight:bold;
+    }
+
+    .muur{
+      background:#fff;
+      border:2px solid #dab97a;
+      width:200px;
+      height:160px;
+      margin:0 auto;
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr;
+      grid-template-rows:1fr;
+      align-items:end;
+      padding:10px;
+      box-shadow:0 4px 12px rgba(0,0,0,0.1);
+    }
+    .deur{
+      background:#7a5f35;
+      width:40px;
+      height:70px;
+      margin:0 auto;
+      border-radius:4px;
+      grid-column:2;
+    }
+    .raam{
+      background:#e6f0ff;
+      width:50px;
+      height:50px;
+      border:2px solid #6f4e1a;
+      border-radius:6px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      transition:transform .2s, background .2s;
+    }
+    .raam:hover{
+      transform:scale(1.1);
+      background:#d0e0ff;
+    }
+    .raam.links{grid-column:1}
+    .raam.rechts{grid-column:3}
+  </style>
 </head>
 <body>
-  <!-- Header kindermodus -->
-  <div id="kinder-header" data-header-src="common/header.html"></div>
-
-  <main>
-    <h1>📚 Schoolomgeving</h1>
-
+  <h1>🏫 Schooldorp</h1>
+  <div class="dorp">
     <!-- Voorbereiding -->
-    <div class="jaarblok">
-      <h2>Voorbereiding 1e leerjaar</h2>
-      <div class="grid">
-        <div class="kaart" onclick="openVak('voorbereiding','nl')">
-          <img src="https://cdn-icons-png.flaticon.com/512/2921/2921222.png" alt="">
-          <h3>Nederlands</h3>
-          <p>Simpele woordjes en zinnetjes</p>
-        </div>
-        <div class="kaart" onclick="openVak('voorbereiding','wis')">
-          <img src="https://cdn-icons-png.flaticon.com/512/1741/1741050.png" alt="">
-          <h3>Wiskunde</h3>
-          <p>Optellen, eerste sommetjes</p>
-        </div>
+    <div class="huis">
+      <div class="dak" data-leerjaar="Voorbereiding"></div>
+      <div class="muur">
+        <div class="raam links" onclick="openVak('voorbereiding','nl')">📖</div>
+        <div class="deur"></div>
+        <div class="raam rechts" onclick="openVak('voorbereiding','wis')">➕</div>
       </div>
     </div>
 
-    <!-- 1e tot 6e leerjaar -->
-    <div class="jaarblok">
-      <h2>1e leerjaar</h2>
-      <div class="grid">
-        <div class="kaart" onclick="openVak(1,'nl')">
-          <img src="https://cdn-icons-png.flaticon.com/512/2921/2921222.png" alt="">
-          <h3>Nederlands</h3>
-        </div>
-        <div class="kaart" onclick="openVak(1,'wis')">
-          <img src="https://cdn-icons-png.flaticon.com/512/1741/1741050.png" alt="">
-          <h3>Wiskunde</h3>
-        </div>
+    <!-- 1e leerjaar -->
+    <div class="huis">
+      <div class="dak" data-leerjaar="1e leerjaar"></div>
+      <div class="muur">
+        <div class="raam links" onclick="openVak(1,'nl')">📖</div>
+        <div class="deur"></div>
+        <div class="raam rechts" onclick="openVak(1,'wis')">➕</div>
       </div>
     </div>
 
-    <div class="jaarblok">
-      <h2>2e leerjaar</h2>
-      <div class="grid">
-        <div class="kaart" onclick="openVak(2,'nl')">
-          <img src="https://cdn-icons-png.flaticon.com/512/2921/2921222.png" alt="">
-          <h3>Nederlands</h3>
-        </div>
-        <div class="kaart" onclick="openVak(2,'wis')">
-          <img src="https://cdn-icons-png.flaticon.com/512/1741/1741050.png" alt="">
-          <h3>Wiskunde</h3>
-        </div>
+    <!-- 2e leerjaar -->
+    <div class="huis">
+      <div class="dak" data-leerjaar="2e leerjaar"></div>
+      <div class="muur">
+        <div class="raam links" onclick="openVak(2,'nl')">📖</div>
+        <div class="deur"></div>
+        <div class="raam rechts" onclick="openVak(2,'wis')">➕</div>
       </div>
     </div>
 
-    <div class="jaarblok">
-      <h2>3e leerjaar</h2>
-      <div class="grid">
-        <div class="kaart" onclick="openVak(3,'nl')">
-          <img src="https://cdn-icons-png.flaticon.com/512/2921/2921222.png" alt="">
-          <h3>Nederlands</h3>
-        </div>
-        <div class="kaart" onclick="openVak(3,'wis')">
-          <img src="https://cdn-icons-png.flaticon.com/512/1741/1741050.png" alt="">
-          <h3>Wiskunde</h3>
-        </div>
+    <!-- 3e leerjaar -->
+    <div class="huis">
+      <div class="dak" data-leerjaar="3e leerjaar"></div>
+      <div class="muur">
+        <div class="raam links" onclick="openVak(3,'nl')">📖</div>
+        <div class="deur"></div>
+        <div class="raam rechts" onclick="openVak(3,'wis')">➕</div>
       </div>
     </div>
 
-    <div class="jaarblok">
-      <h2>4e leerjaar</h2>
-      <div class="grid">
-        <div class="kaart" onclick="openVak(4,'nl')">
-          <img src="https://cdn-icons-png.flaticon.com/512/2921/2921222.png" alt="">
-          <h3>Nederlands</h3>
-        </div>
-        <div class="kaart" onclick="openVak(4,'wis')">
-          <img src="https://cdn-icons-png.flaticon.com/512/1741/1741050.png" alt="">
-          <h3>Wiskunde</h3>
-        </div>
+    <!-- 4e leerjaar -->
+    <div class="huis">
+      <div class="dak" data-leerjaar="4e leerjaar"></div>
+      <div class="muur">
+        <div class="raam links" onclick="openVak(4,'nl')">📖</div>
+        <div class="deur"></div>
+        <div class="raam rechts" onclick="openVak(4,'wis')">➕</div>
       </div>
     </div>
 
-    <div class="jaarblok">
-      <h2>5e leerjaar</h2>
-      <div class="grid">
-        <div class="kaart" onclick="openVak(5,'nl')">
-          <img src="https://cdn-icons-png.flaticon.com/512/2921/2921222.png" alt="">
-          <h3>Nederlands</h3>
-        </div>
-        <div class="kaart" onclick="openVak(5,'wis')">
-          <img src="https://cdn-icons-png.flaticon.com/512/1741/1741050.png" alt="">
-          <h3>Wiskunde</h3>
-        </div>
+    <!-- 5e leerjaar -->
+    <div class="huis">
+      <div class="dak" data-leerjaar="5e leerjaar"></div>
+      <div class="muur">
+        <div class="raam links" onclick="openVak(5,'nl')">📖</div>
+        <div class="deur"></div>
+        <div class="raam rechts" onclick="openVak(5,'wis')">➕</div>
       </div>
     </div>
 
-    <div class="jaarblok">
-      <h2>6e leerjaar</h2>
-      <div class="grid">
-        <div class="kaart" onclick="openVak(6,'nl')">
-          <img src="https://cdn-icons-png.flaticon.com/512/2921/2921222.png" alt="">
-          <h3>Nederlands</h3>
-        </div>
-        <div class="kaart" onclick="openVak(6,'wis')">
-          <img src="https://cdn-icons-png.flaticon.com/512/1741/1741050.png" alt="">
-          <h3>Wiskunde</h3>
-        </div>
+    <!-- 6e leerjaar -->
+    <div class="huis">
+      <div class="dak" data-leerjaar="6e leerjaar"></div>
+      <div class="muur">
+        <div class="raam links" onclick="openVak(6,'nl')">📖</div>
+        <div class="deur"></div>
+        <div class="raam rechts" onclick="openVak(6,'wis')">➕</div>
       </div>
     </div>
-  </main>
+  </div>
 
   <script>
     function openVak(jaar, vak){
@@ -155,3 +170,4 @@
   </script>
 </body>
 </html>
+
