@@ -57,6 +57,7 @@
       gap: 6px;
       margin-top: 10px;
       justify-content: center;
+      align-items: center;
     }
     .wachtwoord-veld input {
       padding: 6px 8px;
@@ -105,7 +106,6 @@
     }
     const db = firebase.firestore();
 
-    // Ophalen parochieId uit sessie
     const parochieId = sessionStorage.getItem("dagboek_parochieId");
 
     async function laadKinderen() {
@@ -120,14 +120,20 @@
           const kindSnap = await lidDoc.ref.collection("kinderen").get();
           kindSnap.forEach(kindDoc => {
             const k = kindDoc.data();
+
+            const naam = (k.voornaam || "Naamloos") + (k.achternaam ? " " + k.achternaam : "");
+            const foto = k.avatarURL || "https://kathy-torfs.github.io/Orthodoxeweg/images/sterretje.png";
+            const wachtwoord = k.wachtwoord || "";
+
             const kaart = document.createElement("div");
             kaart.className = "kind-kaart";
 
             kaart.innerHTML = `
-              <img src="${k.avatar || 'https://kathy-torfs.github.io/Orthodoxeweg/images/sterretje.png'}" alt="avatar">
-              <div class="kind-naam">${k.voornaam || 'Naamloos kind'}</div>
+              <img src="${foto}" alt="avatar">
+              <div class="kind-naam">${naam}</div>
               <div class="wachtwoord-veld">
-                <input type="text" id="code-${lidDoc.id}-${kindDoc.id}" value="${k.logincode || ''}" placeholder="code">
+                <input type="password" id="code-${lidDoc.id}-${kindDoc.id}" value="${wachtwoord}" placeholder="code">
+                <button onclick="toggleVisibility('code-${lidDoc.id}-${kindDoc.id}')">👁</button>
                 <button onclick="bewaarWachtwoord('${lidDoc.id}','${kindDoc.id}')">Opslaan</button>
               </div>
             `;
@@ -140,6 +146,11 @@
       }
     }
 
+    function toggleVisibility(inputId) {
+      const input = document.getElementById(inputId);
+      input.type = input.type === "password" ? "text" : "password";
+    }
+
     async function bewaarWachtwoord(lidId, kindId) {
       const input = document.getElementById(`code-${lidId}-${kindId}`);
       const code = input.value.trim();
@@ -147,7 +158,7 @@
       try {
         await db.collection("parochies").doc(parochieId).collection("leden").doc(lidId)
           .collection("kinderen").doc(kindId)
-          .update({ logincode: code });
+          .update({ wachtwoord: code });
         alert("✅ Wachtwoord opgeslagen!");
       } catch (e) {
         alert("❌ Fout: " + e.message);
