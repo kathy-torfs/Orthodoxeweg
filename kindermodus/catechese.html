@@ -1,210 +1,104 @@
-<!DOCTYPE html>
-<html lang="nl">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Catechese – Orthodoxe Kinderpagina</title>
-  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
+<script>
+  if (!firebase.apps.length) {
+    firebase.initializeApp({
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg"
+    });
+  }
+  const db = firebase.firestore();
 
-  <style>
-    :root{
-      --primair:#7bb235; --donker:#67510C;
-      --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
-      --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
-      --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
-      --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
+  // Gebruik de waarden die layout.js al zet
+  const parochieId = localStorage.getItem("ingelogdeParochie");
+  const ouderId    = localStorage.getItem("loginKeuze");
+  const kindId     = localStorage.getItem("ingelogdKindId");
+
+  const grid   = document.getElementById("lessenGrid");
+  const modal  = document.getElementById("lesModal");
+  const detail = document.getElementById("lesDetail");
+
+  async function laadLessen(){
+    if (!parochieId) {
+      grid.innerHTML = "⚠️ Geen parochie gevonden.";
+      return;
     }
-    body{margin:0;font-family:'Comic Sans MS',Arial,sans-serif;min-height:100vh;
-      background:var(--pastel1);transition:background .6s;color:#333}
-    main{max-width:900px;margin:24px auto;padding:0 2vw;}
+    const snap = await db.collection("parochies").doc(parochieId)
+      .collection("catecheselessen")
+      .where("zichtbaar","==",true)
+      .orderBy("aangemaaktOp","desc").get();
 
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
-    .card{background:#fffef9;border:1.5px solid #f1e6c8;border-radius:20px;
-      box-shadow:0 6px 24px rgba(0,0,0,.06);padding:18px;text-align:center;
-      cursor:pointer;transition:transform .2s,box-shadow .2s;}
-    .card:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(0,0,0,.15);}
-    .card h3{margin:8px 0;color:var(--primair)}
-    .card img{max-width:100%;border-radius:12px;margin-bottom:10px}
-
-    #lesModal{position:fixed;inset:0;background:rgba(0,0,0,.5);
-      display:none;align-items:center;justify-content:center;z-index:1000}
-    #lesModal .content{background:#fffef9;max-width:700px;width:92%;max-height:90vh;
-      overflow:auto;border-radius:14px;padding:20px;box-shadow:0 8px 30px rgba(0,0,0,.25)}
-    #lesModal h2{margin-top:0;color:var(--primair)}
-    .quiz-vraag{margin:14px 0;padding:12px;border:1px solid #dab97a;border-radius:10px;background:#fffdf5}
-    .quiz-vraag h4{margin:0 0 8px;color:#7a5f35}
-    .quiz-vraag label{display:block;margin:4px 0}
-    .btn{background:var(--primair);color:#fff;border:none;border-radius:8px;
-      padding:8px 16px;font-weight:bold;cursor:pointer;margin-top:10px}
-    .btn:hover{background:#5e8e29}
-
-    /* Login modal */
-    #loginModal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
-      background:rgba(0,0,0,.4);z-index:2000}
-    #loginModal .box{background:#fffef9;border:2px solid #dab97a;border-radius:12px;
-      padding:20px;width:320px;box-shadow:0 6px 24px rgba(0,0,0,.25);text-align:center}
-    #loginModal input{width:100%;margin:6px 0;padding:8px;border:1px solid #dab97a;border-radius:6px}
-  </style>
-
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script defer src="common/layout.js"></script>
-</head>
-<body>
-  <!-- Header kindermodus -->
-  <div id="kinder-header" data-header-src="common/header.html"></div>
-
-  <main>
-    <h1>📖 Catechese</h1>
-    <div id="lessenGrid" class="grid">Laden…</div>
-  </main>
-
-  <!-- Modal voor details -->
-  <div id="lesModal">
-    <div class="content">
-      <button class="btn" onclick="sluitLes()">❌ Sluiten</button>
-      <div id="lesDetail"></div>
-    </div>
-  </div>
-
-  <!-- Login modal -->
-  <div id="loginModal">
-    <div class="box">
-      <h2>Inloggen</h2>
-      <p style="font-size:0.9em;color:#7a5f35">Ouder e-mail + wachtwoord van kind</p>
-      <input type="email" id="ouderEmail" placeholder="E-mail ouder">
-      <input type="password" id="kindWachtwoord" placeholder="Wachtwoord kind">
-      <button class="btn" onclick="doLogin()">Inloggen</button>
-      <div id="loginError" style="color:#b9311e;margin-top:8px"></div>
-    </div>
-  </div>
-
-  <script>
-    if (!firebase.apps.length) {
-      firebase.initializeApp({
-        apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
-        authDomain:"orthodoxeweg.firebaseapp.com",
-        projectId:"orthodoxeweg",
-      });
+    grid.innerHTML = "";
+    if (snap.empty) {
+      grid.innerHTML = "<p>Geen lessen beschikbaar.</p>";
+      return;
     }
-    const db=firebase.firestore();
+    snap.forEach(doc=>{
+      const d = doc.data();
+      const kaart = document.createElement("div");
+      kaart.className = "card";
+      kaart.innerHTML = `
+        ${d.mediaURL ? `<img src="${d.mediaURL}">` : ""}
+        <h3>${d.titel}</h3>
+        <p>${(d.inhoud||"").substring(0,60)}...</p>
+      `;
+      kaart.onclick = ()=>openLes(doc.id,d);
+      grid.appendChild(kaart);
+    });
+  }
 
-    const grid=document.getElementById("lessenGrid");
-    const modal=document.getElementById("lesModal");
-    const detail=document.getElementById("lesDetail");
+  function openLes(id,d){
+    modal.style.display="flex";
+    let html=`<h2>${d.titel}</h2>`;
+    if(d.mediaURL) html+=`<img src="${d.mediaURL}" style="max-width:100%;border-radius:10px">`;
+    html+=`<p>${d.inhoud}</p>`;
 
-    // 🟢 Login kind
-    async function doLogin(){
-      const email=document.getElementById("ouderEmail").value.trim().toLowerCase();
-      const ww=document.getElementById("kindWachtwoord").value.trim();
-      const errBox=document.getElementById("loginError");
-      errBox.textContent="";
-      if(!email||!ww){errBox.textContent="Vul alles in.";return;}
-
-      try{
-        const parochies=await db.collection("parochies").get();
-        let found=false;
-        for(const p of parochies.docs){
-          const leden=await p.ref.collection("leden").where("email","==",email).limit(1).get();
-          if(!leden.empty){
-            const ouderDoc=leden.docs[0];
-            const kinderen=await ouderDoc.ref.collection("kinderen")
-                               .where("wachtwoord","==",ww).limit(1).get();
-            if(!kinderen.empty){
-              const kindDoc=kinderen.docs[0];
-
-              // ✅ Bewaar context
-              sessionStorage.setItem("parochieId", p.id);
-              sessionStorage.setItem("ouderId", ouderDoc.id);
-              sessionStorage.setItem("kindId", kindDoc.id);
-
-              found=true;
-              document.getElementById("loginModal").style.display="none";
-              laadLessen();
-              break;
-            }
-          }
-        }
-        if(!found){errBox.textContent="Geen kind gevonden met deze gegevens.";}
-      }catch(e){errBox.textContent="Fout: "+e.message;}
-    }
-
-    async function laadLessen(){
-      const parochieId=sessionStorage.getItem("parochieId");
-      if(!parochieId){grid.innerHTML="⚠️ Niet ingelogd.";return;}
-      const snap=await db.collection("parochies").doc(parochieId).collection("catecheselessen")
-        .where("zichtbaar","==",true).orderBy("aangemaaktOp","desc").get();
-      grid.innerHTML="";
-      if(snap.empty){grid.innerHTML="<p>Geen lessen beschikbaar.</p>";return;}
-      snap.forEach(doc=>{
-        const d=doc.data();
-        const kaart=document.createElement("div");
-        kaart.className="card";
-        kaart.innerHTML=`
-          ${d.mediaURL?`<img src="${d.mediaURL}">`:""}
-          <h3>${d.titel}</h3>
-          <p>${(d.inhoud||"").substring(0,60)}...</p>
-        `;
-        kaart.onclick=()=>openLes(doc.id,d);
-        grid.appendChild(kaart);
-      });
-    }
-
-    function openLes(id,d){
-      modal.style.display="flex";
-      let html=`<h2>${d.titel}</h2>`;
-      if(d.mediaURL) html+=`<img src="${d.mediaURL}" style="max-width:100%;border-radius:10px">`;
-      html+=`<p>${d.inhoud}</p>`;
-
-      if(d.vragen&&d.vragen.length){
-        html+="<h3>Quiz</h3>";
-        d.vragen.forEach((v,i)=>{
-          html+=`<div class="quiz-vraag"><h4>${v.vraag}</h4>`;
-          v.antwoorden.forEach((a,ai)=>{
-            html+=`<label><input type="radio" name="q${i}" value="${ai}"> ${a}</label>`;
-          });
-          html+="</div>";
+    if(d.vragen && d.vragen.length){
+      html+="<h3>Quiz</h3>";
+      d.vragen.forEach((v,i)=>{
+        html+=`<div class="quiz-vraag"><h4>${v.vraag}</h4>`;
+        v.antwoorden.forEach((a,ai)=>{
+          html+=`<label><input type="radio" name="q${i}" value="${ai}"> ${a}</label>`;
         });
-        html+=`<button class="btn" onclick="indienenQuiz('${id}',${d.vragen.length})">Indienen</button>`;
-      }
-      detail.innerHTML=html;
+        html+="</div>";
+      });
+      html+=`<button class="btn" onclick="indienenQuiz('${id}',${d.vragen.length})">Indienen</button>`;
     }
+    detail.innerHTML=html;
+  }
 
-    function sluitLes(){modal.style.display="none";detail.innerHTML="";}
+  function sluitLes(){
+    modal.style.display="none";
+    detail.innerHTML="";
+  }
 
-    async function indienenQuiz(lesId,aantal){
-      const parochieId=sessionStorage.getItem("parochieId");
-      const ouderId=sessionStorage.getItem("ouderId");
-      const kindId=sessionStorage.getItem("kindId");
-      if(!parochieId||!ouderId||!kindId){alert("Niet ingelogd.");return;}
-
-      const antwoorden=[];
-      for(let i=0;i<aantal;i++){
-        const sel=document.querySelector(`input[name="q${i}"]:checked`);
-        antwoorden.push(sel?parseInt(sel.value):-1);
-      }
-      if(antwoorden.includes(-1)){alert("Beantwoord alle vragen!");return;}
-
-      const doc=await db.collection("parochies").doc(parochieId).collection("catecheselessen").doc(lesId).get();
-      const les=doc.data();
-      let score=0;
-      antwoorden.forEach((a,i)=>{if(a===les.vragen[i].correct) score++;});
-
-      await db.collection("parochies").doc(parochieId)
-        .collection("leden").doc(ouderId)
-        .collection("kinderen").doc(kindId)
-        .collection("lessen").doc(lesId)
-        .set({antwoorden,score,totaal:aantal,datum:new Date()});
-
-      alert(`🎉 Je scoorde ${score} van de ${aantal}!`);
-      sluitLes();
+  async function indienenQuiz(lesId,aantal){
+    if (!parochieId || !ouderId || !kindId) {
+      alert("Niet ingelogd.");
+      return;
     }
+    const antwoorden=[];
+    for(let i=0;i<aantal;i++){
+      const sel=document.querySelector(`input[name="q${i}"]:checked`);
+      antwoorden.push(sel?parseInt(sel.value):-1);
+    }
+    if(antwoorden.includes(-1)){alert("Beantwoord alle vragen!");return;}
 
-    // 🎨 Random pastelachtergrond
-    (function(){
-      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
-      document.body.style.background = p[Math.floor(Math.random()*p.length)];
-    })();
-  </script>
-</body>
-</html>
+    const doc=await db.collection("parochies").doc(parochieId)
+      .collection("catecheselessen").doc(lesId).get();
+    const les=doc.data();
+    let score=0;
+    antwoorden.forEach((a,i)=>{if(a===les.vragen[i].correct) score++;});
+
+    // ✅ resultaat opslaan bij dit kind
+    await db.collection("parochies").doc(parochieId)
+      .collection("leden").doc(ouderId)
+      .collection("kinderen").doc(kindId)
+      .collection("lessen").doc(lesId)
+      .set({antwoorden,score,totaal:aantal,datum:new Date()});
+
+    alert(`🎉 Je scoorde ${score} van de ${aantal}!`);
+    sluitLes();
+  }
+
+  laadLessen();
+</script>
