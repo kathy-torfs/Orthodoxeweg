@@ -1,65 +1,64 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Schooldorp – Orthodoxe Kinderpagina</title>
-  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/sterretje.png">
   <style>
     body {
       margin: 0;
-      font-family: 'Comic Sans MS', Arial, sans-serif;
-      background: #87ceeb; /* luchtblauw */
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+      background: #87ceeb;
       overflow-x: hidden;
     }
 
     h1 {
       text-align: center;
-      margin: 20px 0;
+      padding: 12px;
       font-size: 2em;
-      color: #2a4d69;
+      color: #2d3e50;
     }
 
-    /* Zonnetje rechtsboven */
+    .lucht {
+      position: relative;
+      height: 240px;
+      background: #87ceeb;
+      overflow: hidden;
+    }
+
     .zon {
       position: absolute;
-      top: 40px;
-      right: 40px;
+      top: 20px;
+      right: 30px;
       width: 120px;
       height: auto;
     }
 
-    /* Wolken */
     .wolk {
       position: absolute;
       background: #fff;
       border-radius: 50%;
       opacity: 0.9;
     }
-    .wolk1 {
-      width: 140px; height: 80px; top: 60px; left: 80px;
-      box-shadow: 60px 0 0 20px #fff, 30px -20px 0 10px #fff;
-    }
-    .wolk2 {
-      width: 180px; height: 100px; top: 140px; left: 280px;
-      box-shadow: 60px 0 0 20px #fff, 100px -20px 0 30px #fff;
-    }
+    .wolk1 { width: 160px; height: 90px; top: 60px; left: 80px; }
+    .wolk2 { width: 120px; height: 70px; top: 30px; left: 280px; }
 
-    /* Duifjes */
     .duif {
       position: absolute;
       font-size: 2em;
+      top: 90px;
       opacity: 0.9;
     }
     .duif-lr {
       left: -60px;
-      transform: scaleX(1); /* kijkt naar rechts */
-      animation: vliegLR 90s linear infinite;
+      transform: scaleX(1);
+      animation: vliegLR 60s linear infinite;
     }
     .duif-rl {
       right: -60px;
-      transform: scaleX(-1); /* kijkt naar links */
-      animation: vliegRL 95s linear infinite;
+      transform: scaleX(-1);
+      animation: vliegRL 70s linear infinite;
     }
     @keyframes vliegLR {
       from { transform: translateX(0) scaleX(1); }
@@ -70,180 +69,139 @@
       to   { transform: translateX(-140vw) scaleX(-1); }
     }
 
-    /* Gras */
     .gras {
-      background: #6ab150;
-      width: 100%;
-      height: 260px; /* hoger gras */
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      z-index: -1;
+      background: #6cc96c;
+      min-height: 420px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 30px 20px;
+      flex-wrap: wrap;
+      gap: 40px;
     }
 
-    /* Dorp grid */
-    .dorp {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 30px;
-      justify-items: center;
-      max-width: 1200px;
-      margin: 200px auto 0 auto; /* dorp lager */
-      padding: 20px;
+    .kerk {
+      text-align: center;
+    }
+    .kerk img {
+      width: 150px;
+      display: block;
+      margin: 0 auto;
     }
 
-    /* Huisjes */
     .huis {
       width: 160px;
       background: #fffef9;
       border: 2px solid #dab97a;
       border-radius: 8px;
-      box-shadow: 0 6px 20px rgba(0,0,0,.15);
+      box-shadow: 0 4px 12px rgba(0,0,0,.15);
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding-bottom: 12px;
     }
     .dak {
       width: 0;
       height: 0;
       border-left: 80px solid transparent;
       border-right: 80px solid transparent;
-      border-bottom: 60px solid #f66;
     }
     .muur {
-      flex: 1;
       width: 100%;
+      height: 120px;
       display: flex;
       justify-content: space-around;
       align-items: flex-end;
       padding: 8px;
     }
     .deur {
-      width: 40px; height: 60px;
-      background: #6f4e1a;
+      width: 34px;
+      height: 54px;
+      background: #654321;
       border-radius: 4px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: #fff;
-      font-weight: bold;
-      font-size: 1.1em;
       position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #fff;
     }
     .raam {
-      width: 44px; height: 44px;
-      background: #fff;
+      width: 42px;
+      height: 42px;
       border: 2px solid #dab97a;
       border-radius: 50%;
       display: flex;
-      justify-content: center;
       align-items: center;
-      font-size: 1.3em;
+      justify-content: center;
+      font-size: 18px;
+      background: #fff;
       cursor: pointer;
       transition: transform .2s;
     }
     .raam:hover { transform: scale(1.15); }
 
-    .rekenen {
-      font-size: .9em;
-      line-height: 1.2;
-      text-align: center;
-    }
+    /* Dak-kleuren */
+    .groen { border-bottom: 60px solid green; }
+    .oranje { border-bottom: 60px solid orange; }
+    .blauw { border-bottom: 60px solid blue; }
+    .paars { border-bottom: 60px solid purple; }
+    .rood { border-bottom: 60px solid red; }
+    .turq { border-bottom: 60px solid teal; }
+    .bruin { border-bottom: 60px solid sienna; }
 
-    /* Kerk */
-    .huis.kerk {
-      background: none;
-      border: none;
-      box-shadow: none;
-      cursor: pointer;
-      grid-column: span 2; /* breder */
+    .bloem {
+      position: absolute;
+      font-size: 1.4em;
     }
-    .kerk-img {
-      width: 200px;
-      height: auto;
-      display: block;
-    }
+    .bloem1 { bottom: 40px; left: 20%; }
+    .bloem2 { bottom: 60px; left: 45%; }
+    .bloem3 { bottom: 50px; right: 25%; }
   </style>
 </head>
 <body>
+
   <h1>🏫 Schooldorp</h1>
 
-  <!-- Zonnetje -->
-  <img src="https://raw.githubusercontent.com/kathy-torfs/Orthodoxeweg/main/images/zon.png" alt="Zonnetje" class="zon">
-
-  <!-- Wolkjes -->
-  <div class="wolk wolk1"></div>
-  <div class="wolk wolk2"></div>
-
-  <!-- Duifjes -->
-  <div class="duif duif-lr" style="top:100px;">🕊️</div>
-  <div class="duif duif-rl" style="top:160px;">🕊️</div>
-
-  <!-- Dorp -->
-  <div class="dorp">
-    <!-- Kerk -->
-    <div class="huis kerk" onclick="window.location.href='startpagina.html'">
-      <img src="https://raw.githubusercontent.com/kathy-torfs/Orthodoxeweg/main/images/kerkje.png" alt="Orthodoxe kerk" class="kerk-img">
-    </div>
-
-    <!-- Huisjes -->
-    <div class="huis">
-      <div class="dak" style="border-bottom-color: orange;"></div>
-      <div class="muur">
-        <div class="raam" onclick="window.location.href='taal.html?klas=1'">📖</div>
-        <div class="deur">1</div>
-        <div class="raam rekenen" onclick="window.location.href='rekenen.html?klas=1'">➕ ➖<br>✖ ÷</div>
-      </div>
-    </div>
-
-    <div class="huis">
-      <div class="dak" style="border-bottom-color: blue;"></div>
-      <div class="muur">
-        <div class="raam" onclick="window.location.href='taal.html?klas=2'">📖</div>
-        <div class="deur">2</div>
-        <div class="raam rekenen" onclick="window.location.href='rekenen.html?klas=2'">➕ ➖<br>✖ ÷</div>
-      </div>
-    </div>
-
-    <div class="huis">
-      <div class="dak" style="border-bottom-color: purple;"></div>
-      <div class="muur">
-        <div class="raam" onclick="window.location.href='taal.html?klas=3'">📖</div>
-        <div class="deur">3</div>
-        <div class="raam rekenen" onclick="window.location.href='rekenen.html?klas=3'">➕ ➖<br>✖ ÷</div>
-      </div>
-    </div>
-
-    <div class="huis">
-      <div class="dak" style="border-bottom-color: red;"></div>
-      <div class="muur">
-        <div class="raam" onclick="window.location.href='taal.html?klas=4'">📖</div>
-        <div class="deur">4</div>
-        <div class="raam rekenen" onclick="window.location.href='rekenen.html?klas=4'">➕ ➖<br>✖ ÷</div>
-      </div>
-    </div>
-
-    <div class="huis">
-      <div class="dak" style="border-bottom-color: teal;"></div>
-      <div class="muur">
-        <div class="raam" onclick="window.location.href='taal.html?klas=5'">📖</div>
-        <div class="deur">5</div>
-        <div class="raam rekenen" onclick="window.location.href='rekenen.html?klas=5'">➕ ➖<br>✖ ÷</div>
-      </div>
-    </div>
-
-    <div class="huis">
-      <div class="dak" style="border-bottom-color: brown;"></div>
-      <div class="muur">
-        <div class="raam" onclick="window.location.href='taal.html?klas=6'">📖</div>
-        <div class="deur">6</div>
-        <div class="raam rekenen" onclick="window.location.href='rekenen.html?klas=6'">➕ ➖<br>✖ ÷</div>
-      </div>
-    </div>
+  <div class="lucht">
+    <img src="https://raw.githubusercontent.com/kathy-torfs/Orthodoxeweg/main/images/zon.png" class="zon" alt="zonnetje">
+    <div class="wolk wolk1"></div>
+    <div class="wolk wolk2"></div>
+    <div class="duif duif-lr">🕊️</div>
+    <div class="duif duif-rl">🕊️</div>
   </div>
 
-  <!-- Gras -->
-  <div class="gras"></div>
+  <div class="gras">
+    <!-- Kerk -->
+    <div class="kerk">
+      <a href="startpagina.html">
+        <img src="https://raw.githubusercontent.com/kathy-torfs/Orthodoxeweg/main/images/kerkje.png" alt="Kerk">
+      </a>
+      <p>⛪ Kerk</p>
+    </div>
+
+    <!-- Voorbereiding -->
+    <div class="huis">
+      <div class="dak groen"></div>
+      <div class="muur">
+        <div class="raam" onclick="alert('Taal – Voorbereiding')">📖</div>
+        <div class="deur">⭐</div>
+        <div class="raam" onclick="alert('Rekenen – Voorbereiding')">＋</div>
+      </div>
+    </div>
+
+    <!-- Leerjaar 1 t/m 6 -->
+    <div class="huis"><div class="dak oranje"></div><div class="muur"><div class="raam">📖</div><div class="deur">1</div><div class="raam">＋−<br>×÷</div></div></div>
+    <div class="huis"><div class="dak blauw"></div><div class="muur"><div class="raam">📖</div><div class="deur">2</div><div class="raam">＋−<br>×÷</div></div></div>
+    <div class="huis"><div class="dak paars"></div><div class="muur"><div class="raam">📖</div><div class="deur">3</div><div class="raam">＋−<br>×÷</div></div></div>
+    <div class="huis"><div class="dak rood"></div><div class="muur"><div class="raam">📖</div><div class="deur">4</div><div class="raam">＋−<br>×÷</div></div></div>
+    <div class="huis"><div class="dak turq"></div><div class="muur"><div class="raam">📖</div><div class="deur">5</div><div class="raam">＋−<br>×÷</div></div></div>
+    <div class="huis"><div class="dak bruin"></div><div class="muur"><div class="raam">📖</div><div class="deur">6</div><div class="raam">＋−<br>×÷</div></div></div>
+  </div>
+
+  <!-- Bloemetjes -->
+  <div class="bloem bloem1">🌸</div>
+  <div class="bloem bloem2">🌼</div>
+  <div class="bloem bloem3">🌻</div>
+
 </body>
 </html>
