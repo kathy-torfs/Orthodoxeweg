@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
@@ -10,7 +10,7 @@
     body {
       margin: 0;
       font-family: 'Comic Sans MS', Arial, sans-serif;
-      background: linear-gradient(#cfefff 60%, #8fd98f 40%);
+      background: linear-gradient(#cfefff 60%, #8fd98f 40%); /* lucht + gras */
       height: 100vh;
       overflow: hidden;
     }
@@ -48,28 +48,33 @@
       font-size: 2em;
       opacity: 0.9;
     }
-    .duif-lr { left: -60px; animation: vliegLR linear infinite; }
+    /* Links → Rechts: gespiegeld */
+    .duif-lr { left: -60px; transform: scaleX(-1); animation: vliegLR linear infinite; }
     @keyframes vliegLR {
-      from { transform: translateX(0); }
-      to   { transform: translateX(140vw); }
-    }
-    .duif-rl { right: -60px; transform: scaleX(-1); animation: vliegRL linear infinite; }
-    @keyframes vliegRL {
       from { transform: translateX(0) scaleX(-1); }
-      to   { transform: translateX(-140vw) scaleX(-1); }
+      to   { transform: translateX(140vw) scaleX(-1); }
     }
+    /* Rechts → Links: normaal */
+    .duif-rl { right: -60px; animation: vliegRL linear infinite; }
+    @keyframes vliegRL {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-140vw); }
+    }
+
     .duif1 { top: 100px; animation-duration: 40s; }
     .duif2 { top: 180px; font-size: 1.6em; animation-duration: 55s; animation-delay: 12s; }
     .duif3 { top: 60px; font-size: 1.8em; animation-duration: 50s; animation-delay: 25s; }
 
     /* Dorp */
     .dorp {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      grid-gap: 40px 60px;
-      max-width: 1100px;
-      margin: 0 auto;
-      padding-top: 180px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 30px;
+      position: absolute;
+      bottom: 40px; /* vast op groene strook */
+      left: 50%;
+      transform: translateX(-50%);
     }
 
     /* Kerk */
@@ -150,7 +155,7 @@
 </head>
 <body>
   <div class="sky">
-    <!-- Zon via vaste GitHub link -->
+    <!-- Zon -->
     <img src="https://raw.githubusercontent.com/kathy-torfs/Orthodoxeweg/main/images/zon.png" alt="Zonnetje" class="zon">
 
     <!-- Wolken -->
@@ -158,10 +163,11 @@
     <div class="wolk wolk2"></div>
 
     <!-- Duifjes -->
-    <div class="duif duif1 duif-rl">🕊️</div>
+    <div class="duif duif1 duif-lr">🕊️</div>
     <div class="duif duif2 duif-lr">🕊️</div>
     <div class="duif duif3 duif-rl">🕊️</div>
 
+    <!-- Dorp -->
     <div class="dorp">
       <!-- Kerk -->
       <div class="huis kerk" onclick="window.location.href='startpagina.html'">
