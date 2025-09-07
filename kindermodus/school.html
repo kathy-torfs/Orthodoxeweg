@@ -21,20 +21,20 @@
       height: 100%;
     }
 
-    /* Zon groter + wieg */
+    /* Zon met wieg-animatie */
     .zon {
       position: absolute;
-      top: 40px; right: 60px;
-      width: 180px; /* groter */
+      top: 40px; right: 40px;
+      width: 180px;
       height: auto;
       animation: wieg 6s ease-in-out infinite alternate;
     }
     @keyframes wieg {
-      from { transform: rotate(-15deg); }
-      to   { transform: rotate(15deg); }
+      from { transform: rotate(-10deg); }
+      to   { transform: rotate(10deg); }
     }
 
-    /* Wolken meer naar het midden */
+    /* Wolkjes */
     .wolk {
       position: absolute;
       background: #fff;
@@ -43,16 +43,20 @@
                   40px 20px 0 -10px #fff,
                   0 30px 0 -10px #fff;
       opacity: 0.9;
+      animation: zweef 10s ease-in-out infinite alternate;
     }
-    .wolk1 { top: 100px; left: 200px; width: 140px; height: 70px; }
-    .wolk2 { top: 180px; left: 400px; width: 180px; height: 90px; }
-    .wolk3 { top: 100px; right: 200px; width: 140px; height: 70px; }
-    .wolk4 { top: 200px; right: 400px; width: 180px; height: 90px; }
+    @keyframes zweef {
+      from { transform: translateY(0); }
+      to   { transform: translateY(-15px); }
+    }
+    .wolk1 { top: 100px; left: 25%; width: 140px; height: 70px; animation-delay: 0s; }
+    .wolk2 { top: 180px; left: 45%; width: 160px; height: 80px; animation-delay: 3s; }
+    .wolk3 { top: 120px; right: 25%; width: 140px; height: 70px; animation-delay: 6s; }
 
     /* Duifjes */
     .duif {
       position: absolute;
-      font-size: 2.4em;
+      font-size: 2.2em;
       opacity: 0.9;
     }
     .duif-lr {
@@ -69,46 +73,39 @@
       from { transform: translateX(0); }
       to   { transform: translateX(-120vw); }
     }
-    .duif1 { top: 100px; animation-duration: 40s; }
-    .duif2 { top: 160px; font-size: 1.6em; animation-duration: 55s; animation-delay: 12s; }
-    .duif3 { top: 220px; font-size: 1.8em; animation-duration: 50s; animation-delay: 25s; }
-
-    /* Plein */
-    .plein {
-      position: absolute;
-      top: 65%; /* iets lager */
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 800px; height: 400px; /* halve ellips */
-      position: relative;
-    }
+    .duif1 { top: 120px; animation-duration: 40s; }
+    .duif2 { top: 200px; font-size: 1.8em; animation-duration: 55s; animation-delay: 12s; }
+    .duif3 { top: 80px; font-size: 2em; animation-duration: 50s; animation-delay: 25s; }
 
     /* Kerk */
     .kerk {
       position: absolute;
-      top: 50%; left: 50%;
+      top: 45%;
+      left: 50%;
       transform: translate(-50%, -50%);
+      text-align: center;
       cursor: pointer;
     }
     .kerk img {
-      width: 220px;
+      width: 220px; /* grotere kerk */
       height: auto;
     }
 
-    /* Huisjes */
+    /* Huisjes in boog */
     .huis {
       position: absolute;
+      width: 130px;
       text-align: center;
     }
     .dak {
       width: 0; height: 0;
-      border-left: 50px solid transparent;
-      border-right: 50px solid transparent;
-      border-bottom: 40px solid #7bb235;
+      border-left: 65px solid transparent;
+      border-right: 65px solid transparent;
+      border-bottom: 55px solid #7bb235;
       margin: 0 auto;
     }
     .muur {
-      width: 100px; height: 100px;
+      width: 130px; height: 130px;
       background: #ffe5e5;
       border: 2px solid #dab97a;
       border-radius: 6px;
@@ -117,7 +114,7 @@
       flex-direction: column;
       justify-content: space-between;
       padding: 6px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.15);
     }
     .ramen {
       display: flex;
@@ -125,34 +122,36 @@
       margin-bottom: 6px;
     }
     .raam {
-      width: 40px; height: 32px;
+      width: 50px; height: 38px;
       background: #fffef9;
       border: 2px solid #dab97a;
       border-radius: 4px;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
     }
-    .raam img { width: 80%; height: auto; }
+    .raam img {
+      width: 90%;
+      height: auto;
+    }
     .deur {
       background: #7a5f35;
-      width: 36px; height: 54px;
+      width: 45px; height: 65px;
       border-radius: 4px;
       margin: 0 auto;
-      position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
       color: #fff;
       font-weight: bold;
+      position: relative;
     }
     .klink {
-      width: 5px; height: 5px;
+      width: 6px; height: 6px;
       border-radius: 50%;
       background: #e2c789;
       position: absolute;
-      right: 6px; top: 24px;
+      right: 6px; top: 28px;
     }
   </style>
 </head>
@@ -165,77 +164,55 @@
     <div class="wolk wolk1"></div>
     <div class="wolk wolk2"></div>
     <div class="wolk wolk3"></div>
-    <div class="wolk wolk4"></div>
 
     <!-- Duifjes -->
     <div class="duif duif1 duif-lr">🕊️</div>
     <div class="duif duif2 duif-rl">🕊️</div>
     <div class="duif duif3 duif-lr">🕊️</div>
 
-    <!-- Dorpsplein -->
-    <div class="plein">
-      <!-- Kerk -->
-      <div class="kerk" onclick="window.location.href='startpagina.html'">
-        <img src="https://raw.githubusercontent.com/kathy-torfs/Orthodoxeweg/main/images/kerkje.png" alt="Orthodoxe kerk">
-      </div>
-
-      <!-- Huisjes in halve cirkel -->
-      <div class="huis" style="top:50%; left:50%; transform: rotate(-60deg) translate(350px) rotate(60deg);">
-        <div class="dak" style="border-bottom-color: green;"></div>
-        <div class="muur"><div class="ramen">
-          <a href="voorbereiding_taal.html" class="raam"><img src="https://raw.githubusercontent.com/kathy-torfs/Orthodoxeweg/main/images/taal.png"></a>
-          <a href="voorbereiding_wiskunde.html" class="raam"><img src="https://raw.githubusercontent.com/kathy-torfs/Orthodoxeweg/main/images/rekenen.png"></a>
-        </div><div class="deur">⭐<div class="klink"></div></div></div>
-      </div>
-
-      <div class="huis" style="top:50%; left:50%; transform: rotate(-30deg) translate(350px) rotate(30deg);">
-        <div class="dak" style="border-bottom-color: orange;"></div>
-        <div class="muur"><div class="ramen">
-          <a href="jaar1_taal.html" class="raam"><img src="https://raw.githubusercontent.com/kathy-torfs/Orthodoxeweg/main/images/taal.png"></a>
-          <a href="jaar1_wiskunde.html" class="raam"><img src="https://raw.githubusercontent.com/kathy-torfs/Orthodoxeweg/main/images/rekenen.png"></a>
-        </div><div class="deur">1<div class="klink"></div></div></div>
-      </div>
-
-      <div class="huis" style="top:50%; left:50%; transform: rotate(0deg) translate(370px) rotate(0deg);">
-        <div class="dak" style="border-bottom-color: blue;"></div>
-        <div class="muur"><div class="ramen">
-          <a href="jaar2_taal.html" class="raam"><img src="https://raw.githubusercontent.com/kathy-torfs/Orthodoxeweg/main/images/taal.png"></a>
-          <a href="jaar2_wiskunde.html" class="raam"><img src="https://raw.githubusercontent.com/kathy-torfs/Orthodoxeweg/main/images/rekenen.png"></a>
-        </div><div class="deur">2<div class="klink"></div></div></div>
-      </div>
-
-      <div class="huis" style="top:50%; left:50%; transform: rotate(30deg) translate(350px) rotate(-30deg);">
-        <div class="dak" style="border-bottom-color: purple;"></div>
-        <div class="muur"><div class="ramen">
-          <a href="jaar3_taal.html" class="raam"><img src="https://raw.githubusercontent.com/kathy-torfs/Orthodoxeweg/main/images/taal.png"></a>
-          <a href="jaar3_wiskunde.html" class="raam"><img src="https://raw.githubusercontent.com/kathy-torfs/Orthodoxeweg/main/images/rekenen.png"></a>
-        </div><div class="deur">3<div class="klink"></div></div></div>
-      </div>
-
-      <div class="huis" style="top:50%; left:50%; transform: rotate(60deg) translate(350px) rotate(-60deg);">
-        <div class="dak" style="border-bottom-color: red;"></div>
-        <div class="muur"><div class="ramen">
-          <a href="jaar4_taal.html" class="raam"><img src="https://raw.githubusercontent.com/kathy-torfs/Orthodoxeweg/main/images/taal.png"></a>
-          <a href="jaar4_wiskunde.html" class="raam"><img src="https://raw.githubusercontent.com/kathy-torfs/Orthodoxeweg/main/images/rekenen.png"></a>
-        </div><div class="deur">4<div class="klink"></div></div></div>
-      </div>
-
-      <div class="huis" style="top:50%; left:50%; transform: rotate(90deg) translate(330px) rotate(-90deg);">
-        <div class="dak" style="border-bottom-color: teal;"></div>
-        <div class="muur"><div class="ramen">
-          <a href="jaar5_taal.html" class="raam"><img src="https://raw.githubusercontent.com/kathy-torfs/Orthodoxeweg/main/images/taal.png"></a>
-          <a href="jaar5_wiskunde.html" class="raam"><img src="https://raw.githubusercontent.com/kathy-torfs/Orthodoxeweg/main/images/rekenen.png"></a>
-        </div><div class="deur">5<div class="klink"></div></div></div>
-      </div>
-
-      <div class="huis" style="top:50%; left:50%; transform: rotate(120deg) translate(310px) rotate(-120deg);">
-        <div class="dak" style="border-bottom-color: brown;"></div>
-        <div class="muur"><div class="ramen">
-          <a href="jaar6_taal.html" class="raam"><img src="https://raw.githubusercontent.com/kathy-torfs/Orthodoxeweg/main/images/taal.png"></a>
-          <a href="jaar6_wiskunde.html" class="raam"><img src="https://raw.githubusercontent.com/kathy-torfs/Orthodoxeweg/main/images/rekenen.png"></a>
-        </div><div class="deur">6<div class="klink"></div></div></div>
-      </div>
+    <!-- Kerk -->
+    <div class="kerk" onclick="window.location.href='startpagina.html'">
+      <img src="https://raw.githubusercontent.com/kathy-torfs/Orthodoxeweg/main/images/kerkje.png" alt="Orthodoxe kerk">
     </div>
+
+    <!-- Huisjes in halve cirkel -->
+    <script>
+      const huisData = [
+        {kleur:"green", nr:"⭐", taal:"voorbereiding_taal.html", rek:"voorbereiding_wiskunde.html"},
+        {kleur:"orange", nr:"1", taal:"jaar1_taal.html", rek:"jaar1_wiskunde.html"},
+        {kleur:"blue", nr:"2", taal:"jaar2_taal.html", rek:"jaar2_wiskunde.html"},
+        {kleur:"purple", nr:"3", taal:"jaar3_taal.html", rek:"jaar3_wiskunde.html"},
+        {kleur:"red", nr:"4", taal:"jaar4_taal.html", rek:"jaar4_wiskunde.html"},
+        {kleur:"teal", nr:"5", taal:"jaar5_taal.html", rek:"jaar5_wiskunde.html"},
+        {kleur:"brown", nr:"6", taal:"jaar6_taal.html", rek:"jaar6_wiskunde.html"},
+      ];
+
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight * 0.55;
+      const radius = 300; // afstand van kerk
+
+      huisData.forEach((huis, i) => {
+        const angle = Math.PI * (0.2 + (i/(huisData.length-1))*0.6); // 200° tot 340°
+        const x = centerX + radius * Math.cos(angle);
+        const y = centerY + radius * Math.sin(angle);
+
+        const el = document.createElement("div");
+        el.className = "huis";
+        el.style.left = (x-65) + "px";
+        el.style.top = (y-120) + "px";
+        el.innerHTML = `
+          <div class="dak" style="border-bottom-color:${huis.kleur};"></div>
+          <div class="muur">
+            <div class="ramen">
+              <a href="${huis.taal}" class="raam"><img src="https://raw.githubusercontent.com/kathy-torfs/Orthodoxeweg/main/images/taal.png"></a>
+              <a href="${huis.rek}" class="raam"><img src="https://raw.githubusercontent.com/kathy-torfs/Orthodoxeweg/main/images/rekenen.png"></a>
+            </div>
+            <div class="deur">${huis.nr}<div class="klink"></div></div>
+          </div>
+        `;
+        document.body.appendChild(el);
+      });
+    </script>
   </div>
 </body>
 </html>
