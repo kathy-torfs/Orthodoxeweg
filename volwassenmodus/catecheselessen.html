@@ -80,11 +80,13 @@
         apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
         authDomain:"orthodoxeweg.firebaseapp.com",
         projectId:"orthodoxeweg",
-        storageBucket:"orthodoxeweg.appspot.com"
+        storageBucket:"orthodoxeweg.firebasestorage.app"   // ✅ juiste bucket
       });
     }
+
     const db = firebase.firestore();
-    const storage = firebase.storage();
+    const storage = firebase.storage("gs://orthodoxeweg.firebasestorage.app"); // ✅ expliciet bucket
+
     const parochieId = sessionStorage.getItem("dagboek_parochieId");
 
     const form = document.getElementById("nieuweLesForm");
@@ -135,12 +137,15 @@
       let mediaURL="";
       try{
         if(bestand){
-          // nieuwe uploadmethode
-          const storageRef = storage.ref("catecheselessen/" + Date.now() + "_" + bestand.name);
-          await firebase.storage().ref(storageRef.fullPath).put(bestand, {
-            contentType: bestand.type
-          });
-          mediaURL = await storageRef.getDownloadURL();
+          const pad = "catecheselessen/" + Date.now() + "_" + bestand.name;
+          console.log("[UPLOAD] start", pad);
+
+          const storageRef = storage.ref(pad);
+          const snap = await storageRef.put(bestand, { contentType: bestand.type });
+
+          console.log("[UPLOAD] klaar", snap.metadata.fullPath);
+          mediaURL = await snap.ref.getDownloadURL();
+          console.log("[UPLOAD] url", mediaURL);
         }
 
         await db.collection("parochies").doc(parochieId).collection("catecheselessen").add({
@@ -153,6 +158,7 @@
         quizContainer.innerHTML="";
         laadLessen();
       }catch(err){
+        console.error("[UPLOAD] fout", err);
         alert("❌ Fout: "+err.message);
       }
     });
