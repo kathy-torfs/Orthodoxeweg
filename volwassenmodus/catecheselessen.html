@@ -1,10 +1,10 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>  
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Catecheselessen – Orthodoxeweg</title>
-  <link rel="icon" href="/Orthodoxeweg/images/kruis.png">
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
     body{margin:0;font-family:Arial,sans-serif;background:#f5e9b8;color:#6f4e1a}
     .container{max-width:1000px;margin:30px auto;padding:0 20px}
@@ -31,7 +31,7 @@
       padding:14px;box-shadow:0 2px 6px rgba(0,0,0,0.1)}
     .les-kaart h3{margin:0;color:#7a5f35}
     .les-kaart small{color:#8f7437}
-    .les-kaart .acties{margin-top:10px;display:flex;gap:8px}
+    .les-kaart .acties{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
     .les-kaart button{padding:6px 10px;font-size:0.9em}
   </style>
 </head>
@@ -49,8 +49,8 @@
       <label for="lesInhoud">Inhoud</label>
       <textarea id="lesInhoud" required></textarea>
 
-      <label for="lesAfbeelding">Afbeelding (optioneel)</label>
-      <input type="file" id="lesAfbeelding" accept="image/*">
+      <label for="lesAfbeeldingen">Afbeeldingen (meerdere mogelijk)</label>
+      <input type="file" id="lesAfbeeldingen" accept="image/*" multiple>
 
       <h3>Quizvragen</h3>
       <div id="quizContainer"></div>
@@ -80,7 +80,7 @@
         apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
         authDomain:"orthodoxeweg.firebaseapp.com",
         projectId:"orthodoxeweg",
-        storageBucket:"orthodoxeweg.appspot.com"   // ✅ juiste bucket
+        storageBucket:"orthodoxeweg.appspot.com"
       });
     }
 
@@ -118,7 +118,7 @@
       const titel=document.getElementById("lesTitel").value.trim();
       const inhoud=document.getElementById("lesInhoud").value.trim();
       const zichtbaar=document.getElementById("lesZichtbaar").checked;
-      const bestand=document.getElementById("lesAfbeelding").files[0];
+      const bestanden=document.getElementById("lesAfbeeldingen").files;
 
       if(!titel||!inhoud){alert("Vul titel en inhoud in.");return;}
 
@@ -133,27 +133,25 @@
         }
       });
 
-      let mediaURL="";
+      let mediaURLs=[];
       try{
-        if(bestand){
+        for(const bestand of bestanden){
           const pad = "catecheselessen/" + Date.now() + "_" + bestand.name;
           console.log("[UPLOAD] start", pad);
-
           const storageRef = storage.ref(pad);
           const snap = await storageRef.put(bestand, { contentType: bestand.type });
-
-          console.log("[UPLOAD] klaar", snap.metadata.fullPath);
-          mediaURL = await snap.ref.getDownloadURL();
-          console.log("[UPLOAD] url", mediaURL);
+          const url = await snap.ref.getDownloadURL();
+          console.log("[UPLOAD] klaar", url);
+          mediaURLs.push(url);
         }
 
         await db.collection("parochies").doc(parochieId).collection("catecheselessen").add({
-          titel,inhoud,zichtbaar,mediaURL,vragen,
+          titel,inhoud,zichtbaar,mediaURLs,vragen,
           aangemaaktOp:new Date()
         });
 
         form.reset(); 
-        document.getElementById("lesAfbeelding").value="";
+        document.getElementById("lesAfbeeldingen").value="";
         quizContainer.innerHTML="";
         laadLessen();
       }catch(err){
@@ -161,6 +159,20 @@
         alert("❌ Fout: "+err.message);
       }
     });
+
+    // Printfunctie
+    function printLes(titel, inhoud, mediaURLs){
+      let w = window.open("", "_blank");
+      w.document.write("<html><head><title>"+titel+"</title></head><body>");
+      w.document.write("<h1>"+titel+"</h1>");
+      for (let url of mediaURLs) {
+        w.document.write('<img src="'+url+'" style="max-width:100%;margin:10px 0;"><br>');
+      }
+      w.document.write("<p>"+inhoud+"</p>");
+      w.document.write("</body></html>");
+      w.document.close();
+      w.print();
+    }
 
     // Lessen laden
     async function laadLessen(){
@@ -178,12 +190,13 @@
           kaart.innerHTML=`
             <h3>${d.titel}</h3>
             <small>${when}</small>
-            ${d.mediaURL?`<div><img src="${d.mediaURL}" style="max-width:100%;border-radius:8px;margin:10px 0"></div>`:""}
+            ${(d.mediaURLs||[]).map(u=>`<div><img src="${u}" style="max-width:100%;border-radius:8px;margin:10px 0"></div>`).join("")}
             <p>${d.inhoud}</p>
             ${d.vragen&&d.vragen.length?`<p><em>Quizvragen: ${d.vragen.length}</em></p>`:""}
             <div class="acties">
               <button onclick="toggleZichtbaar('${doc.id}',${d.zichtbaar})">${d.zichtbaar?"🔒 Verbergen":"👁 Zichtbaar maken"}</button>
               <button onclick="verwijderLes('${doc.id}')">🗑 Verwijderen</button>
+              <button onclick='printLes("${d.titel.replace(/"/g,"&quot;")}","${d.inhoud.replace(/"/g,"&quot;")}', ${JSON.stringify(d.mediaURLs||[])})'>📄 Printen</button>
             </div>
           `;
           overzicht.appendChild(kaart);
