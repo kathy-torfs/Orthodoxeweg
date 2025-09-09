@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Catecheselessen – Orthodoxeweg</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
-
   <style>
     body{margin:0;font-family:Arial,sans-serif;background:#f5e9b8;color:#6f4e1a}
     .container{max-width:1000px;margin:30px auto;padding:0 20px}
@@ -37,13 +36,11 @@
   </style>
 </head>
 <body>
-  <!-- Volwassenmodus header -->
   <div id="volwassen-header"></div>
 
   <div class="container">
     <h1>📖 Catecheselessen</h1>
 
-    <!-- Nieuwe les maken -->
     <form id="nieuweLesForm">
       <h2>Nieuwe les toevoegen</h2>
       <label for="lesTitel">Titel</label>
@@ -65,16 +62,17 @@
       </div>
     </form>
 
-    <!-- Overzicht lessen -->
     <div id="lessenOverzicht" class="les-lijst">Laden…</div>
   </div>
 
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
   <script src="common/layout.js" defer></script>
 
   <script>
+    // Firebase initialisatie
     if (!firebase.apps.length) {
       firebase.initializeApp({
         apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
@@ -85,10 +83,9 @@
     }
 
     const db = firebase.firestore();
-    const storage = firebase.storage("gs://orthodoxeweg.firebasestorage.app"); // ✅ expliciet bucket
+    const storage = firebase.storage();   // ✅ zonder argument
 
     const parochieId = sessionStorage.getItem("dagboek_parochieId");
-
     const form = document.getElementById("nieuweLesForm");
     const overzicht = document.getElementById("lessenOverzicht");
     const quizContainer = document.getElementById("quizContainer");
@@ -173,11 +170,12 @@
         if(snap.empty){overzicht.innerHTML="<p>Geen lessen toegevoegd.</p>";return;}
         snap.forEach(doc=>{
           const d=doc.data();
+          const when = d.aangemaaktOp ? (d.aangemaaktOp.toDate ? d.aangemaaktOp.toDate().toLocaleString() : new Date(d.aangemaaktOp).toLocaleString()) : "";
           const kaart=document.createElement("div");
           kaart.className="les-kaart";
           kaart.innerHTML=`
             <h3>${d.titel}</h3>
-            <small>${d.aangemaaktOp?d.aangemaaktOp.toDate().toLocaleString():""}</small>
+            <small>${when}</small>
             ${d.mediaURL?`<div><img src="${d.mediaURL}" style="max-width:100%;border-radius:8px;margin:10px 0"></div>`:""}
             <p>${d.inhoud}</p>
             ${d.vragen&&d.vragen.length?`<p><em>Quizvragen: ${d.vragen.length}</em></p>`:""}
