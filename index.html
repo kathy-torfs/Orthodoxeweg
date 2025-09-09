@@ -208,7 +208,7 @@
       <span><b>Let op:</b> Gebruikersnaam <u>en</u> wachtwoord zijn <b>hoofdlettergevoelig</b>!</span>
     </div>
     <select id="loginParochie"></select>
-    <input type="text" id="loginEmail" placeholder="E-mailadres" />
+    <input type="text" id="loginNaam" placeholder="Gebruikersnaam" />
     <input type="password" id="loginWachtwoord" placeholder="Wachtwoord" />
     <button onclick="login()">Inloggen</button>
   </div>
@@ -228,7 +228,6 @@
       <small style="color:#a86a1a;">Tip: Gebruik enkel kleine letters (geen hoofdletters) voor je e-mailadres.</small>
       <select id="parochieSelect" required></select>
       <input type="date" id="geboortedatum" placeholder="Geboortedatum" required />
-      <input type="password" id="wachtwoord" placeholder="Kies een wachtwoord" required />
       <input type="text" id="loginKeuze" placeholder="Kies uw loginnaam" required />
       <!-- Toevoegen aan verjaardagskalender -->
       <label style="margin: 0.5em 0 0.7em 0; display: flex; align-items: center;">
@@ -262,7 +261,6 @@
   <!-- ==== SCRIPTS: BEGIN ==== -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script>
     // ==== FIREBASE INIT: BEGIN ====
     const firebaseConfig = {
@@ -275,7 +273,6 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const auth = firebase.auth();
     // ==== FIREBASE INIT: EINDE ====
 
     // ==== PAROCHIES LADEN: BEGIN ====
@@ -313,74 +310,94 @@
     // ==== AVATAR-SELECTIE: EINDE ====
 
     // ==== REGISTRATIE HANDLER: BEGIN ====
-    document.getElementById("registratieForm").addEventListener("submit", async function(e) {
+    document.getElementById("registratieForm").addEventListener("submit", function(e) {
       e.preventDefault();
       const parochieSelect = document.getElementById("parochieSelect");
       const parochieId = parochieSelect.value;
       const parochieNaam = parochieSelect.selectedOptions[0].getAttribute("data-naam");
-
-      const email = document.getElementById("email").value.toLowerCase();
-      const wachtwoord = document.getElementById("wachtwoord").value;
-
       const data = {
         voornaam: document.getElementById("voornaam").value,
         achternaam: document.getElementById("achternaam").value,
         doopnaam: document.getElementById("doopnaam").value,
-        email: email,
+        email: document.getElementById("email").value.toLowerCase(),
         parochie: parochieNaam,
         geboortedatum: document.getElementById("geboortedatum").value,
         loginKeuze: document.getElementById("loginKeuze").value,
         status: "in afwachting",
         avatarURL: document.getElementById("avatarURL").value,
         verjaardagToevoegen: document.getElementById("verjaardagToevoegen").checked,
-        rol: "lid"
+        rol: "lid" // standaard
       };
+      const loginKeuze = data.loginKeuze;
 
-      try {
-        // Maak auth-account
-        await auth.createUserWithEmailAndPassword(email, wachtwoord);
-
-        // Bewaar registratie in Firestore
-        await db.collection("parochies").doc(parochieId).collection("registraties").add(data);
-        closeAllPopups();
-        alert("Registratie verzonden. Je ontvangt een e-mail na goedkeuring.");
-      } catch (err) {
-        alert("Fout bij registratie: " + err.message);
-      }
+      db.collection("parochies").doc(parochieId).collection("registraties")
+        .where("loginKeuze", "==", loginKeuze)
+        .get().then(snapshot => {
+          if (!snapshot.empty) {
+            alert("Deze loginnaam is al in gebruik voor deze parochie.");
+            return;
+          }
+          db.collection("parochies").doc(parochieId).collection("leden")
+            .where("loginKeuze", "==", loginKeuze)
+            .get().then(snapshot2 => {
+              if (!snapshot2.empty) {
+                alert("Deze loginnaam is al in gebruik voor deze parochie.");
+                return;
+              }
+              db.collection("parochies").doc(parochieId).collection("registraties").add(data).then(() => {
+                closeAllPopups();
+                alert("Registratie verzonden. Je ontvangt een e-mail na goedkeuring.");
+              });
+            });
+        });
     });
     // ==== REGISTRATIE HANDLER: EINDE ====
 
     // ==== LOGIN, PRIESTERLOGIN, POPUP FUNCTIES: BEGIN ====
-    async function login() {
+    function login() {
       const parochieSelect = document.getElementById("loginParochie");
       const parochieId = parochieSelect.value;
       const parochieNaam = parochieSelect.selectedOptions[0].getAttribute("data-naam");
-      const email = document.getElementById("loginEmail").value.trim();
+      const loginKeuze = document.getElementById("loginNaam").value.trim();
       const wachtwoord = document.getElementById("loginWachtwoord").value;
 
-      try {
-        const userCred = await auth.signInWithEmailAndPassword(email, wachtwoord);
-        const user = userCred.user;
-
-        const snapshot = await db.collection("parochies").doc(parochieId).collection("leden")
-          .where("email", "==", email).limit(1).get();
-
-        if (!snapshot.empty) {
-          const lidData = snapshot.docs[0].data();
-          localStorage.setItem("modus", "volwassene");
-          localStorage.setItem("ingelogdeParochie", parochieId);
-          localStorage.setItem("ingelogdeParochieNaam", parochieNaam);
-          localStorage.setItem("loginKeuze", lidData.loginKeuze);
-          localStorage.setItem("avatarURL", lidData.avatarURL || "https://cdn-icons-png.flaticon.com/512/4140/4140048.png");
-          localStorage.setItem("ingelogdeVolwasseneNaam", lidData.voornaam + " " + lidData.achternaam);
-          localStorage.setItem("rol", lidData.rol || "lid");
-          window.location.href = "volwassenmodus/startpagina.html";
-        } else {
-          alert("Je account is nog niet goedgekeurd.");
-        }
-      } catch (err) {
-        alert("Fout bij inloggen: " + err.message);
+      if (!sessionStorage.getItem("hoofdletterWarned")) {
+        alert("Let op: Gebruikersnaam en wachtwoord zijn hoofdlettergevoelig!");
+        sessionStorage.setItem("hoofdletterWarned", "1");
       }
+
+      db.collection("parochies")
+        .doc(parochieId)
+        .collection("leden")
+        .where("loginKeuze", "==", loginKeuze)
+        .where("wachtwoord", "==", wachtwoord)
+        .limit(1)
+        .get()
+        .then(snapshot => {
+          if (!snapshot.empty) {
+            const lidData = snapshot.docs[0].data();
+            const naam = lidData.voornaam 
+              ? `${lidData.voornaam} ${lidData.achternaam}`
+              : (lidData.doopnaam || loginKeuze);
+
+            // ==== BEGIN: Set alle lokale storage velden ====
+            localStorage.setItem("modus", "volwassene");
+            localStorage.setItem("ingelogdeParochie", parochieId);
+            localStorage.setItem("ingelogdeParochieNaam", parochieNaam);
+            localStorage.setItem("loginKeuze", loginKeuze);
+            localStorage.setItem("avatarURL", lidData.avatarURL || "https://cdn-icons-png.flaticon.com/512/4140/4140048.png");
+            localStorage.setItem("ingelogdeVolwasseneNaam", naam);
+            localStorage.setItem("rol", lidData.rol || "lid"); // catecheet of lid
+            // ==== EINDE: Set alle lokale storage velden ====
+
+            window.location.href = "volwassenmodus/startpagina.html";
+          } else {
+            alert("Onjuiste gebruikersnaam of wachtwoord.");
+          }
+        })
+        .catch(err => {
+          alert("Fout bij inloggen: " + err.message);
+        });
     }
 
     function priesterLogin() {
