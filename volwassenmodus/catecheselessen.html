@@ -83,13 +83,13 @@
         storageBucket:"orthodoxeweg.appspot.com"
       });
     }
-    const db=firebase.firestore();
-    const storage=firebase.storage();
-    const parochieId=sessionStorage.getItem("dagboek_parochieId");
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+    const parochieId = sessionStorage.getItem("dagboek_parochieId");
 
-    const form=document.getElementById("nieuweLesForm");
-    const overzicht=document.getElementById("lessenOverzicht");
-    const quizContainer=document.getElementById("quizContainer");
+    const form = document.getElementById("nieuweLesForm");
+    const overzicht = document.getElementById("lessenOverzicht");
+    const quizContainer = document.getElementById("quizContainer");
 
     // ➕ Vraag toevoegen
     function voegVraagToe(){
@@ -112,7 +112,7 @@
     }
 
     // Les opslaan
-    form.addEventListener("submit",async(e)=>{
+    form.addEventListener("submit", async(e)=>{
       e.preventDefault();
       const titel=document.getElementById("lesTitel").value.trim();
       const inhoud=document.getElementById("lesInhoud").value.trim();
@@ -135,17 +135,26 @@
       let mediaURL="";
       try{
         if(bestand){
-          const ref=storage.ref().child("catecheselessen/"+Date.now()+"_"+bestand.name);
-          await ref.put(bestand);
-          mediaURL=await ref.getDownloadURL();
+          // nieuwe uploadmethode
+          const storageRef = storage.ref("catecheselessen/" + Date.now() + "_" + bestand.name);
+          await firebase.storage().ref(storageRef.fullPath).put(bestand, {
+            contentType: bestand.type
+          });
+          mediaURL = await storageRef.getDownloadURL();
         }
+
         await db.collection("parochies").doc(parochieId).collection("catecheselessen").add({
           titel,inhoud,zichtbaar,mediaURL,vragen,
           aangemaaktOp:new Date()
         });
-        form.reset(); quizContainer.innerHTML="";
+
+        form.reset(); 
+        document.getElementById("lesAfbeelding").value="";
+        quizContainer.innerHTML="";
         laadLessen();
-      }catch(err){alert("❌ Fout: "+err.message);}
+      }catch(err){
+        alert("❌ Fout: "+err.message);
+      }
     });
 
     // Lessen laden
