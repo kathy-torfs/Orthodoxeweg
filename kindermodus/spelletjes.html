@@ -6,7 +6,6 @@
   <title>Spelletjes – Orthodoxe Kinderpagina</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
   <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
-
   <style>
     :root{
       --primair:#7bb235; --donker:#67510C;
@@ -57,9 +56,6 @@
     }
   </style>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <script defer src="common/layout.js"></script>
 </head>
 <body>
@@ -90,31 +86,6 @@
   </div>
 
   <script>
-    // pastel achtergrond random
-    (function(){
-      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)',
-               'var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)',
-               'var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)',
-               'var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
-      document.body.style.background = p[Math.floor(Math.random()*p.length)];
-    })();
-
-    // Firebase init
-    const firebaseConfig = {
-      apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
-      authDomain:"orthodoxeweg.firebaseapp.com",
-      projectId:"orthodoxeweg",
-      storageBucket:"orthodoxeweg.appspot.com",
-      messagingSenderId:"408582263618",
-      appId:"1:408582263618:web:0a20f4bf0704989d3ceedb"
-    };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    const parochieId = localStorage.getItem("ingelogdeParochie");
-    const ouderLogin = localStorage.getItem("loginKeuze");
-    const kindId     = localStorage.getItem("ingelogdKindId");
-
     // Spellenlijst
     const spellen = [
       { id:"vierop1rij",  titel:"Vier op een rij", kost:20, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/vier.png",        link:"https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/vierop1rij.html" },
@@ -129,71 +100,68 @@
       { id:"wiskunde",      titel:"Wiskundespel",  kost:0, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/wiskunde.png",   link:"https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/wiskunde.html" }
     ];
 
-    // spelkaarten direct tekenen
     const root = document.getElementById('spellenLijst');
-    const kaartRefs = {}; // opslaan om knoppen later te updaten
+    const kaartRefs = {};
 
-    for(const s of spellen){
-      const kaart = document.createElement('div');
-      kaart.className = 'spel-card';
-
-      const img = document.createElement('img');
-      img.className = 'icoon';
-      img.src = s.icon;
-      img.alt = s.titel;
-      img.loading = "lazy";
-
-      const midden = document.createElement('div');
-      const titel = document.createElement('div');
-      titel.className = 'titel';
-      titel.textContent = s.titel;
-
-      const badges = document.createElement('div');
-      const badgeKost = document.createElement('span');
-      badgeKost.className = 'badge kost';
-      badgeKost.textContent = s.kost ? `Kost: ${s.kost} lichtjes` : 'Gratis';
-      badges.appendChild(badgeKost);
-
-      midden.appendChild(titel);
-      midden.appendChild(badges);
-
-      const rechts = document.createElement('div');
-      rechts.className = 'actie';
-      const btn = document.createElement('button');
-      btn.className = 'btn';
-      btn.disabled = true; // standaard uit tot punten geladen zijn
-      btn.textContent = 'Laden...';
-      btn.onclick = () => startSpelOfPopup(s);
-      const note = document.createElement('div');
-      note.className = 'note';
-      note.textContent = '';
-
-      rechts.appendChild(btn);
-      rechts.appendChild(note);
-
-      kaart.appendChild(img);
-      kaart.appendChild(midden);
-      kaart.appendChild(rechts);
-      root.appendChild(kaart);
-
-      kaartRefs[s.id] = { btn, note, kost:s.kost };
-    }
-
-    // punten laden en knoppen updaten
-    async function laadPunten(){
+    function getPunten(){
       const teller = document.getElementById("punten-teller");
-      if (!parochieId || !ouderLogin || !kindId){ teller.textContent = "…"; return; }
-      try{
-        const doc = await db.collection("parochies").doc(parochieId)
-          .collection("leden").doc(ouderLogin)
-          .collection("kinderen").doc(kindId).get();
-        const punten = (doc.exists && doc.data().punten) ? doc.data().punten : 0;
-        teller.textContent = punten;
-        updateKnoppen(punten);
-      }catch(e){ teller.textContent = "…"; }
+      return parseInt(teller ? teller.textContent : "0") || 0;
     }
 
-    function updateKnoppen(punten){
+    // kaarten tekenen met actuele punten
+    function tekenSpellen(){
+      const punten = getPunten();
+      root.innerHTML = '';
+      for(const s of spellen){
+        const kaart = document.createElement('div');
+        kaart.className = 'spel-card';
+
+        const img = document.createElement('img');
+        img.className = 'icoon';
+        img.src = s.icon;
+        img.alt = s.titel;
+        img.loading = "lazy";
+
+        const midden = document.createElement('div');
+        const titel = document.createElement('div');
+        titel.className = 'titel';
+        titel.textContent = s.titel;
+
+        const badges = document.createElement('div');
+        const badgeKost = document.createElement('span');
+        badgeKost.className = 'badge kost';
+        badgeKost.textContent = s.kost ? `Kost: ${s.kost} lichtjes` : 'Gratis';
+        badges.appendChild(badgeKost);
+        midden.appendChild(titel);
+        midden.appendChild(badges);
+
+        const rechts = document.createElement('div');
+        rechts.className = 'actie';
+        const btn = document.createElement('button');
+        btn.className = 'btn';
+        const genoeg = punten >= s.kost;
+        btn.disabled = !genoeg;
+        btn.textContent = genoeg ? 'Ik speel dit!' : 'Niet genoeg lichtjes';
+        btn.onclick = () => startSpelOfPopup(s);
+        const note = document.createElement('div');
+        note.className = 'note';
+        note.textContent = genoeg ? '' : 'Verdien eerst wat lichtjes met bidden/catechese.';
+
+        rechts.appendChild(btn);
+        if(!genoeg) rechts.appendChild(note);
+
+        kaart.appendChild(img);
+        kaart.appendChild(midden);
+        kaart.appendChild(rechts);
+        root.appendChild(kaart);
+
+        kaartRefs[s.id] = { btn, note, kost:s.kost };
+      }
+    }
+
+    // update knoppen wanneer punten veranderen
+    function updateKnoppen(){
+      const punten = getPunten();
       for(const [id, ref] of Object.entries(kaartRefs)){
         const genoeg = punten >= ref.kost;
         ref.btn.disabled = !genoeg;
@@ -202,10 +170,13 @@
       }
     }
 
-    laadPunten();
-    setInterval(laadPunten, 10000);
+    // observer koppelen aan header teller
+    const observer = new MutationObserver(updateKnoppen);
+    observer.observe(document.getElementById("punten-teller"), { childList:true });
 
-    // gif helper
+    // init
+    tekenSpellen();
+
     function toonPhoteinosGif(){
       const gif = document.getElementById('photeinosGif');
       gif.style.display='block'; gif.style.animation='none'; void gif.offsetWidth;
