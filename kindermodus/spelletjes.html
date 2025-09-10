@@ -42,7 +42,7 @@
   <script defer src="common/layout.js"></script>
 </head>
 <body>
-  <!-- Header + menubalk -->
+  <!-- Header (begroeting + menubalk wordt hier ingeladen) -->
   <div id="kinder-header" data-header-src="common/header.html"></div>
 
   <!-- Spellen -->
@@ -69,7 +69,10 @@
   <script>
     // Pastel achtergrond random
     (function(){
-      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
+      const p = ['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)',
+                 'var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)',
+                 'var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)',
+                 'var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
       document.body.style.background = p[Math.floor(Math.random()*p.length)];
     })();
 
@@ -86,29 +89,29 @@
       { id:"wiskunde",      titel:"Wiskundespel",  kost:0, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/wiskunde.png",   link:"wiskunde.html" },
     ];
 
-    let puntenCache=0;
+    let puntenCache = 0;
 
     function tekenSpellen(){
-      const root=document.getElementById('spellenLijst');
-      root.innerHTML='';
+      const root = document.getElementById('spellenLijst');
+      root.innerHTML = '';
       for(const s of spellen){
-        const kaart=document.createElement('div'); kaart.className='spel-card';
-        const img=document.createElement('img'); img.className='icoon'; img.src=s.icon; img.alt=s.titel;
-        const midden=document.createElement('div');
-        const titel=document.createElement('div'); titel.className='titel'; titel.textContent=s.titel;
-        const badges=document.createElement('div');
-        const badgeKost=document.createElement('span'); badgeKost.className='badge kost';
-        badgeKost.textContent=s.kost?`Kost: ${s.kost} lichtjes`:'Gratis';
+        const kaart = document.createElement('div'); kaart.className='spel-card';
+        const img = document.createElement('img'); img.className='icoon'; img.src=s.icon; img.alt=s.titel;
+        const midden = document.createElement('div');
+        const titel = document.createElement('div'); titel.className='titel'; titel.textContent=s.titel;
+        const badges = document.createElement('div');
+        const badgeKost = document.createElement('span'); badgeKost.className='badge kost';
+        badgeKost.textContent = s.kost ? `Kost: ${s.kost} lichtjes` : 'Gratis';
         badges.appendChild(badgeKost);
         midden.appendChild(titel); midden.appendChild(badges);
-        const rechts=document.createElement('div'); rechts.className='actie';
-        const btn=document.createElement('button'); btn.className='btn';
-        const genoeg=puntenCache>=s.kost;
-        btn.disabled=!genoeg;
-        btn.textContent=genoeg?'Ik speel dit!':'Niet genoeg lichtjes';
-        btn.onclick=()=>startSpelOfPopup(s);
-        const note=document.createElement('div'); note.className='note';
-        note.textContent=genoeg?'':'Verdien eerst wat lichtjes met bidden/catechese.';
+        const rechts = document.createElement('div'); rechts.className='actie';
+        const btn = document.createElement('button'); btn.className='btn';
+        const genoeg = puntenCache >= s.kost;
+        btn.disabled = !genoeg;
+        btn.textContent = genoeg ? 'Ik speel dit!' : 'Niet genoeg lichtjes';
+        btn.onclick = () => startSpelOfPopup(s);
+        const note = document.createElement('div'); note.className='note';
+        note.textContent = genoeg ? '' : 'Verdien eerst wat lichtjes met bidden/catechese.';
         rechts.appendChild(btn); if(!genoeg) rechts.appendChild(note);
         kaart.appendChild(img); kaart.appendChild(midden); kaart.appendChild(rechts);
         root.appendChild(kaart);
@@ -127,12 +130,12 @@
     document.getElementById('popupOk').onclick=()=> popup.style.display='none';
 
     function startSpelOfPopup(spel){
-      if(puntenCache>=spel.kost){
+      if (puntenCache >= spel.kost){
         toonPhoteinosGif();
-        setTimeout(()=>{ window.location.href=spel.link; },350);
-      }else{
-        popupText.textContent="Je hebt niet genoeg lichtjes voor dit spel. Kom later terug!";
-        popup.style.display='flex';
+        setTimeout(()=>{ window.location.href = spel.link; }, 350);
+      } else {
+        popupText.textContent = "Je hebt niet genoeg lichtjes voor dit spel. Kom later terug!";
+        popup.style.display = 'flex';
       }
     }
 
