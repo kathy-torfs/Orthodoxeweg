@@ -1,4 +1,4 @@
-<!DOCTYPE html>  
+<!DOCTYPE html>   
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
@@ -75,18 +75,21 @@
 
   <script>
     // Firebase init
+    const firebaseConfig = {
+      apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain:"orthodoxeweg.firebaseapp.com",
+      projectId:"orthodoxeweg",
+      storageBucket:"orthodoxeweg.appspot.com"
+    };
     if (!firebase.apps.length) {
-      firebase.initializeApp({
-        apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
-        authDomain:"orthodoxeweg.firebaseapp.com",
-        projectId:"orthodoxeweg",
-        storageBucket:"orthodoxeweg.appspot.com"
-      });
+      firebase.initializeApp(firebaseConfig);
     }
     const db = firebase.firestore();
     const storage = firebase.storage();
 
-    const parochieId = sessionStorage.getItem("dagboek_parochieId");
+    // ✅ Parochie ophalen uit localStorage (niet sessionStorage)
+    const parochieId = localStorage.getItem("ingelogdeParochie");
+
     const form = document.getElementById("nieuweLesForm");
     const overzicht = document.getElementById("lessenOverzicht");
     const quizContainer = document.getElementById("quizContainer");
