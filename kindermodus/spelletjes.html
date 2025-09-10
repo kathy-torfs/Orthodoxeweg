@@ -2,15 +2,26 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Spelletjes – Orthodoxe Kinderpagina</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+
   <style>
-    body{
-      margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
-      min-height:100vh; background:var(--pastel1); transition:background .6s; overflow-x:hidden;
+    :root{
+      --primair:#7bb235; --donker:#67510C;
+      --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
+      --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
+      --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
+      --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
     }
-    .container-spellen{ max-width:850px; margin:0 auto; padding:0 12px 44px 12px; }
+    body{
+      margin:0; font-family:'Patrick Hand', cursive;
+      min-height:100vh; background:var(--pastel1); transition:background .6s;
+      display:flex; flex-direction:column;
+    }
+    main{ flex:1; width:95%; max-width:1200px; margin:20px auto; }
+
     .intro-titel{ color:#67510C; font-size:1.6em; font-weight:bold; margin:18px 0 6px 0; text-align:center; }
     .spel-card{
       background:#fff6e2; border-radius:22px; box-shadow:0 2px 8px #0002;
@@ -49,17 +60,16 @@
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+  <script defer src="../layout.js"></script>
 </head>
 <body>
-  <!-- Header wordt hier ingeladen -->
-  <div id="header"></div>
+  <!-- Header + menubalk -->
+  <div id="kinder-header" data-header-src="common/header.html"></div>
 
   <!-- Inhoud -->
   <main>
-    <div class="container-spellen">
-      <div class="intro-titel">Kies een spelletje om te spelen:</div>
-      <div id="spellenLijst"></div>
-    </div>
+    <div class="intro-titel">Kies een spelletje om te spelen:</div>
+    <div id="spellenLijst"></div>
   </main>
 
   <!-- Photeinos GIF -->
@@ -79,10 +89,17 @@
     </div>
   </div>
 
-  <!-- Scripts -->
-  <script src="../layout.js"></script>
   <script>
-    // Firebase config
+    // pastel achtergrond random
+    (function(){
+      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)',
+               'var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)',
+               'var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)',
+               'var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
+      document.body.style.background = p[Math.floor(Math.random()*p.length)];
+    })();
+
+    // Firebase init
     const firebaseConfig = {
       apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain:"orthodoxeweg.firebaseapp.com",
@@ -98,7 +115,6 @@
     const ouderLogin = localStorage.getItem("loginKeuze");
     const kindId     = localStorage.getItem("ingelogdKindId");
 
-    // Spellenlijst
     const spellen = [
       { id:"vierop1rij",  titel:"Vier op een rij", kost:20, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/vier.png",        link:"vierop1rij.html" },
       { id:"molenspel",   titel:"Molenspel",      kost:20, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/molenspel.png", link:"molenspel.html" },
@@ -106,7 +122,6 @@
       { id:"patience",    titel:"Patience",       kost:20, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/patience.png",   link:"patience.html" },
       { id:"kerk",        titel:"Kerk bouwen",    kost:20, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/kerk.png",       link:"kerkbouwen.html" },
       { id:"photeinos",   titel:"Springspel",     kost:20, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos.png",  link:"springspel.html" },
-      // educatief
       { id:"catechesequiz", titel:"Catechesequiz", kost:0, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/catechese.png",  link:"catechesequiz.html" },
       { id:"trivia",        titel:"Bijbeltrivia",  kost:0, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/trivia.png",     link:"bijbeltrivia.html" },
       { id:"leesschat",     titel:"Lees-schat",    kost:0, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/boek.png",       link:"leesschat.html" },
@@ -123,15 +138,12 @@
           .collection("kinderen").doc(kindId).get();
         puntenCache = (doc.exists && doc.data().punten) ? doc.data().punten : 0;
         teller.textContent = puntenCache;
-        teller.style.transform = 'scale(1.18)'; setTimeout(()=>teller.style.transform='scale(1)', 180);
         tekenSpellen();
       }catch(e){ teller.textContent = "…"; }
     }
 
     laadPunten();
-    const puntenAutoRefresh = setInterval(laadPunten, 10000);
-    document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) laadPunten(); });
-    window.addEventListener('beforeunload', ()=> clearInterval(puntenAutoRefresh));
+    setInterval(laadPunten, 10000);
 
     function tekenSpellen(){
       const root = document.getElementById('spellenLijst');
@@ -195,7 +207,15 @@
       }
     }
 
-    tekenSpellen();
+    // Header inladen
+    (function boot(){
+      if(!(window.KinderLayout)) return setTimeout(boot,120);
+      const el=document.getElementById('kinder-header');
+      window.KinderLayout.mountHeader({
+        rootId:'kinder-header',
+        headerSrc:el.dataset.headerSrc
+      });
+    })();
   </script>
 </body>
 </html>
