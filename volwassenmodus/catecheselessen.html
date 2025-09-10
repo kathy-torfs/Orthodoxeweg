@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+<!DOCTYPE html>  
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Catecheselessen – Orthodoxeweg</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Orthodoxeweg – Catecheselessen</title> 
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
     body{margin:0;font-family:Arial,sans-serif;background:#f5e9b8;color:#6f4e1a}
@@ -17,8 +17,8 @@
       width:100%;padding:8px;border:1px solid #dab97a;border-radius:6px;
       background:#fffdf6;font-family:inherit
     }
-    textarea{min-height:80px;resize:vertical}
-    .form-row{margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    textarea{min-height:100px;resize:vertical}
+    .form-row{margin-top:12px;display:flex;gap:10px;align-items:center}
     button{
       background:#7bb235;color:#fff;border:none;padding:8px 16px;
       border-radius:8px;cursor:pointer;font-weight:bold
@@ -49,10 +49,11 @@
       <label for="lesTitel">Titel</label>
       <input type="text" id="lesTitel" required>
 
-      <!-- Vertelplaten -->
-      <h3>Vertelplaten</h3>
-      <div id="platenContainer"></div>
-      <button type="button" onclick="voegPlaatToe()">➕ Plaat toevoegen</button>
+      <label for="lesInhoud">Inhoud</label>
+      <textarea id="lesInhoud" required></textarea>
+
+      <label for="lesAfbeeldingen">Afbeeldingen (meerdere mogelijk)</label>
+      <input type="file" id="lesAfbeeldingen" accept="image/*" multiple>
 
       <h3>Quizvragen</h3>
       <div id="quizContainer"></div>
@@ -74,38 +75,23 @@
   <script src="common/layout.js" defer></script>
 
   <script>
-    // Firebase init
-    const firebaseConfig = {
-      apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
-      authDomain:"orthodoxeweg.firebaseapp.com",
-      projectId:"orthodoxeweg",
-      storageBucket:"orthodoxeweg.appspot.com"
-    };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    // ✅ Firebase initialisatie met juiste bucket
+    if (!firebase.apps.length) {
+      firebase.initializeApp({
+        apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+        authDomain:"orthodoxeweg.firebaseapp.com",
+        projectId:"orthodoxeweg",
+        storageBucket:"orthodoxeweg.appspot.com"  // ✅ juiste bucket
+      });
+    }
 
     const db = firebase.firestore();
     const storage = firebase.storage();
-
     const parochieId = sessionStorage.getItem("dagboek_parochieId");
+
     const form = document.getElementById("nieuweLesForm");
     const overzicht = document.getElementById("lessenOverzicht");
     const quizContainer = document.getElementById("quizContainer");
-    const platenContainer = document.getElementById("platenContainer");
-
-    // ➕ Plaat toevoegen
-    function voegPlaatToe(){
-      const idx = platenContainer.children.length+1;
-      const div = document.createElement("div");
-      div.className="plaat-blok";
-      div.innerHTML = `
-        <h4>Plaat ${idx}</h4>
-        <label>Afbeelding:</label>
-        <input type="file" class="plaatFile" accept="image/*"><br>
-        <label>Tekst onder afbeelding:</label>
-        <textarea class="plaatTekst"></textarea>
-      `;
-      platenContainer.appendChild(div);
-    }
 
     // ➕ Vraag toevoegen
     function voegVraagToe(){
@@ -131,22 +117,11 @@
     form.addEventListener("submit", async(e)=>{
       e.preventDefault();
       const titel=document.getElementById("lesTitel").value.trim();
+      const inhoud=document.getElementById("lesInhoud").value.trim();
       const zichtbaar=document.getElementById("lesZichtbaar").checked;
-      if(!titel){alert("Vul titel in.");return;}
+      const bestanden=document.getElementById("lesAfbeeldingen").files;
 
-      // Platen verzamelen
-      const platen=[];
-      for (let blok of platenContainer.querySelectorAll(".plaat-blok")){
-        const file = blok.querySelector(".plaatFile").files[0];
-        const tekst = blok.querySelector(".plaatTekst").value.trim();
-        if(file){
-          const pad="catecheselessen/"+Date.now()+"_"+file.name;
-          const storageRef = storage.ref(pad);
-          const snap = await storageRef.put(file,{contentType:file.type});
-          const url = await snap.ref.getDownloadURL(); // ✅ juiste URL
-          platen.push({url, tekst});
-        }
-      }
+      if(!titel||!inhoud){alert("Vul titel en inhoud in.");return;}
 
       // Quizvragen verzamelen
       const vragen=[];
@@ -159,16 +134,29 @@
         }
       });
 
+      let mediaURLs=[];
       try{
+        for(const bestand of bestanden){
+          const pad = "catecheselessen/" + Date.now() + "_" + bestand.name;
+          console.log("[UPLOAD] start", pad);
+          const storageRef = storage.ref(pad);
+          const snap = await storageRef.put(bestand, { contentType: bestand.type });
+          const url = await snap.ref.getDownloadURL();
+          console.log("[UPLOAD] klaar", url);
+          mediaURLs.push(url);
+        }
+
         await db.collection("parochies").doc(parochieId).collection("catecheselessen").add({
-          titel, zichtbaar, platen, vragen, aangemaaktOp:new Date()
+          titel,inhoud,zichtbaar,mediaURLs,vragen,
+          aangemaaktOp:new Date()
         });
-        form.reset();
-        platenContainer.innerHTML="";
+
+        form.reset(); 
+        document.getElementById("lesAfbeeldingen").value="";
         quizContainer.innerHTML="";
         laadLessen();
       }catch(err){
-        console.error(err);
+        console.error("[UPLOAD] fout", err);
         alert("❌ Fout: "+err.message);
       }
     });
@@ -186,16 +174,11 @@
           const when = d.aangemaaktOp?.toDate ? d.aangemaaktOp.toDate().toLocaleString() : "";
           const kaart=document.createElement("div");
           kaart.className="les-kaart";
-          let platenHTML="";
-          if(d.platen){
-            d.platen.forEach(p=>{
-              platenHTML+=`<div><img src="${p.url}" style="max-width:100%;border-radius:8px;margin:10px 0"><p>${p.tekst}</p></div>`;
-            });
-          }
           kaart.innerHTML=`
             <h3>${d.titel}</h3>
             <small>${when}</small>
-            ${platenHTML}
+            ${(d.mediaURLs||[]).map(u=>`<div><img src="${u}" style="max-width:100%;border-radius:8px;margin:10px 0"></div>`).join("")}
+            <p>${d.inhoud}</p>
             ${d.vragen?.length?`<p><em>Quizvragen: ${d.vragen.length}</em></p>`:""}
             <div class="acties">
               <button onclick="toggleZichtbaar('${doc.id}',${d.zichtbaar})">${d.zichtbaar?"🔒 Verbergen":"👁 Zichtbaar maken"}</button>
@@ -211,15 +194,19 @@
     }
 
     async function toggleZichtbaar(id,huidig){
-      await db.collection("parochies").doc(parochieId).collection("catecheselessen").doc(id)
-        .update({zichtbaar:!huidig});
-      laadLessen();
+      try{
+        await db.collection("parochies").doc(parochieId).collection("catecheselessen").doc(id)
+          .update({zichtbaar:!huidig});
+        laadLessen();
+      }catch(e){alert("❌ Fout: "+e.message);}
     }
 
     async function verwijderLes(id){
       if(!confirm("Weet je zeker dat je deze les wil verwijderen?")) return;
-      await db.collection("parochies").doc(parochieId).collection("catecheselessen").doc(id).delete();
-      laadLessen();
+      try{
+        await db.collection("parochies").doc(parochieId).collection("catecheselessen").doc(id).delete();
+        laadLessen();
+      }catch(e){alert("❌ Fout: "+e.message);}
     }
 
     laadLessen();
