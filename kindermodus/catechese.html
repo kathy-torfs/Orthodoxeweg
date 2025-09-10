@@ -86,25 +86,11 @@
         return;
       }
       try{
-        let snap;
-        try {
-          // Probeer mét sortering (vereist index)
-          snap = await db.collection("parochies").doc(parochieId)
+        let snap=await db.collection("parochies").doc(parochieId)
             .collection("catecheselessen")
             .where("zichtbaar","==",true)
             .orderBy("aangemaaktOp","desc")
             .get();
-        } catch(err) {
-          if (err.code === "failed-precondition") {
-            console.warn("Geen index: laden zonder sortering.");
-            snap = await db.collection("parochies").doc(parochieId)
-              .collection("catecheselessen")
-              .where("zichtbaar","==",true)
-              .get();
-          } else {
-            throw err;
-          }
-        }
 
         grid.innerHTML="";
         if(snap.empty){
@@ -115,10 +101,17 @@
           const d=doc.data();
           const kaart=document.createElement("div");
           kaart.className="card";
+
+          // Toon de eerste plaat als preview
+          let previewImg = "";
+          if(d.platen && d.platen.length){
+            previewImg = `<img src="${d.platen[0].url}" alt="plaat">`;
+          }
+
           kaart.innerHTML=`
-            ${d.mediaURL?`<img src="${d.mediaURL}">`:""}
+            ${previewImg}
             <h3>${d.titel}</h3>
-            <p>${(d.inhoud||"").substring(0,60)}...</p>
+            <p>${(d.platen && d.platen[0]?.tekst) ? d.platen[0].tekst.substring(0,60)+"…" : ""}</p>
           `;
           kaart.onclick=()=>openLes(doc.id,d);
           grid.appendChild(kaart);
@@ -132,9 +125,15 @@
     function openLes(id,d){
       modal.style.display="flex";
       let html=`<h2>${d.titel}</h2>`;
-      if(d.mediaURL) html+=`<img src="${d.mediaURL}" style="max-width:100%;border-radius:10px">`;
-      html+=`<p>${d.inhoud||""}</p>`;
 
+      // Alle platen tonen
+      if(d.platen && d.platen.length){
+        d.platen.forEach(p=>{
+          html += `<div><img src="${p.url}" style="max-width:100%;border-radius:10px"><p>${p.tekst||""}</p></div>`;
+        });
+      }
+
+      // Quizvragen
       if(d.vragen&&d.vragen.length){
         html+="<h3>Quiz</h3>";
         d.vragen.forEach((v,i)=>{
