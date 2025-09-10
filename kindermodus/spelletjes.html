@@ -57,7 +57,7 @@
     }
   </style>
 
-  <!-- Firebase compat -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <script defer src="common/layout.js"></script>
@@ -115,17 +115,18 @@
     const ouderLogin = localStorage.getItem("loginKeuze");
     const kindId     = localStorage.getItem("ingelogdKindId");
 
+    // Spellenlijst (volledig uit je eerste versie)
     const spellen = [
-      { id:"vierop1rij",  titel:"Vier op een rij", kost:20, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/vier.png",        link:"vierop1rij.html" },
-      { id:"molenspel",   titel:"Molenspel",      kost:20, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/molenspel.png", link:"molenspel.html" },
-      { id:"memory",      titel:"Noah’s Ark",     kost:20, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/noah.png",       link:"memory.html" },
-      { id:"patience",    titel:"Patience",       kost:20, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/patience.png",   link:"patience.html" },
-      { id:"kerk",        titel:"Kerk bouwen",    kost:20, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/kerk.png",       link:"kerkbouwen.html" },
-      { id:"photeinos",   titel:"Springspel",     kost:20, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos.png",  link:"springspel.html" },
-      { id:"catechesequiz", titel:"Catechesequiz", kost:0, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/catechese.png",  link:"catechesequiz.html" },
-      { id:"trivia",        titel:"Bijbeltrivia",  kost:0, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/trivia.png",     link:"bijbeltrivia.html" },
-      { id:"leesschat",     titel:"Lees-schat",    kost:0, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/boek.png",       link:"leesschat.html" },
-      { id:"wiskunde",      titel:"Wiskundespel",  kost:0, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/wiskunde.png",   link:"wiskunde.html" },
+      { id:"vierop1rij",  titel:"Vier op een rij", kost:20, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/vier.png",        link:"https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/vierop1rij.html" },
+      { id:"molenspel",   titel:"Molenspel",      kost:20, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/molenspel.png", link:"https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/molenspel.html" },
+      { id:"memory",      titel:"Noah’s Ark",     kost:20, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/noah.png",       link:"https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/memory.html" },
+      { id:"patience",    titel:"Patience",       kost:20, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/patience.png",   link:"https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/patience.html" },
+      { id:"kerk",        titel:"Kerk bouwen",    kost:20, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/kerk.png",       link:"https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/kerkbouwen.html" },
+      { id:"photeinos",   titel:"Springspel",     kost:20, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos.png",  link:"https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/springspel.html" },
+      { id:"catechesequiz", titel:"Catechesequiz", kost:0, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/catechese.png",  link:"https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/catechesequiz.html" },
+      { id:"trivia",        titel:"Bijbeltrivia",  kost:0, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/trivia.png",     link:"https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/bijbeltrivia.html" },
+      { id:"leesschat",     titel:"Lees-schat",    kost:0, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/boek.png",       link:"https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/leesschat.html" },
+      { id:"wiskunde",      titel:"Wiskundespel",  kost:0, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/wiskunde.png",   link:"https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/wiskunde.html" }
     ];
 
     let puntenCache = 0;
@@ -153,11 +154,14 @@
         kaart.className = 'spel-card';
 
         const img = document.createElement('img');
-        img.className = 'icoon'; img.src = s.icon; img.alt = s.titel;
+        img.className = 'icoon';
+        img.src = s.icon;
+        img.alt = s.titel;
 
         const midden = document.createElement('div');
         const titel = document.createElement('div');
-        titel.className = 'titel'; titel.textContent = s.titel;
+        titel.className = 'titel';
+        titel.textContent = s.titel;
 
         const badges = document.createElement('div');
         const badgeKost = document.createElement('span');
@@ -165,7 +169,8 @@
         badgeKost.textContent = s.kost ? `Kost: ${s.kost} lichtjes` : 'Gratis';
         badges.appendChild(badgeKost);
 
-        midden.appendChild(titel); midden.appendChild(badges);
+        midden.appendChild(titel);
+        midden.appendChild(badges);
 
         const rechts = document.createElement('div');
         rechts.className = 'actie';
@@ -179,9 +184,12 @@
         note.className = 'note';
         note.textContent = genoeg ? '' : 'Verdien eerst wat lichtjes met bidden/catechese.';
 
-        rechts.appendChild(btn); if(!genoeg) rechts.appendChild(note);
+        rechts.appendChild(btn);
+        if(!genoeg) rechts.appendChild(note);
 
-        kaart.appendChild(img); kaart.appendChild(midden); kaart.appendChild(rechts);
+        kaart.appendChild(img);
+        kaart.appendChild(midden);
+        kaart.appendChild(rechts);
         root.appendChild(kaart);
       }
     }
