@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Spelletjes – Orthodoxe Kinderpagina</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
+
   <style>
     :root{
       --primair:#7bb235; --donker:#67510C;
@@ -17,65 +18,97 @@
       margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
       min-height:100vh; background:var(--pastel1); transition:background .6s; overflow-x:hidden;
     }
+
     .container-spellen{ max-width:850px; margin:0 auto; padding:0 12px 44px 12px; }
     .intro-titel{ color:#67510C; font-size:1.6em; font-weight:bold; margin:18px 0 6px 0; text-align:center; }
-    .spel-card{ background:#fff6e2; border-radius:22px; box-shadow:0 2px 8px #0002;
-      margin:16px 0; padding:18px; display:grid; grid-template-columns:88px 1fr auto; gap:14px; align-items:center; }
-    .spel-card .icoon{ width:72px; height:72px; border-radius:16px; object-fit:contain; background:#fff; border:1px solid #ffe0b5; display:block; }
+
+    .spel-card{
+      background:#fff6e2; border-radius:22px; box-shadow:0 2px 8px #0002;
+      margin:16px 0; padding:18px;
+      display:grid; grid-template-columns:88px 1fr auto; gap:14px; align-items:center;
+    }
+    .spel-card .icoon{
+      width:72px; height:72px; border-radius:16px;
+      object-fit:contain; background:#fff; border:1px solid #ffe0b5;
+    }
     .spel-card .titel{ color:#4A3B20; font-size:1.15em; font-weight:bold; margin-bottom:6px; }
-    .badge{ display:inline-block; background:#d8ffdf; color:#20641e; border-radius:8px; padding:3px 10px; font-size:.95em; margin-right:8px; }
+    .badge{ display:inline-block; background:#d8ffdf; color:#20641e;
+      border-radius:8px; padding:3px 10px; font-size:.95em; margin-right:8px; }
     .badge.kost{ background:#fff1c7; color:#7a4d00; }
+
     .actie{ display:flex; flex-direction:column; gap:8px; align-items:flex-end; }
-    .btn{ appearance:none; border:0; border-radius:13px; padding:11px 16px; font-weight:bold; cursor:pointer; color:#fff; background:#7bb235; min-width:180px; box-shadow:0 2px 6px #0001; }
+    .btn{ appearance:none; border:0; border-radius:13px; padding:11px 16px;
+      font-weight:bold; cursor:pointer; color:#fff; background:#7bb235;
+      min-width:180px; box-shadow:0 2px 6px #0001; }
     .btn:disabled{ background:#d8ffdf; color:#888; cursor:default; }
     .note{ font-size:.9em; color:#6b7280; }
-    .modal{ position:fixed; inset:0; background:rgba(0,0,0,.35); display:none; align-items:center; justify-content:center; z-index:9999; }
-    .modal .card{ background:#fff; border-radius:16px; padding:18px 18px 14px 18px; max-width:min(92vw,420px); box-shadow:0 10px 30px rgba(0,0,0,.25); }
-    .modal .title{ font-weight:700; font-size:1.2em; margin:0 0 8px 0; display:flex; align-items:center; gap:10px; color:#1f2937; }
+
+    .modal{ position:fixed; inset:0; background:rgba(0,0,0,.35);
+      display:none; align-items:center; justify-content:center; z-index:9999; }
+    .modal .card{ background:#fff; border-radius:16px; padding:18px; max-width:420px;
+      box-shadow:0 10px 30px rgba(0,0,0,.25); }
+    .modal .title{ font-weight:700; font-size:1.2em; margin:0 0 8px; display:flex; align-items:center; gap:10px; color:#1f2937; }
     .modal .text{ color:#374151; margin-bottom:12px; }
     .modal .row{ display:flex; gap:10px; justify-content:flex-end; }
     .ghost{ background:#eff6ff; color:#1e40af; }
-    .photeinos-gif{ position:fixed; left:0; bottom:50px; width:110px; height:110px; z-index:1000; display:none; pointer-events:none;
-      animation:photeinosInOut 2.2s linear forwards; }
-    @keyframes photeinosInOut{ 0%{transform:translateX(-120%);} 15%{transform:translateX(12%);} 80%{transform:translateX(10%);} 100%{transform:translateX(-120%);} }
+
+    .photeinos-gif{
+      position:fixed; left:0; bottom:50px; width:110px; height:110px;
+      z-index:1000; display:none; pointer-events:none;
+      animation:photeinosInOut 2.2s linear forwards;
+    }
+    @keyframes photeinosInOut{
+      0%{transform:translateX(-120%);} 15%{transform:translateX(12%);}
+      80%{transform:translateX(10%);} 100%{transform:translateX(-120%);}
+    }
   </style>
+
+  <!-- Firebase compat -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+
+  <!-- Header en live punten -->
   <script defer src="common/layout.js"></script>
 </head>
 <body>
-  <!-- Header (begroeting + menubalk wordt hier ingeladen) -->
+  <!-- Header komt hier -->
   <div id="kinder-header" data-header-src="common/header.html"></div>
 
-  <!-- Spellen -->
-  <div class="container-spellen">
+  <!-- Pagina-inhoud -->
+  <main class="container-spellen">
     <div class="intro-titel">Kies een spelletje om te spelen:</div>
     <div id="spellenLijst"></div>
-  </div>
+  </main>
 
-  <!-- Photeinos GIF -->
-  <img id="photeinosGif" class="photeinos-gif" src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_kiekeboeduim.gif" alt="Photeinos duim" />
+  <img id="photeinosGif" class="photeinos-gif"
+       src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_kiekeboeduim.gif"
+       alt="Photeinos duim" />
 
-  <!-- Popup -->
   <div class="modal" id="popup">
     <div class="card">
       <div class="title">
-        <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_klok.png" alt="" style="width:34px;height:34px" />
+        <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_klok.png"
+             alt="" style="width:34px;height:34px" />
         <span>Niet genoeg punten</span>
       </div>
-      <div class="text" id="popupText">Je hebt niet genoeg lichtjes voor dit spel. Kom later terug!</div>
+      <div class="text" id="popupText">
+        Je hebt niet genoeg lichtjes voor dit spel. Kom later terug!
+      </div>
       <div class="row"><button class="btn ghost" id="popupOk">Oké</button></div>
     </div>
   </div>
 
   <script>
-    // Pastel achtergrond random
+    // pastel achtergrond
     (function(){
-      const p = ['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)',
-                 'var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)',
-                 'var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)',
-                 'var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
+      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)',
+               'var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)',
+               'var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)',
+               'var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
       document.body.style.background = p[Math.floor(Math.random()*p.length)];
     })();
 
+    // vaste spellenlijst
     const spellen = [
       { id:"vierop1rij",  titel:"Vier op een rij", kost:20, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/vier.png",        link:"vierop1rij.html" },
       { id:"molenspel",   titel:"Molenspel",      kost:20, icon:"https://kathy-torfs.github.io/Orthodoxeweg/images/molenspel.png", link:"molenspel.html" },
@@ -106,16 +139,27 @@
         midden.appendChild(titel); midden.appendChild(badges);
         const rechts = document.createElement('div'); rechts.className='actie';
         const btn = document.createElement('button'); btn.className='btn';
-        const genoeg = puntenCache >= s.kost;
-        btn.disabled = !genoeg;
-        btn.textContent = genoeg ? 'Ik speel dit!' : 'Niet genoeg lichtjes';
+        btn.dataset.kost = s.kost;
+        btn.textContent = 'Ik speel dit!';
         btn.onclick = () => startSpelOfPopup(s);
-        const note = document.createElement('div'); note.className='note';
-        note.textContent = genoeg ? '' : 'Verdien eerst wat lichtjes met bidden/catechese.';
-        rechts.appendChild(btn); if(!genoeg) rechts.appendChild(note);
+        const note = document.createElement('div'); note.className='note'; note.textContent='';
+        rechts.appendChild(btn); rechts.appendChild(note);
         kaart.appendChild(img); kaart.appendChild(midden); kaart.appendChild(rechts);
         root.appendChild(kaart);
       }
+      updateButtons();
+    }
+
+    function updateButtons(){
+      document.querySelectorAll('#spellenLijst .spel-card').forEach(card=>{
+        const btn=card.querySelector('.btn');
+        const kost=parseInt(btn.dataset.kost,10);
+        const note=card.querySelector('.note');
+        const genoeg=puntenCache>=kost;
+        btn.disabled=!genoeg;
+        btn.textContent=genoeg?'Ik speel dit!':'Niet genoeg lichtjes';
+        note.textContent=genoeg?'':'Verdien eerst wat lichtjes met bidden/catechese.';
+      });
     }
 
     function toonPhoteinosGif(){
@@ -134,20 +178,19 @@
         toonPhoteinosGif();
         setTimeout(()=>{ window.location.href = spel.link; }, 350);
       } else {
-        popupText.textContent = "Je hebt niet genoeg lichtjes voor dit spel. Kom later terug!";
-        popup.style.display = 'flex';
+        popupText.textContent="Je hebt niet genoeg lichtjes voor dit spel. Kom later terug!";
+        popup.style.display='flex';
       }
     }
 
+    // luister naar live punten van header
+    window.addEventListener('pointsUpdated', e=>{
+      puntenCache = e.detail || 0;
+      updateButtons();
+    });
+
     // init
     tekenSpellen();
-
-    // Header/mnbl inladen
-    (function boot(){
-      if(!(window.KinderLayout)) return setTimeout(boot,120);
-      const el=document.getElementById('kinder-header');
-      window.KinderLayout.mountHeader({rootId:'kinder-header',headerSrc:el.dataset.headerSrc});
-    })();
   </script>
 </body>
 </html>
