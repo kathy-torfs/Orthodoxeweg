@@ -34,7 +34,7 @@
       padding:14px;box-shadow:0 2px 6px rgba(0,0,0,0.1)}
     .les-kaart h3{margin:0;color:#7a5f35}
     .les-kaart small{color:#8f7437}
-    .les-kaart .acties{margin-top:10px;display:flex;gap:8px}
+    .les-kaart .acties{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
     .les-kaart button{padding:6px 10px;font-size:0.9em}
   </style>
 </head>
@@ -87,7 +87,7 @@
     const db = firebase.firestore();
     const storage = firebase.storage();
 
-    // ✅ Parochie ophalen uit localStorage (niet sessionStorage)
+    // ✅ Parochie ophalen
     const parochieId = localStorage.getItem("ingelogdeParochie");
 
     const form = document.getElementById("nieuweLesForm");
@@ -175,6 +175,20 @@
       }
     });
 
+    // Printfunctie
+    function printLes(titel, platen){
+      let w = window.open("", "_blank");
+      w.document.write("<html><head><title>"+titel+"</title></head><body>");
+      w.document.write("<h1>"+titel+"</h1>");
+      for (let p of platen) {
+        w.document.write('<img src="'+p.url+'" style="max-width:100%;margin:10px 0;"><br>');
+        if(p.tekst) w.document.write("<p>"+p.tekst+"</p>");
+      }
+      w.document.write("</body></html>");
+      w.document.close();
+      w.print();
+    }
+
     // Lessen laden
     async function laadLessen(){
       overzicht.innerHTML="Laden…";
@@ -191,7 +205,11 @@
           let platenHTML="";
           if(d.platen){
             d.platen.forEach(p=>{
-              platenHTML+=`<div><img src="${p.url}" style="max-width:100%;border-radius:8px;margin:10px 0"><p>${p.tekst}</p></div>`;
+              platenHTML+=`
+                <div>
+                  <img src="${p.url}" style="max-width:100%;border-radius:8px;margin:10px 0">
+                  <p>${p.tekst}</p>
+                </div>`;
             });
           }
           kaart.innerHTML=`
@@ -202,6 +220,7 @@
             <div class="acties">
               <button onclick="toggleZichtbaar('${doc.id}',${d.zichtbaar})">${d.zichtbaar?"🔒 Verbergen":"👁 Zichtbaar maken"}</button>
               <button onclick="verwijderLes('${doc.id}')">🗑 Verwijderen</button>
+              <button onclick='printLes(${JSON.stringify(d.titel)}, ${JSON.stringify(d.platen||[])})'>📄 Printen</button>
             </div>
           `;
           overzicht.appendChild(kaart);
