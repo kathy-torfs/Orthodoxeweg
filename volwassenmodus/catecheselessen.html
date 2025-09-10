@@ -1,54 +1,221 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Orthodoxeweg – catecheselessen</title>
-  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Orthodoxeweg – Catecheselessen</title>
+  <link rel="icon" href="/images/kruis.png">
   <style>
-    :root{
-      --bg:#f5e9b8; --text:#6f4e1a; --card:#fffdf4; --border:#ceb27d;
-      --chip:#eee3c6; --chip-border:#b29467; --chip-active:#d3b87c; --accent:#8722aa;
+    body {margin:0; font-family:Arial,sans-serif; background:#f5e9b8; color:#6f4e1a;}
+    .container {max-width:1000px; margin:30px auto; padding:0 20px;}
+    h1 {text-align:center; color:#4e2710; margin-bottom:30px;}
+    form {background:#fff8eb; border:2px solid #dab97a; border-radius:12px;
+          padding:16px; box-shadow:0 2px 8px rgba(0,0,0,0.12); margin-bottom:30px;}
+    form h2 {margin-top:0; color:#7a5f35;}
+    label {display:block; margin:10px 0 4px;}
+    input[type=text], textarea {
+      width:100%; padding:8px; border:1px solid #dab97a; border-radius:6px;
+      background:#fffdf6; font-family:inherit;
     }
-    *{box-sizing:border-box}
-    body{ background:var(--bg); color:var(--text); font-family:Arial, sans-serif; margin:0; }
-    .container{ display:grid; grid-template-columns: 290px 1fr; gap:16px; max-width:1200px; margin:16px auto 28px; padding:0 16px; }
-    @media (max-width:900px){ .container{ grid-template-columns:1fr; } }
-
-    /* Sidebar */
-    .panel{ background:var(--card); border:2px solid var(--border); border-radius:12px; box-shadow:0 6px 22px rgba(168,139,84,.18); padding:12px; }
-    .panel h2{ margin:4px 0 10px; font-size:18px; }
-    .booklist{ max-height:70vh; overflow:auto; padding-right:6px; }
-    .book{ display:flex; justify-content:space-between; align-items:center; gap:8px; padding:8px 10px; margin:4px 0; border:1.5px solid var(--chip-border); background:var(--chip); border-radius:8px; cursor:pointer; }
-    .book:hover{ background:var(--chip-active); }
-    .book .name{ font-weight:700; }
-    .chapters{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
-    .chap{ padding:6px 8px; border:1.5px solid var(--chip-border); border-radius:6px; background:#fffef8; cursor:pointer; font-weight:700; }
-    .chap.active{ background:var(--chip-active); border-color:#8c6a2b; }
-
-    /* Content */
-    .content{ display:flex; flex-direction:column; gap:12px; }
-    .toolbar{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between; background:var(--card); border:2px solid var(--border); border-radius:12px; padding:10px 12px; }
-    .row{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-    .btn{ background:var(--chip); border:1.5px solid var(--chip-border); border-radius:8px; padding:9px 12px; font-weight:700; cursor:pointer; }
-    .btn:disabled{ opacity:.55; cursor:not-allowed; }
-    .title{ font-weight:800; font-size:18px; }
-    .status{ font-size:14px; opacity:.8; }
-
-    .reader{ position:relative; min-height:60vh; background:#fffef8; border:2px solid var(--border); border-radius:12px; overflow:hidden; box-shadow:0 6px 22px rgba(168,139,84,.25); }
-    .text{ padding:18px 18px 90px; line-height:1.55; font-size:18px; white-space:pre-wrap; }
-    .muted{ opacity:.65; font-style:italic; }
-
-    .loader{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:linear-gradient(180deg, rgba(245,233,184,.6), rgba(245,233,184,.2)); backdrop-filter: blur(2px); opacity:0; pointer-events:none; transition:opacity .2s ease; }
-    .loader.show{ opacity:1; pointer-events:auto; }
-    .spinner{ width:42px; height:42px; border-radius:50%; border:4px solid rgba(111,78,26,.25); border-top-color:var(--accent); animation:spin 1s linear infinite; }
-    @keyframes spin{ to{ transform:rotate(360deg); } }
-
-    .footnote{ text-align:center; font-size:.92em; opacity:.85; margin-top:-6px; }
-    .footnote a{ color:inherit; }
+    textarea {min-height:100px; resize:vertical;}
+    .form-row {margin-top:12px; display:flex; gap:10px; align-items:center;}
+    button {
+      background:#7bb235; color:#fff; border:none; padding:8px 16px;
+      border-radius:8px; cursor:pointer; font-weight:bold;
+    }
+    button:hover {background:#5e8e29;}
+    .quiz-vraag, .plaat-blok {
+      background:#fff; border:1px solid #dab97a; border-radius:8px;
+      padding:10px; margin-top:10px;
+    }
+    .quiz-vraag h4, .plaat-blok h4 {margin:0 0 6px; color:#7a5f35;}
+    .les-lijst {display:flex; flex-direction:column; gap:14px;}
+    .les-kaart {background:#fff; border:2px solid #dab97a; border-radius:10px;
+                padding:14px; box-shadow:0 2px 6px rgba(0,0,0,0.1);}
+    .les-kaart h3 {margin:0; color:#7a5f35;}
+    .les-kaart small {color:#8f7437;}
+    .les-kaart .acties {margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;}
+    .les-kaart button {padding:6px 10px; font-size:0.9em;}
   </style>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 </head>
 <body>
-  <!-- HEADER (gedeeld via layout.js) -->
-  <div id="volwassen-header"></div>
-  <script src="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/common/layout.js"></script>
+  <div id="volwassen-header" data-header-src="../common/header.html"></div>
+  <script src="../common/layout.js"></script>
+
+  <div class="container">
+    <h1>📖 Catecheselessen</h1>
+
+    <form id="nieuweLesForm">
+      <h2>Nieuwe les toevoegen</h2>
+      <label for="lesTitel">Titel</label>
+      <input type="text" id="lesTitel" required>
+
+      <!-- Meerdere platen -->
+      <h3>Vertelplaten</h3>
+      <div id="platenContainer"></div>
+      <button type="button" onclick="voegPlaatToe()">➕ Plaat toevoegen</button>
+
+      <h3>Quizvragen</h3>
+      <div id="quizContainer"></div>
+      <button type="button" onclick="voegVraagToe()">➕ Vraag toevoegen</button>
+
+      <div class="form-row">
+        <label><input type="checkbox" id="lesZichtbaar"> Zichtbaar voor klasje</label>
+        <button type="submit">📌 Opslaan</button>
+      </div>
+    </form>
+
+    <div id="lessenOverzicht" class="les-lijst">Laden…</div>
+  </div>
+
+  <script>
+    // Firebase config (zelfde als werkende catechese-pagina)
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+
+    const parochieId = localStorage.getItem("ingelogdeParochie");
+    const form = document.getElementById("nieuweLesForm");
+    const overzicht = document.getElementById("lessenOverzicht");
+    const quizContainer = document.getElementById("quizContainer");
+    const platenContainer = document.getElementById("platenContainer");
+
+    // ➕ Plaat toevoegen
+    function voegPlaatToe() {
+      const idx = platenContainer.children.length+1;
+      const div = document.createElement("div");
+      div.className = "plaat-blok";
+      div.innerHTML = `
+        <h4>Plaat ${idx}</h4>
+        <label>Afbeelding:</label>
+        <input type="file" class="plaatFile" accept="image/*"><br>
+        <label>Tekst onder afbeelding:</label>
+        <textarea class="plaatTekst"></textarea>
+      `;
+      platenContainer.appendChild(div);
+    }
+
+    // ➕ Vraag toevoegen
+    function voegVraagToe() {
+      const idx = quizContainer.children.length+1;
+      const div = document.createElement("div");
+      div.className = "quiz-vraag";
+      div.innerHTML = `
+        <h4>Vraag ${idx}</h4>
+        <label>Vraag:</label>
+        <input type="text" class="vraag">
+        <label>Antwoorden (4 stuks):</label>
+        <input type="text" class="antw"><br>
+        <input type="text" class="antw"><br>
+        <input type="text" class="antw"><br>
+        <input type="text" class="antw"><br>
+        <label>Correct antwoord (1-4):</label>
+        <input type="number" min="1" max="4" class="correct" value="1">
+      `;
+      quizContainer.appendChild(div);
+    }
+
+    // Les opslaan
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const titel = document.getElementById("lesTitel").value.trim();
+      const zichtbaar = document.getElementById("lesZichtbaar").checked;
+      if (!titel) return alert("Titel is verplicht");
+
+      const platen = [];
+      for (let blok of platenContainer.querySelectorAll(".plaat-blok")) {
+        const file = blok.querySelector(".plaatFile").files[0];
+        const tekst = blok.querySelector(".plaatTekst").value.trim();
+        if (file) {
+          const pad = "catecheselessen/" + Date.now() + "_" + file.name;
+          const snap = await storage.ref(pad).put(file, { contentType:file.type });
+          const url = await snap.ref.getDownloadURL();
+          platen.push({ url, tekst });
+        }
+      }
+
+      const vragen = [];
+      quizContainer.querySelectorAll(".quiz-vraag").forEach(div => {
+        const vraag = div.querySelector(".vraag").value.trim();
+        const antwoorden = [...div.querySelectorAll(".antw")].map(i => i.value.trim());
+        const correct = parseInt(div.querySelector(".correct").value)-1;
+        if (vraag && antwoorden.filter(a=>a).length===4) {
+          vragen.push({ vraag, antwoorden, correct });
+        }
+      });
+
+      try {
+        await db.collection("parochies").doc(parochieId).collection("catecheselessen").add({
+          titel, zichtbaar, platen, vragen, aangemaaktOp:new Date()
+        });
+        form.reset();
+        platenContainer.innerHTML = "";
+        quizContainer.innerHTML = "";
+        laadLessen();
+      } catch(err) {
+        console.error(err);
+        alert("❌ Fout: "+err.message);
+      }
+    });
+
+    // Lessen laden
+    async function laadLessen() {
+      overzicht.innerHTML = "Laden…";
+      const snap = await db.collection("parochies").doc(parochieId).collection("catecheselessen")
+        .orderBy("aangemaaktOp","desc").get();
+      overzicht.innerHTML = "";
+      if (snap.empty) { overzicht.innerHTML = "<p>Geen lessen toegevoegd.</p>"; return; }
+      snap.forEach(doc => {
+        const d = doc.data();
+        const when = d.aangemaaktOp?.toDate ? d.aangemaaktOp.toDate().toLocaleString() : "";
+        const kaart = document.createElement("div");
+        kaart.className = "les-kaart";
+        let platenHTML = "";
+        if (d.platen) {
+          d.platen.forEach(p => {
+            platenHTML += `<div><img src="${p.url}" style="max-width:100%;border-radius:8px;margin:10px 0"><p>${p.tekst}</p></div>`;
+          });
+        }
+        kaart.innerHTML = `
+          <h3>${d.titel}</h3>
+          <small>${when}</small>
+          ${platenHTML}
+          ${d.vragen?.length ? `<p><em>Quizvragen: ${d.vragen.length}</em></p>` : ""}
+          <div class="acties">
+            <button onclick="toggleZichtbaar('${doc.id}',${d.zichtbaar})">${d.zichtbaar ? "🔒 Verbergen" : "👁 Zichtbaar maken"}</button>
+            <button onclick="verwijderLes('${doc.id}')">🗑 Verwijderen</button>
+          </div>
+        `;
+        overzicht.appendChild(kaart);
+      });
+    }
+
+    async function toggleZichtbaar(id,huidig){
+      await db.collection("parochies").doc(parochieId).collection("catecheselessen").doc(id)
+        .update({zichtbaar:!huidig});
+      laadLessen();
+    }
+
+    async function verwijderLes(id){
+      if (!confirm("Weet je zeker dat je deze les wil verwijderen?")) return;
+      await db.collection("parochies").doc(parochieId).collection("catecheselessen").doc(id).delete();
+      laadLessen();
+    }
+
+    laadLessen();
+  </script>
+</body>
+</html>
