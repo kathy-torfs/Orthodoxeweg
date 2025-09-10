@@ -14,15 +14,24 @@
     main{ max-width: 900px; margin: 24px auto; padding: 0 2vw; }
     h1{color:#7bb235}
 
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
     .card{
-      background:#fffef9; border:1.5px solid #f1e6c8; border-radius:20px;
-      box-shadow:0 6px 24px rgba(0,0,0,.06); padding:18px; text-align:center;
-      cursor:pointer; transition:transform .2s, box-shadow .2s;
+      background:#fffef9; border:1.5px solid #f1e6c8; border-radius:16px;
+      box-shadow:0 4px 16px rgba(0,0,0,.08); padding:16px; text-align:center;
+      transition:transform .2s, box-shadow .2s; cursor:pointer;
     }
-    .card:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(0,0,0,.15);}
-    .card h3{margin:8px 0;color:#7bb235}
-    .card img{max-width:100%;border-radius:12px;margin-bottom:10px}
+    .card:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,.15);}
+    .card .icon{font-size:48px; margin-bottom:8px; color:#7bb235;}
+    .card img{
+      max-width:100%; max-height:80px; object-fit:cover;
+      border-radius:8px; margin-bottom:6px;
+    }
+    .card h3{margin:6px 0;color:#7bb235;font-size:1.1rem}
+    .card button{
+      background:#7bb235;color:#fff;border:none;border-radius:6px;
+      padding:6px 10px;font-weight:bold;cursor:pointer
+    }
+    .card button:hover{background:#5e8f1c}
 
     #lesModal{position:fixed;inset:0;background:rgba(0,0,0,.5);
       display:none;align-items:center;justify-content:center;z-index:1000}
@@ -35,7 +44,7 @@
     .quiz-vraag h4{margin:0 0 8px;color:#7a5f35}
     .quiz-vraag label{display:block;margin:4px 0}
     .btn{background:#7bb235;color:#fff;border:none;border-radius:8px;
-      padding:8px 16px;font-weight:bold;cursor:pointer;margin-top:10px}
+      padding:8px 16px;font-weight:bold;cursor:pointer;margin:6px 4px}
     .btn:hover{background:#5e8f1c}
   </style>
 
@@ -57,6 +66,7 @@
   <div id="lesModal">
     <div class="content">
       <button class="btn" onclick="sluitLes()">❌ Sluiten</button>
+      <button class="btn" onclick="printLes()">🖨 Printen</button>
       <div id="lesDetail"></div>
     </div>
   </div>
@@ -99,21 +109,16 @@
         }
         snap.forEach(doc=>{
           const d=doc.data();
+          const eerstePlaat = d.platen && d.platen[0] ? d.platen[0].url : null;
+
           const kaart=document.createElement("div");
           kaart.className="card";
-
-          // Toon de eerste plaat als preview
-          let previewImg = "";
-          if(d.platen && d.platen.length){
-            previewImg = `<img src="${d.platen[0].url}" alt="plaat">`;
-          }
-
           kaart.innerHTML=`
-            ${previewImg}
+            <div class="icon">📖</div>
+            ${eerstePlaat ? `<img src="${eerstePlaat}" alt="plaat">` : ""}
             <h3>${d.titel}</h3>
-            <p>${(d.platen && d.platen[0]?.tekst) ? d.platen[0].tekst.substring(0,60)+"…" : ""}</p>
+            <button onclick="openLes('${doc.id}')">Klik om te lezen</button>
           `;
-          kaart.onclick=()=>openLes(doc.id,d);
           grid.appendChild(kaart);
         });
       }catch(e){
@@ -122,18 +127,20 @@
       }
     }
 
-    function openLes(id,d){
+    async function openLes(id){
+      const doc = await db.collection("parochies").doc(parochieId)
+        .collection("catecheselessen").doc(id).get();
+      const d=doc.data();
+
       modal.style.display="flex";
       let html=`<h2>${d.titel}</h2>`;
 
-      // Alle platen tonen
       if(d.platen && d.platen.length){
         d.platen.forEach(p=>{
           html += `<div><img src="${p.url}" style="max-width:100%;border-radius:10px"><p>${p.tekst||""}</p></div>`;
         });
       }
 
-      // Quizvragen
       if(d.vragen&&d.vragen.length){
         html+="<h3>Quiz</h3>";
         d.vragen.forEach((v,i)=>{
@@ -143,7 +150,7 @@
           });
           html+="</div>";
         });
-        html+=`<button class="btn" onclick="indienenQuiz('${id}',${d.vragen.length})">Indienen</button>`;
+        html+=`<button class="btn" onclick="indienenQuiz('${doc.id}',${d.vragen.length})">Indienen</button>`;
       }
       detail.innerHTML=html;
     }
@@ -151,6 +158,16 @@
     function sluitLes(){
       modal.style.display="none";
       detail.innerHTML="";
+    }
+
+    function printLes(){
+      const inhoud = document.getElementById("lesDetail").innerHTML;
+      const w = window.open("", "_blank");
+      w.document.write("<html><head><title>Les print</title></head><body>");
+      w.document.write(inhoud);
+      w.document.write("</body></html>");
+      w.document.close();
+      w.print();
     }
 
     async function indienenQuiz(lesId,aantal){
@@ -168,7 +185,6 @@
       let score=0;
       antwoorden.forEach((a,i)=>{if(a===les.vragen[i].correct) score++;});
 
-      // ✅ Opslaan bij dit kind
       await db.collection("parochies").doc(parochieId)
         .collection("leden").doc(ouderId)
         .collection("kinderen").doc(kindId)
