@@ -70,32 +70,32 @@
     <h1>📬 Mijn berichten</h1>
 
     <div class="tabs">
-      <button class="tab-btn active" onclick="toonTab('ontvangen')">📮 Ontvangen</button>
-      <button class="tab-btn" onclick="toonTab('verzonden')">✉️ Verzend</button>
-      <button class="tab-btn" onclick="toonTab('nieuw')">🖊 Nieuw</button>
-    </div>
-
-    <!-- Ontvangen -->
-    <div id="ontvangen" class="tab-content">
-      <div id="ontvangenLijst" class="briefjes">Laden...</div>
-    </div>
-
-    <!-- Verzonden -->
-    <div id="verzonden" class="tab-content" style="display:none;">
-      <div id="verzondenLijst" class="briefjes">Laden...</div>
+      <button class="tab-btn active" onclick="toonTab('nieuw')">🖊 Nieuw</button>
+      <button class="tab-btn" onclick="toonTab('ontvangen')">📮 Ontvangen</button>
+      <button class="tab-btn" onclick="toonTab('verzonden')">✉️ Verzonden</button>
     </div>
 
     <!-- Nieuw bericht -->
-    <div id="nieuw" class="tab-content" style="display:none;">
+    <div id="nieuw" class="tab-content">
       <form class="nieuw-form" onsubmit="verstuurBericht(event)">
         <label for="naar">Aan:</label>
-        <select id="naar" required><option>Even laden...</option></select>
+        <select id="naar" required><option>Laden...</option></select>
 
         <label for="inhoud">Bericht:</label>
         <textarea id="inhoud" required></textarea>
 
         <button class="btn" type="submit">📨 Verstuur</button>
       </form>
+    </div>
+
+    <!-- Ontvangen -->
+    <div id="ontvangen" class="tab-content" style="display:none;">
+      <div id="ontvangenLijst" class="briefjes"></div>
+    </div>
+
+    <!-- Verzonden -->
+    <div id="verzonden" class="tab-content" style="display:none;">
+      <div id="verzondenLijst" class="briefjes"></div>
     </div>
   </main>
 
@@ -128,12 +128,11 @@
       sel.innerHTML="";
       const snap=await db.collection("parochies").doc(parochieId).collection("leden")
         .where("rol","==","catecheet").get();
-      if(snap.empty){ sel.innerHTML="<option>Geen catecheet gevonden</option>"; return;}
       snap.forEach(doc=>{
         const d=doc.data();
         const optie=document.createElement("option");
         optie.value=doc.id;
-        optie.textContent=d.naam||"Catecheet";
+        optie.textContent=d.voornaam || "Catecheet";
         sel.appendChild(optie);
       });
     }
@@ -143,34 +142,30 @@
       // Naam van kind ophalen
       const kindDoc=await db.collection("parochies").doc(parochieId)
         .collection("leden").doc(ouderId).collection("kinderen").doc(kindId).get();
-      if(kindDoc.exists) kindNaam=kindDoc.data().doopnaam||"Kind";
+      if(kindDoc.exists) kindNaam=kindDoc.data().voornaam||"Kind";
 
       // Ontvangen
       const snapOntv=await db.collection("parochies").doc(parochieId)
-        .collection("berichten").where("ontvangerId","==",kindId).orderBy("datum","desc").get();
-      const ov=document.getElementById("ontvangenLijst"); ov.innerHTML="";
-      if(snapOntv.empty){ ov.innerHTML="<p>Geen ontvangen berichten.</p>"; }
-      snapOntv.forEach(doc=>{
-        const d=doc.data();
-        const div=document.createElement("div"); div.className="briefje";
-        div.innerHTML=`<h3>Van: ${d.vanNaam||"Onbekend"}</h3>
-                       <small>${d.datum?.toDate().toLocaleString()}</small>
-                       <p>${d.inhoud}</p>`;
-        ov.appendChild(div);
-      });
+        .collection("berichten").where("ontvangerId","==",kindId).get();
+      toonBerichten(snapOntv,"ontvangenLijst","Van");
 
       // Verzonden
       const snapVerz=await db.collection("parochies").doc(parochieId)
-        .collection("berichten").where("verzenderId","==",kindId).orderBy("datum","desc").get();
-      const vz=document.getElementById("verzondenLijst"); vz.innerHTML="";
-      if(snapVerz.empty){ vz.innerHTML="<p>Geen verzonden berichten.</p>"; }
-      snapVerz.forEach(doc=>{
+        .collection("berichten").where("verzenderId","==",kindId).get();
+      toonBerichten(snapVerz,"verzondenLijst","Aan");
+    }
+
+    function toonBerichten(snap,elementId,label){
+      const lijst=document.getElementById(elementId);
+      lijst.innerHTML="";
+      if(snap.empty){ return; }
+      snap.forEach(doc=>{
         const d=doc.data();
         const div=document.createElement("div"); div.className="briefje";
-        div.innerHTML=`<h3>Aan: ${d.naarNaam||"Catecheet"}</h3>
-                       <small>${d.datum?.toDate().toLocaleString()}</small>
-                       <p>${d.inhoud}</p>`;
-        vz.appendChild(div);
+        const naam = (label==="Van") ? (d.vanNaam||"Onbekend") : (d.naarNaam||"Catecheet");
+        const datum = d.datum?.toDate ? d.datum.toDate().toLocaleString() : "";
+        div.innerHTML=`<h3>${label}: ${naam}</h3><small>${datum}</small><p>${d.inhoud}</p>`;
+        lijst.appendChild(div);
       });
     }
 
@@ -182,7 +177,7 @@
       if(!naarId||!inhoud) return alert("Vul alles in!");
 
       const catDoc=await db.collection("parochies").doc(parochieId).collection("leden").doc(naarId).get();
-      const catechNaam=catDoc.exists?catDoc.data().naam:"Catecheet";
+      const catechNaam=catDoc.exists?(catDoc.data().voornaam||"Catecheet"):"Catecheet";
 
       await db.collection("parochies").doc(parochieId).collection("berichten").add({
         ontvangerId:naarId,
