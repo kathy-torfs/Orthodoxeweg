@@ -39,11 +39,18 @@
     .briefje:hover{ transform:scale(1.05); }
     .briefje h3{ margin:0 0 6px; color:#7bb235; font-size:1.1em; }
     .briefje small{ display:block; margin-bottom:6px; color:#6f5a28; font-size:.85em; }
+    .actieknoppen { margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; }
+    .btn {
+      background:#7bb235; color:#fff; border:none; border-radius:8px;
+      padding:6px 12px; font-weight:bold; cursor:pointer;
+      font-size:.9em;
+    }
+    .btn:hover{ background:#5e8e29; }
 
     /* Nieuw bericht formulier */
     .nieuw-form {
       background:#fffdf5; border:2px dashed #e0c46c;
-      border-radius:14px; padding:18px; box-shadow:0 4px 10px rgba(0,0,0,.08);
+      border-radius:14px; padding:18px; box-shadow:0 4px 10px rgba(0,0,.08);
     }
     label { display:block; margin:10px 0 4px; font-weight:bold; }
     select, textarea {
@@ -51,11 +58,6 @@
       padding:8px; font-family:inherit; font-size:1em;
     }
     textarea { min-height:100px; resize:vertical; }
-    .btn {
-      background:#7bb235; color:#fff; border:none; border-radius:8px;
-      padding:10px 16px; margin-top:12px; font-weight:bold; cursor:pointer;
-    }
-    .btn:hover{ background:#5e8e29; }
   </style>
 
   <!-- Firebase -->
@@ -70,9 +72,9 @@
     <h1>📬 Mijn berichten</h1>
 
     <div class="tabs">
-      <button class="tab-btn active" onclick="toonTab('nieuw')">🖊 Nieuw</button>
-      <button class="tab-btn" onclick="toonTab('ontvangen')">📮 Ontvangen</button>
-      <button class="tab-btn" onclick="toonTab('verzonden')">✉️ Verzonden</button>
+      <button class="tab-btn active" onclick="toonTab(event,'nieuw')">🖊 Nieuw</button>
+      <button class="tab-btn" onclick="toonTab(event,'ontvangen')">📮 Ontvangen</button>
+      <button class="tab-btn" onclick="toonTab(event,'verzonden')">✉️ Verzonden</button>
     </div>
 
     <!-- Nieuw bericht -->
@@ -83,6 +85,8 @@
 
         <label for="inhoud">Bericht:</label>
         <textarea id="inhoud" required></textarea>
+
+        <input type="hidden" id="antwoordOp">
 
         <button class="btn" type="submit">📨 Verstuur</button>
       </form>
@@ -114,12 +118,12 @@
     const kindId=localStorage.getItem("ingelogdKindId");
     let kindNaam="(onbekend)";
 
-    // Tabs wisselen
-    function toonTab(id){
+    // Tabs
+    function toonTab(ev,id){
       document.querySelectorAll(".tab-content").forEach(div=>div.style.display="none");
       document.getElementById(id).style.display="block";
       document.querySelectorAll(".tab-btn").forEach(btn=>btn.classList.remove("active"));
-      event.target.classList.add("active");
+      ev.target.classList.add("active");
     }
 
     // Catecheten ophalen
@@ -137,9 +141,9 @@
       });
     }
 
-    // Ontvangen & Verzonden
+    // Berichten laden
     async function laadBerichten(){
-      // Naam van kind ophalen
+      // Naam kind ophalen
       const kindDoc=await db.collection("parochies").doc(parochieId)
         .collection("leden").doc(ouderId).collection("kinderen").doc(kindId).get();
       if(kindDoc.exists) kindNaam=kindDoc.data().voornaam||"Kind";
@@ -147,26 +151,60 @@
       // Ontvangen
       const snapOntv=await db.collection("parochies").doc(parochieId)
         .collection("berichten").where("ontvangerId","==",kindId).get();
-      toonBerichten(snapOntv,"ontvangenLijst","Van");
+      toonBerichten(snapOntv,"ontvangenLijst","Van",true);
 
       // Verzonden
       const snapVerz=await db.collection("parochies").doc(parochieId)
         .collection("berichten").where("verzenderId","==",kindId).get();
-      toonBerichten(snapVerz,"verzondenLijst","Aan");
+      toonBerichten(snapVerz,"verzondenLijst","Aan",false);
     }
 
-    function toonBerichten(snap,elementId,label){
+    function toonBerichten(snap,elementId,label,isOntvangen){
       const lijst=document.getElementById(elementId);
       lijst.innerHTML="";
       if(snap.empty){ return; }
       snap.forEach(doc=>{
         const d=doc.data();
+        if(d.verborgenVoorKind) return;
         const div=document.createElement("div"); div.className="briefje";
         const naam = (label==="Van") ? (d.vanNaam||"Onbekend") : (d.naarNaam||"Catecheet");
         const datum = d.datum?.toDate ? d.datum.toDate().toLocaleString() : "";
-        div.innerHTML=`<h3>${label}: ${naam}</h3><small>${datum}</small><p>${d.inhoud}</p>`;
+        let extra = d.antwoordOp ? `<blockquote style="font-size:.85em;color:#555;border-left:3px solid #ccc;padding-left:6px;">${d.antwoordOp}</blockquote>` : "";
+        div.innerHTML=`<h3>${label}: ${naam}</h3><small>${datum}</small><p>${d.inhoud}</p>${extra}`;
+        const acties=document.createElement("div");
+        acties.className="actieknoppen";
+        if(isOntvangen){
+          const antwoordBtn=document.createElement("button");
+          antwoordBtn.className="btn"; antwoordBtn.textContent="✏️ Antwoorden";
+          antwoordBtn.onclick=()=>antwoordOpBericht(doc.id,d);
+          acties.appendChild(antwoordBtn);
+        }
+        const verwijderBtn=document.createElement("button");
+        verwijderBtn.className="btn"; verwijderBtn.textContent="🗑 Verwijder";
+        verwijderBtn.onclick=()=>verwijderBericht(doc.id);
+        acties.appendChild(verwijderBtn);
+        div.appendChild(acties);
         lijst.appendChild(div);
       });
+    }
+
+    async function verwijderBericht(berichtId){
+      const ref=db.collection("parochies").doc(parochieId).collection("berichten").doc(berichtId);
+      const snap=await ref.get();
+      if(!snap.exists) return;
+      const data=snap.data();
+      await ref.update({verborgenVoorKind:true});
+      if(data.verborgenVoorCatecheet){
+        await ref.delete();
+      }
+      laadBerichten();
+    }
+
+    function antwoordOpBericht(berichtId,data){
+      toonTab({target:document.querySelectorAll(".tab-btn")[0]},"nieuw");
+      document.getElementById("naar").value=data.verzenderId; // antwoord naar de afzender
+      document.getElementById("inhoud").value="";
+      document.getElementById("antwoordOp").value=`${data.vanNaam}: ${data.inhoud}`;
     }
 
     // Versturen
@@ -174,6 +212,7 @@
       e.preventDefault();
       const naarId=document.getElementById("naar").value;
       const inhoud=document.getElementById("inhoud").value.trim();
+      const antwoordOp=document.getElementById("antwoordOp").value.trim();
       if(!naarId||!inhoud) return alert("Vul alles in!");
 
       const catDoc=await db.collection("parochies").doc(parochieId).collection("leden").doc(naarId).get();
@@ -184,13 +223,17 @@
         naarNaam:catechNaam,
         verzenderId:kindId,
         vanNaam:kindNaam,
-        inhoud, datum:new Date()
+        inhoud, datum:new Date(),
+        antwoordOp:antwoordOp||null,
+        verborgenVoorKind:false,
+        verborgenVoorCatecheet:false
       });
 
       alert("📨 Bericht verstuurd!");
       document.getElementById("inhoud").value="";
+      document.getElementById("antwoordOp").value="";
       laadBerichten();
-      toonTab("verzonden");
+      toonTab({target:document.querySelectorAll(".tab-btn")[2]},"verzonden");
     }
 
     laadCatecheten();
