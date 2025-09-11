@@ -34,6 +34,11 @@
     .briefje:hover{ transform:scale(1.03); }
     .briefje h3{ margin:0 0 6px; color:#7a5f35; font-size:1.1em; }
     .briefje small{ display:block; margin-bottom:6px; color:#6f5a28; font-size:.85em; }
+    .briefje button {
+      margin-top:8px; padding:6px 12px; border:none;
+      background:#7a5f35; color:#fff; border-radius:6px; cursor:pointer;
+    }
+    .briefje button:hover { background:#5e4826; }
 
     .nieuw-form {
       background:#fffef9; border:2px dashed #c7a64c;
@@ -50,6 +55,11 @@
       padding:10px 16px; margin-top:12px; font-weight:bold; cursor:pointer;
     }
     .btn:hover{ background:#5e4826; }
+
+    .quote-box {
+      margin-top:12px; padding:10px; border-left:4px solid #c7a64c;
+      background:#fffbe2; font-size:.9em; color:#5a4720; border-radius:6px;
+    }
   </style>
 
   <!-- Firebase -->
@@ -64,9 +74,9 @@
     <h1>📬 Berichten – Catecheet</h1>
 
     <div class="tabs">
-      <button class="tab-btn active" onclick="toonTab('nieuw')">🖊 Nieuw</button>
-      <button class="tab-btn" onclick="toonTab('ontvangen')">📮 Ontvangen</button>
-      <button class="tab-btn" onclick="toonTab('verzonden')">✉️ Verzonden</button>
+      <button class="tab-btn active" onclick="toonTab(event,'nieuw')">🖊 Nieuw</button>
+      <button class="tab-btn" onclick="toonTab(event,'ontvangen')">📮 Ontvangen</button>
+      <button class="tab-btn" onclick="toonTab(event,'verzonden')">✉️ Verzonden</button>
     </div>
 
     <!-- Nieuw bericht -->
@@ -77,6 +87,9 @@
 
         <label for="inhoud">Bericht:</label>
         <textarea id="inhoud" required></textarea>
+
+        <!-- hier komt het citaat -->
+        <div id="quote" class="quote-box" style="display:none;"></div>
 
         <button class="btn" type="submit">📨 Verstuur</button>
       </form>
@@ -104,14 +117,18 @@
     const db=firebase.firestore();
 
     const parochieId=localStorage.getItem("ingelogdeParochie");
-    const catecheetId=localStorage.getItem("loginKeuze"); // catecheet zelf
+    const catecheetId=localStorage.getItem("loginKeuze");
     let catecheetNaam="Catecheet";
 
-    function toonTab(id){
+    function toonTab(ev,id){
       document.querySelectorAll(".tab-content").forEach(div=>div.style.display="none");
       document.getElementById(id).style.display="block";
       document.querySelectorAll(".tab-btn").forEach(btn=>btn.classList.remove("active"));
-      event.target.classList.add("active");
+      if(ev) ev.target.classList.add("active");
+      if(id==="nieuw"){
+        document.getElementById("quote").style.display="none";
+        document.getElementById("quote").innerHTML="";
+      }
     }
 
     // Kinderen ophalen
@@ -119,36 +136,32 @@
       const sel=document.getElementById("naar");
       sel.innerHTML="";
       const ledenSnap=await db.collection("parochies").doc(parochieId).collection("leden").get();
-      ledenSnap.forEach(ld=>{
-        ld.ref.collection("kinderen").get().then(childrenSnap=>{
-          childrenSnap.forEach(cd=>{
-            const c=cd.data();
-            const opt=document.createElement("option");
-            opt.value=cd.id;
-            opt.textContent=c.voornaam||"Kind";
-            sel.appendChild(opt);
-          });
+      for(const ouder of ledenSnap.docs){
+        const kidsSnap=await ouder.ref.collection("kinderen").get();
+        kidsSnap.forEach(cd=>{
+          const c=cd.data();
+          const opt=document.createElement("option");
+          opt.value=cd.id;
+          opt.textContent=c.voornaam||"Kind";
+          sel.appendChild(opt);
         });
-      });
+      }
     }
 
     async function laadBerichten(){
-      // Catecheet naam
       const doc=await db.collection("parochies").doc(parochieId).collection("leden").doc(catecheetId).get();
       if(doc.exists) catecheetNaam=doc.data().voornaam||"Catecheet";
 
-      // Ontvangen
       const snapOntv=await db.collection("parochies").doc(parochieId)
         .collection("berichten").where("ontvangerId","==",catecheetId).get();
-      toonBerichten(snapOntv,"ontvangenLijst","Van");
+      toonBerichten(snapOntv,"ontvangenLijst","Van",true);
 
-      // Verzonden
       const snapVerz=await db.collection("parochies").doc(parochieId)
         .collection("berichten").where("verzenderId","==",catecheetId).get();
-      toonBerichten(snapVerz,"verzondenLijst","Aan");
+      toonBerichten(snapVerz,"verzondenLijst","Aan",false);
     }
 
-    function toonBerichten(snap,elementId,label){
+    function toonBerichten(snap,elementId,label,kanAntwoorden){
       const lijst=document.getElementById(elementId);
       lijst.innerHTML="";
       if(snap.empty){ return; }
@@ -158,8 +171,26 @@
         const naam = (label==="Van") ? (d.vanNaam||"Onbekend") : (d.naarNaam||"Kind");
         const datum = d.datum?.toDate ? d.datum.toDate().toLocaleString() : "";
         div.innerHTML=`<h3>${label}: ${naam}</h3><small>${datum}</small><p>${d.inhoud}</p>`;
+        if(kanAntwoorden){
+          const btn=document.createElement("button");
+          btn.textContent="↩️ Antwoorden";
+          btn.onclick=()=>antwoordOpBericht(d.verzenderId,naam,d.inhoud);
+          div.appendChild(btn);
+        }
         lijst.appendChild(div);
       });
+    }
+
+    function antwoordOpBericht(kindId,kindNaam,origineel){
+      toonTab(null,"nieuw");
+      const sel=document.getElementById("naar");
+      sel.innerHTML=`<option value="${kindId}" selected>${kindNaam}</option>`;
+      document.getElementById("inhoud").focus();
+
+      // citaat invullen
+      const q=document.getElementById("quote");
+      q.style.display="block";
+      q.innerHTML="<strong>Citaat:</strong><br>"+origineel;
     }
 
     async function verstuurBericht(e){
@@ -168,9 +199,9 @@
       const inhoud=document.getElementById("inhoud").value.trim();
       if(!naarId||!inhoud) return alert("Vul alles in!");
 
-      const kindDoc=await db.collection("parochies").doc(parochieId).collection("leden").get();
       let kindNaam="Kind";
-      for(const ouder of kindDoc.docs){
+      const ledenSnap=await db.collection("parochies").doc(parochieId).collection("leden").get();
+      for(const ouder of ledenSnap.docs){
         const kd=await ouder.ref.collection("kinderen").doc(naarId).get();
         if(kd.exists){ kindNaam=kd.data().voornaam||"Kind"; break; }
       }
@@ -185,8 +216,9 @@
 
       alert("📨 Bericht verstuurd!");
       document.getElementById("inhoud").value="";
+      document.getElementById("quote").style.display="none";
       laadBerichten();
-      toonTab("verzonden");
+      toonTab(null,"verzonden");
     }
 
     laadKinderen();
