@@ -1,0 +1,265 @@
+<!DOCTYPE html> 
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recepten – Diversen</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
+  <style>
+    body {
+      background:#f5e9b8;
+      font-family: Arial, sans-serif;
+      color:#6f4e1a;
+      margin:0; padding:0;
+    }
+
+    h1 {
+      text-align:center;
+      padding:20px 0;
+      margin:0;
+    }
+
+    .container {
+      display:grid;
+      grid-template-columns: 280px 1fr;
+      gap:20px;
+      max-width:1200px;
+      margin:0 auto;
+      padding:20px;
+    }
+
+    /* Zijbalk met titels */
+    .sidebar {
+      background:#fff9e2;
+      border:2px solid #d6c290;
+      border-radius:12px;
+      padding:12px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      max-height:80vh;
+      overflow-y:auto;
+    }
+
+    .sidebar h3 {
+      margin:0 0 8px;
+      font-size:1.1em;
+      text-align:center;
+    }
+
+    .recept-titel {
+      padding:10px;
+      border-radius:8px;
+      background:#fff;
+      border:1px solid #dbc592;
+      cursor:pointer;
+      font-weight:600;
+      transition: background 0.2s;
+    }
+    .recept-titel:hover { background:#f7eecb; }
+    .recept-titel.active { background:#e9dba9; }
+
+    .plus-btn {
+      padding:10px;
+      text-align:center;
+      border:2px dashed #c7b177;
+      border-radius:8px;
+      cursor:pointer;
+      background:#fff9e2;
+      font-size:1.3em;
+      font-weight:bold;
+    }
+    .plus-btn:hover { background:#fff5cc; }
+
+    /* Detailweergave */
+    .detail {
+      background:#fffef9;
+      border:2px solid #e2d1a5;
+      border-radius:12px;
+      box-shadow:0 6px 18px rgba(0,0,0,0.12);
+      padding:20px;
+      min-height:500px;
+      position:relative;
+    }
+
+    .detail h2 {
+      text-align:center;
+      margin:0 0 15px;
+      font-size:1.8em;
+      border-bottom:2px solid #d6c290;
+      padding-bottom:8px;
+    }
+
+    .recept-content {
+      display:grid;
+      grid-template-columns:1fr 2fr;
+      gap:20px;
+    }
+
+    .sectie {
+      background:#faf9f3;
+      border:1px dashed #d8cfa8;
+      border-radius:8px;
+      padding:12px;
+    }
+    .sectie h4 { margin:0 0 8px; }
+
+    /* Printknop */
+    .print-btn {
+      position:absolute;
+      top:12px;
+      right:12px;
+      background:#7a5f35;
+      color:#fff;
+      border:none;
+      border-radius:50%;
+      width:38px;
+      height:38px;
+      cursor:pointer;
+      font-size:1.1em;
+    }
+
+    /* Invulvelden */
+    input, textarea {
+      width:100%;
+      border:1px solid #dbc592;
+      border-radius:8px;
+      padding:8px;
+      font-family:inherit;
+      font-size:1em;
+      background:#fffdf5;
+    }
+    textarea { min-height:150px; resize:vertical; }
+
+    .btn-row {
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      margin-top:10px;
+    }
+    .btn {
+      background:#7a5f35;
+      color:#fff;
+      border:none;
+      border-radius:8px;
+      padding:8px 16px;
+      cursor:pointer;
+      font-size:1em;
+    }
+    .btn.secondary { background:#b09765; }
+
+    @media print {
+      body { background:#fff; }
+      .sidebar, .btn-row, .print-btn { display:none !important; }
+      .detail { box-shadow:none; border:1px solid #000; width:100%; }
+      input, textarea { border:none; background:transparent; }
+    }
+  </style>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <!-- ==== HEADER ==== -->
+  <div id="volwassen-header" data-header-src="../common/header.html"></div>
+  <script src="../common/layout.js"></script>
+
+  <h1>🌿 Recepten – Diversen</h1>
+
+  <div class="container">
+    <!-- Zijbalk -->
+    <div class="sidebar">
+      <h3>📋 Receptenlijst</h3>
+      <div id="receptLijst"></div>
+      <div class="plus-btn" onclick="nieuwRecept()">＋ Nieuw recept</div>
+    </div>
+
+    <!-- Detailweergave -->
+    <div class="detail" id="receptDetail">
+      <p style="text-align:center;color:#888;margin-top:200px;">⬅️ Kies links een recept of voeg er een toe</p>
+    </div>
+  </div>
+
+  <script>
+    // Firebase init
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const categorie = "diversen";
+
+    // Laad lijst
+    async function laadRecepten() {
+      const lijst = document.getElementById("receptLijst");
+      lijst.innerHTML = "";
+      const snap = await db.collection("recepten").doc(categorie).collection("recepten").get();
+      snap.forEach(doc => {
+        const d = doc.data();
+        const div = document.createElement("div");
+        div.className = "recept-titel";
+        div.textContent = d.titel;
+        div.onclick = ()=>toonRecept(doc.id, d);
+        lijst.appendChild(div);
+      });
+    }
+
+    function toonRecept(id, d) {
+      const detail = document.getElementById("receptDetail");
+      detail.innerHTML = `
+        <button class="print-btn" onclick="printRecept()">🖨️</button>
+        <h2>${d.titel}</h2>
+        <div class="recept-content">
+          <div class="sectie">
+            <h4>Ingrediënten</h4>
+            <p>${(d.ingredienten||"").replace(/\n/g,"<br>")}</p>
+          </div>
+          <div class="sectie">
+            <h4>Bereiding</h4>
+            <p>${(d.bereiding||"").replace(/\n/g,"<br>")}</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function nieuwRecept() {
+      const detail = document.getElementById("receptDetail");
+      detail.innerHTML = `
+        <h2>Nieuw recept</h2>
+        <label>Titel<br><input id="newTitel"></label><br><br>
+        <label>Ingrediënten<br><textarea id="newIngred"></textarea></label><br><br>
+        <label>Bereiding<br><textarea id="newBereiding"></textarea></label>
+        <div class="btn-row">
+          <button class="btn secondary" onclick="laadRecepten();document.getElementById('receptDetail').innerHTML='<p style=\\'text-align:center;color:#888;margin-top:200px;\\'>⬅️ Kies links een recept of voeg er een toe</p>'">Annuleren</button>
+          <button class="btn" onclick="opslaanRecept()">Opslaan</button>
+        </div>
+      `;
+    }
+
+    async function opslaanRecept() {
+      const titel = document.getElementById("newTitel").value.trim();
+      const ingredienten = document.getElementById("newIngred").value.trim();
+      const bereiding = document.getElementById("newBereiding").value.trim();
+      if (!titel){ alert("Titel invullen"); return; }
+      const id = titel.toLowerCase().replace(/[^a-z0-9\s]/g,"").trim().replace(/\s+/g,"_");
+      await db.collection("recepten").doc(categorie).collection("recepten")
+        .doc(id).set({titel, ingredienten, bereiding, aangemaakt:new Date()});
+      laadRecepten();
+      toonRecept(id,{titel, ingredienten, bereiding});
+    }
+
+    function printRecept(){
+      window.print();
+    }
+
+    laadRecepten();
+  </script>
+</body>
+</html>
