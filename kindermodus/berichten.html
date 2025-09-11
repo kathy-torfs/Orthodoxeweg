@@ -1,30 +1,43 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Berichten – Orthodoxe Kinderpagina</title>
+  <title>📬 Berichten – Orthodoxe Kinderpagina</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
-
   <style>
-    body{margin:0;font-family:'Comic Sans MS', Arial, sans-serif;background:#fff6e5;color:#333;}
-    main{max-width:800px;margin:20px auto;padding:0 15px;}
+    body{margin:0;font-family:'Comic Sans MS', Arial, sans-serif;background:#fff6e5;color:#333}
+    main{max-width:900px;margin:24px auto;padding:0 2vw}
+    h1{color:#7bb235;text-align:center}
 
-    h1{color:#7bb235;text-align:center;}
+    /* Tabs */
+    .tab-buttons{display:flex;gap:10px;justify-content:center;margin:20px 0}
+    .tab-buttons button{
+      background:#7bb235;color:#fff;border:none;border-radius:8px;
+      padding:10px 18px;font-weight:bold;cursor:pointer
+    }
+    .tab-buttons button.active{background:#5e8f1c}
+    .tab-content{display:none}
+    .tab-content.active{display:block}
 
-    form{background:#fffef9;border:1px solid #e3d7b5;border-radius:12px;
-         padding:15px;margin-bottom:20px;box-shadow:0 4px 12px rgba(0,0,0,.08)}
-    label{display:block;margin-top:10px;font-weight:bold;}
-    select,textarea{width:100%;padding:8px;border-radius:8px;border:1px solid #dab97a;font-family:inherit;}
-    textarea{min-height:100px;}
-    button{margin-top:12px;background:#7bb235;color:#fff;border:none;
-           padding:8px 16px;border-radius:8px;font-weight:bold;cursor:pointer;}
-    button:hover{background:#5e8f1c;}
+    /* Berichtkaarten */
+    .bericht-kaart{
+      background:#fff;border:1px solid #dab97a;border-radius:10px;
+      padding:14px;margin:10px 0;box-shadow:0 2px 6px rgba(0,0,0,.1)
+    }
+    .bericht-kaart h3{margin:0 0 6px;color:#7bb235}
+    .bericht-kaart small{color:#8f7437;display:block;margin-bottom:8px}
 
-    .bericht-lijst{display:flex;flex-direction:column;gap:12px;}
-    .bericht{background:#fff;border:1px solid #dab97a;border-radius:10px;
-             padding:12px;box-shadow:0 2px 6px rgba(0,0,0,.1);}
-    .bericht small{color:#777;display:block;margin-top:6px;}
+    /* Nieuw bericht formulier */
+    form label{display:block;margin-top:10px}
+    form input, form textarea, form select{
+      width:100%;padding:8px;margin-top:4px;border:1px solid #dab97a;
+      border-radius:6px;font-family:inherit
+    }
+    form textarea{min-height:100px;resize:vertical}
+    form button{margin-top:14px;background:#7bb235;color:#fff;
+      border:none;padding:10px 16px;border-radius:8px;font-weight:bold;cursor:pointer}
+    form button:hover{background:#5e8f1c}
   </style>
 
   <!-- Firebase -->
@@ -37,105 +50,147 @@
   <div id="kinder-header" data-header-src="common/header.html"></div>
 
   <main>
-    <h1>💬 Berichten met je catecheet</h1>
+    <h1>📬 Mijn berichten</h1>
 
-    <form id="berichtForm">
-      <label for="ontvanger">Aan:</label>
-      <select id="ontvanger" required>
-        <option value="">Kies catecheet…</option>
-      </select>
+    <div class="tab-buttons">
+      <button onclick="openTab('ontvangen')" class="active">📥 Ontvangen</button>
+      <button onclick="openTab('verzonden')">📤 Verzonden</button>
+      <button onclick="openTab('nieuw')">➕ Nieuw</button>
+    </div>
 
-      <label for="inhoud">Bericht:</label>
-      <textarea id="inhoud" required></textarea>
+    <!-- Ontvangen -->
+    <div id="ontvangen" class="tab-content active">
+      <div id="ontvangenLijst">Laden…</div>
+    </div>
 
-      <button type="submit">📨 Versturen</button>
-    </form>
+    <!-- Verzonden -->
+    <div id="verzonden" class="tab-content">
+      <div id="verzondenLijst">Laden…</div>
+    </div>
 
-    <h2>📩 Mijn verstuurde berichten</h2>
-    <div id="mijnBerichten" class="bericht-lijst">Laden…</div>
+    <!-- Nieuw bericht -->
+    <div id="nieuw" class="tab-content">
+      <form id="berichtForm">
+        <label for="catecheetSelect">Aan catecheet:</label>
+        <select id="catecheetSelect" required>
+          <option value="">Kies catecheet...</option>
+        </select>
+
+        <label for="onderwerp">Onderwerp:</label>
+        <input type="text" id="onderwerp" required>
+
+        <label for="bericht">Bericht:</label>
+        <textarea id="bericht" required></textarea>
+
+        <button type="submit">📩 Versturen</button>
+      </form>
+    </div>
   </main>
 
   <script>
-    // Firebase config
     if (!firebase.apps.length) {
       firebase.initializeApp({
         apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
         authDomain:"orthodoxeweg.firebaseapp.com",
-        projectId:"orthodoxeweg",
+        projectId:"orthodoxeweg"
       });
     }
     const db=firebase.firestore();
 
-    // Context ophalen
     const parochieId = localStorage.getItem("ingelogdeParochie");
     const ouderId    = localStorage.getItem("loginKeuze");
     const kindId     = localStorage.getItem("ingelogdKindId");
 
-    const form=document.getElementById("berichtForm");
-    const ontvangerSelect=document.getElementById("ontvanger");
-    const mijnBerichten=document.getElementById("mijnBerichten");
+    const ontvangenDiv=document.getElementById("ontvangenLijst");
+    const verzondenDiv=document.getElementById("verzondenLijst");
+    const select=document.getElementById("catecheetSelect");
 
-    // Catecheten ophalen voor de keuzelijst
+    // Tabs wisselen
+    function openTab(tab){
+      document.querySelectorAll(".tab-content").forEach(el=>el.classList.remove("active"));
+      document.querySelectorAll(".tab-buttons button").forEach(el=>el.classList.remove("active"));
+      document.getElementById(tab).classList.add("active");
+      event.target.classList.add("active");
+    }
+
+    // Catecheten laden
     async function laadCatecheten(){
-      ontvangerSelect.innerHTML='<option value="">Kies catecheet…</option>';
-      try{
-        const snap=await db.collection("parochies").doc(parochieId)
-          .collection("leden").where("rol","==","catecheet").get();
-        snap.forEach(doc=>{
-          const d=doc.data();
-          ontvangerSelect.innerHTML+=`<option value="${doc.id}">${d.naam||"Catecheet"}</option>`;
-        });
-      }catch(e){console.error("Fout catecheten laden",e);}
+      if(!parochieId) return;
+      const snap=await db.collection("parochies").doc(parochieId).collection("leden")
+        .where("rol","==","catecheet").get();
+      snap.forEach(doc=>{
+        const d=doc.data();
+        const optie=document.createElement("option");
+        optie.value=doc.id;
+        optie.textContent=d.naam || "Catecheet";
+        select.appendChild(optie);
+      });
+    }
+
+    // Ontvangen laden
+    async function laadOntvangen(){
+      if(!parochieId||!ouderId||!kindId){ontvangenDiv.innerHTML="⚠️ Niet ingelogd.";return;}
+      const snap=await db.collection("parochies").doc(parochieId)
+        .collection("leden").doc(ouderId).collection("kinderen").doc(kindId)
+        .collection("berichtenOntvangen").orderBy("datum","desc").get();
+      ontvangenDiv.innerHTML="";
+      if(snap.empty){ontvangenDiv.innerHTML="<p>Geen berichten ontvangen.</p>";return;}
+      snap.forEach(doc=>{
+        const d=doc.data();
+        ontvangenDiv.innerHTML+=`
+          <div class="bericht-kaart">
+            <h3>${d.onderwerp}</h3>
+            <small>${new Date(d.datum.seconds*1000).toLocaleString()}</small>
+            <p>${d.tekst}</p>
+          </div>`;
+      });
+    }
+
+    // Verzonden laden
+    async function laadVerzonden(){
+      if(!parochieId||!ouderId||!kindId){verzondenDiv.innerHTML="⚠️ Niet ingelogd.";return;}
+      const snap=await db.collection("parochies").doc(parochieId)
+        .collection("leden").doc(ouderId).collection("kinderen").doc(kindId)
+        .collection("berichtenVerzonden").orderBy("datum","desc").get();
+      verzondenDiv.innerHTML="";
+      if(snap.empty){verzondenDiv.innerHTML="<p>Geen berichten verzonden.</p>";return;}
+      snap.forEach(doc=>{
+        const d=doc.data();
+        verzondenDiv.innerHTML+=`
+          <div class="bericht-kaart">
+            <h3>${d.onderwerp}</h3>
+            <small>${new Date(d.datum.seconds*1000).toLocaleString()}</small>
+            <p>${d.tekst}</p>
+          </div>`;
+      });
     }
 
     // Bericht versturen
-    form.addEventListener("submit",async(e)=>{
+    document.getElementById("berichtForm").addEventListener("submit", async e=>{
       e.preventDefault();
-      const ontvanger=ontvangerSelect.value;
-      const inhoud=document.getElementById("inhoud").value.trim();
-      if(!ontvanger||!inhoud){alert("Kies catecheet en schrijf bericht.");return;}
+      const catecheetId=select.value;
+      const onderwerp=document.getElementById("onderwerp").value.trim();
+      const tekst=document.getElementById("bericht").value.trim();
+      if(!catecheetId||!onderwerp||!tekst){alert("Gelieve alles in te vullen.");return;}
 
-      try{
-        await db.collection("parochies").doc(parochieId)
-          .collection("berichten").add({
-            vanKind:kindId,
-            vanOuder:ouderId,
-            naar:ontvanger,
-            inhoud,
-            datum:new Date()
-          });
-        form.reset();
-        laadMijnBerichten();
-      }catch(err){console.error("Fout bij versturen",err);}
+      const bericht={vanKind:kindId,onderwerp,tekst,datum:new Date()};
+
+      // Bij catecheet opslaan
+      await db.collection("parochies").doc(parochieId).collection("leden").doc(catecheetId)
+        .collection("berichtenOntvangen").add(bericht);
+
+      // Bij kind opslaan (verzonden)
+      await db.collection("parochies").doc(parochieId).collection("leden").doc(ouderId)
+        .collection("kinderen").doc(kindId).collection("berichtenVerzonden").add(bericht);
+
+      alert("✅ Bericht verstuurd!");
+      e.target.reset();
+      laadVerzonden();
     });
 
-    // Mijn berichten ophalen
-    async function laadMijnBerichten(){
-      mijnBerichten.innerHTML="Laden…";
-      try{
-        const snap=await db.collection("parochies").doc(parochieId)
-          .collection("berichten")
-          .where("vanKind","==",kindId)
-          .orderBy("datum","desc").get();
-
-        mijnBerichten.innerHTML="";
-        if(snap.empty){mijnBerichten.innerHTML="<p>Geen berichten verstuurd.</p>";return;}
-        snap.forEach(doc=>{
-          const d=doc.data();
-          const tijd=d.datum?.toDate?d.datum.toDate().toLocaleString():"";
-          const div=document.createElement("div");
-          div.className="bericht";
-          div.innerHTML=`
-            <p>${d.inhoud}</p>
-            <small>📤 naar catecheet (${d.naar}) – ${tijd}</small>
-          `;
-          mijnBerichten.appendChild(div);
-        });
-      }catch(e){console.error("Fout bij ophalen berichten",e);}
-    }
-
     laadCatecheten();
-    laadMijnBerichten();
+    laadOntvangen();
+    laadVerzonden();
   </script>
 </body>
 </html>
