@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>📬 Berichten – Catecheet</title>
+  <title>📬 Catecheet – Berichten</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
 
   <style>
@@ -11,54 +11,50 @@
       margin:0; font-family:Arial, sans-serif;
       background:#f5e9b8; color:#4e3a15;
     }
-    main { max-width:1000px; margin:20px auto; padding:0 2vw; }
+    main { max-width:900px; margin:20px auto; padding:0 2vw; }
 
     h1 { color:#7a5f35; text-align:center; margin-bottom:20px; }
 
+    /* Tabs */
     .tabs { display:flex; justify-content:center; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
     .tab-btn {
       background:#fff3c4; border:2px solid #f0d77a;
       border-radius:12px; padding:10px 16px; cursor:pointer;
       font-weight:bold; transition:transform .2s;
+      display:flex; align-items:center; gap:6px;
     }
     .tab-btn:hover { transform:scale(1.08); }
     .tab-btn.active { background:#ffe892; border-color:#f4c84b; }
 
-    .briefjes { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; }
+    /* Briefjes */
+    .briefjes { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px; }
     .briefje {
-      background:#fffdf5; border:2px solid #e6cc7a;
+      background:#fffef0; border:2px solid #e4d07a;
       border-radius:12px; padding:14px;
-      box-shadow:0 4px 12px rgba(0,0,0,0.1);
+      box-shadow:0 6px 12px rgba(0,0,0,0.1);
       transition:transform .2s;
     }
     .briefje:hover{ transform:scale(1.03); }
-    .briefje h3{ margin:0 0 6px; color:#7a5f35; font-size:1.1em; }
+    .briefje h3{ margin:0 0 6px; color:#7bb235; font-size:1.1em; }
     .briefje small{ display:block; margin-bottom:6px; color:#6f5a28; font-size:.85em; }
-    .briefje button {
-      margin-top:8px; padding:6px 12px; border:none;
-      background:#7a5f35; color:#fff; border-radius:6px; cursor:pointer;
+    .briefje .acties{ margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; }
+    .briefje button{
+      background:#7bb235; color:#fff; border:none; border-radius:6px;
+      padding:6px 10px; font-size:.9em; cursor:pointer;
     }
-    .briefje button:hover { background:#5e4826; }
+    .briefje button:hover{ background:#5e8e29; }
+    .briefje .del{ background:#e24343; }
+    .briefje .del:hover{ background:#b72828; }
 
-    .nieuw-form {
-      background:#fffef9; border:2px dashed #c7a64c;
-      border-radius:14px; padding:18px; box-shadow:0 4px 10px rgba(0,0,0,.08);
+    /* Antwoordformulier */
+    .antwoord-form {
+      margin-top:14px; padding:12px; background:#fffdf5;
+      border:2px dashed #dcbf60; border-radius:10px;
     }
-    label { display:block; margin:10px 0 4px; font-weight:bold; }
-    select, textarea {
-      width:100%; border-radius:8px; border:1.5px solid #c7a64c;
-      padding:8px; font-family:inherit; font-size:1em;
-    }
-    textarea { min-height:100px; resize:vertical; }
-    .btn {
-      background:#7a5f35; color:#fff; border:none; border-radius:8px;
-      padding:10px 16px; margin-top:12px; font-weight:bold; cursor:pointer;
-    }
-    .btn:hover{ background:#5e4826; }
-
-    .quote-box {
-      margin-top:12px; padding:10px; border-left:4px solid #c7a64c;
-      background:#fffbe2; font-size:.9em; color:#5a4720; border-radius:6px;
+    .antwoord-form textarea {
+      width:100%; min-height:80px;
+      border-radius:8px; border:1.5px solid #dcbf60;
+      padding:6px; font-family:inherit;
     }
   </style>
 
@@ -72,37 +68,21 @@
   <div id="volwassen-header" data-header-src="common/header.html"></div>
 
   <main>
-    <h1>📬 Berichten – Catecheet</h1>
+    <h1>📬 Berichten van kinderen</h1>
 
     <div class="tabs">
-      <button class="tab-btn active" onclick="toonTab(event,'nieuw')">🖊 Nieuw</button>
-      <button class="tab-btn" onclick="toonTab(event,'ontvangen')">📮 Ontvangen</button>
+      <button class="tab-btn active" onclick="toonTab(event,'ontvangen')">📮 Ontvangen</button>
       <button class="tab-btn" onclick="toonTab(event,'verzonden')">✉️ Verzonden</button>
     </div>
 
-    <!-- Nieuw bericht -->
-    <div id="nieuw" class="tab-content">
-      <form class="nieuw-form" onsubmit="verstuurBericht(event)">
-        <label for="naar">Aan (kind):</label>
-        <select id="naar" required></select>
-
-        <label for="inhoud">Bericht:</label>
-        <textarea id="inhoud" required></textarea>
-
-        <div id="quote" class="quote-box" style="display:none;"></div>
-
-        <button class="btn" type="submit">📨 Verstuur</button>
-      </form>
-    </div>
-
     <!-- Ontvangen -->
-    <div id="ontvangen" class="tab-content" style="display:none;">
-      <div id="ontvangenLijst" class="briefjes"></div>
+    <div id="ontvangen" class="tab-content">
+      <div id="ontvangenLijst" class="briefjes">Laden...</div>
     </div>
 
     <!-- Verzonden -->
     <div id="verzonden" class="tab-content" style="display:none;">
-      <div id="verzondenLijst" class="briefjes"></div>
+      <div id="verzondenLijst" class="briefjes">Laden...</div>
     </div>
   </main>
 
@@ -117,108 +97,117 @@
     const db=firebase.firestore();
 
     const parochieId=localStorage.getItem("ingelogdeParochie");
-    const catecheetId=localStorage.getItem("loginKeuze");
-    let catecheetNaam="Catecheet";
+    const catecheetId=localStorage.getItem("loginKeuze"); // catecheet zelf
 
+    // Tabs wisselen
     function toonTab(ev,id){
       document.querySelectorAll(".tab-content").forEach(div=>div.style.display="none");
       document.getElementById(id).style.display="block";
       document.querySelectorAll(".tab-btn").forEach(btn=>btn.classList.remove("active"));
-      if(ev) ev.target.classList.add("active");
-      if(id==="nieuw"){
-        document.getElementById("quote").style.display="none";
-        document.getElementById("quote").innerHTML="";
-      }
+      ev.target.classList.add("active");
     }
 
-    async function laadKinderen(){
-      const sel=document.getElementById("naar");
-      sel.innerHTML="";
-      const ledenSnap=await db.collection("parochies").doc(parochieId).collection("leden").get();
-      for(const ouder of ledenSnap.docs){
-        const kidsSnap=await ouder.ref.collection("kinderen").get();
-        kidsSnap.forEach(cd=>{
-          const c=cd.data();
-          const opt=document.createElement("option");
-          opt.value=cd.id;
-          opt.textContent=c.voornaam||"Kind";
-          sel.appendChild(opt);
-        });
-      }
-    }
-
+    // Berichten laden
     async function laadBerichten(){
-      const doc=await db.collection("parochies").doc(parochieId).collection("leden").doc(catecheetId).get();
-      if(doc.exists) catecheetNaam=doc.data().voornaam||"Catecheet";
-
+      // Ontvangen (niet verwijderd door catecheet)
       const snapOntv=await db.collection("parochies").doc(parochieId)
-        .collection("berichten").where("ontvangerId","==",catecheetId).get();
+        .collection("berichten")
+        .where("ontvangerId","==",catecheetId)
+        .where("verwijderdDoorCatecheet","!=",true)
+        .get();
       toonBerichten(snapOntv,"ontvangenLijst","Van",true);
 
+      // Verzonden (niet verwijderd door catecheet)
       const snapVerz=await db.collection("parochies").doc(parochieId)
-        .collection("berichten").where("verzenderId","==",catecheetId).get();
+        .collection("berichten")
+        .where("verzenderId","==",catecheetId)
+        .where("verwijderdDoorCatecheet","!=",true)
+        .get();
       toonBerichten(snapVerz,"verzondenLijst","Aan",false);
     }
 
-    function toonBerichten(snap,elementId,label,kanAntwoorden){
+    function toonBerichten(snap,elementId,label,isOntvangen){
       const lijst=document.getElementById(elementId);
       lijst.innerHTML="";
-      if(snap.empty){ return; }
+      if(snap.empty){ lijst.innerHTML="<p>Geen berichten.</p>"; return; }
+
       snap.forEach(doc=>{
         const d=doc.data();
-        const div=document.createElement("div"); div.className="briefje";
-        const naam = (label==="Van") ? (d.vanNaam||"Onbekend") : (d.naarNaam||"Kind");
-        const datum = d.datum?.toDate ? d.datum.toDate().toLocaleString() : "";
-        div.innerHTML=`<h3>${label}: ${naam}</h3><small>${datum}</small><p>${d.inhoud}</p>`;
-        if(kanAntwoorden){
-          const btn=document.createElement("button");
-          btn.textContent="↩️ Antwoorden";
-          btn.onclick=()=>antwoordOpBericht(d.verzenderId,naam,d.inhoud);
-          div.appendChild(btn);
-        }
+        const div=document.createElement("div");
+        div.className="briefje";
+        const naam=(label==="Van")?(d.vanNaam||"Onbekend"):(d.naarNaam||"Onbekend");
+        const datum=d.datum?.toDate?d.datum.toDate().toLocaleString():"";
+        div.innerHTML=`
+          <h3>${label}: ${naam}</h3>
+          <small>${datum}</small>
+          <p>${d.inhoud}</p>
+          <div class="acties">
+            ${isOntvangen?`<button onclick="toonAntwoordForm('${doc.id}','${d.verzenderId}','${d.vanNaam||"Kind"}')">↩️ Antwoorden</button>`:""}
+            <button class="del" onclick="verwijderBericht('${doc.id}')">🗑 Verwijderen</button>
+          </div>
+          <div id="antwoord-${doc.id}"></div>
+        `;
         lijst.appendChild(div);
       });
     }
 
-    function antwoordOpBericht(kindId,kindNaam,origineel){
-      toonTab(null,"nieuw");
-      const sel=document.getElementById("naar");
-      sel.innerHTML=`<option value="${kindId}" selected>${kindNaam}</option>`;
-      document.getElementById("inhoud").focus();
-      const q=document.getElementById("quote");
-      q.style.display="block";
-      q.innerHTML="<strong>Citaat:</strong><br>"+origineel;
+    // Antwoordformulier tonen
+    function toonAntwoordForm(berichtId,kindId,kindNaam){
+      const container=document.getElementById("antwoord-"+berichtId);
+      container.innerHTML=`
+        <form class="antwoord-form" onsubmit="verstuurAntwoord(event,'${berichtId}','${kindId}','${kindNaam}')">
+          <label>Antwoord aan ${kindNaam}:</label>
+          <textarea id="antwoordInhoud-${berichtId}" required></textarea>
+          <button type="submit">📨 Verstuur</button>
+        </form>
+      `;
     }
 
-    async function verstuurBericht(e){
+    // Antwoord versturen
+    async function verstuurAntwoord(e,berichtId,kindId,kindNaam){
       e.preventDefault();
-      const naarId=document.getElementById("naar").value;
-      const inhoud=document.getElementById("inhoud").value.trim();
-      if(!naarId||!inhoud) return alert("Vul alles in!");
+      const inhoud=document.getElementById("antwoordInhoud-"+berichtId).value.trim();
+      if(!inhoud) return;
 
-      let kindNaam="Kind";
-      const ledenSnap=await db.collection("parochies").doc(parochieId).collection("leden").get();
-      for(const ouder of ledenSnap.docs){
-        const kd=await ouder.ref.collection("kinderen").doc(naarId).get();
-        if(kd.exists){ kindNaam=kd.data().voornaam||"Kind"; break; }
-      }
+      const catDoc=await db.collection("parochies").doc(parochieId).collection("leden").doc(catecheetId).get();
+      const catechNaam=catDoc.exists?(catDoc.data().voornaam||"Catecheet"):"Catecheet";
 
+      // Oud bericht markeren met antwoord
+      await db.collection("parochies").doc(parochieId).collection("berichten").doc(berichtId)
+        .update({beantwoord:true});
+
+      // Nieuw bericht opslaan
       await db.collection("parochies").doc(parochieId).collection("berichten").add({
-        ontvangerId:naarId,
+        ontvangerId:kindId,
         naarNaam:kindNaam,
         verzenderId:catecheetId,
-        vanNaam:catecheetNaam,
-        inhoud, datum:new Date()
+        vanNaam:catechNaam,
+        inhoud,
+        datum:new Date(),
+        verwijderdDoorKind:false,
+        verwijderdDoorCatecheet:false
       });
 
-      alert("📨 Bericht verstuurd!");
-      document.getElementById("inhoud").value="";
-      document.getElementById("quote").style.display="none";
+      alert("📨 Antwoord verstuurd!");
       laadBerichten();
-      toonTab(null,"verzonden");
     }
 
-    laadKinderen();
+    // Verwijderen (soft-delete)
+    async function verwijderBericht(id){
+      if(!confirm("Weet je zeker dat je dit bericht wil verwijderen?")) return;
+      const ref=db.collection("parochies").doc(parochieId).collection("berichten").doc(id);
+      const snap=await ref.get();
+      if(!snap.exists) return;
+      const data=snap.data();
+
+      await ref.update({verwijderdDoorCatecheet:true});
+
+      if(data.verwijderdDoorKind){
+        await ref.delete();
+      }
+      laadBerichten();
+    }
+
     laadBerichten();
   </script>
 </body>
