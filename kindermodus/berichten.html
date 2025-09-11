@@ -2,42 +2,37 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>📬 Berichten – Orthodoxe Kinderpagina</title>
-  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Berichten – Orthodoxe Kinderpagina</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
-    body{margin:0;font-family:'Comic Sans MS', Arial, sans-serif;background:#fff6e5;color:#333}
-    main{max-width:900px;margin:24px auto;padding:0 2vw}
-    h1{color:#7bb235;text-align:center}
+    body { margin:0; font-family:'Comic Sans MS', Arial, sans-serif; background:#fff6e5; color:#333; }
+    main { max-width:900px; margin:24px auto; padding:0 2vw; }
+    h1 { color:#7bb235; }
 
-    /* Tabs */
-    .tab-buttons{display:flex;gap:10px;justify-content:center;margin:20px 0}
-    .tab-buttons button{
-      background:#7bb235;color:#fff;border:none;border-radius:8px;
-      padding:10px 18px;font-weight:bold;cursor:pointer
+    .tabs { display:flex; gap:12px; margin-bottom:20px; }
+    .tabs button {
+      flex:1; padding:10px; border:none; border-radius:8px; cursor:pointer;
+      font-weight:bold; background:#eee; transition:background .2s;
     }
-    .tab-buttons button.active{background:#5e8f1c}
-    .tab-content{display:none}
-    .tab-content.active{display:block}
+    .tabs button.active { background:#7bb235; color:#fff; }
 
-    /* Berichtkaarten */
-    .bericht-kaart{
-      background:#fff;border:1px solid #dab97a;border-radius:10px;
-      padding:14px;margin:10px 0;box-shadow:0 2px 6px rgba(0,0,0,.1)
-    }
-    .bericht-kaart h3{margin:0 0 6px;color:#7bb235}
-    .bericht-kaart small{color:#8f7437;display:block;margin-bottom:8px}
+    .pane { display:none; }
+    .pane.active { display:block; }
 
-    /* Nieuw bericht formulier */
-    form label{display:block;margin-top:10px}
-    form input, form textarea, form select{
-      width:100%;padding:8px;margin-top:4px;border:1px solid #dab97a;
-      border-radius:6px;font-family:inherit
+    .bericht { border:1px solid #dab97a; background:#fff; border-radius:10px; padding:12px; margin-bottom:10px; }
+    .bericht small { color:#666; display:block; margin-top:6px; }
+
+    form label { display:block; margin:8px 0 4px; }
+    form select, form textarea {
+      width:100%; padding:8px; border:1px solid #dab97a; border-radius:6px;
+      font-family:inherit; resize:vertical;
     }
-    form textarea{min-height:100px;resize:vertical}
-    form button{margin-top:14px;background:#7bb235;color:#fff;
-      border:none;padding:10px 16px;border-radius:8px;font-weight:bold;cursor:pointer}
-    form button:hover{background:#5e8f1c}
+    form button {
+      margin-top:10px; padding:10px 16px; border:none; border-radius:8px;
+      background:#7bb235; color:#fff; font-weight:bold; cursor:pointer;
+    }
+    form button:hover { background:#5e8f1c; }
   </style>
 
   <!-- Firebase -->
@@ -46,43 +41,39 @@
   <script defer src="common/layout.js"></script>
 </head>
 <body>
-  <!-- Header kindermodus -->
   <div id="kinder-header" data-header-src="common/header.html"></div>
 
   <main>
-    <h1>📬 Mijn berichten</h1>
+    <h1>💌 Berichten</h1>
 
-    <div class="tab-buttons">
-      <button onclick="openTab('ontvangen')" class="active">📥 Ontvangen</button>
-      <button onclick="openTab('verzonden')">📤 Verzonden</button>
-      <button onclick="openTab('nieuw')">➕ Nieuw</button>
+    <div class="tabs">
+      <button onclick="toonPane('inbox')" class="active">📥 Ontvangen</button>
+      <button onclick="toonPane('sent')">📤 Verzonden</button>
+      <button onclick="toonPane('new')">✍️ Nieuw</button>
     </div>
 
     <!-- Ontvangen -->
-    <div id="ontvangen" class="tab-content active">
-      <div id="ontvangenLijst">Laden…</div>
+    <div id="pane-inbox" class="pane active">
+      <div id="inboxLijst">Laden…</div>
     </div>
 
     <!-- Verzonden -->
-    <div id="verzonden" class="tab-content">
-      <div id="verzondenLijst">Laden…</div>
+    <div id="pane-sent" class="pane">
+      <div id="sentLijst">Laden…</div>
     </div>
 
     <!-- Nieuw bericht -->
-    <div id="nieuw" class="tab-content">
-      <form id="berichtForm">
-        <label for="catecheetSelect">Aan catecheet:</label>
-        <select id="catecheetSelect" required>
-          <option value="">Kies catecheet...</option>
+    <div id="pane-new" class="pane">
+      <form id="nieuwBerichtForm">
+        <label for="naarCatecheet">Aan:</label>
+        <select id="naarCatecheet" required>
+          <option value="">Laden…</option>
         </select>
 
-        <label for="onderwerp">Onderwerp:</label>
-        <input type="text" id="onderwerp" required>
+        <label for="berichtTekst">Bericht:</label>
+        <textarea id="berichtTekst" required></textarea>
 
-        <label for="bericht">Bericht:</label>
-        <textarea id="bericht" required></textarea>
-
-        <button type="submit">📩 Versturen</button>
+        <button type="submit">📨 Verstuur</button>
       </form>
     </div>
   </main>
@@ -92,25 +83,27 @@
       firebase.initializeApp({
         apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
         authDomain:"orthodoxeweg.firebaseapp.com",
-        projectId:"orthodoxeweg"
+        projectId:"orthodoxeweg",
       });
     }
     const db=firebase.firestore();
 
+    // Context
     const parochieId = localStorage.getItem("ingelogdeParochie");
     const ouderId    = localStorage.getItem("loginKeuze");
     const kindId     = localStorage.getItem("ingelogdKindId");
 
-    const ontvangenDiv=document.getElementById("ontvangenLijst");
-    const verzondenDiv=document.getElementById("verzondenLijst");
-    const select=document.getElementById("catecheetSelect");
+    const inboxDiv=document.getElementById("inboxLijst");
+    const sentDiv=document.getElementById("sentLijst");
+    const select=document.getElementById("naarCatecheet");
+    const form=document.getElementById("nieuwBerichtForm");
 
     // Tabs wisselen
-    function openTab(tab){
-      document.querySelectorAll(".tab-content").forEach(el=>el.classList.remove("active"));
-      document.querySelectorAll(".tab-buttons button").forEach(el=>el.classList.remove("active"));
-      document.getElementById(tab).classList.add("active");
-      event.target.classList.add("active");
+    function toonPane(pane){
+      document.querySelectorAll(".tabs button").forEach(btn=>btn.classList.remove("active"));
+      document.querySelectorAll(".pane").forEach(p=>p.classList.remove("active"));
+      document.querySelector(`.tabs button[onclick*="${pane}"]`).classList.add("active");
+      document.getElementById("pane-"+pane).classList.add("active");
     }
 
     // Catecheten laden
@@ -118,79 +111,88 @@
       if(!parochieId) return;
       const snap=await db.collection("parochies").doc(parochieId).collection("leden")
         .where("rol","==","catecheet").get();
+
+      select.innerHTML='<option value="">Kies catecheet...</option>';
       snap.forEach(doc=>{
         const d=doc.data();
         const optie=document.createElement("option");
         optie.value=doc.id;
-        optie.textContent=d.naam || "Catecheet";
+        optie.textContent=d.naam||d.email||("Catecheet "+doc.id);
         select.appendChild(optie);
       });
     }
 
-    // Ontvangen laden
-    async function laadOntvangen(){
-      if(!parochieId||!ouderId||!kindId){ontvangenDiv.innerHTML="⚠️ Niet ingelogd.";return;}
+    // Inbox laden
+    async function laadInbox(){
+      if(!parochieId||!ouderId||!kindId) return;
       const snap=await db.collection("parochies").doc(parochieId)
-        .collection("leden").doc(ouderId).collection("kinderen").doc(kindId)
+        .collection("leden").doc(ouderId)
+        .collection("kinderen").doc(kindId)
         .collection("berichtenOntvangen").orderBy("datum","desc").get();
-      ontvangenDiv.innerHTML="";
-      if(snap.empty){ontvangenDiv.innerHTML="<p>Geen berichten ontvangen.</p>";return;}
+
+      inboxDiv.innerHTML="";
+      if(snap.empty){inboxDiv.innerHTML="<p>Geen ontvangen berichten.</p>";return;}
       snap.forEach(doc=>{
         const d=doc.data();
-        ontvangenDiv.innerHTML+=`
-          <div class="bericht-kaart">
-            <h3>${d.onderwerp}</h3>
-            <small>${new Date(d.datum.seconds*1000).toLocaleString()}</small>
-            <p>${d.tekst}</p>
-          </div>`;
+        inboxDiv.innerHTML+=`<div class="bericht"><b>Van: ${d.vanNaam||"?"}</b><p>${d.tekst}</p><small>${d.datum?.toDate().toLocaleString()}</small></div>`;
       });
     }
 
     // Verzonden laden
-    async function laadVerzonden(){
-      if(!parochieId||!ouderId||!kindId){verzondenDiv.innerHTML="⚠️ Niet ingelogd.";return;}
+    async function laadSent(){
+      if(!parochieId||!ouderId||!kindId) return;
       const snap=await db.collection("parochies").doc(parochieId)
-        .collection("leden").doc(ouderId).collection("kinderen").doc(kindId)
+        .collection("leden").doc(ouderId)
+        .collection("kinderen").doc(kindId)
         .collection("berichtenVerzonden").orderBy("datum","desc").get();
-      verzondenDiv.innerHTML="";
-      if(snap.empty){verzondenDiv.innerHTML="<p>Geen berichten verzonden.</p>";return;}
+
+      sentDiv.innerHTML="";
+      if(snap.empty){sentDiv.innerHTML="<p>Geen verzonden berichten.</p>";return;}
       snap.forEach(doc=>{
         const d=doc.data();
-        verzondenDiv.innerHTML+=`
-          <div class="bericht-kaart">
-            <h3>${d.onderwerp}</h3>
-            <small>${new Date(d.datum.seconds*1000).toLocaleString()}</small>
-            <p>${d.tekst}</p>
-          </div>`;
+        sentDiv.innerHTML+=`<div class="bericht"><b>Aan: ${d.naarNaam||"?"}</b><p>${d.tekst}</p><small>${d.datum?.toDate().toLocaleString()}</small></div>`;
       });
     }
 
-    // Bericht versturen
-    document.getElementById("berichtForm").addEventListener("submit", async e=>{
+    // Versturen
+    form.addEventListener("submit",async e=>{
       e.preventDefault();
       const catecheetId=select.value;
-      const onderwerp=document.getElementById("onderwerp").value.trim();
-      const tekst=document.getElementById("bericht").value.trim();
-      if(!catecheetId||!onderwerp||!tekst){alert("Gelieve alles in te vullen.");return;}
+      const tekst=document.getElementById("berichtTekst").value.trim();
+      if(!catecheetId||!tekst){alert("Vul alles in!");return;}
 
-      const bericht={vanKind:kindId,onderwerp,tekst,datum:new Date()};
+      const kindRef=db.collection("parochies").doc(parochieId)
+        .collection("leden").doc(ouderId)
+        .collection("kinderen").doc(kindId);
 
-      // Bij catecheet opslaan
-      await db.collection("parochies").doc(parochieId).collection("leden").doc(catecheetId)
-        .collection("berichtenOntvangen").add(bericht);
+      const catechRef=db.collection("parochies").doc(parochieId).collection("leden").doc(catecheetId);
 
-      // Bij kind opslaan (verzonden)
-      await db.collection("parochies").doc(parochieId).collection("leden").doc(ouderId)
-        .collection("kinderen").doc(kindId).collection("berichtenVerzonden").add(bericht);
+      const catechDoc=await catechRef.get();
+      const catechNaam=catechDoc.data()?.naam||"Catecheet";
+
+      // opslaan bij kind (verzonden)
+      await kindRef.collection("berichtenVerzonden").add({
+        naarId:catecheetId,
+        naarNaam:catechNaam,
+        tekst, datum:new Date()
+      });
+
+      // opslaan bij catecheet (ontvangen)
+      await catechRef.collection("berichtenOntvangen").add({
+        vanKindId:kindId,
+        vanNaam:localStorage.getItem("ingelogdKindNaam")||"Kind",
+        tekst, datum:new Date()
+      });
 
       alert("✅ Bericht verstuurd!");
-      e.target.reset();
-      laadVerzonden();
+      form.reset();
+      laadSent();
+      toonPane("sent");
     });
 
     laadCatecheten();
-    laadOntvangen();
-    laadVerzonden();
+    laadInbox();
+    laadSent();
   </script>
 </body>
 </html>
