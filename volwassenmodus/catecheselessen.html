@@ -34,7 +34,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 
   <script>
-    // ✅ Firebase config met juiste bucket
+    // ✅ Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -47,22 +47,6 @@
     const db = firebase.firestore();
 
     const overzicht = document.getElementById("lessenOverzicht");
-
-    // ✅ Wachten tot parochieId in sessionStorage staat (wordt gezet door header)
-    function wachtOpParochieId(callback){
-      const start = Date.now();
-      const timeoutMs = 10000; // max 10s wachten
-      (function check(){
-        const id = sessionStorage.getItem("dagboek_parochieId");
-        if (id) {
-          callback(id);
-        } else if (Date.now() - start > timeoutMs) {
-          overzicht.innerHTML = "❌ Geen parochie gevonden. Vernieuw de pagina of log opnieuw in.";
-        } else {
-          setTimeout(check, 150);
-        }
-      })();
-    }
 
     // ✅ Lessen laden
     async function laadLessen(parochieId){
@@ -129,9 +113,14 @@
       laadLessen(parochieId);
     }
 
-    // ✅ Start pas als header klaar is
-    document.addEventListener("DOMContentLoaded", () => {
-      wachtOpParochieId((id) => laadLessen(id));
+    // ✅ Start pas wanneer header klaar is
+    document.addEventListener("headerLoaded", () => {
+      const id = sessionStorage.getItem("dagboek_parochieId");
+      if (id) {
+        laadLessen(id);
+      } else {
+        overzicht.innerHTML = "❌ Geen parochie gevonden (headerLoaded maar geen id).";
+      }
     });
   </script>
 
