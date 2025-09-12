@@ -5,20 +5,68 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Heiligen – Volwassenmodus</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
+
+  <!-- FIREBASE (globaal) -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb",
+      measurementId: "G-C942F2NYQV"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    console.log("Firebase geladen in volwassenmodus – Heiligen");
+  </script>
+
+  <!-- Layout script (laadt volwassen-header en css) -->
+  <script src="common/layout.js" defer></script>
 </head>
 <body>
-  <!-- ==== GEMEENSCHAPPELIJKE HEADER ==== -->
-  <div id="volwassen-header" data-header-src="common/header.html"></div>
-  <script src="common/layout.js"></script>
+  <!-- HEADER komt uit common/header.html -->
+  <div id="volwassen-header"></div>
 
-  <!-- ==== HEILIGEN INLADEN ==== -->
+  <!-- HEILIGEN-INHOUD -->
   <div id="heiligen-inhoud"></div>
 
   <script>
-    fetch("../../heiligen/heiligen.html")
-      .then(r => r.text())
-      .then(html => { document.getElementById("heiligen-inhoud").innerHTML = html; })
-      .catch(err => console.error("Kon de Heiligen-pagina niet laden:", err));
+    async function loadHeiligen() {
+      try {
+        const resp = await fetch("/heiligen/heiligen.html", {cache:"no-cache"});
+        if (resp.ok) {
+          const html = await resp.text();
+          const container = document.getElementById("heiligen-inhoud");
+          container.innerHTML = html;
+
+          // Scripts uit heiligen.html opnieuw uitvoeren
+          container.querySelectorAll("script").forEach(oldScript => {
+            const newScript = document.createElement("script");
+            if (oldScript.src) {
+              newScript.src = oldScript.src;
+            } else {
+              newScript.textContent = oldScript.textContent;
+            }
+            document.body.appendChild(newScript);
+          });
+
+          console.log("heiligen.html ingeladen en scripts uitgevoerd (volwassen)");
+        } else {
+          document.getElementById("heiligen-inhoud").innerHTML =
+            "<p style='text-align:center;color:#a33;margin-top:40px;'>Kon heiligen.html niet laden.</p>";
+        }
+      } catch(e) {
+        console.error("Fout bij laden heiligen.html:", e);
+        document.getElementById("heiligen-inhoud").innerHTML =
+          "<p style='text-align:center;color:#a33;margin-top:40px;'>Fout bij laden heiligen.html.</p>";
+      }
+    }
+
+    loadHeiligen();
   </script>
 </body>
 </html>
