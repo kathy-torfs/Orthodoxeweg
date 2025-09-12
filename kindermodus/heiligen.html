@@ -21,6 +21,17 @@
 
     main{ max-width: 900px; margin: 24px auto; padding: 0 2vw; }
 
+    .tabs {
+      display:flex; justify-content:center; gap:14px; margin-bottom:20px;
+    }
+    .tab-btn {
+      background:#fff3c4; border:2px solid #f0d77a;
+      border-radius:10px; padding:10px 18px; cursor:pointer;
+      font-weight:bold; transition:transform .2s;
+    }
+    .tab-btn:hover { transform:scale(1.07); }
+    .tab-btn.active { background:#ffe892; border-color:#f4c84b; }
+
     .quote-block {
       background:#fffef9;
       border-left:6px solid var(--primair);
@@ -28,6 +39,7 @@
       padding:20px;
       margin:20px 0;
       box-shadow:0 4px 14px rgba(0,0,0,0.08);
+      position:relative;
     }
     .quote-block h2 {
       margin-top:0;
@@ -40,9 +52,25 @@
       color:#4a3b20;
       font-size:1.05em;
     }
+    .print-btn {
+      position:absolute; top:12px; right:12px;
+      background:#7a5f35; color:#fff; border:none;
+      border-radius:50%; width:34px; height:34px;
+      cursor:pointer; font-size:1em;
+    }
+
+    @media print {
+      body { background:#fff; }
+      .tabs, .print-btn, #kinder-header { display:none !important; }
+      .quote-block { box-shadow:none; border:1px solid #000; }
+    }
   </style>
 
-  <!-- Laadt de header + menubalk + beveiliging + live punten -->
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+  <!-- Laadt de header + menubalk -->
   <script defer src="common/layout.js"></script>
 </head>
 <body>
@@ -50,41 +78,105 @@
   <div id="kinder-header" data-header-src="common/header.html"></div>
 
   <main>
-    <div class="quote-block">
-      <h2>✨ Het verhaal van Jezus</h2>
-      <p>Lang geleden werd Jezus geboren in Bethlehem. Hij was geen gewone baby, maar de Zoon van God. Zijn wieg was een eenvoudige kribbe, omdat er geen plaats was in de herberg. Toch kwamen er herders en wijzen om Hem te groeten, want ze wisten: dit Kindje brengt licht en vrede in de wereld.</p>
-      <p>Jezus groeide op en leerde de mensen dat God van iedereen houdt. Hij vertelde verhalen, hielp zieken en was altijd vriendelijk voor wie verdrietig was. Zo liet Hij zien hoe wij ook mogen leven: met liefde, vergeving en geloof.</p>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="toonTab('kleuters')">👶 Kleuters</button>
+      <button class="tab-btn" onclick="toonTab('lagere')">📖 Lagere school</button>
     </div>
 
-    <div class="quote-block">
-      <h2>🌹 Het verhaal van Maria</h2>
-      <p>Maria was een jonge vrouw die in Nazareth woonde. Op een dag verscheen de engel Gabriël bij haar en zei dat zij een Zoon zou krijgen die de Redder van de wereld zou zijn. Maria schrok, maar ze vertrouwde op God en zei: “Laat met mij gebeuren wat U wilt.”</p>
-      <p>Maria zorgde vol liefde voor Jezus. Ze bewaarde alle bijzondere momenten in haar hart. Daarom noemen we haar de Moeder Gods en vragen we haar om voor ons te bidden, omdat ze dicht bij Jezus staat.</p>
+    <!-- Kleuters -->
+    <div id="kleuters" class="tab-content">
+      <div class="quote-block" id="v-jezus">
+        <button class="print-btn" onclick="printVerhaal('v-jezus')">🖨️</button>
+        <h2>✨ Het verhaal van Jezus</h2>
+        <p>Lang geleden werd Jezus geboren in Bethlehem. ...</p>
+        <p>Jezus groeide op en leerde de mensen dat God van iedereen houdt. ...</p>
+      </div>
+
+      <div class="quote-block" id="v-maria">
+        <button class="print-btn" onclick="printVerhaal('v-maria')">🖨️</button>
+        <h2>🌹 Het verhaal van Maria</h2>
+        <p>Maria was een jonge vrouw die in Nazareth woonde. ...</p>
+        <p>Maria zorgde vol liefde voor Jezus. ...</p>
+      </div>
+
+      <div class="quote-block" id="v-nikolaas">
+        <button class="print-btn" onclick="printVerhaal('v-nikolaas')">🖨️</button>
+        <h2>🎁 Het verhaal van de heilige Nikolaas</h2>
+        <p>Heel lang geleden leefde er een bisschop in Myra. ...</p>
+        <p>De heilige Nikolaas is nog steeds een voorbeeld voor ons: ...</p>
+      </div>
     </div>
 
-    <div class="quote-block">
-      <h2>🎁 Het verhaal van de heilige Nikolaas</h2>
-      <p>Heel lang geleden leefde er een bisschop in Myra. Zijn naam was Nikolaas. Hij hield heel veel van kinderen en arme mensen. Vaak gaf hij in het geheim geschenken of brood aan wie honger had. Zo hielp hij mensen zonder dat hij zelf eer wilde krijgen.</p>
-      <p>De heilige Nikolaas is nog steeds een voorbeeld voor ons: goed doen, delen met anderen en zorgen voor wie het moeilijk heeft. Daarom vieren we hem elk jaar rond 6 december met geschenken en lekkers.</p>
+    <!-- Lagere school -->
+    <div id="lagere" class="tab-content" style="display:none;">
+      <div id="lagereVerhalen">Laden…</div>
     </div>
   </main>
 
   <script>
-    // Pastelachtergrond wisselen
+    // Achtergrond pastel
     (function(){
       const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
       document.body.style.background = p[Math.floor(Math.random()*p.length)];
     })();
 
-    // Header + menubalk inladen
-    (function boot(){
-      if (!(window.KinderLayout)) return setTimeout(boot, 120);
-      const el = document.getElementById('kinder-header');
-      window.KinderLayout.mountHeader({
-        rootId: 'kinder-header',
-        headerSrc: el.dataset.headerSrc
+    // Tabs
+    function toonTab(id){
+      document.querySelectorAll(".tab-content").forEach(d=>d.style.display="none");
+      document.getElementById(id).style.display="block";
+      document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+      event.target.classList.add("active");
+    }
+
+    // Print enkel dit verhaal
+    function printVerhaal(id){
+      const inhoud=document.getElementById(id).innerHTML;
+      const w=window.open("","","width=800,height=600");
+      w.document.write(`<html><head><title>Print</title></head><body>${inhoud}</body></html>`);
+      w.document.close();
+      w.print();
+    }
+
+    // Firebase init
+    if (!firebase.apps.length) {
+      firebase.initializeApp({
+        apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+        authDomain:"orthodoxeweg.firebaseapp.com",
+        projectId:"orthodoxeweg"
       });
-    })();
+    }
+    const db=firebase.firestore();
+    const parochieId=localStorage.getItem("ingelogdeParochie");
+
+    async function laadLagere(){
+      const div=document.getElementById("lagereVerhalen");
+      div.innerHTML="Laden…";
+      try{
+        const snap=await db.collection("parochies").doc(parochieId)
+          .collection("heiligen").where("zichtbaar","==",true).get();
+        div.innerHTML="";
+        if(snap.empty){
+          div.innerHTML="<p>⚠️ Geen verhalen beschikbaar.</p>";
+          return;
+        }
+        snap.forEach(doc=>{
+          const d=doc.data();
+          const id="heilige-"+doc.id;
+          div.innerHTML+=`
+            <div class="quote-block" id="${id}">
+              <button class="print-btn" onclick="printVerhaal('${id}')">🖨️</button>
+              <h2>${d.icoonurl?`<img src="${d.icoonurl}" style="height:28px;vertical-align:middle;margin-right:6px">`:""} ${d.titel||"Naamloze heilige"}</h2>
+              <p>${(d.verhaal||"").replace(/<br>/g,"<br>")}</p>
+            </div>
+          `;
+        });
+      }catch(e){
+        console.error(e);
+        div.innerHTML="⚠️ Fout bij laden verhalen.";
+      }
+    }
+
+    laadLagere();
   </script>
 </body>
 </html>
