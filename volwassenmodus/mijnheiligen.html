@@ -13,16 +13,13 @@
     }
     main { max-width:1200px; margin:20px auto; padding:0 20px; display:flex; gap:20px; }
 
-    /* Sidebar (index van heiligen) */
     .sidebar {
       flex:1;
       background:#fff9e2; border:2px solid #d6c290;
       border-radius:12px; padding:12px;
       max-height:80vh; overflow-y:auto;
     }
-    .sidebar h2 {
-      margin:0 0 10px; font-size:1.2em; text-align:center;
-    }
+    .sidebar h2 { margin:0 0 10px; font-size:1.2em; text-align:center; }
     .heilige-item {
       padding:8px; border-radius:6px; margin:4px 0;
       cursor:pointer; background:#fff;
@@ -30,16 +27,13 @@
     }
     .heilige-item:hover { background:#f7eecb; }
     .heilige-item.active { background:#e9dba9; font-weight:bold; }
-
     .plus-btn {
-      display:block; text-align:center;
-      margin:10px auto; padding:8px; width:100%;
-      border:2px dashed #c7b177; border-radius:8px;
+      display:block; text-align:center; margin:10px auto;
+      padding:8px; width:100%; border:2px dashed #c7b177; border-radius:8px;
       background:#fff9e2; cursor:pointer; font-size:1.1em;
     }
     .plus-btn:hover { background:#fff5cc; }
 
-    /* Detailvlak */
     .detail {
       flex:2;
       background:#fffef9; border:2px solid #e2d1a5;
@@ -48,11 +42,10 @@
     }
     .detail h2 { margin:0 0 15px; color:#7a5f35; }
     label { display:block; margin:10px 0 4px; font-weight:bold; }
-    input, textarea {
-      width:100%; border:1px solid #dbc592; border-radius:6px;
-      padding:8px; font-family:inherit; font-size:1em; background:#fffdf5;
-    }
+    input, textarea { width:100%; border:1px solid #dbc592; border-radius:6px;
+      padding:8px; font-family:inherit; font-size:1em; background:#fffdf5; }
     textarea { min-height:250px; resize:vertical; }
+    .checkbox-row { margin-top:10px; }
 
     .btn {
       background:#7bb235; color:#fff; border:none;
@@ -64,24 +57,20 @@
     .btn.danger:hover { background:#962d22; }
   </style>
 
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script defer src="common/layout.js"></script>
 </head>
 <body>
-  <!-- Header volwassenen -->
-  <div id="volwassen-header" data-header-src="common/header.html"></div>
+  <div id="volwassen-header" data-header-src="../common/header.html"></div>
 
   <main>
-    <!-- Index -->
     <div class="sidebar">
       <h2>📑 Heiligenlijst</h2>
       <div id="heiligenIndex"></div>
       <div class="plus-btn" onclick="nieuwHeilige()">＋ Nieuwe heilige</div>
     </div>
 
-    <!-- Detailvlak -->
     <div class="detail" id="detailVlak">
       <p style="text-align:center;color:#888;margin-top:200px;">⬅️ Kies links een heilige of voeg er een toe</p>
     </div>
@@ -102,16 +91,13 @@
 
     let actieveId=null;
 
-    // Lijst laden
     async function laadHeiligen(){
       indexDiv.innerHTML="⏳ Laden...";
       const lijst=[];
 
-      // Parochieheiligen
       const snapP=await db.collection("parochies").doc(parochieId).collection("heiligen").get();
       snapP.forEach(doc=>{ lijst.push({id:doc.id, ...doc.data(), bron:"parochie"}); });
 
-      // Standaardheiligen (indien nog niet overschreven in parochie)
       const snapS=await db.collection("heiligen_kinderen").get();
       snapS.forEach(doc=>{
         if(!lijst.find(h=>h.id===doc.id)){
@@ -129,11 +115,10 @@
       });
     }
 
-    // Toon detail
     function toonHeilige(h){
       actieveId=h.id;
-      // Zet <br> terug naar echte regeleinden
-      const verhaalText = (h.verhaal||"").replace(/<br\s*\/?>/gi, "\n");
+      const verhaalText=(h.verhaal||"").replace(/<br\s*\/?>/gi,"\n");
+      const zichtbaar=h.zichtbaarVoorKinderen===true;
 
       detailDiv.innerHTML=`
         <h2>${h.titel||h.id}</h2>
@@ -143,12 +128,14 @@
         <input id="heiligeIcoon" value="${h.icoonUrl||""}" placeholder="https://...">
         <label>Verhaal</label>
         <textarea id="heiligeVerhaal">${verhaalText}</textarea>
+        <div class="checkbox-row">
+          <label><input type="checkbox" id="heiligeZichtbaar" ${zichtbaar?"checked":""}> Tonen bij kinderen</label>
+        </div>
         <button class="btn" onclick="opslaanHeilige()">💾 Opslaan</button>
         <button class="btn danger" onclick="verwijderHeilige()">❌ Verwijderen</button>
       `;
     }
 
-    // Nieuw heilige toevoegen
     function nieuwHeilige(){
       actieveId=null;
       detailDiv.innerHTML=`
@@ -159,33 +146,34 @@
         <input id="heiligeIcoon" placeholder="https://...">
         <label>Verhaal</label>
         <textarea id="heiligeVerhaal"></textarea>
+        <div class="checkbox-row">
+          <label><input type="checkbox" id="heiligeZichtbaar"> Tonen bij kinderen</label>
+        </div>
         <button class="btn" onclick="opslaanHeilige()">💾 Opslaan</button>
       `;
     }
 
-    // Opslaan of bijwerken
     async function opslaanHeilige(){
       const titel=document.getElementById("heiligeTitel").value.trim();
       const icoonUrl=document.getElementById("heiligeIcoon").value.trim();
       const verhaal=document.getElementById("heiligeVerhaal").value.trim().replace(/\n/g,"<br>");
+      const zichtbaar=document.getElementById("heiligeZichtbaar").checked;
       if(!titel||!verhaal){ alert("Titel en verhaal zijn verplicht!"); return; }
 
       const id=titel.toLowerCase().replace(/\s+/g,"_").replace(/[^a-z0-9_]/g,"");
 
       await db.collection("parochies").doc(parochieId).collection("heiligen")
-        .doc(id).set({titel,icoonUrl,verhaal,datum:new Date()});
+        .doc(id).set({titel,icoonUrl,verhaal,zichtbaarVoorKinderen:zichtbaar,datum:new Date()});
 
       alert("✅ Heilige opgeslagen!");
       laadHeiligen();
     }
 
-    // Verwijderen
     async function verwijderHeilige(){
       if(!actieveId){ alert("Geen heilige geselecteerd."); return; }
       if(!confirm("Weet je zeker dat je deze heilige wil verwijderen?")) return;
 
-      await db.collection("parochies").doc(parochieId).collection("heiligen")
-        .doc(actieveId).delete();
+      await db.collection("parochies").doc(parochieId).collection("heiligen").doc(actieveId).delete();
 
       alert("🗑 Heilige verwijderd!");
       actieveId=null;
