@@ -1,76 +1,54 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>📖 Mijn Heiligen – Orthodoxeweg</title>
-  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
-
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
   <style>
     body {
       margin:0; font-family:Arial,sans-serif;
       background:#f5e9b8; color:#6f4e1a;
     }
-    h1 { text-align:center; color:#4e2710; margin:20px 0; }
+    main { max-width:1100px; margin:30px auto; padding:0 20px; }
 
-    .container {
-      display:grid; grid-template-columns:280px 1fr;
-      gap:20px; max-width:1200px; margin:0 auto; padding:20px;
-    }
+    h1 { text-align:center; color:#4e2710; margin-bottom:20px; }
 
-    /* Sidebar */
-    .sidebar {
-      background:#fff9e2; border:2px solid #d6c290;
-      border-radius:12px; padding:12px;
-      display:flex; flex-direction:column; gap:10px;
-      max-height:80vh; overflow-y:auto;
+    .flexbox { display:flex; gap:20px; }
+    .lijst {
+      flex:1; background:#fff9e2; border:2px solid #d6c290;
+      border-radius:12px; padding:12px; max-height:80vh; overflow-y:auto;
     }
-    .sidebar h3 { text-align:center; margin:0 0 8px; }
+    .lijst h2 { text-align:center; margin-top:0; }
     .heilige-link {
-      padding:8px; border-radius:8px; cursor:pointer;
-      background:#fff; border:1px solid #dbc592;
-      font-weight:600; transition:background .2s;
+      padding:8px; border-radius:6px;
+      background:#fff; margin-bottom:6px; cursor:pointer;
+      border:1px solid #dbc592; font-weight:600;
+      display:flex; align-items:center; gap:6px;
     }
     .heilige-link:hover { background:#f7eecb; }
-    .heilige-link.active { background:#e9dba9; }
-    .plus-btn {
-      padding:10px; text-align:center;
-      border:2px dashed #c7b177; border-radius:8px;
-      cursor:pointer; background:#fff9e2;
-      font-size:1.2em; font-weight:bold;
-    }
-    .plus-btn:hover { background:#fff5cc; }
+    .heilige-link img { height:24px; width:auto; }
 
-    /* Detail */
     .detail {
-      background:#fffef9; border:2px solid #e2d1a5;
-      border-radius:12px; box-shadow:0 6px 18px rgba(0,0,0,.12);
-      padding:20px; min-height:500px;
+      flex:2; background:#fffef9; border:2px solid #e2d1a5;
+      border-radius:12px; box-shadow:0 6px 18px rgba(0,0,0,0.12);
+      padding:20px; min-height:400px;
     }
-    .detail h2 {
-      margin:0 0 15px; text-align:center;
-      border-bottom:2px solid #d6c290; padding-bottom:6px;
-    }
+    .detail h2 { margin-top:0; text-align:center; }
+
     label { display:block; margin:10px 0 4px; font-weight:bold; }
     input, textarea {
       width:100%; border:1px solid #dbc592; border-radius:8px;
-      padding:8px; font-family:inherit; font-size:1em;
-      background:#fffdf5;
+      padding:8px; font-family:inherit; font-size:1em; background:#fffdf5;
     }
-    textarea { min-height:150px; resize:vertical; }
-    .btn-row { margin-top:12px; display:flex; gap:10px; justify-content:flex-end; }
-    .btn {
-      background:#7bb235; color:#fff; border:none;
-      border-radius:8px; padding:8px 16px; cursor:pointer;
-      font-size:1em; font-weight:bold;
-    }
-    .btn.secondary { background:#b09765; }
-    .btn:hover { background:#5e8e29; }
-    .btn.secondary:hover { background:#8a754e; }
+    textarea { min-height:200px; resize:vertical; }
 
-    @media(max-width:900px){
-      .container { grid-template-columns:1fr; }
+    .btn { margin-top:10px; background:#7bb235; color:#fff; border:none;
+      border-radius:8px; padding:8px 16px; cursor:pointer; font-weight:bold;
     }
+    .btn:hover{ background:#5e8e29; }
+    .btn.danger { background:#d9534f; }
+    .btn.danger:hover { background:#b52b27; }
   </style>
 
   <!-- Firebase -->
@@ -78,25 +56,22 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <!-- Header -->
   <div id="volwassen-header" data-header-src="../common/header.html"></div>
   <script src="../common/layout.js"></script>
 
-  <h1>📖 Mijn Heiligen</h1>
-
-  <div class="container">
-    <!-- Index -->
-    <div class="sidebar">
-      <h3>📋 Heiligenlijst</h3>
-      <div id="heiligenIndex"></div>
-      <div class="plus-btn" onclick="nieuwHeilige()">＋ Nieuwe heilige</div>
+  <main>
+    <h1>📖 Mijn parochieheiligen</h1>
+    <div class="flexbox">
+      <div class="lijst">
+        <h2>📜 Heiligenlijst</h2>
+        <div id="heiligenLijst"></div>
+        <button class="btn" onclick="toonNieuweHeilige()">＋ Heilige toevoegen</button>
+      </div>
+      <div class="detail" id="heiligeDetail">
+        <p style="text-align:center;color:#888;margin-top:120px;">⬅️ Kies een heilige of maak een nieuwe aan</p>
+      </div>
     </div>
-
-    <!-- Detail -->
-    <div class="detail" id="heiligeDetail">
-      <p style="text-align:center;color:#888;margin-top:200px;">⬅️ Kies links een heilige of voeg er een toe</p>
-    </div>
-  </div>
+  </main>
 
   <script>
     // Firebase init
@@ -106,111 +81,81 @@
       projectId: "orthodoxeweg"
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db=firebase.firestore();
+    const db = firebase.firestore();
 
     const parochieId = localStorage.getItem("ingelogdeParochie");
-    const indexEl = document.getElementById("heiligenIndex");
+    const lijst = document.getElementById("heiligenLijst");
+    const detail = document.getElementById("heiligeDetail");
 
-    // Index laden (parochie + standaard)
-    async function laadIndex(){
-      indexEl.innerHTML="⏳ Laden...";
-      let html="";
-
-      // Parochieheiligen
-      const snapPar = await db.collection("parochies").doc(parochieId).collection("heiligen").get();
-      if(!snapPar.empty){
-        snapPar.forEach(doc=>{
-          const d=doc.data();
-          html+=`<div class="heilige-link" onclick="toonHeilige('${doc.id}', false)">${d.icoonurl||"✨"} ${doc.id}</div>`;
-        });
+    async function laadHeiligen(){
+      lijst.innerHTML="";
+      const snap = await db.collection("parochies").doc(parochieId).collection("heiligen").get();
+      if(snap.empty){
+        lijst.innerHTML="<p style='text-align:center;color:#888;'>Nog geen heiligen</p>";
+        return;
       }
-
-      // Standaardheiligen (optioneel te kopiëren)
-      const snapStd = await db.collection("heiligen_kinderen").get();
-      snapStd.forEach(doc=>{
-        if(!snapPar.docs.find(p=>p.id===doc.id)){ // alleen tonen als nog niet in parochie
-          html+=`<div class="heilige-link" onclick="toonHeilige('${doc.id}', true)">📖 ${doc.id} (standaard)</div>`;
-        }
+      snap.forEach(doc=>{
+        const d=doc.data();
+        const icoon = d.icoonurl 
+          ? `<img src="${d.icoonurl}" alt="icoon">` 
+          : "✨";
+        const div=document.createElement("div");
+        div.className="heilige-link";
+        div.innerHTML=`${icoon}<span>${d.titel||doc.id}</span>`;
+        div.onclick=()=>toonHeilige(doc.id,d);
+        lijst.appendChild(div);
       });
-
-      indexEl.innerHTML = html || "<p>Geen heiligen gevonden.</p>";
     }
 
-    // Detail tonen
-    async function toonHeilige(id, isStd){
-      let d={};
-      if(isStd){
-        const doc=await db.collection("heiligen_kinderen").doc(id).get();
-        d=doc.data();
-      } else {
-        const doc=await db.collection("parochies").doc(parochieId).collection("heiligen").doc(id).get();
-        d=doc.data();
-      }
-
-      const detail=document.getElementById("heiligeDetail");
+    function toonHeilige(id,d){
       detail.innerHTML=`
-        <h2>${d.icoonurl||""} ${id}</h2>
+        <h2>${d.titel||id}</h2>
         <label>Icoon URL</label>
-        <input id="editIcoon" value="${d.icoonurl||""}">
+        <input id="icoonurl" value="${d.icoonurl||""}">
         <label>Verhaal</label>
-        <textarea id="editVerhaal">${(d.verhaal||"").replace(/<br>/g,"\n")}</textarea>
-        <label>
-          <input type="checkbox" id="editZichtbaar" ${d.zichtbaarVoorKinderen ? "checked" : ""}>
-          Tonen bij de kinderen
-        </label>
-        <div class="btn-row">
-          <button class="btn" onclick="opslaanHeilige('${id}')">Opslaan</button>
-          <button class="btn secondary" onclick="verwijderHeilige('${id}')">Verwijderen</button>
-        </div>
+        <textarea id="verhaal">${(d.verhaal||"").replace(/<br>/g,"\n")}</textarea>
+        <button class="btn" onclick="opslaanHeilige('${id}')">Opslaan</button>
+        <button class="btn danger" onclick="verwijderHeilige('${id}')">Verwijderen</button>
       `;
     }
 
-    // Nieuwe heilige toevoegen
-    function nieuwHeilige(){
-      document.getElementById("heiligeDetail").innerHTML=`
-        <h2>＋ Nieuwe heilige</h2>
-        <label>Naam</label>
-        <input id="newNaam">
+    function toonNieuweHeilige(){
+      detail.innerHTML=`
+        <h2>Nieuwe heilige</h2>
+        <label>Titel</label>
+        <input id="titel">
         <label>Icoon URL</label>
-        <input id="newIcoon">
+        <input id="icoonurl">
         <label>Verhaal</label>
-        <textarea id="newVerhaal"></textarea>
-        <label><input type="checkbox" id="newZichtbaar"> Tonen bij de kinderen</label>
-        <div class="btn-row">
-          <button class="btn" onclick="opslaanHeilige()">Opslaan</button>
-        </div>
+        <textarea id="verhaal"></textarea>
+        <button class="btn" onclick="opslaanHeilige()">Opslaan</button>
       `;
     }
 
-    // Opslaan of bijwerken
     async function opslaanHeilige(id){
-      const naam=id||document.getElementById("newNaam").value.trim();
-      if(!naam) return alert("Naam verplicht!");
-      const icoon=document.getElementById(id?"editIcoon":"newIcoon").value.trim();
-      const verhaal=document.getElementById(id?"editVerhaal":"newVerhaal").value.trim().replace(/\n/g,"<br>");
-      const zichtbaar=document.getElementById(id?"editZichtbaar":"newZichtbaar").checked;
+      const titel = id || document.getElementById("titel").value.trim();
+      if(!titel){ alert("Titel is verplicht"); return; }
+      const icoonurl = document.getElementById("icoonurl").value.trim();
+      const verhaal = document.getElementById("verhaal").value.trim().replace(/\n/g,"<br>");
 
-      await db.collection("parochies").doc(parochieId).collection("heiligen").doc(naam).set({
-        icoonurl: icoon,
-        verhaal: verhaal,
-        zichtbaarVoorKinderen: zichtbaar,
-        laatstAangepast: new Date()
-      }, {merge:true});
+      await db.collection("parochies").doc(parochieId).collection("heiligen")
+        .doc(titel.toLowerCase().replace(/\s+/g,"_"))
+        .set({ titel, icoonurl, verhaal, zichtbaar:true }, { merge:true });
 
-      alert("✅ Heilige opgeslagen!");
-      laadIndex();
+      alert("✅ Heilige opgeslagen");
+      laadHeiligen();
+      detail.innerHTML="<p style='text-align:center;color:#888;margin-top:120px;'>⬅️ Kies een heilige of maak een nieuwe aan</p>";
     }
 
-    // Verwijderen
     async function verwijderHeilige(id){
-      if(!confirm("Heilige verwijderen uit parochie?")) return;
+      if(!confirm("Heilige verwijderen?")) return;
       await db.collection("parochies").doc(parochieId).collection("heiligen").doc(id).delete();
-      alert("🗑 Verwijderd!");
-      laadIndex();
-      document.getElementById("heiligeDetail").innerHTML="<p style='text-align:center;color:#888;margin-top:200px;'>⬅️ Kies links een heilige of voeg er een toe</p>";
+      alert("🗑 Heilige verwijderd");
+      laadHeiligen();
+      detail.innerHTML="<p style='text-align:center;color:#888;margin-top:120px;'>⬅️ Kies een heilige of maak een nieuwe aan</p>";
     }
 
-    laadIndex();
+    laadHeiligen();
   </script>
 </body>
 </html>
