@@ -2,8 +2,8 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>📖 Mijn Heiligen – Orthodoxeweg</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>📖 Heiligen – Orthodoxeweg</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
 
   <style>
@@ -50,7 +50,7 @@
   <div id="volwassen-header" data-header-src="common/header.html"></div>
 
   <main>
-    <h1>📖 Mijn Heiligen</h1>
+    <h1>📖 Heiligen</h1>
 
     <form id="nieuweHeiligeForm">
       <h2>Nieuwe heilige toevoegen</h2>
@@ -70,18 +70,19 @@
   </main>
 
   <script>
-    // 🔥 Firebase init
+    // Firebase init
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain: "orthodoxeweg.firebaseapp.com",
       projectId: "orthodoxeweg"
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    const db=firebase.firestore();
 
-    const lijst = document.getElementById("heiligenLijst");
-    const form = document.getElementById("nieuweHeiligeForm");
+    const lijst=document.getElementById("heiligenLijst");
+    const form=document.getElementById("nieuweHeiligeForm");
     const parochieId = localStorage.getItem("ingelogdeParochie");
+    let standaardGekopieerd = false; // voorkomt eindeloze lus
 
     // ➕ Opslaan nieuwe heilige
     form.addEventListener("submit", async(e)=>{
@@ -100,12 +101,18 @@
     // 📥 Lijst tonen
     async function laadHeiligen(){
       lijst.innerHTML="Laden…";
-      const snap = await db.collection("parochies").doc(parochieId).collection("heiligen").orderBy("titel").get();
+      const snap=await db.collection("parochies").doc(parochieId).collection("heiligen").orderBy("titel").get();
 
-      if (snap.empty) {
+      if (snap.empty && !standaardGekopieerd) {
         console.log("⚠️ Geen heiligen in parochie → kopieer standaardheiligen...");
         await kopieerStandaardHeiligen();
-        return laadHeiligen(); // herladen na kopiëren
+        standaardGekopieerd = true;
+        return laadHeiligen();
+      }
+
+      if (snap.empty) {
+        lijst.innerHTML="<p>Geen heiligen beschikbaar.</p>";
+        return;
       }
 
       lijst.innerHTML="";
@@ -127,16 +134,19 @@
       });
     }
 
+    // ✅ Kopieer standaardheiligen
     async function kopieerStandaardHeiligen() {
       const standaard = await db.collection("heiligen_kinderen").get();
       if (standaard.empty) {
         console.error("❌ Geen standaardheiligen gevonden!");
-        lijst.innerHTML="<p>Geen standaardheiligen beschikbaar.</p>";
         return;
       }
-      for (const doc of standaard.docs) {
-        await db.collection("parochies").doc(parochieId).collection("heiligen").add(doc.data());
-      }
+      const batch = db.batch();
+      standaard.forEach(doc=>{
+        const ref = db.collection("parochies").doc(parochieId).collection("heiligen").doc();
+        batch.set(ref, doc.data());
+      });
+      await batch.commit();
       console.log("✅ Standaardheiligen gekopieerd!");
     }
 
@@ -153,7 +163,6 @@
       document.getElementById("titel").value=d.titel;
       document.getElementById("icoon").value=d.icoon;
       document.getElementById("inhoud").value=d.inhoud;
-
       form.onsubmit=async(e)=>{
         e.preventDefault();
         await db.collection("parochies").doc(parochieId).collection("heiligen").doc(id).update({
@@ -167,12 +176,14 @@
       };
     }
 
+    // Reset naar nieuw toevoegen
     async function defaultSubmit(e){
       e.preventDefault();
       const titel=document.getElementById("titel").value.trim();
       const icoon=document.getElementById("icoon").value.trim();
       const inhoud=document.getElementById("inhoud").value.trim();
-      await db.collection("parochies").doc(parochieId).collection("heiligen").add({titel,icoon,inhoud,datum:new Date()});
+      await db.collection("parochies").doc(parochieId).collection("heiligen")
+        .add({titel,icoon,inhoud,datum:new Date()});
       form.reset();
       laadHeiligen();
     }
