@@ -26,7 +26,7 @@
     .quiz-vraag h4,.plaat-blok h4{margin:0 0 6px;color:#7a5f35}
     .les-lijst{display:flex;flex-direction:column;gap:14px}
     .les-kaart{background:#fff;border:2px solid #dab97a;border-radius:10px;
-      padding:14px;box-shadow:0 2px 6px rgba(0,0,0,0.1)}
+      padding:14px;box-shadow:0 2px 6px rgba(0,0,0,0.1); text-align:left}
     .les-kaart h3{margin:0;color:#7a5f35}
     .les-kaart small{color:#8f7437}
     .les-kaart .acties{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
@@ -34,23 +34,25 @@
   </style>
 </head>
 <body>
-  <!-- ==== GEMEENSCHAPPELIJKE HEADER ==== -->
+  <!-- ==== HEADER ==== -->
   <div id="volwassen-header" data-header-src="https://www.orthodoxeweg.be/volwassenmodus/common/header.html"></div>
 
   <div class="container">
-    <h1>📖 Catecheselessen</h1>
+    <h1 id="paginaTitel">📖 Catecheselessen</h1>
 
     <form id="nieuweLesForm">
       <h2>Nieuwe les toevoegen</h2>
       <label for="lesTitel">Titel</label>
       <input type="text" id="lesTitel" required>
 
-      <!-- Doelgroep -->
       <label for="lesDoelgroep">Doelgroep</label>
       <select id="lesDoelgroep" required>
         <option value="kleuters">👶 Kleuters</option>
         <option value="lagere school">📘 Lagere school</option>
       </select>
+
+      <label for="lesInhoud">Lesinhoud</label>
+      <textarea id="lesInhoud" placeholder="Schrijf hier je verhaal of uitleg..."></textarea>
 
       <!-- Platen -->
       <h3>Vertelplaten</h3>
@@ -71,13 +73,12 @@
     <div id="lessenOverzicht" class="les-lijst">Laden…</div>
   </div>
 
-  <!-- Firebase SDK's -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-storage-compat.js"></script>
 
   <script>
-    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -91,12 +92,21 @@
     const storage = firebase.storage();
 
     const parochieId = sessionStorage.getItem("dagboek_parochieId");
+    const titel = document.getElementById("paginaTitel");
+
+    let lessenRef = null;
+    if (parochieId) {
+      titel.textContent = "📖 Catecheselessen van de parochie " + parochieId;
+      lessenRef = db.collection("parochies").doc(parochieId).collection("catecheselessen");
+    } else {
+      titel.textContent = "📖 Catecheselessen (geen parochie gevonden)";
+    }
+
     const form = document.getElementById("nieuweLesForm");
     const overzicht = document.getElementById("lessenOverzicht");
     const quizContainer = document.getElementById("quizContainer");
     const platenContainer = document.getElementById("platenContainer");
 
-    // ➕ Plaat toevoegen
     function voegPlaatToe(){
       const idx=platenContainer.children.length+1;
       const div=document.createElement("div");
@@ -111,7 +121,6 @@
       platenContainer.appendChild(div);
     }
 
-    // ➕ Vraag toevoegen
     function voegVraagToe(){
       const idx=quizContainer.children.length+1;
       const div=document.createElement("div");
@@ -131,15 +140,19 @@
       quizContainer.appendChild(div);
     }
 
-    // Les opslaan
+    // Opslaan
     form.addEventListener("submit", async(e)=>{
       e.preventDefault();
+      if (!lessenRef) {
+        alert("❌ Geen parochie geselecteerd.");
+        return;
+      }
       const titel=document.getElementById("lesTitel").value.trim();
       const doelgroep=document.getElementById("lesDoelgroep").value;
+      const inhoud=document.getElementById("lesInhoud").value.trim();
       const zichtbaar=document.getElementById("lesZichtbaar").checked;
       if(!titel){alert("Vul titel in.");return;}
 
-      // Platen verzamelen
       const platen=[];
       for(let blok of platenContainer.querySelectorAll(".plaat-blok")){
         const file=blok.querySelector(".plaatFile").files[0];
@@ -152,7 +165,6 @@
         }
       }
 
-      // Quizvragen verzamelen
       const vragen=[];
       quizContainer.querySelectorAll(".quiz-vraag").forEach(div=>{
         const vraag=div.querySelector(".vraag").value.trim();
@@ -164,20 +176,23 @@
       });
 
       try{
-        await db.collection("parochies").doc(parochieId).collection("catecheselessen").add({
-          titel, doelgroep, zichtbaar, platen, vragen, aangemaaktOp:new Date()
+        await lessenRef.add({
+          titel, doelgroep, inhoud, zichtbaar, platen, vragen,
+          aangemaaktOp:new Date()
         });
         form.reset();platenContainer.innerHTML="";quizContainer.innerHTML="";
         laadLessen();
       }catch(err){console.error(err);alert("❌ Fout: "+err.message);}
     });
 
-    // Lessen laden
     async function laadLessen(){
+      if (!lessenRef) {
+        overzicht.innerHTML = "❌ Geen parochie gevonden.";
+        return;
+      }
       overzicht.innerHTML="Laden…";
       try{
-        const snap=await db.collection("parochies").doc(parochieId).collection("catecheselessen")
-          .orderBy("aangemaaktOp","desc").get();
+        const snap=await lessenRef.orderBy("aangemaaktOp","desc").get();
         overzicht.innerHTML="";
         if(snap.empty){overzicht.innerHTML="<p>Geen lessen toegevoegd.</p>";return;}
         snap.forEach(doc=>{
@@ -192,6 +207,7 @@
           kaart.innerHTML=`
             <h3>${d.titel}</h3>
             <small>${when} — Doelgroep: ${d.doelgroep||"?"}</small>
+            <p>${d.inhoud||"(geen inhoud ingegeven)"}</p>
             ${platenHTML}
             ${d.vragen?.length?`<p><em>Quizvragen: ${d.vragen.length}</em></p>`:""}
             <div class="acties">
@@ -205,16 +221,19 @@
     }
 
     async function toggleZichtbaar(id,huidig){
-      await db.collection("parochies").doc(parochieId).collection("catecheselessen").doc(id).update({zichtbaar:!huidig});
+      await lessenRef.doc(id).update({zichtbaar:!huidig});
       laadLessen();
     }
     async function verwijderLes(id){
       if(!confirm("Weet je zeker dat je deze les wil verwijderen?")) return;
-      await db.collection("parochies").doc(parochieId).collection("catecheselessen").doc(id).delete();
+      await lessenRef.doc(id).delete();
       laadLessen();
     }
+
     laadLessen();
   </script>
 
+  <!-- Gemeenschappelijke layout -->
+  <script src="https://www.orthodoxeweg.be/volwassenmodus/common/layout.js" defer></script>
 </body>
 </html>
