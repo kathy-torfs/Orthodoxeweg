@@ -25,7 +25,7 @@
   <div id="volwassen-header"></div>
 
   <div class="container">
-    <h1>📖 Catecheselessen</h1>
+    <h1 id="paginaTitel">📖 Catecheselessen</h1>
     <div id="lessenOverzicht" class="les-lijst">Laden…</div>
   </div>
 
@@ -47,6 +47,18 @@
     const db = firebase.firestore();
 
     const overzicht = document.getElementById("lessenOverzicht");
+    const paginaTitel = document.getElementById("paginaTitel");
+
+    // ✅ ParochieId uit URL halen
+    const params = new URLSearchParams(window.location.search);
+    const parochieId = params.get("parochie");
+
+    if (!parochieId) {
+      overzicht.innerHTML = "❌ Geen parochieId opgegeven in de URL.";
+    } else {
+      paginaTitel.textContent = "📖 Catecheselessen van de parochie " + parochieId;
+      laadLessen(parochieId);
+    }
 
     // ✅ Lessen laden
     async function laadLessen(parochieId){
@@ -97,7 +109,6 @@
 
     // ✅ Zichtbaarheid wisselen
     async function toggleZichtbaar(id, huidig){
-      const parochieId = sessionStorage.getItem("dagboek_parochieId");
       await db.collection("parochies").doc(parochieId)
         .collection("catecheselessen").doc(id)
         .update({zichtbaar: !huidig});
@@ -107,21 +118,10 @@
     // ✅ Les verwijderen
     async function verwijderLes(id){
       if(!confirm("Weet je zeker dat je deze les wil verwijderen?")) return;
-      const parochieId = sessionStorage.getItem("dagboek_parochieId");
       await db.collection("parochies").doc(parochieId)
         .collection("catecheselessen").doc(id).delete();
       laadLessen(parochieId);
     }
-
-    // ✅ Start pas wanneer header klaar is
-    document.addEventListener("headerLoaded", () => {
-      const id = sessionStorage.getItem("dagboek_parochieId");
-      if (id) {
-        laadLessen(id);
-      } else {
-        overzicht.innerHTML = "❌ Geen parochie gevonden (headerLoaded maar geen id).";
-      }
-    });
   </script>
 
   <!-- Header script -->
