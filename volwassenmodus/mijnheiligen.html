@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>📖 Heiligen – Orthodoxeweg</title>
+  <title>📖 Mijn Heiligen – Orthodoxeweg</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
 
   <style>
@@ -47,13 +47,13 @@
 </head>
 <body>
   <!-- Header volwassenen -->
-  <div id="volwassen-header" data-header-src="/common/header.html"></div>
+  <div id="volwassen-header" data-header-src="common/header.html"></div>
 
   <main>
-    <h1>📖 Heiligen</h1>
+    <h1>📖 Mijn Heiligen</h1>
 
     <form id="nieuweHeiligeForm">
-      <h2>Nieuwe heilige toevoegen</h2>
+      <h2 id="formTitle">Nieuwe heilige toevoegen</h2>
       <label>Titel</label>
       <input type="text" id="titel" required>
 
@@ -79,10 +79,30 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db=firebase.firestore();
 
+    const parochieId = localStorage.getItem("ingelogdeParochie");
     const lijst=document.getElementById("heiligenLijst");
     const form=document.getElementById("nieuweHeiligeForm");
+    let editId=null;
 
-    // ➕ Opslaan nieuwe heilige
+    // Check of de parochie al heiligen heeft, anders standaard kopiëren
+    async function initHeiligen(){
+      const snap=await db.collection("parochies").doc(parochieId).collection("heiligen").limit(1).get();
+      if(snap.empty){
+        console.log("⛪ Geen heiligen in parochie → kopieer standaardheiligen");
+        const standaard=await db.collection("heiligen_kinderen").get();
+        const batch=db.batch();
+        standaard.forEach(doc=>{
+          batch.set(
+            db.collection("parochies").doc(parochieId).collection("heiligen").doc(doc.id),
+            doc.data()
+          );
+        });
+        await batch.commit();
+      }
+      laadHeiligen();
+    }
+
+    // ➕ Opslaan nieuwe of update
     form.addEventListener("submit", async(e)=>{
       e.preventDefault();
       const titel=document.getElementById("titel").value.trim();
@@ -90,15 +110,23 @@
       const inhoud=document.getElementById("inhoud").value.trim();
       if(!titel||!inhoud) return alert("Titel en verhaal zijn verplicht!");
 
-      await db.collection("heiligen").add({titel,icoon,inhoud,datum:new Date()});
+      if(editId){
+        await db.collection("parochies").doc(parochieId).collection("heiligen").doc(editId)
+          .update({titel,icoon,inhoud});
+      }else{
+        await db.collection("parochies").doc(parochieId).collection("heiligen")
+          .add({titel,icoon,inhoud,datum:new Date()});
+      }
       form.reset();
+      editId=null;
+      document.getElementById("formTitle").textContent="Nieuwe heilige toevoegen";
       laadHeiligen();
     });
 
     // 📥 Lijst tonen
     async function laadHeiligen(){
       lijst.innerHTML="Laden…";
-      const snap=await db.collection("heiligen").orderBy("titel").get();
+      const snap=await db.collection("parochies").doc(parochieId).collection("heiligen").orderBy("titel").get();
       lijst.innerHTML="";
       snap.forEach(doc=>{
         const d=doc.data();
@@ -120,43 +148,22 @@
 
     async function verwijderHeilige(id){
       if(!confirm("Weet je zeker dat je deze heilige wil verwijderen?")) return;
-      await db.collection("heiligen").doc(id).delete();
+      await db.collection("parochies").doc(parochieId).collection("heiligen").doc(id).delete();
       laadHeiligen();
     }
 
     async function bewerkHeilige(id){
-      const docu=await db.collection("heiligen").doc(id).get();
+      const docu=await db.collection("parochies").doc(parochieId).collection("heiligen").doc(id).get();
       if(!docu.exists) return;
       const d=docu.data();
       document.getElementById("titel").value=d.titel;
       document.getElementById("icoon").value=d.icoon;
       document.getElementById("inhoud").value=d.inhoud;
-      form.onsubmit=async(e)=>{
-        e.preventDefault();
-        await db.collection("heiligen").doc(id).update({
-          titel:document.getElementById("titel").value.trim(),
-          icoon:document.getElementById("icoon").value.trim(),
-          inhoud:document.getElementById("inhoud").value.trim()
-        });
-        form.reset();
-        form.onsubmit=defaultSubmit;
-        laadHeiligen();
-      };
+      editId=id;
+      document.getElementById("formTitle").textContent="Heilige bewerken";
     }
 
-    // Reset naar nieuw toevoegen
-    async function defaultSubmit(e){
-      e.preventDefault();
-      const titel=document.getElementById("titel").value.trim();
-      const icoon=document.getElementById("icoon").value.trim();
-      const inhoud=document.getElementById("inhoud").value.trim();
-      await db.collection("heiligen").add({titel,icoon,inhoud,datum:new Date()});
-      form.reset();
-      laadHeiligen();
-    }
-    form.onsubmit=defaultSubmit;
-
-    laadHeiligen();
+    initHeiligen();
   </script>
 </body>
 </html>
