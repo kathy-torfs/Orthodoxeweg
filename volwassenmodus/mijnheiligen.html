@@ -60,6 +60,8 @@
       margin-top:12px;
     }
     .btn:hover { background:#5e8e29; }
+    .btn.danger { background:#c0392b; }
+    .btn.danger:hover { background:#962d22; }
   </style>
 
   <!-- Firebase -->
@@ -86,7 +88,6 @@
   </main>
 
   <script>
-    // Firebase init
     const firebaseConfig = {
       apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain:"orthodoxeweg.firebaseapp.com",
@@ -106,11 +107,11 @@
       indexDiv.innerHTML="⏳ Laden...";
       const lijst=[];
 
-      // Eerst parochieheiligen
+      // Parochieheiligen
       const snapP=await db.collection("parochies").doc(parochieId).collection("heiligen").get();
       snapP.forEach(doc=>{ lijst.push({id:doc.id, ...doc.data(), bron:"parochie"}); });
 
-      // Dan standaardheiligen (indien nog niet overschreven in parochie)
+      // Standaardheiligen (indien nog niet overschreven in parochie)
       const snapS=await db.collection("heiligen_kinderen").get();
       snapS.forEach(doc=>{
         if(!lijst.find(h=>h.id===doc.id)){
@@ -131,6 +132,9 @@
     // Toon detail
     function toonHeilige(h){
       actieveId=h.id;
+      // Zet <br> terug naar echte regeleinden
+      const verhaalText = (h.verhaal||"").replace(/<br\s*\/?>/gi, "\n");
+
       detailDiv.innerHTML=`
         <h2>${h.titel||h.id}</h2>
         <label>Titel</label>
@@ -138,8 +142,9 @@
         <label>Icoon-URL</label>
         <input id="heiligeIcoon" value="${h.icoonUrl||""}" placeholder="https://...">
         <label>Verhaal</label>
-        <textarea id="heiligeVerhaal">${h.verhaal||""}</textarea>
+        <textarea id="heiligeVerhaal">${verhaalText}</textarea>
         <button class="btn" onclick="opslaanHeilige()">💾 Opslaan</button>
+        <button class="btn danger" onclick="verwijderHeilige()">❌ Verwijderen</button>
       `;
     }
 
@@ -162,7 +167,7 @@
     async function opslaanHeilige(){
       const titel=document.getElementById("heiligeTitel").value.trim();
       const icoonUrl=document.getElementById("heiligeIcoon").value.trim();
-      const verhaal=document.getElementById("heiligeVerhaal").value.trim();
+      const verhaal=document.getElementById("heiligeVerhaal").value.trim().replace(/\n/g,"<br>");
       if(!titel||!verhaal){ alert("Titel en verhaal zijn verplicht!"); return; }
 
       const id=titel.toLowerCase().replace(/\s+/g,"_").replace(/[^a-z0-9_]/g,"");
@@ -171,6 +176,20 @@
         .doc(id).set({titel,icoonUrl,verhaal,datum:new Date()});
 
       alert("✅ Heilige opgeslagen!");
+      laadHeiligen();
+    }
+
+    // Verwijderen
+    async function verwijderHeilige(){
+      if(!actieveId){ alert("Geen heilige geselecteerd."); return; }
+      if(!confirm("Weet je zeker dat je deze heilige wil verwijderen?")) return;
+
+      await db.collection("parochies").doc(parochieId).collection("heiligen")
+        .doc(actieveId).delete();
+
+      alert("🗑 Heilige verwijderd!");
+      actieveId=null;
+      detailDiv.innerHTML="<p style='text-align:center;color:#888;margin-top:200px;'>⬅️ Kies links een heilige of voeg er een toe</p>";
       laadHeiligen();
     }
 
