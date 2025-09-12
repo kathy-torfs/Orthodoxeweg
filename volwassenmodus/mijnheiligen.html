@@ -2,38 +2,64 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>📖 Mijn heiligen – Orthodoxeweg</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
 
   <style>
-    body { margin:0; font-family:Arial,sans-serif; background:#f5e9b8; color:#6f4e1a; }
-    main { max-width:1000px; margin:30px auto; padding:0 20px; }
-    h1 { text-align:center; color:#4e2710; margin-bottom:20px; }
+    body {
+      margin:0; font-family:Arial,sans-serif;
+      background:#f5e9b8; color:#6f4e1a;
+    }
+    main { max-width:1200px; margin:20px auto; padding:0 20px; display:flex; gap:20px; }
 
-    .kaart { background:#fffdf5; border:2px solid #dab97a; border-radius:10px;
-             padding:14px; margin-bottom:16px; box-shadow:0 2px 8px rgba(0,0,0,0.12); }
-    .kaart h3 { margin:0; color:#7a5f35; }
-    .kaart small { color:#8f7437; display:block; margin-bottom:8px; }
-    .kaart .acties { margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; }
-    .kaart button { padding:6px 10px; font-size:0.9em; cursor:pointer; }
+    /* Sidebar (index van heiligen) */
+    .sidebar {
+      flex:1;
+      background:#fff9e2; border:2px solid #d6c290;
+      border-radius:12px; padding:12px;
+      max-height:80vh; overflow-y:auto;
+    }
+    .sidebar h2 {
+      margin:0 0 10px; font-size:1.2em; text-align:center;
+    }
+    .heilige-item {
+      padding:8px; border-radius:6px; margin:4px 0;
+      cursor:pointer; background:#fff;
+      border:1px solid #dbc592;
+    }
+    .heilige-item:hover { background:#f7eecb; }
+    .heilige-item.active { background:#e9dba9; font-weight:bold; }
 
-    form { background:#fff8eb; border:2px dashed #dab97a; border-radius:12px;
-           padding:16px; margin-bottom:20px; }
+    .plus-btn {
+      display:block; text-align:center;
+      margin:10px auto; padding:8px; width:100%;
+      border:2px dashed #c7b177; border-radius:8px;
+      background:#fff9e2; cursor:pointer; font-size:1.1em;
+    }
+    .plus-btn:hover { background:#fff5cc; }
+
+    /* Detailvlak */
+    .detail {
+      flex:2;
+      background:#fffef9; border:2px solid #e2d1a5;
+      border-radius:12px; box-shadow:0 6px 18px rgba(0,0,0,0.12);
+      padding:20px; min-height:500px;
+    }
+    .detail h2 { margin:0 0 15px; color:#7a5f35; }
     label { display:block; margin:10px 0 4px; font-weight:bold; }
     input, textarea {
-      width:100%; padding:8px; border:1px solid #dab97a; border-radius:6px;
-      background:#fffdf6; font-family:inherit;
+      width:100%; border:1px solid #dbc592; border-radius:6px;
+      padding:8px; font-family:inherit; font-size:1em; background:#fffdf5;
     }
-    textarea { min-height:120px; }
-    .btn { background:#7bb235; color:#fff; border:none; border-radius:8px;
-           padding:8px 16px; font-weight:bold; }
-    .btn:hover { background:#5e8e29; }
+    textarea { min-height:250px; resize:vertical; }
 
-    .standaard-lijst { background:#fff9e2; border:2px solid #dab97a;
-                       border-radius:10px; padding:14px; margin-top:30px; }
-    .standaard-item { padding:6px; border-bottom:1px solid #e2d1a5; }
-    .standaard-item:last-child { border-bottom:none; }
+    .btn {
+      background:#7bb235; color:#fff; border:none;
+      border-radius:8px; padding:10px 16px; font-weight:bold; cursor:pointer;
+      margin-top:12px;
+    }
+    .btn:hover { background:#5e8e29; }
   </style>
 
   <!-- Firebase -->
@@ -42,146 +68,113 @@
   <script defer src="common/layout.js"></script>
 </head>
 <body>
-  <!-- Header -->
-  <div id="volwassen-header" data-header-src="common/header.html"></div>
+  <!-- Header volwassenen -->
+  <div id="volwassen-header" data-header-src="../common/header.html"></div>
 
   <main>
-    <h1>📖 Mijn parochieheiligen</h1>
+    <!-- Index -->
+    <div class="sidebar">
+      <h2>📑 Heiligenlijst</h2>
+      <div id="heiligenIndex"></div>
+      <div class="plus-btn" onclick="nieuwHeilige()">＋ Nieuwe heilige</div>
+    </div>
 
-    <form id="heiligeForm">
-      <h2>Nieuwe heilige toevoegen</h2>
-      <label>Titel</label>
-      <input type="text" id="titel" required>
-      <label>Icoon-URL</label>
-      <input type="url" id="icoonurl" placeholder="https://...">
-      <label>Verhaal</label>
-      <textarea id="verhaal" required></textarea>
-      <button type="submit" class="btn">Opslaan</button>
-    </form>
-
-    <div id="parochieLijst"></div>
-
-    <div class="standaard-lijst">
-      <h2>📜 Standaardheiligen</h2>
-      <div id="standaardLijst"></div>
+    <!-- Detailvlak -->
+    <div class="detail" id="detailVlak">
+      <p style="text-align:center;color:#888;margin-top:200px;">⬅️ Kies links een heilige of voeg er een toe</p>
     </div>
   </main>
 
   <script>
     // Firebase init
     const firebaseConfig = {
-      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
-      authDomain: "orthodoxeweg.firebaseapp.com",
-      projectId: "orthodoxeweg"
+      apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain:"orthodoxeweg.firebaseapp.com",
+      projectId:"orthodoxeweg"
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    const db=firebase.firestore();
 
     const parochieId = localStorage.getItem("ingelogdeParochie");
-    const form = document.getElementById("heiligeForm");
-    const parochieLijst = document.getElementById("parochieLijst");
-    const standaardLijst = document.getElementById("standaardLijst");
+    const indexDiv=document.getElementById("heiligenIndex");
+    const detailDiv=document.getElementById("detailVlak");
 
-    // ➕ Opslaan of bijwerken
-    let bewerkId=null;
-    form.addEventListener("submit", async(e)=>{
-      e.preventDefault();
-      const titel=document.getElementById("titel").value.trim();
-      const icoonurl=document.getElementById("icoonurl").value.trim();
-      const verhaal=document.getElementById("verhaal").value.trim();
-      if(!titel||!verhaal) return alert("Titel en verhaal zijn verplicht!");
+    let actieveId=null;
 
-      const ref=db.collection("parochies").doc(parochieId).collection("heiligen").doc(titel);
-      await ref.set({titel, icoonurl, verhaal, zichtbaar:true}, {merge:true});
+    // Lijst laden
+    async function laadHeiligen(){
+      indexDiv.innerHTML="⏳ Laden...";
+      const lijst=[];
 
-      form.reset(); bewerkId=null;
-      laadParochieHeiligen(); laadStandaardHeiligen();
-    });
+      // Eerst parochieheiligen
+      const snapP=await db.collection("parochies").doc(parochieId).collection("heiligen").get();
+      snapP.forEach(doc=>{ lijst.push({id:doc.id, ...doc.data(), bron:"parochie"}); });
 
-    // 📥 Parochieheiligen tonen
-    async function laadParochieHeiligen(){
-      const snap=await db.collection("parochies").doc(parochieId).collection("heiligen").get();
-      parochieLijst.innerHTML="";
-      if(snap.empty){ parochieLijst.innerHTML="<p>Geen heiligen in deze parochie.</p>"; return; }
-      snap.forEach(doc=>{
-        const d=doc.data();
-        const div=document.createElement("div");
-        div.className="kaart";
-        div.innerHTML=`
-          <h3>${d.icoonurl?`<img src="${d.icoonurl}" style="max-height:24px;vertical-align:middle"> `:""}${d.titel}</h3>
-          <small>${d.zichtbaar?"zichtbaar":"verborgen"}</small>
-          <p>${(d.verhaal||"").substring(0,150)}...</p>
-          <div class="acties">
-            <button onclick="bewerkHeilige('${doc.id}')">✏️ Bewerken</button>
-            <button onclick="toggleZichtbaar('${doc.id}',${d.zichtbaar})">${d.zichtbaar?"🙈 Verbergen":"👁 Zichtbaar maken"}</button>
-          </div>
-        `;
-        parochieLijst.appendChild(div);
-      });
-    }
-
-    // 📜 Standaardheiligen tonen
-    async function laadStandaardHeiligen(){
-      const snap=await db.collection("heiligen_kinderen").get();
-      standaardLijst.innerHTML="";
-      snap.forEach(doc=>{
-        const naam=doc.id;
-        const div=document.createElement("div");
-        div.className="standaard-item";
-        div.innerHTML=`
-          <label>
-            <input type="checkbox" onchange="toggleHeilige('${naam}', this.checked)" id="chk-${naam}">
-            ${naam}
-          </label>
-        `;
-        standaardLijst.appendChild(div);
-      });
-
-      // sync met parochie
-      const parSnap=await db.collection("parochies").doc(parochieId).collection("heiligen").get();
-      parSnap.forEach(doc=>{
-        const chk=document.getElementById("chk-"+doc.id);
-        if(chk) chk.checked=doc.data().zichtbaar!==false;
-      });
-    }
-
-    // ✅ Toggle heilige
-    async function toggleHeilige(naam, checked){
-      const ref=db.collection("parochies").doc(parochieId).collection("heiligen").doc(naam);
-      if(checked){
-        const snap=await ref.get();
-        if(!snap.exists){
-          const std=await db.collection("heiligen_kinderen").doc(naam).get();
-          const verhaal=std.exists?std.data().verhaal:"";
-          await ref.set({titel:naam, icoonurl:"", verhaal, zichtbaar:true});
-        }else{
-          await ref.update({zichtbaar:true});
+      // Dan standaardheiligen (indien nog niet overschreven in parochie)
+      const snapS=await db.collection("heiligen_kinderen").get();
+      snapS.forEach(doc=>{
+        if(!lijst.find(h=>h.id===doc.id)){
+          lijst.push({id:doc.id, ...doc.data(), bron:"standaard"});
         }
-      }else{
-        await ref.update({zichtbaar:false});
-      }
-      laadParochieHeiligen();
+      });
+
+      indexDiv.innerHTML="";
+      lijst.forEach(h=>{
+        const div=document.createElement("div");
+        div.className="heilige-item";
+        div.textContent=h.titel || h.id;
+        div.onclick=()=>toonHeilige(h);
+        indexDiv.appendChild(div);
+      });
     }
 
-    // ✏️ Bewerken
-    async function bewerkHeilige(id){
-      const docu=await db.collection("parochies").doc(parochieId).collection("heiligen").doc(id).get();
-      if(!docu.exists) return;
-      const d=docu.data();
-      document.getElementById("titel").value=d.titel;
-      document.getElementById("icoonurl").value=d.icoonurl||"";
-      document.getElementById("verhaal").value=d.verhaal||"";
-      bewerkId=id;
+    // Toon detail
+    function toonHeilige(h){
+      actieveId=h.id;
+      detailDiv.innerHTML=`
+        <h2>${h.titel||h.id}</h2>
+        <label>Titel</label>
+        <input id="heiligeTitel" value="${h.titel||""}">
+        <label>Icoon-URL</label>
+        <input id="heiligeIcoon" value="${h.icoonUrl||""}" placeholder="https://...">
+        <label>Verhaal</label>
+        <textarea id="heiligeVerhaal">${h.verhaal||""}</textarea>
+        <button class="btn" onclick="opslaanHeilige()">💾 Opslaan</button>
+      `;
     }
 
-    // 👁 toggle zichtbaar/verborgen
-    async function toggleZichtbaar(id,huidig){
-      await db.collection("parochies").doc(parochieId).collection("heiligen").doc(id).update({zichtbaar:!huidig});
-      laadParochieHeiligen(); laadStandaardHeiligen();
+    // Nieuw heilige toevoegen
+    function nieuwHeilige(){
+      actieveId=null;
+      detailDiv.innerHTML=`
+        <h2>Nieuwe heilige</h2>
+        <label>Titel</label>
+        <input id="heiligeTitel">
+        <label>Icoon-URL</label>
+        <input id="heiligeIcoon" placeholder="https://...">
+        <label>Verhaal</label>
+        <textarea id="heiligeVerhaal"></textarea>
+        <button class="btn" onclick="opslaanHeilige()">💾 Opslaan</button>
+      `;
     }
 
-    laadParochieHeiligen();
-    laadStandaardHeiligen();
+    // Opslaan of bijwerken
+    async function opslaanHeilige(){
+      const titel=document.getElementById("heiligeTitel").value.trim();
+      const icoonUrl=document.getElementById("heiligeIcoon").value.trim();
+      const verhaal=document.getElementById("heiligeVerhaal").value.trim();
+      if(!titel||!verhaal){ alert("Titel en verhaal zijn verplicht!"); return; }
+
+      const id=titel.toLowerCase().replace(/\s+/g,"_").replace(/[^a-z0-9_]/g,"");
+
+      await db.collection("parochies").doc(parochieId).collection("heiligen")
+        .doc(id).set({titel,icoonUrl,verhaal,datum:new Date()});
+
+      alert("✅ Heilige opgeslagen!");
+      laadHeiligen();
+    }
+
+    laadHeiligen();
   </script>
 </body>
 </html>
