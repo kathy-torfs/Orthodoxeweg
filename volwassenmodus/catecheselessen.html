@@ -6,121 +6,41 @@
   <title>Catecheselessen – Orthodoxeweg</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
-    body{margin:0;font-family:Arial,sans-serif;background:#f5e9b8;color:#6f4e1a}
-    .container{max-width:1000px;margin:30px auto;padding:0 20px}
-    h1{text-align:center;color:#4e2710;margin-bottom:30px}
-    .les-lijst{display:flex;flex-direction:column;gap:14px}
-    .les-kaart{background:#fff;border:2px solid #dab97a;border-radius:10px;
-      padding:14px;box-shadow:0 2px 6px rgba(0,0,0,0.1)}
-    .les-kaart h3{margin:0;color:#7a5f35}
-    .les-kaart small{color:#8f7437}
-    .les-kaart .acties{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
-    .les-kaart button{padding:6px 10px;font-size:0.9em;
-      background:#7bb235;color:#fff;border:none;border-radius:8px;cursor:pointer}
-    .les-kaart button:hover{background:#5e8e29}
+    body {
+      margin:0;
+      font-family:Arial,sans-serif;
+      background:#f5e9b8;
+      color:#6f4e1a;
+    }
+    .container {
+      max-width:1000px;
+      margin:30px auto;
+      padding:0 20px;
+      text-align:center;
+    }
+    h1 {
+      color:#4e2710;
+    }
   </style>
 </head>
 <body>
   <!-- Header -->
   <div id="volwassen-header"></div>
 
+  <!-- Container -->
   <div class="container">
     <h1 id="paginaTitel">📖 Catecheselessen</h1>
-    <div id="lessenOverzicht" class="les-lijst">Laden…</div>
   </div>
 
-  <!-- Firebase SDK's -->
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
-
   <script>
-    // ✅ Firebase config
-    const firebaseConfig = {
-      apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
-      authDomain: "orthodoxeweg.firebaseapp.com",
-      projectId: "orthodoxeweg",
-      storageBucket: "orthodoxeweg.appspot.com",
-      messagingSenderId: "408582263618",
-      appId: "1:408582263618:web:2e02833fa0d4d8903ceedb"
-    };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+    // ParochieId ophalen zoals header doet
+    const parochieId = sessionStorage.getItem("dagboek_parochieId");
 
-    const overzicht = document.getElementById("lessenOverzicht");
-    const paginaTitel = document.getElementById("paginaTitel");
-
-    // ✅ ParochieId uit URL halen
-    const params = new URLSearchParams(window.location.search);
-    const parochieId = params.get("parochie");
-
-    if (!parochieId) {
-      overzicht.innerHTML = "❌ Geen parochieId opgegeven in de URL.";
+    const titel = document.getElementById("paginaTitel");
+    if (parochieId) {
+      titel.textContent = "📖 Catecheselessen van de parochie " + parochieId;
     } else {
-      paginaTitel.textContent = "📖 Catecheselessen van de parochie " + parochieId;
-      laadLessen(parochieId);
-    }
-
-    // ✅ Lessen laden
-    async function laadLessen(parochieId){
-      overzicht.innerHTML = "Laden…";
-      try {
-        const snap = await db.collection("parochies").doc(parochieId)
-          .collection("catecheselessen")
-          .orderBy("aangemaaktOp","desc").get();
-
-        overzicht.innerHTML = "";
-        if (snap.empty){
-          overzicht.innerHTML = "<p>Geen lessen toegevoegd.</p>";
-          return;
-        }
-
-        snap.forEach(doc=>{
-          const d = doc.data();
-          const when = d.aangemaaktOp?.toDate ? d.aangemaaktOp.toDate().toLocaleString() : "";
-          const kaart = document.createElement("div");
-          kaart.className = "les-kaart";
-
-          let platenHTML = "";
-          if (d.platen){
-            d.platen.forEach(p=>{
-              platenHTML += `<div><img src="${p.url}" style="max-width:100%;border-radius:8px;margin:10px 0"><p>${p.tekst}</p></div>`;
-            });
-          }
-
-          kaart.innerHTML = `
-            <h3>${d.titel||"(geen titel)"}</h3>
-            <small>${when}</small>
-            ${platenHTML}
-            ${d.vragen?.length ? `<p><em>Quizvragen: ${d.vragen.length}</em></p>` : ""}
-            <div class="acties">
-              <button onclick="toggleZichtbaar('${doc.id}', ${d.zichtbaar})">
-                ${d.zichtbaar ? "🔒 Verbergen" : "👁 Zichtbaar maken"}
-              </button>
-              <button onclick="verwijderLes('${doc.id}')">🗑 Verwijderen</button>
-            </div>
-          `;
-          overzicht.appendChild(kaart);
-        });
-      } catch(e){
-        console.error(e);
-        overzicht.innerHTML = "❌ Fout bij laden lessen.";
-      }
-    }
-
-    // ✅ Zichtbaarheid wisselen
-    async function toggleZichtbaar(id, huidig){
-      await db.collection("parochies").doc(parochieId)
-        .collection("catecheselessen").doc(id)
-        .update({zichtbaar: !huidig});
-      laadLessen(parochieId);
-    }
-
-    // ✅ Les verwijderen
-    async function verwijderLes(id){
-      if(!confirm("Weet je zeker dat je deze les wil verwijderen?")) return;
-      await db.collection("parochies").doc(parochieId)
-        .collection("catecheselessen").doc(id).delete();
-      laadLessen(parochieId);
+      titel.textContent = "📖 Catecheselessen (geen parochie gevonden)";
     }
   </script>
 
