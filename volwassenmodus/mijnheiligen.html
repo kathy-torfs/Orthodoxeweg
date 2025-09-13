@@ -54,6 +54,7 @@
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
   <script defer src="common/layout.js"></script>
 </head>
 <body>
@@ -80,15 +81,16 @@
   </main>
 
   <script>
-    // Firebase init
     if (!firebase.apps.length) {
       firebase.initializeApp({
-        apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+        apiKey:"AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
         authDomain:"orthodoxeweg.firebaseapp.com",
-        projectId:"orthodoxeweg"
+        projectId:"orthodoxeweg",
+        storageBucket:"orthodoxeweg.firebasestorage.app"
       });
     }
     const db=firebase.firestore();
+    const storage=firebase.storage();
 
     const parochieId=localStorage.getItem("ingelogdeParochie");
     const lijstEl=document.getElementById("heiligenLijst");
@@ -106,11 +108,9 @@
       lijstEl.innerHTML="⏳ Laden...";
       let items=[];
 
-      // parochieheiligen (gescheiden per doelgroep)
       const snapPar=await db.collection("parochies").doc(parochieId).collection("heiligen").where("doelgroep","==",huidigDoelgroep).get();
       snapPar.forEach(doc=>{ items.push({...doc.data(),id:doc.id,bron:"parochie"}); });
 
-      // standaardheiligen enkel bij lagere school
       if(huidigDoelgroep==="lagere"){
         const snapStd=await db.collection("heiligen_kinderen").get();
         snapStd.forEach(doc=>{
@@ -135,7 +135,9 @@
       detailEl.innerHTML=`
         <h2>${h.id}</h2>
         ${h.icoonurl?`<img src="${h.icoonurl}">`:""}
-        <label>Icoon URL</label>
+        <label>Icoon bestand uploaden</label>
+        <input type="file" id="icoonFile" accept="image/*">
+        <label>Of icoon URL</label>
         <input id="icoonInput" value="${h.icoonurl||""}">
         <label>Verhaal</label>
         <textarea id="verhaalInput">${(h.verhaal||"").replace(/<br>/g,"\n")}</textarea>
@@ -148,7 +150,6 @@
           ${h.bron==="parochie"?`<button class="btn delete" onclick="verwijderHeilige('${h.id}')">Verwijderen</button>`:""}
         </div>
       `;
-      // laad vragen
       if(h.vragen){ h.vragen.forEach(q=>voegVraagToe(q)); }
     }
 
@@ -166,11 +167,18 @@
     }
 
     async function opslaanHeilige(id,bron){
-      const icoon=document.getElementById("icoonInput").value.trim();
+      const file=document.getElementById("icoonFile")?.files[0];
+      let icoon=document.getElementById("icoonInput").value.trim();
+
+      if(file){
+        const pad=`heiligen/${id}/${Date.now()}_${file.name}`;
+        const snap=await storage.ref(pad).put(file);
+        icoon=await snap.ref.getDownloadURL();
+      }
+
       const verhaal=document.getElementById("verhaalInput").value.trim().replace(/\n/g,"<br>");
       const zichtbaar=document.getElementById("zichtbaarChk").checked;
 
-      // vragen verzamelen
       const vragen=[];
       document.querySelectorAll("#quizContainer .vraagblok").forEach(div=>{
         const vraag=div.querySelector(".vraag").value.trim();
