@@ -15,25 +15,23 @@
     form{background:#fff8eb;border:2px solid #dab97a;border-radius:12px;padding:16px;box-shadow:0 2px 6px rgba(0,0,0,.1);margin-top:20px}
     form h2{margin-top:0;color:#7a5f35}
     label{display:block;margin:10px 0 4px}
-    input[type=text],textarea{width:100%;padding:8px;border:1px solid #dab97a;border-radius:6px;background:#fffdf6}
+    input[type=text],textarea,select{width:100%;padding:8px;border:1px solid #dab97a;border-radius:6px;background:#fffdf6}
     textarea{min-height:80px;resize:vertical}
     button{background:#7bb235;color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:bold}
     button:hover{background:#5e8e29}
     .blok{background:#fff;border:1px solid #dab97a;border-radius:8px;padding:10px;margin-top:10px}
     .blok h4{margin:0 0 6px;color:#7a5f35}
     .les-lijst{display:flex;flex-direction:column;gap:10px;margin-top:20px}
-    .les-kaart{background:#fff;border:2px solid #dab97a;border-radius:10px;padding:10px}
-    .les-kaart h3{margin:0;color:#7a5f35;cursor:pointer}
-    .les-kaart small{color:#8f7437;display:block;margin-top:4px}
-    .les-kaart button{margin-top:8px;background:#c0392b}
-    .les-kaart button:hover{background:#922b21}
-    /* Afbeeldingen max 3 cm hoog */
-    img.verhaal-plaat{max-height:113px;width:auto;display:block;margin:6px 0;border-radius:6px}
+    .les-kaart{background:#fff;border:2px solid #dab97a;border-radius:10px;padding:10px;cursor:pointer}
+    .les-kaart h3{margin:0;color:#7a5f35}
+    .les-kaart small{color:#8f7437}
+    .les-kaart img{max-height:3cm;margin:6px 0;border-radius:6px}
   </style>
 </head>
 <body>
   <!-- Header -->
-  <div id="volwassen-header"></div>
+  <div id="volwassen-header" data-header-src="common/header.html"></div>
+  <script src="common/layout.js" defer></script>
 
   <div class="container">
     <h1>📖 Catecheselessen</h1>
@@ -44,14 +42,20 @@
       <button id="tabLagere" onclick="wisselDoelgroep('lagere')">📚 Lagere school</button>
     </div>
 
-    <!-- Index van lessen -->
+    <!-- Index -->
     <div id="lessenOverzicht" class="les-lijst">Laden…</div>
 
-    <!-- Nieuw / bewerken -->
+    <!-- Formulier -->
     <form id="lesForm">
       <h2>Nieuwe les toevoegen / bewerken</h2>
       <label>Titel</label>
       <input type="text" id="lesTitel" required>
+
+      <label>Doelgroep</label>
+      <select id="lesDoelgroep">
+        <option value="kleuters">👶 Kleuters</option>
+        <option value="lagere">📚 Lagere school</option>
+      </select>
 
       <label>Inhoud</label>
       <textarea id="lesInhoud"></textarea>
@@ -75,10 +79,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 
-  <!-- Header script -->
-  <script src="../common/layout.js" defer></script>
-
   <script>
+    // Config
     const firebaseConfig = {
       apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -89,7 +91,7 @@
     const db = firebase.firestore();
     const storage = firebase.storage();
 
-    const parochieId = "hasselt-drie-hierarchen"; 
+    const parochieId = "hasselt-drie-hierarchen";
     let huidigDoelgroep = "kleuters";
     let editId = null;
 
@@ -98,6 +100,7 @@
     const platenContainer = document.getElementById("platenContainer");
     const quizContainer = document.getElementById("quizContainer");
 
+    // Tabs wisselen
     function wisselDoelgroep(d) {
       huidigDoelgroep = d;
       document.getElementById("tabKleuters").classList.toggle("actief", d==="kleuters");
@@ -105,6 +108,7 @@
       laadLessen();
     }
 
+    // Plaat
     function voegPlaatToe(p={}) {
       const div=document.createElement("div");
       div.className="blok";
@@ -114,11 +118,12 @@
         <input type="hidden" class="bestaandeUrl" value="${p.url||""}">
         <label>Tekst:</label>
         <textarea class="plaatTekst">${p.tekst||""}</textarea>
-        ${p.url?`<img src="${p.url}" class="verhaal-plaat">`:""}
+        ${p.url?`<img src="${p.url}">`:""}
       `;
       platenContainer.appendChild(div);
     }
 
+    // Vraag
     function voegVraagToe(q={}) {
       const div=document.createElement("div");
       div.className="blok";
@@ -132,13 +137,19 @@
       quizContainer.appendChild(div);
     }
 
+    // Opslaan
     form.addEventListener("submit", async(e)=>{
       e.preventDefault();
       const titel=form.lesTitel.value.trim();
       if(!titel) return alert("Titel verplicht!");
-      const docId=titel.toLowerCase().replace(/\s+/g,"-");
-      const data={titel,doelgroep:huidigDoelgroep,inhoud:form.lesInhoud.value.trim(),
-        zichtbaar:form.lesZichtbaar.checked,platen:[],vragen:[],aangemaaktOp:new Date()};
+      const doelgroep=form.lesDoelgroep.value;
+      const docId=`${doelgroep}-${titel.toLowerCase().replace(/\s+/g,"-")}`;
+      const data={
+        titel,doelgroep,
+        inhoud:form.lesInhoud.value.trim(),
+        zichtbaar:form.lesZichtbaar.checked,
+        platen:[],vragen:[],aangemaaktOp:new Date()
+      };
       for(let blok of platenContainer.querySelectorAll(".blok")){
         const file=blok.querySelector(".plaatFile").files[0];
         const tekst=blok.querySelector(".plaatTekst").value.trim();
@@ -163,6 +174,7 @@
       laadLessen();
     });
 
+    // Lessen laden
     async function laadLessen(){
       overzicht.innerHTML="Laden…";
       const snap=await db.collection("parochies").doc(parochieId).collection("catecheselessen")
@@ -175,18 +187,20 @@
         kaart.className="les-kaart";
         kaart.innerHTML=`
           <h3 onclick="bewerkLes('${doc.id}')">${d.titel}</h3>
-          <small>${d.zichtbaar?"✅":"🚫"} ${d.inhoud.substring(0,50)||""}</small>
-          <button onclick="verwijderLes('${doc.id}')">🗑 Les verwijderen</button>
+          <small>${d.doelgroep==="kleuters"?"👶":"📚"} ${d.zichtbaar?"✅":"🚫"}</small><br>
+          <p>${d.inhoud.substring(0,50)||""}</p>
         `;
         overzicht.appendChild(kaart);
       });
     }
 
+    // Bewerken
     async function bewerkLes(id){
       const docRef=await db.collection("parochies").doc(parochieId).collection("catecheselessen").doc(id).get();
       if(!docRef.exists) return;
       const d=docRef.data();
       form.lesTitel.value=d.titel;
+      form.lesDoelgroep.value=d.doelgroep;
       form.lesInhoud.value=d.inhoud;
       form.lesZichtbaar.checked=d.zichtbaar;
       platenContainer.innerHTML="";quizContainer.innerHTML="";
@@ -194,12 +208,6 @@
       d.vragen?.forEach(q=>voegVraagToe(q));
       editId=id;
       window.scrollTo({top:0,behavior:"smooth"});
-    }
-
-    async function verwijderLes(id){
-      if(!confirm("Weet je zeker dat je deze les wilt verwijderen?")) return;
-      await db.collection("parochies").doc(parochieId).collection("catecheselessen").doc(id).delete();
-      laadLessen();
     }
 
     laadLessen();
