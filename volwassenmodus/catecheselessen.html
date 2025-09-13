@@ -58,6 +58,12 @@
       <label for="lesInhoud">Lesinhoud</label>
       <textarea id="lesInhoud"></textarea>
 
+      <!-- Zichtbaarheid -->
+      <label>
+        <input type="checkbox" id="lesZichtbaar" checked>
+        Zichtbaar voor klas
+      </label>
+
       <!-- Vertelplaten -->
       <h3>Vertelplaten</h3>
       <div id="platenContainer"></div>
@@ -164,10 +170,12 @@
         platen: [],
         vragen: [],
         aangemaaktOp: new Date(),
-        zichtbaar: true
+        zichtbaar: document.getElementById("lesZichtbaar").checked
       };
 
-      const docId = slugify(data.titel);
+      // Veilig document-id
+      let docId = slugify(data.titel);
+      if (!docId) docId = "les-" + Date.now();
 
       // Platen
       for (let blok of platenContainer.querySelectorAll(".blok")) {
@@ -235,11 +243,9 @@
             <small>${when}</small><br>
             <b>Doelgroep:</b> ${d.doelgroep||"-"}<br>
             <b>Status:</b> ${d.zichtbaar ? "✅ Zichtbaar" : "🚫 Verborgen"}
-            <p>${d.zichtbaar ? (d.inhoud||"") : ""}</p>
-            ${platenHTML}
-            ${quizHTML}
+            ${d.zichtbaar ? `<p>${d.inhoud||""}</p>${platenHTML}${quizHTML}` : ""}
             <div class="acties">
-              <button onclick="toggleZichtbaarheid('${doc.id}', ${d.zichtbaar ? "false" : "true"})">
+              <button onclick="toggleZichtbaarheid('${doc.id}', ${!d.zichtbaar})">
                 ${d.zichtbaar ? "🚫 Verbergen" : "👁️ Tonen"}
               </button>
               <button onclick="bewerkLes('${doc.id}')">✏️ Bewerken</button>
@@ -263,6 +269,7 @@
       document.getElementById("lesTitel").value=d.titel;
       document.getElementById("doelgroep").value=d.doelgroep;
       document.getElementById("lesInhoud").value=d.inhoud;
+      document.getElementById("lesZichtbaar").checked=d.zichtbaar;
       platenContainer.innerHTML=""; quizContainer.innerHTML="";
       if(d.platen){ d.platen.forEach(p=>voegPlaatToe(p)); }
       if(d.vragen){ d.vragen.forEach(q=>voegVraagToe(q)); }
