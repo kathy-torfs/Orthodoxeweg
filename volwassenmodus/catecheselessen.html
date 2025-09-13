@@ -75,9 +75,9 @@
   </div>
 
   <!-- Firebase SDK's -->
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 
   <script>
     // Firebase init
@@ -85,7 +85,7 @@
       apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
       authDomain: "orthodoxeweg.firebaseapp.com",
       projectId: "orthodoxeweg",
-      storageBucket: "orthodoxeweg.appspot.com",
+      storageBucket: "orthodoxeweg.firebasestorage.app",
       messagingSenderId: "408582263618",
       appId: "1:408582263618:web:2e02833fa0d4d8903ceedb"
     };
@@ -111,7 +111,6 @@
       overzicht.innerHTML = "<p style='color:#a33'>❌ Geen parochie gevonden. Log eerst in.</p>";
     }
 
-    // Slugify voor titels
     function slugify(t) {
       return t.toLowerCase()
               .trim()
@@ -152,35 +151,35 @@
       quizContainer.appendChild(div);
     }
 
-    // Opslaan / bijwerken
+    // Opslaan
     form.addEventListener("submit", async(e)=>{
       e.preventDefault();
       if (!parochieId) return;
 
       const titelVal = document.getElementById("lesTitel").value.trim();
-      const doelgroepVal = document.getElementById("doelgroep").value;
+      const doelgroep = document.getElementById("doelgroep").value;
+      const inhoud = document.getElementById("lesInhoud").value.trim();
+      const docId = slugify(titelVal) + "_" + doelgroep;
 
       const data = {
         titel: titelVal,
-        doelgroep: doelgroepVal,
-        inhoud: document.getElementById("lesInhoud").value.trim(),
+        doelgroep,
+        inhoud,
         platen: [],
         vragen: [],
         aangemaaktOp: new Date(),
         zichtbaar: true
       };
 
-      // Doc-id = titel+doelgroep
-      const docId = slugify(titelVal)+"_"+doelgroepVal;
-
-      // Platen
+      // Platen opslaan
       for (let blok of platenContainer.querySelectorAll(".blok")) {
         const file = blok.querySelector(".plaatFile").files[0];
         const tekst = blok.querySelector(".plaatTekst").value.trim();
         if (file) {
           const pad = "catecheselessen/"+Date.now()+"_"+file.name;
-          const snap = await storage.ref(pad).put(file,{contentType:file.type});
-          const url = await snap.ref.getDownloadURL(); // ✅ correcte link
+          const storageRef = storage.ref(pad);
+          const snap = await storageRef.put(file,{contentType:file.type});
+          const url = await snap.ref.getDownloadURL();
           data.platen.push({url,tekst});
         } else if (tekst) {
           const img = blok.querySelector("img");
@@ -201,8 +200,8 @@
       try {
         await db.collection("parochies").doc(parochieId)
           .collection("catecheselessen").doc(docId).set(data, { merge:true });
-        editId = null;
         form.reset(); platenContainer.innerHTML=""; quizContainer.innerHTML="";
+        editId=null;
         laadLessen();
       } catch(err) {
         alert("❌ Fout: "+err.message);
@@ -256,7 +255,6 @@
         .collection("catecheselessen").doc(id).get();
       if(!docRef.exists) return;
       const d=docRef.data();
-
       document.getElementById("lesTitel").value=d.titel;
       document.getElementById("doelgroep").value=d.doelgroep;
       document.getElementById("lesInhoud").value=d.inhoud;
@@ -267,7 +265,7 @@
       window.scrollTo({ top:0, behavior:"smooth" });
     }
 
-    // Toggle zichtbaarheid
+    // Toggle zichtbaar
     async function toggleZichtbaarheid(id, zichtbaar) {
       await db.collection("parochies").doc(parochieId)
         .collection("catecheselessen").doc(id).update({ zichtbaar });
