@@ -33,7 +33,7 @@
     .les-kaart small { color:#8f7437 }
     .les-kaart .acties { margin-top:10px; display:flex; gap:8px; flex-wrap:wrap }
     .les-kaart button { padding:6px 10px; font-size:0.9em }
-    .les-kaart img { max-height:10cm; border-radius:8px; margin:10px 0; }
+    .les-kaart img { max-height:8cm; border-radius:8px; margin:10px 0; }
   </style>
 </head>
 <body>
@@ -61,7 +61,6 @@
       <!-- Afbeeldingen -->
       <h3>Vertelplaten</h3>
       <input type="file" id="lesAfbeeldingen" accept="image/*" multiple>
-      <div id="platenPreview"></div>
 
       <!-- Quizvragen -->
       <h3>Quizvragen</h3>
@@ -69,7 +68,7 @@
       <button type="button" onclick="voegVraagToe()">➕ Vraag toevoegen</button>
 
       <div>
-        <label><input type="checkbox" id="lesZichtbaar"> Zichtbaar voor klasje</label>
+        <label><input type="checkbox" id="lesZichtbaar"> Zichtbaar</label>
       </div>
 
       <button type="submit">📌 Opslaan</button>
@@ -89,11 +88,10 @@
       apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
       authDomain: "orthodoxeweg.firebaseapp.com",
       projectId: "orthodoxeweg",
-      storageBucket: "orthodoxeweg.appspot.com", // ✅ terug naar appspot
-      messagingSenderId: "408582263618",
-      appId: "1:408582263618:web:2e02833fa0d4d8903ceedb"
+      storageBucket: "orthodoxeweg.firebasestorage.app"
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
     const db = firebase.firestore();
     const storage = firebase.storage();
 
@@ -112,12 +110,12 @@
       overzicht.innerHTML = "<p style='color:#a33'>❌ Geen parochie gevonden. Log eerst in.</p>";
     }
 
-    // ➕ Vraag toevoegen
-    function voegVraagToe(q = {}) {
-      const idx = quizContainer.children.length + 1;
-      const div = document.createElement("div");
-      div.className = "blok";
-      div.innerHTML = `
+    // ➕ Quizvraag toevoegen
+    function voegVraagToe(q={}) {
+      const idx=quizContainer.children.length+1;
+      const div=document.createElement("div");
+      div.className="blok";
+      div.innerHTML=`
         <h4>Vraag ${idx}</h4>
         <label>Vraag:</label>
         <input type="text" class="vraag" value="${q.vraag||""}">
@@ -129,7 +127,7 @@
       quizContainer.appendChild(div);
     }
 
-    // Opslaan / bijwerken
+    // Opslaan
     form.addEventListener("submit", async(e)=>{
       e.preventDefault();
       if (!parochieId) return;
@@ -140,31 +138,27 @@
       const zichtbaar = document.getElementById("lesZichtbaar").checked;
       const bestanden = document.getElementById("lesAfbeeldingen").files;
 
-      if (!titel) { alert("Titel is verplicht"); return; }
-
-      const docId = (titel + "-" + doelgroep).toLowerCase().replace(/\s+/g,"-").replace(/[^a-z0-9\-]/g,"");
-
-      // Quizvragen
-      const vragen = [];
-      quizContainer.querySelectorAll(".blok").forEach(div=>{
-        const vraag = div.querySelector(".vraag").value.trim();
-        const antwoorden = [...div.querySelectorAll(".antw")].map(i=>i.value.trim());
-        const correct = parseInt(div.querySelector(".correct").value)-1;
-        if (vraag && antwoorden.filter(a=>a).length===4) {
-          vragen.push({vraag,antwoorden,correct});
-        }
-      });
-
-      let mediaURLs = [];
+      let mediaURLs=[];
       try {
         for (const bestand of bestanden) {
-          const pad = "catecheselessen/" + Date.now() + "_" + bestand.name;
-          const snap = await storage.ref(pad).put(bestand, { contentType: bestand.type });
+          const pad = "catecheselessen/"+Date.now()+"_"+bestand.name;
+          const storageRef = storage.ref(pad);
+          const snap = await storageRef.put(bestand, {contentType: bestand.type});
           const url = await snap.ref.getDownloadURL();
           mediaURLs.push(url);
         }
 
-        await db.collection("parochies").doc(parochieId).collection("catecheselessen").doc(docId).set({
+        const vragen=[];
+        quizContainer.querySelectorAll(".blok").forEach(div=>{
+          const vraag=div.querySelector(".vraag").value.trim();
+          const antwoorden=[...div.querySelectorAll(".antw")].map(i=>i.value.trim());
+          const correct=parseInt(div.querySelector(".correct").value)-1;
+          if(vraag && antwoorden.filter(a=>a).length===4){
+            vragen.push({vraag,antwoorden,correct});
+          }
+        });
+
+        await db.collection("parochies").doc(parochieId).collection("catecheselessen").add({
           titel, doelgroep, inhoud, zichtbaar, mediaURLs, vragen,
           aangemaaktOp:new Date()
         });
@@ -175,17 +169,18 @@
         laadLessen();
       } catch(err) {
         alert("❌ Fout: "+err.message);
+        console.error(err);
       }
     });
 
     // Lessen laden
-    async function laadLessen(){
+    async function laadLessen() {
       overzicht.innerHTML="Laden…";
       try {
         const snap=await db.collection("parochies").doc(parochieId).collection("catecheselessen")
           .orderBy("aangemaaktOp","desc").get();
         overzicht.innerHTML="";
-        if (snap.empty){ overzicht.innerHTML="<p>Geen lessen gevonden.</p>"; return; }
+        if(snap.empty){ overzicht.innerHTML="<p>Geen lessen gevonden.</p>"; return; }
         snap.forEach(doc=>{
           const d=doc.data();
           const when=d.aangemaaktOp?.toDate?d.aangemaaktOp.toDate().toLocaleString():"";
@@ -194,33 +189,17 @@
           kaart.innerHTML=`
             <h3>${d.titel}</h3>
             <small>${when}</small><br>
-            <b>Doelgroep:</b> ${d.doelgroep}<br>
-            <b>Status:</b> ${d.zichtbaar ? "✅ Zichtbaar" : "🚫 Verborgen"}
-            <p>${d.zichtbaar ? (d.inhoud||"") : ""}</p>
+            <b>Doelgroep:</b> ${d.doelgroep||"-"}<br>
+            <b>Status:</b> ${d.zichtbaar?"✅ Zichtbaar":"🚫 Verborgen"}
+            <p>${d.inhoud}</p>
             ${(d.mediaURLs||[]).map(u=>`<div><img src="${u}"></div>`).join("")}
-            ${d.vragen && d.vragen.length ? `<p><em>Quizvragen: ${d.vragen.length}</em></p>` : ""}
-            <div class="acties">
-              <button onclick="toggleZichtbaar('${doc.id}', ${d.zichtbaar})">${d.zichtbaar ? "🚫 Verbergen" : "👁️ Tonen"}</button>
-              <button onclick="verwijderLes('${doc.id}')">🗑 Verwijderen</button>
-            </div>
+            ${d.vragen&&d.vragen.length?`<p><em>Quizvragen: ${d.vragen.length}</em></p>`:""}
           `;
           overzicht.appendChild(kaart);
         });
       } catch(e){
         overzicht.innerHTML="❌ Fout bij laden lessen.";
       }
-    }
-
-    async function toggleZichtbaar(id,huidig){
-      await db.collection("parochies").doc(parochieId).collection("catecheselessen").doc(id)
-        .update({ zichtbaar: !huidig });
-      laadLessen();
-    }
-
-    async function verwijderLes(id){
-      if(!confirm("Weet je zeker dat je deze les wil verwijderen?")) return;
-      await db.collection("parochies").doc(parochieId).collection("catecheselessen").doc(id).delete();
-      laadLessen();
     }
   </script>
 </body>
