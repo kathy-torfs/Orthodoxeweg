@@ -15,28 +15,21 @@
     form{background:#fff8eb;border:2px solid #dab97a;border-radius:12px;padding:16px;box-shadow:0 2px 6px rgba(0,0,0,.1);margin-top:20px}
     form h2{margin-top:0;color:#7a5f35}
     label{display:block;margin:10px 0 4px}
-    input[type=text],textarea,select{width:100%;padding:8px;border:1px solid #dab97a;border-radius:6px;background:#fffdf6}
+    input[type=text],textarea{width:100%;padding:8px;border:1px solid #dab97a;border-radius:6px;background:#fffdf6}
     textarea{min-height:80px;resize:vertical}
-    button{background:#7bb235;color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:bold}
+    button{background:#7bb235;color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:bold;margin:4px 4px 0 0}
     button:hover{background:#5e8e29}
     .blok{background:#fff;border:1px solid #dab97a;border-radius:8px;padding:10px;margin-top:10px}
     .blok h4{margin:0 0 6px;color:#7a5f35}
     .les-lijst{display:flex;flex-direction:column;gap:10px;margin-top:20px}
-    .les-kaart{background:#fff;border:2px solid #dab97a;border-radius:10px;padding:10px}
-    .les-kaart h3{margin:0;color:#7a5f35;cursor:pointer}
+    .les-kaart{background:#fff;border:2px solid #dab97a;border-radius:10px;padding:10px;cursor:pointer}
+    .les-kaart h3{margin:0;color:#7a5f35}
     .les-kaart small{color:#8f7437}
-    .les-kaart .acties{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
-    /* Afbeeldingen overal max 3 cm hoog */
-    .les-kaart img, .blok img {
-      max-height: 3cm;
-      width: auto;
-      margin: 6px 0;
-      border-radius: 6px;
-    }
+    img.klein {max-height:3cm;border-radius:6px;margin:6px 0}
   </style>
 </head>
 <body>
-  <!-- Gemeenschappelijke header -->
+  <!-- Header -->
   <div id="volwassen-header" data-header-src="common/header.html"></div>
   <script src="common/layout.js" defer></script>
 
@@ -55,13 +48,6 @@
     <!-- Nieuw / bewerken -->
     <form id="lesForm">
       <h2>Nieuwe les toevoegen / bewerken</h2>
-
-      <label>Doelgroep</label>
-      <select id="lesDoelgroep">
-        <option value="kleuters">👶 Kleuters</option>
-        <option value="lagere">📚 Lagere school</option>
-      </select>
-
       <label>Titel</label>
       <input type="text" id="lesTitel" required>
 
@@ -78,7 +64,10 @@
       <div id="quizContainer"></div>
       <button type="button" onclick="voegVraagToe()">➕ Vraag toevoegen</button>
 
-      <button type="submit">📌 Opslaan</button>
+      <div style="margin-top:10px;">
+        <button type="submit">📌 Opslaan</button>
+        <button type="button" onclick="annuleerBewerking()">❌ Annuleren</button>
+      </div>
     </form>
   </div>
 
@@ -102,6 +91,7 @@
     const parochieId = "hasselt-drie-hierarchen"; // later dynamisch
     let huidigDoelgroep = "kleuters";
     let editId = null;
+    let origineel = null;
 
     const overzicht = document.getElementById("lessenOverzicht");
     const form = document.getElementById("lesForm");
@@ -126,7 +116,7 @@
         <input type="hidden" class="bestaandeUrl" value="${p.url||""}">
         <label>Tekst:</label>
         <textarea class="plaatTekst">${p.tekst||""}</textarea>
-        ${p.url?`<img src="${p.url}">`:""}
+        ${p.url?`<img src="${p.url}" class="klein">`:""}
       `;
       platenContainer.appendChild(div);
     }
@@ -149,11 +139,10 @@
     form.addEventListener("submit", async(e)=>{
       e.preventDefault();
       const titel=form.lesTitel.value.trim();
-      const doelgroep=form.lesDoelgroep.value;
       if(!titel) return alert("Titel verplicht!");
-      const docId=`${doelgroep}-${titel.toLowerCase().replace(/\s+/g,"-")}`;
+      const docId=titel.toLowerCase().replace(/\s+/g,"-");
       const data={
-        titel,doelgroep,
+        titel,doelgroep:huidigDoelgroep,
         inhoud:form.lesInhoud.value.trim(),
         zichtbaar:form.lesZichtbaar.checked,
         platen:[],vragen:[],aangemaaktOp:new Date()
@@ -164,7 +153,7 @@
         const tekst=blok.querySelector(".plaatTekst").value.trim();
         const bestaand=blok.querySelector(".bestaandeUrl").value;
         if(file){
-          const pad=`catecheselessen/${docId}/${file.name}`;
+          const pad=`catecheselessen/${docId}/${Date.now()}_${file.name}`;
           const snap=await storage.ref(pad).put(file);
           const url=await snap.ref.getDownloadURL();
           data.platen.push({url,tekst});
@@ -180,9 +169,28 @@
         if(vraag && antwoorden.filter(a=>a).length===4) data.vragen.push({vraag,antwoorden,correct});
       });
       await db.collection("parochies").doc(parochieId).collection("catecheselessen").doc(docId).set(data);
-      form.reset();platenContainer.innerHTML="";quizContainer.innerHTML="";editId=null;
+      form.reset();platenContainer.innerHTML="";quizContainer.innerHTML="";editId=null;origineel=null;
       laadLessen();
     });
+
+    // Annuleren
+    function annuleerBewerking(){
+      if(!editId){
+        // Nieuwe les
+        form.reset();
+        platenContainer.innerHTML="";
+        quizContainer.innerHTML="";
+      } else if(origineel){
+        // Herstel originele data
+        const d=origineel;
+        form.lesTitel.value=d.titel;
+        form.lesInhoud.value=d.inhoud;
+        form.lesZichtbaar.checked=d.zichtbaar;
+        platenContainer.innerHTML="";quizContainer.innerHTML="";
+        d.platen?.forEach(p=>voegPlaatToe(p));
+        d.vragen?.forEach(q=>voegVraagToe(q));
+      }
+    }
 
     // Laden
     async function laadLessen(){
@@ -198,10 +206,9 @@
         kaart.innerHTML=`
           <h3 onclick="bewerkLes('${doc.id}')">${d.titel}</h3>
           <small>${d.zichtbaar?"✅":"🚫"} ${d.inhoud.substring(0,50)||""}</small>
-          <div class="acties">
+          <div>
             <button onclick="verwijderLes('${doc.id}')">🗑 Verwijderen</button>
-          </div>
-        `;
+          </div>`;
         overzicht.appendChild(kaart);
       });
     }
@@ -211,8 +218,8 @@
       const docRef=await db.collection("parochies").doc(parochieId).collection("catecheselessen").doc(id).get();
       if(!docRef.exists) return;
       const d=docRef.data();
+      origineel = {id,...d};
       form.lesTitel.value=d.titel;
-      form.lesDoelgroep.value=d.doelgroep;
       form.lesInhoud.value=d.inhoud;
       form.lesZichtbaar.checked=d.zichtbaar;
       platenContainer.innerHTML="";quizContainer.innerHTML="";
