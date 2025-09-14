@@ -7,12 +7,20 @@
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
     body {margin:0;font-family:Arial,sans-serif;background:#f5e9b8;color:#6f4e1a}
-    .container{max-width:1000px;margin:20px auto;padding:0 20px}
-    h1{text-align:center;color:#4e2710}
-    .tabs{display:flex;justify-content:center;gap:12px;margin:20px 0}
+    h1{text-align:center;color:#4e2710;margin:20px 0}
+
+    .tabs{display:flex;justify-content:center;gap:12px;margin-bottom:20px}
     .tabs button{padding:8px 14px;border:none;border-radius:6px;cursor:pointer;font-weight:bold}
     .tabs button.actief{background:#7bb235;color:#fff}
-    form{background:#fff8eb;border:2px solid #dab97a;border-radius:12px;padding:16px;box-shadow:0 2px 6px rgba(0,0,0,.1);margin-top:20px}
+
+    main{display:flex;gap:20px;max-width:1200px;margin:0 auto;padding:0 20px}
+    .lijst{flex:1;max-height:80vh;overflow-y:auto;background:#fff9e2;border:2px solid #d6c290;border-radius:12px;padding:12px}
+    .lijst h2{text-align:center;margin:0 0 10px}
+    .item{background:#fff;border:1px solid #dbc592;border-radius:8px;padding:6px 8px;margin-bottom:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+    .item:hover{background:#f7eecb}
+    .item small{color:#8a6b29}
+
+    .detail{flex:2;background:#fffef9;border:2px solid #e2d1a5;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.12);padding:20px}
     form h2{margin-top:0;color:#7a5f35}
     label{display:block;margin:10px 0 4px}
     input[type=text],textarea{width:100%;padding:8px;border:1px solid #dab97a;border-radius:6px;background:#fffdf6}
@@ -21,10 +29,6 @@
     button:hover{background:#5e8e29}
     .blok{background:#fff;border:1px solid #dab97a;border-radius:8px;padding:10px;margin-top:10px}
     .blok h4{margin:0 0 6px;color:#7a5f35}
-    .les-lijst{display:flex;flex-direction:column;gap:10px;margin-top:20px}
-    .les-kaart{background:#fff;border:2px solid #dab97a;border-radius:10px;padding:10px;cursor:pointer}
-    .les-kaart h3{margin:0;color:#7a5f35}
-    .les-kaart small{color:#8f7437}
     img.klein {max-height:3cm;border-radius:6px;margin:6px 0}
   </style>
 </head>
@@ -33,43 +37,48 @@
   <div id="volwassen-header" data-header-src="common/header.html"></div>
   <script src="common/layout.js" defer></script>
 
-  <div class="container">
-    <h1>📖 Mijn heiligen</h1>
+  <h1>📖 Mijn heiligen</h1>
 
-    <!-- Tabs -->
-    <div class="tabs">
-      <button id="tabKleuters" class="actief" onclick="wisselDoelgroep('kleuters')">👶 Kleuters</button>
-      <button id="tabLagere" onclick="wisselDoelgroep('lagere')">📚 Lagere school</button>
+  <!-- Tabs -->
+  <div class="tabs">
+    <button id="tabKleuters" class="actief" onclick="wisselDoelgroep('kleuters')">👶 Kleuters</button>
+    <button id="tabLagere" onclick="wisselDoelgroep('lagere')">📚 Lagere school</button>
+  </div>
+
+  <main>
+    <!-- Lijst -->
+    <div class="lijst">
+      <h2>📜 Heiligenlijst</h2>
+      <div id="heiligenOverzicht">Laden…</div>
     </div>
 
-    <!-- Index -->
-    <div id="heiligenOverzicht" class="les-lijst">Laden…</div>
+    <!-- Detail -->
+    <div class="detail">
+      <form id="heiligeForm">
+        <h2>Heilige toevoegen / bewerken</h2>
+        <label>Naam van de heilige</label>
+        <input type="text" id="heiligeNaam" required>
 
-    <!-- Nieuw / bewerken -->
-    <form id="heiligeForm">
-      <h2>Nieuwe heilige toevoegen / bewerken</h2>
-      <label>Naam van de heilige</label>
-      <input type="text" id="heiligeNaam" required>
+        <label>Levensverhaal</label>
+        <textarea id="heiligeVerhaal"></textarea>
 
-      <label>Levensverhaal</label>
-      <textarea id="heiligeVerhaal"></textarea>
+        <label><input type="checkbox" id="heiligeZichtbaar"> Zichtbaar</label>
 
-      <label><input type="checkbox" id="heiligeZichtbaar"> Zichtbaar</label>
+        <h3>Vertelplaten</h3>
+        <div id="platenContainer"></div>
+        <button type="button" onclick="voegPlaatToe()">➕ Plaat toevoegen</button>
 
-      <h3>Vertelplaten</h3>
-      <div id="platenContainer"></div>
-      <button type="button" onclick="voegPlaatToe()">➕ Plaat toevoegen</button>
+        <h3>Quizvragen</h3>
+        <div id="quizContainer"></div>
+        <button type="button" onclick="voegVraagToe()">➕ Vraag toevoegen</button>
 
-      <h3>Quizvragen</h3>
-      <div id="quizContainer"></div>
-      <button type="button" onclick="voegVraagToe()">➕ Vraag toevoegen</button>
-
-      <div style="margin-top:10px;">
-        <button type="submit">📌 Opslaan</button>
-        <button type="button" onclick="annuleerBewerking()">❌ Annuleren</button>
-      </div>
-    </form>
-  </div>
+        <div style="margin-top:10px;">
+          <button type="submit">📌 Opslaan</button>
+          <button type="button" onclick="annuleerBewerking()">❌ Annuleren</button>
+        </div>
+      </form>
+    </div>
+  </main>
 
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -77,7 +86,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 
   <script>
-    // Config
     const firebaseConfig = {
       apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -88,7 +96,7 @@
     const db = firebase.firestore();
     const storage = firebase.storage();
 
-    const parochieId = "hasselt-drie-hierarchen"; // later dynamisch
+    const parochieId = "hasselt-drie-hierarchen";
     let huidigDoelgroep = "kleuters";
     let editId = null;
     let origineel = null;
@@ -98,14 +106,14 @@
     const platenContainer = document.getElementById("platenContainer");
     const quizContainer = document.getElementById("quizContainer");
 
-    function wisselDoelgroep(d) {
+    function wisselDoelgroep(d){
       huidigDoelgroep = d;
       document.getElementById("tabKleuters").classList.toggle("actief", d==="kleuters");
       document.getElementById("tabLagere").classList.toggle("actief", d==="lagere");
       laadHeiligen();
     }
 
-    function voegPlaatToe(p={}) {
+    function voegPlaatToe(p={}){
       const div=document.createElement("div");
       div.className="blok";
       div.innerHTML=`
@@ -119,7 +127,7 @@
       platenContainer.appendChild(div);
     }
 
-    function voegVraagToe(q={}) {
+    function voegVraagToe(q={}){
       const div=document.createElement("div");
       div.className="blok";
       div.innerHTML=`
@@ -139,7 +147,7 @@
       const docId=naam.toLowerCase().replace(/\s+/g,"-");
       const data={
         naam,doelgroep:huidigDoelgroep,
-        verhaal:form.heiligeVerhaal.value.trim(),
+        verhaal:form.heiligeVerhaal.value.trim().replace(/\n/g,"<br>"),
         zichtbaar:form.heiligeZichtbaar.checked,
         platen:[],vragen:[],aangemaaktOp:new Date()
       };
@@ -173,7 +181,7 @@
       } else if(origineel){
         const d=origineel;
         form.heiligeNaam.value=d.naam;
-        form.heiligeVerhaal.value=d.verhaal;
+        form.heiligeVerhaal.value=d.verhaal.replace(/<br>/g,"\n");
         form.heiligeZichtbaar.checked=d.zichtbaar;
         platenContainer.innerHTML="";quizContainer.innerHTML="";
         d.platen?.forEach(p=>voegPlaatToe(p));
@@ -199,11 +207,10 @@
       if(!items.length){overzicht.innerHTML="<p>Geen heiligen.</p>";return;}
       items.forEach(h=>{
         const kaart=document.createElement("div");
-        kaart.className="les-kaart";
+        kaart.className="item";
         kaart.innerHTML=`
-          <h3 onclick="bewerkHeilige('${h.id}','${h.bron}')">${h.naam||h.id}</h3>
-          <small>${h.zichtbaar?"✅":"🚫"} ${(h.verhaal||"").substring(0,50)}</small>
-          ${h.bron==="parochie"?`<div><button onclick="verwijderHeilige('${h.id}')">🗑 Verwijderen</button></div>`:""}
+          <div onclick="bewerkHeilige('${h.id}','${h.bron}')">${h.naam||h.id} ${h.bron==="standaard"?"<small>(standaard)</small>":""}</div>
+          ${h.bron==="parochie"?`<button onclick="verwijderHeilige('${h.id}')">🗑</button>`:""}
         `;
         overzicht.appendChild(kaart);
       });
@@ -221,7 +228,7 @@
       }
       origineel=d;
       form.heiligeNaam.value=d.naam||d.id;
-      form.heiligeVerhaal.value=d.verhaal||"";
+      form.heiligeVerhaal.value=(d.verhaal||"").replace(/<br>/g,"\n");
       form.heiligeZichtbaar.checked=d.zichtbaar||false;
       platenContainer.innerHTML="";quizContainer.innerHTML="";
       d.platen?.forEach(p=>voegPlaatToe(p));
