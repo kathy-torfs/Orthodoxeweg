@@ -115,7 +115,7 @@
         <input type="file" class="plaatFile" accept="image/*"><br>
         <input type="hidden" class="bestaandeUrl" value="${p.url||""}">
         <label>Tekst:</label>
-        <textarea class="plaatTekst">${p.tekst||""}</textarea>
+        <textarea class="plaatTekst">${(p.tekst||"").replace(/<br>/g,"\n")}</textarea>
         ${p.url?`<img src="${p.url}" class="klein">`:""}
       `;
       platenContainer.appendChild(div);
@@ -143,14 +143,14 @@
       const docId=titel.toLowerCase().replace(/\s+/g,"-");
       const data={
         titel,doelgroep:huidigDoelgroep,
-        inhoud:form.lesInhoud.value.trim(),
+        inhoud:form.lesInhoud.value.trim().replace(/\n/g,"<br>"),
         zichtbaar:form.lesZichtbaar.checked,
         platen:[],vragen:[],aangemaaktOp:new Date()
       };
       // platen
       for(let blok of platenContainer.querySelectorAll(".blok")){
         const file=blok.querySelector(".plaatFile").files[0];
-        const tekst=blok.querySelector(".plaatTekst").value.trim();
+        const tekst=blok.querySelector(".plaatTekst").value.trim().replace(/\n/g,"<br>");
         const bestaand=blok.querySelector(".bestaandeUrl").value;
         if(file){
           const pad=`catecheselessen/${docId}/${Date.now()}_${file.name}`;
@@ -176,15 +176,13 @@
     // Annuleren
     function annuleerBewerking(){
       if(!editId){
-        // Nieuwe les
         form.reset();
         platenContainer.innerHTML="";
         quizContainer.innerHTML="";
       } else if(origineel){
-        // Herstel originele data
         const d=origineel;
         form.lesTitel.value=d.titel;
-        form.lesInhoud.value=d.inhoud;
+        form.lesInhoud.value=(d.inhoud||"").replace(/<br>/g,"\n");
         form.lesZichtbaar.checked=d.zichtbaar;
         platenContainer.innerHTML="";quizContainer.innerHTML="";
         d.platen?.forEach(p=>voegPlaatToe(p));
@@ -205,7 +203,7 @@
         kaart.className="les-kaart";
         kaart.innerHTML=`
           <h3 onclick="bewerkLes('${doc.id}')">${d.titel}</h3>
-          <small>${d.zichtbaar?"✅":"🚫"} ${d.inhoud.substring(0,50)||""}</small>
+          <small>${d.zichtbaar?"✅":"🚫"} ${(d.inhoud||"").replace(/<br>/g," ").substring(0,50)}</small>
           <div>
             <button onclick="verwijderLes('${doc.id}')">🗑 Verwijderen</button>
           </div>`;
@@ -220,7 +218,7 @@
       const d=docRef.data();
       origineel = {id,...d};
       form.lesTitel.value=d.titel;
-      form.lesInhoud.value=d.inhoud;
+      form.lesInhoud.value=(d.inhoud||"").replace(/<br>/g,"\n");
       form.lesZichtbaar.checked=d.zichtbaar;
       platenContainer.innerHTML="";quizContainer.innerHTML="";
       d.platen?.forEach(p=>voegPlaatToe(p));
@@ -236,7 +234,6 @@
       laadLessen();
     }
 
-    // Init
     laadLessen();
   </script>
 </body>
