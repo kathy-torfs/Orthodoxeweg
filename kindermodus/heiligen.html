@@ -58,10 +58,19 @@
       border-radius:50%; width:34px; height:34px;
       cursor:pointer; font-size:1em;
     }
+    .plaat-wrapper {
+      margin:12px 0; text-align:center;
+    }
+    .plaat-wrapper img { max-width:100%; border-radius:8px; }
+    .plaat-print {
+      margin-top:6px;
+      background:#7bb235; color:#fff; border:none;
+      border-radius:6px; padding:6px 12px; cursor:pointer;
+    }
 
     @media print {
       body { background:#fff; }
-      .tabs, .print-btn, #kinder-header { display:none !important; }
+      .tabs, .print-btn, #kinder-header, .plaat-print { display:none !important; }
       .quote-block { box-shadow:none; border:1px solid #000; }
     }
   </style>
@@ -74,7 +83,6 @@
   <script defer src="common/layout.js"></script>
 </head>
 <body>
-  <!-- Begroetingsbalk + menubalk -->
   <div id="kinder-header" data-header-src="common/header.html"></div>
 
   <main>
@@ -83,44 +91,21 @@
       <button class="tab-btn" onclick="toonTab('lagere')">📖 Lagere school</button>
     </div>
 
-    <!-- Kleuters -->
     <div id="kleuters" class="tab-content">
-      <div class="quote-block" id="v-jezus">
-        <button class="print-btn" onclick="printVerhaal('v-jezus')">🖨️</button>
-        <h2>✨ Het verhaal van Jezus</h2>
-        <p>Lang geleden werd Jezus geboren in Bethlehem. ...</p>
-        <p>Jezus groeide op en leerde de mensen dat God van iedereen houdt. ...</p>
-      </div>
-
-      <div class="quote-block" id="v-maria">
-        <button class="print-btn" onclick="printVerhaal('v-maria')">🖨️</button>
-        <h2>🌹 Het verhaal van Maria</h2>
-        <p>Maria was een jonge vrouw die in Nazareth woonde. ...</p>
-        <p>Maria zorgde vol liefde voor Jezus. ...</p>
-      </div>
-
-      <div class="quote-block" id="v-nikolaas">
-        <button class="print-btn" onclick="printVerhaal('v-nikolaas')">🖨️</button>
-        <h2>🎁 Het verhaal van de heilige Nikolaas</h2>
-        <p>Heel lang geleden leefde er een bisschop in Myra. ...</p>
-        <p>De heilige Nikolaas is nog steeds een voorbeeld voor ons: ...</p>
-      </div>
+      <div id="kleutersVerhalen">Laden…</div>
     </div>
 
-    <!-- Lagere school -->
     <div id="lagere" class="tab-content" style="display:none;">
       <div id="lagereVerhalen">Laden…</div>
     </div>
   </main>
 
   <script>
-    // Achtergrond pastel
     (function(){
       const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
       document.body.style.background = p[Math.floor(Math.random()*p.length)];
     })();
 
-    // Tabs
     function toonTab(id){
       document.querySelectorAll(".tab-content").forEach(d=>d.style.display="none");
       document.getElementById(id).style.display="block";
@@ -128,7 +113,6 @@
       event.target.classList.add("active");
     }
 
-    // Print enkel dit verhaal
     function printVerhaal(id){
       const inhoud=document.getElementById(id).innerHTML;
       const w=window.open("","","width=800,height=600");
@@ -137,7 +121,13 @@
       w.print();
     }
 
-    // Firebase init
+    function printPlaat(url){
+      const w=window.open("","","width=800,height=600");
+      w.document.write(`<html><head><title>Print</title></head><body style="text-align:center"><img src="${url}" style="max-width:100%"></body></html>`);
+      w.document.close();
+      w.print();
+    }
+
     if (!firebase.apps.length) {
       firebase.initializeApp({
         apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
@@ -148,27 +138,48 @@
     const db=firebase.firestore();
     const parochieId=localStorage.getItem("ingelogdeParochie");
 
-    async function laadLagere(){
-      const div=document.getElementById("lagereVerhalen");
+    async function laadVerhalen(doelgroep, containerId){
+      const div=document.getElementById(containerId);
       div.innerHTML="Laden…";
       try{
         const snap=await db.collection("parochies").doc(parochieId)
-          .collection("heiligen").where("zichtbaar","==",true).get();
+          .collection("heiligen")
+          .where("doelgroep","==",doelgroep)
+          .where("zichtbaar","==",true)
+          .orderBy("aangemaaktOp","desc")
+          .get();
+
         div.innerHTML="";
         if(snap.empty){
           div.innerHTML="<p>⚠️ Geen verhalen beschikbaar.</p>";
           return;
         }
+
         snap.forEach(doc=>{
           const d=doc.data();
-          const id="heilige-"+doc.id;
-          div.innerHTML+=`
+          const id="verhaal-"+doc.id;
+
+          let blok=`
             <div class="quote-block" id="${id}">
               <button class="print-btn" onclick="printVerhaal('${id}')">🖨️</button>
-              <h2>${d.icoonurl?`<img src="${d.icoonurl}" style="height:28px;vertical-align:middle;margin-right:6px">`:""} ${d.titel||"Naamloze heilige"}</h2>
+              <h2>${d.titel||"Naamloos verhaal"}</h2>
               <p>${(d.verhaal||"").replace(/<br>/g,"<br>")}</p>
-            </div>
           `;
+
+          if(d.platen && d.platen.length>0){
+            d.platen.forEach(p=>{
+              blok+=`
+                <div class="plaat-wrapper">
+                  <img src="${p.url}" alt="plaat">
+                  ${p.tekst?`<p style="font-style:italic">${p.tekst}</p>`:""}
+                  <button class="plaat-print" onclick="printPlaat('${p.url}')">🖨️ Print plaat</button>
+                </div>
+              `;
+            });
+          }
+
+          blok+=`</div>`;
+          div.innerHTML+=blok;
         });
       }catch(e){
         console.error(e);
@@ -176,7 +187,8 @@
       }
     }
 
-    laadLagere();
+    laadVerhalen("kleuters","kleutersVerhalen");
+    laadVerhalen("lagere","lagereVerhalen");
   </script>
 </body>
 </html>
