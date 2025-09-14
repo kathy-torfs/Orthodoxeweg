@@ -129,7 +129,7 @@
 
     // Nieuwe heilige
     function nieuweHeilige(){
-      toonDetail({id:"",titel:"",verhaal:"",zichtbaar:false,platen:[],bron:"parochie"});
+      toonDetail({id:"",titel:"",verhaal:"",zichtbaar:false,platen:[],vragen:[],bron:"parochie"});
       editId=null;origineel=null;
     }
 
@@ -148,6 +148,10 @@
         <div id="platenContainer"></div>
         <button onclick="voegPlaatToe()">➕ Plaat toevoegen</button>
 
+        <h3>Quizvragen</h3>
+        <div id="quizContainer"></div>
+        <button onclick="voegVraagToe()">➕ Vraag toevoegen</button>
+
         <div class="btn-row">
           <button class="btn save" onclick="opslaanHeilige('${h.id}','${h.bron||"parochie"}')">Opslaan</button>
           ${h.bron==="parochie"&&h.id?`<button class="btn delete" onclick="verwijderHeilige('${h.id}')">Verwijderen</button>`:""}
@@ -155,7 +159,16 @@
         </div>
       `;
       const container=document.getElementById("platenContainer");
-      (h.platen||[]).forEach(p=>voegPlaatToe(p));
+      (h.platen||[]).forEach(p=>voegPlaatToe({
+        url:p.url,
+        tekst:(p.tekst||"").replace(/<br>/g,"\n")
+      }));
+      const quizC=document.getElementById("quizContainer");
+      (h.vragen||[]).forEach(q=>voegVraagToe({
+        vraag:(q.vraag||"").replace(/<br>/g,"\n"),
+        antwoorden:q.antwoorden||["","","",""],
+        correct:q.correct||0
+      }));
     }
 
     // Voeg plaat toe
@@ -163,6 +176,7 @@
       const div=document.createElement("div");
       div.className="blok";
       div.innerHTML=`
+        <h4>Plaat</h4>
         <input type="file" class="plaatFile" accept="image/*"><br>
         <input type="hidden" class="bestaandeUrl" value="${p.url||""}">
         <label>Tekst:</label>
@@ -172,6 +186,22 @@
       document.getElementById("platenContainer").appendChild(div);
     }
 
+    // Voeg vraag toe
+    function voegVraagToe(q={}){
+      const div=document.createElement("div");
+      div.className="blok";
+      div.innerHTML=`
+        <h4>Vraag</h4>
+        <input type="text" class="vraag" placeholder="Vraag" value="${q.vraag||""}"><br>
+        ${[0,1,2,3].map(i=>`
+          <input type="text" class="antw" placeholder="Antwoord ${i+1}" value="${q.antwoorden?q.antwoorden[i]:""}"><br>
+        `).join("")}
+        <label>Correct (1-4):</label>
+        <input type="number" class="correct" min="1" max="4" value="${(q.correct||0)+1}">
+      `;
+      document.getElementById("quizContainer").appendChild(div);
+    }
+
     // Opslaan heilige
     async function opslaanHeilige(id,bron){
       const titel=document.getElementById("titelInput").value.trim();
@@ -179,16 +209,19 @@
       const docId=titel.toLowerCase().replace(/\s+/g,"-");
 
       const data={
-        titel,doelgroep:huidigDoelgroep,
+        titel,
+        doelgroep:huidigDoelgroep,
         verhaal:document.getElementById("verhaalInput").value.trim().replace(/\n/g,"<br>"),
         zichtbaar:document.getElementById("zichtbaarChk").checked,
-        platen:[],aangemaaktOp:new Date()
+        platen:[],
+        vragen:[],
+        aangemaaktOp:new Date()
       };
 
       // platen opslaan
       for(let blok of document.querySelectorAll("#platenContainer .blok")){
         const file=blok.querySelector(".plaatFile").files[0];
-        const tekst=blok.querySelector(".plaatTekst").value.trim();
+        const tekst=blok.querySelector(".plaatTekst").value.trim().replace(/\n/g,"<br>");
         const bestaand=blok.querySelector(".bestaandeUrl").value;
         if(file){
           const pad=`heiligen/${docId}/${Date.now()}_${file.name}`;
@@ -198,6 +231,16 @@
           data.platen.push({url:bestaand,tekst});
         }
       }
+
+      // vragen opslaan
+      document.querySelectorAll("#quizContainer .blok").forEach(div=>{
+        const vraag=div.querySelector(".vraag").value.trim().replace(/\n/g,"<br>");
+        const antwoorden=[...div.querySelectorAll(".antw")].map(i=>i.value.trim());
+        const correct=parseInt(div.querySelector(".correct").value)-1;
+        if(vraag && antwoorden.filter(a=>a).length===4){
+          data.vragen.push({vraag,antwoorden,correct});
+        }
+      });
 
       await db.collection("parochies").doc(parochieId).collection("heiligen").doc(docId).set(data);
       laadHeiligen();
