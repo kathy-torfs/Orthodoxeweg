@@ -1,133 +1,62 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Verhalen – Orthodoxe Kinderpagina</title>
-  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>📖 Heiligen – Orthodoxe Kinderpagina</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
-    :root{
-      --primair:#7bb235; --donker:#67510C;
-      --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
-      --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
-      --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
-      --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
-    }
-    body{
-      margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
-      min-height:100vh; background:var(--pastel1); transition:background .6s;
-    }
-
-    main{ max-width: 900px; margin: 24px auto; padding: 0 2vw; }
-
-    .tabs {
-      display:flex; justify-content:center; gap:14px; margin-bottom:20px;
-    }
-    .tab-btn {
-      background:#fff3c4; border:2px solid #f0d77a;
-      border-radius:10px; padding:10px 18px; cursor:pointer;
-      font-weight:bold; transition:transform .2s;
-    }
-    .tab-btn:hover { transform:scale(1.07); }
-    .tab-btn.active { background:#ffe892; border-color:#f4c84b; }
-
-    .quote-block {
-      background:#fffef9;
-      border-left:6px solid var(--primair);
-      border-radius:14px;
-      padding:20px;
-      margin:20px 0;
-      box-shadow:0 4px 14px rgba(0,0,0,0.08);
-      position:relative;
-    }
-    .quote-block h2 {
-      margin-top:0;
-      color:var(--primair);
-      font-size:1.4em;
-    }
-    .quote-block p {
-      margin:10px 0;
-      line-height:1.6;
-      color:#4a3b20;
-      font-size:1.05em;
-    }
-    .print-btn {
-      position:absolute; top:12px; right:12px;
-      background:#7a5f35; color:#fff; border:none;
-      border-radius:50%; width:34px; height:34px;
-      cursor:pointer; font-size:1em;
-    }
-    .plaat-wrapper {
-      margin:12px 0; text-align:center;
-    }
-    .plaat-wrapper img { max-width:100%; border-radius:8px; }
-    .plaat-print {
-      margin-top:6px;
-      background:#7bb235; color:#fff; border:none;
-      border-radius:6px; padding:6px 12px; cursor:pointer;
-    }
-
-    @media print {
-      body { background:#fff; }
-      .tabs, .print-btn, #kinder-header, .plaat-print { display:none !important; }
-      .quote-block { box-shadow:none; border:1px solid #000; }
-    }
+    body {margin:0;font-family:Comic Sans MS, Arial,sans-serif;background:#f5e9b8;color:#4a3b20}
+    main {display:flex;max-width:1200px;margin:20px auto;padding:0 20px;gap:20px}
+    h1{text-align:center;color:#4e2710}
+    .tabs{display:flex;justify-content:center;gap:12px;margin:10px 0}
+    .tabs button{padding:8px 14px;border:none;border-radius:6px;cursor:pointer;font-weight:bold}
+    .tabs button.actief{background:#7bb235;color:#fff}
+    .lijst{flex:1;background:#fff9e2;border:2px solid #d6c290;border-radius:12px;padding:12px;max-height:80vh;overflow-y:auto}
+    .lijst h2{text-align:center;margin:0 0 10px}
+    .item{padding:8px;background:#fff;border:1px solid #dbc592;border-radius:8px;margin-bottom:6px;cursor:pointer}
+    .item:hover{background:#f7eecb}
+    .detail{flex:2;background:#fffef9;border:2px solid #e2d1a5;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.12);padding:20px;min-height:500px}
+    .detail h2{text-align:center;margin-top:0}
+    .plaat{display:flex;flex-direction:column;align-items:center}
+    .plaat img{max-width:100%;max-height:300px;border-radius:12px;border:2px solid #dab97a;margin-bottom:10px}
+    .navigatie{display:flex;justify-content:space-between;margin-top:10px}
+    .btn{padding:8px 16px;border:none;border-radius:8px;cursor:pointer;font-weight:bold}
+    .btn.print{background:#7a5f35;color:#fff}
+    .btn.print:hover{background:#5a4225}
+    .btn.nav{background:#7bb235;color:#fff}
+    .btn.nav:hover{background:#5e8e29}
   </style>
-
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-
-  <!-- Laadt de header + menubalk -->
   <script defer src="common/layout.js"></script>
 </head>
 <body>
   <div id="kinder-header" data-header-src="common/header.html"></div>
+  <h1>📖 Verhalen van de Heiligen</h1>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button id="tabKleuters" class="actief" onclick="wisselDoelgroep('kleuters')">👶 Kleuters</button>
+    <button id="tabLagere" onclick="wisselDoelgroep('lagere')">📚 Lagere school</button>
+  </div>
 
   <main>
-    <div class="tabs">
-      <button class="tab-btn active" onclick="toonTab('kleuters')">👶 Kleuters</button>
-      <button class="tab-btn" onclick="toonTab('lagere')">📖 Lagere school</button>
+    <!-- Indexlijst -->
+    <div class="lijst">
+      <h2>Heiligenlijst</h2>
+      <div id="heiligenLijst">Laden…</div>
     </div>
 
-    <div id="kleuters" class="tab-content">
-      <div id="kleutersVerhalen">Laden…</div>
-    </div>
-
-    <div id="lagere" class="tab-content" style="display:none;">
-      <div id="lagereVerhalen">Laden…</div>
+    <!-- Detail -->
+    <div class="detail" id="detailPaneel">
+      <p style="text-align:center;color:#888;">⬅️ Kies links een heilige</p>
     </div>
   </main>
 
   <script>
-    (function(){
-      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
-      document.body.style.background = p[Math.floor(Math.random()*p.length)];
-    })();
-
-    function toonTab(id){
-      document.querySelectorAll(".tab-content").forEach(d=>d.style.display="none");
-      document.getElementById(id).style.display="block";
-      document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
-      event.target.classList.add("active");
-    }
-
-    function printVerhaal(id){
-      const inhoud=document.getElementById(id).innerHTML;
-      const w=window.open("","","width=800,height=600");
-      w.document.write(`<html><head><title>Print</title></head><body>${inhoud}</body></html>`);
-      w.document.close();
-      w.print();
-    }
-
-    function printPlaat(url){
-      const w=window.open("","","width=800,height=600");
-      w.document.write(`<html><head><title>Print</title></head><body style="text-align:center"><img src="${url}" style="max-width:100%"></body></html>`);
-      w.document.close();
-      w.print();
-    }
-
+    // Firebase init
     if (!firebase.apps.length) {
       firebase.initializeApp({
         apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
@@ -138,57 +67,89 @@
     const db=firebase.firestore();
     const parochieId=localStorage.getItem("ingelogdeParochie");
 
-    async function laadVerhalen(doelgroep, containerId){
-      const div=document.getElementById(containerId);
-      div.innerHTML="Laden…";
+    let huidigDoelgroep="kleuters";
+    let huidigeHeilige=null;
+    let huidigePlaatIndex=0;
+
+    function wisselDoelgroep(d){
+      huidigDoelgroep=d;
+      document.getElementById("tabKleuters").classList.toggle("actief", d==="kleuters");
+      document.getElementById("tabLagere").classList.toggle("actief", d==="lagere");
+      laadHeiligen();
+      document.getElementById("detailPaneel").innerHTML="<p style='text-align:center;color:#888;'>⬅️ Kies links een heilige</p>";
+    }
+
+    async function laadHeiligen(){
+      const lijstEl=document.getElementById("heiligenLijst");
+      lijstEl.innerHTML="⏳ Laden...";
       try{
         const snap=await db.collection("parochies").doc(parochieId)
           .collection("heiligen")
-          .where("doelgroep","==",doelgroep)
-          .where("zichtbaar","==",true)
-          .orderBy("aangemaaktOp","desc")
-          .get();
-
-        div.innerHTML="";
-        if(snap.empty){
-          div.innerHTML="<p>⚠️ Geen verhalen beschikbaar.</p>";
-          return;
-        }
-
+          .where("doelgroep","==",huidigDoelgroep)
+          .where("zichtbaar","==",true).get();
+        lijstEl.innerHTML="";
+        if(snap.empty){lijstEl.innerHTML="<p>Geen verhalen beschikbaar.</p>";return;}
         snap.forEach(doc=>{
           const d=doc.data();
-          const id="verhaal-"+doc.id;
-
-          let blok=`
-            <div class="quote-block" id="${id}">
-              <button class="print-btn" onclick="printVerhaal('${id}')">🖨️</button>
-              <h2>${d.titel||"Naamloos verhaal"}</h2>
-              <p>${(d.verhaal||"").replace(/<br>/g,"<br>")}</p>
-          `;
-
-          if(d.platen && d.platen.length>0){
-            d.platen.forEach(p=>{
-              blok+=`
-                <div class="plaat-wrapper">
-                  <img src="${p.url}" alt="plaat">
-                  ${p.tekst?`<p style="font-style:italic">${p.tekst}</p>`:""}
-                  <button class="plaat-print" onclick="printPlaat('${p.url}')">🖨️ Print plaat</button>
-                </div>
-              `;
-            });
-          }
-
-          blok+=`</div>`;
-          div.innerHTML+=blok;
+          const div=document.createElement("div");
+          div.className="item";
+          div.textContent=d.titel||doc.id;
+          div.onclick=()=>toonDetail({id:doc.id,...d});
+          lijstEl.appendChild(div);
         });
       }catch(e){
         console.error(e);
-        div.innerHTML="⚠️ Fout bij laden verhalen.";
+        lijstEl.innerHTML="⚠️ Fout bij laden.";
       }
     }
 
-    laadVerhalen("kleuters","kleutersVerhalen");
-    laadVerhalen("lagere","lagereVerhalen");
+    function toonDetail(h){
+      huidigeHeilige=h;
+      huidigePlaatIndex=0;
+      if(huidigDoelgroep==="kleuters" && h.platen?.length){
+        toonPlaat();
+      } else {
+        document.getElementById("detailPaneel").innerHTML=`
+          <h2>${h.titel||"Naamloze heilige"}</h2>
+          <p>${(h.verhaal||"").replace(/<br>/g,"<br>")}</p>
+        `;
+      }
+    }
+
+    function toonPlaat(){
+      const h=huidigeHeilige;
+      const p=h.platen[huidigePlaatIndex];
+      document.getElementById("detailPaneel").innerHTML=`
+        <h2>${h.titel}</h2>
+        <div class="plaat">
+          <img src="${p.url}">
+          <p>${p.tekst||""}</p>
+          <div class="navigatie">
+            <button class="btn nav" onclick="vorigePlaat()" ${huidigePlaatIndex===0?"disabled":""}>⬅️ Vorige</button>
+            <button class="btn print" onclick="printPlaat(${huidigePlaatIndex})">🖨️ Print</button>
+            <button class="btn nav" onclick="volgendePlaat()" ${huidigePlaatIndex===h.platen.length-1?"disabled":""}>Volgende ➡️</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function volgendePlaat(){if(huidigePlaatIndex<huidigeHeilige.platen.length-1){huidigePlaatIndex++;toonPlaat();}}
+    function vorigePlaat(){if(huidigePlaatIndex>0){huidigePlaatIndex--;toonPlaat();}}
+
+    function printPlaat(index){
+      const h=huidigeHeilige;
+      const plaat=h.platen[index];
+      const keuze=confirm("Wil je de plaat MET tekst printen?\nOK = met tekst, Annuleren = zonder tekst.");
+      let inhoud=`<img src="${plaat.url}" style="max-width:100%;display:block;margin:0 auto;">`;
+      if(keuze){inhoud+=`<p style="margin-top:10px;font-size:1.1em;">${plaat.tekst||""}</p>`;}
+      const w=window.open("","","width=800,height=600");
+      w.document.write(`<html><head><title>Print</title></head><body>${inhoud}</body></html>`);
+      w.document.close();
+      w.print();
+    }
+
+    // Init
+    laadHeiligen();
   </script>
 </body>
 </html>
