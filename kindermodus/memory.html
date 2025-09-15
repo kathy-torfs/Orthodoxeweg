@@ -23,7 +23,7 @@
     #boardWrapper{
       position:relative;
       display:none;
-      margin:20px auto 60px auto;
+      margin:20px auto 20px auto;
       width:700px; height:700px;
       max-width:95vw; max-height:95vw;
       overflow:hidden;
@@ -97,6 +97,16 @@
       from{ transform:translateX(0); }
       to{ transform:translateX(-50%); }
     }
+
+    /* Volgend level knop */
+    #nextLevelBtn{
+      position:absolute;
+      top:50%; left:50%;
+      transform:translate(-50%,-50%);
+      font-size:22px;
+      display:none;
+      z-index:5;
+    }
   </style>
 
   <script defer src="common/layout.js"></script>
@@ -110,7 +120,6 @@
       <button id="startBtn" class="btn">Spel starten (20 punten)</button>
       <button id="resetBtn" class="btn" style="display:none;">Opnieuw spelen</button>
       <button id="pauseBtn" class="btn" style="display:none;">Pauze</button>
-      <button id="nextLevelBtn" class="btn" style="display:none;">Volgend level ➡️</button>
     </div>
     <div id="timer"></div>
 
@@ -119,6 +128,7 @@
       <div id="gameBoard"></div>
       <div id="regen"></div>
       <div id="water"></div>
+      <button id="nextLevelBtn" class="btn">Volgend level ➡️</button>
     </div>
 
     <div id="status"></div>
@@ -199,9 +209,8 @@
       totalPairs=pairs; matches=0; firstCard=null; lock=false;
       stopRain(); fillWater(0);
 
-      // Reset ark
       const ark=document.getElementById("ark");
-      ark.classList.remove("sail-away");
+      ark.classList.remove("sail-away"); // Ark pats terug
 
       const deck=[...animals.slice(0,pairs),...animals.slice(0,pairs)].sort(()=>Math.random()-0.5);
       const cols=pairs<=4?4:pairs<=8?5:6;
@@ -233,7 +242,7 @@
           firstCard=null; matches++;
           if(matches===totalPairs){
             clearInterval(timerId); stopRain(); fillWater(0);
-            animateArk();
+            handleWin();
           }
         }else{
           lock=true;
@@ -246,13 +255,15 @@
       }
     }
 
-    function animateArk(){
-      const ark=document.getElementById("ark");
-      ark.classList.add("sail-away");
+    function handleWin(){
       if(currentLevel<levels.length-1){
+        const ark=document.getElementById("ark");
+        ark.classList.add("sail-away"); // Ark vaart weg
         status("Alle dieren zijn veilig in de Ark! 🚢");
         document.getElementById("nextLevelBtn").style.display="inline-block";
       }else{
+        const ark=document.getElementById("ark");
+        ark.classList.add("sail-away");
         status("Fantastisch! Alle dieren zijn veilig en de Ark vaart weg 🎉");
       }
     }
@@ -260,7 +271,6 @@
     function nextLevel(){
       currentLevel++;
       document.getElementById("nextLevelBtn").style.display="none";
-      createBoard(levels[currentLevel].pairs);
       startLevel();
     }
 
