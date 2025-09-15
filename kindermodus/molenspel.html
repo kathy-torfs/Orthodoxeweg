@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Molenspel – Orthodoxe Kinderpagina</title>
+  <link rel="icon" href="images/kruis.png" />
+
+  <style>
+    :root{
+      --primair:#7bb235; --donker:#67510C;
+      --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
+      --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
+      --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
+      --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
+    }
+    body{
+      margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
+      min-height:100vh; background:var(--pastel1); transition:background .6s;
+    }
+    main{ max-width:1000px; margin:20px auto; padding:0 16px; text-align:center }
+
+    #boardWrapper{
+      display:inline-block;
+      margin-top:12px;
+      background:#eee;
+      padding:10px;
+      border-radius:12px;
+      box-shadow:0 4px 10px rgba(0,0,0,0.25);
+    }
+    svg{ width:90vmin; height:90vmin; max-width:600px; max-height:600px }
+
+    .point{
+      fill:#fff;
+      stroke:#333;
+      stroke-width:2;
+      cursor:pointer;
+    }
+    .point.player{ fill:#e53935; }
+    .point.computer{ fill:#fbc02d; }
+    .point.highlight{ stroke:#000; stroke-width:4; }
+
+    #status{ margin-top:12px; font-weight:bold }
+    .btn{
+      background:var(--primair); color:#fff; border:none; border-radius:8px;
+      padding:8px 14px; font-weight:bold; cursor:pointer;
+    }
+  </style>
+
+  <script defer src="common/layout.js"></script>
+</head>
+<body>
+  <div id="kinder-header" data-header-src="common/header.html"></div>
+
+  <main>
+    <h1>Molenspel</h1>
+    <div>
+      <button id="startBtn" class="btn">Spel starten (20 punten)</button>
+      <button id="resetBtn" class="btn" style="display:none;">Opnieuw spelen</button>
+    </div>
+
+    <div id="boardWrapper" style="display:none;">
+      <svg id="board" viewBox="0 0 600 600">
+        <!-- 3 vierkanten -->
+        <rect x="50" y="50" width="500" height="500" fill="none" stroke="#000" stroke-width="2"/>
+        <rect x="150" y="150" width="300" height="300" fill="none" stroke="#000" stroke-width="2"/>
+        <rect x="250" y="250" width="100" height="100" fill="none" stroke="#000" stroke-width="2"/>
+        <!-- verbindingslijnen -->
+        <line x1="300" y1="50" x2="300" y2="250" stroke="#000" stroke-width="2"/>
+        <line x1="300" y1="350" x2="300" y2="550" stroke="#000" stroke-width="2"/>
+        <line x1="50" y1="300" x2="250" y2="300" stroke="#000" stroke-width="2"/>
+        <line x1="350" y1="300" x2="550" y2="300" stroke="#000" stroke-width="2"/>
+        <!-- punten (24) -->
+      </svg>
+    </div>
+    <div id="status"></div>
+  </main>
+
+  <script>
+    // ===== Achtergrond =====
+    (function(){
+      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)',
+               'var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)',
+               'var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)',
+               'var(--pastel15)','var(--pastel16)'];
+      document.body.style.background = p[Math.floor(Math.random()*p.length)];
+    })();
+
+    // ===== Header laden =====
+    (function boot(){
+      if (!(window.KinderLayout)) return setTimeout(boot,120);
+      const el=document.getElementById('kinder-header');
+      window.KinderLayout.mountHeader({ rootId:'kinder-header', headerSrc:el.dataset.headerSrc, active:'spelletjes' });
+    })();
+
+    // ===== Bord en spel =====
+    const positions = [
+      [50,50],[300,50],[550,50],
+      [150,150],[300,150],[450,150],
+      [250,250],[300,250],[350,250],
+      [50,300],[150,300],[250,300],[350,300],[450,300],[550,300],
+      [250,350],[300,350],[350,350],
+      [150,450],[300,450],[450,450],
+      [50,550],[300,550],[550,550]
+    ];
+    const boardSvg=document.getElementById('board');
+    let stones={}, current="player", placed={player:0,computer:0}, gameOver=false;
+
+    function drawPoints(){
+      positions.forEach((p,i)=>{
+        const c=document.createElementNS("http://www.w3.org/2000/svg","circle");
+        c.setAttribute("cx",p[0]);
+        c.setAttribute("cy",p[1]);
+        c.setAttribute("r",14);
+        c.classList.add("point");
+        c.dataset.id=i;
+        c.addEventListener("click",()=>onClick(i));
+        boardSvg.appendChild(c);
+        stones[i]=null;
+      });
+    }
+
+    function onClick(id){
+      if(gameOver||current!=="player")return;
+      if(stones[id])return;
+      stones[id]="player";
+      updateBoard();
+      placed.player++;
+      if(placed.player>=9 && placed.computer>=9){ gameOver=true; status("Alle stenen geplaatst."); return;}
+      current="computer"; status("Computer is aan zet...");
+      setTimeout(computerMove,600);
+    }
+
+    function computerMove(){
+      const empty=Object.keys(stones).filter(k=>!stones[k]);
+      if(empty.length===0)return;
+      const choice=empty[Math.floor(Math.random()*empty.length)];
+      stones[choice]="computer";
+      placed.computer++;
+      updateBoard();
+      current="player"; status("Jij bent aan zet");
+    }
+
+    function updateBoard(){
+      document.querySelectorAll(".point").forEach(c=>{
+        const id=c.dataset.id;
+        c.classList.remove("player","computer");
+        if(stones[id]) c.classList.add(stones[id]);
+      });
+    }
+
+    function status(msg){ document.getElementById("status").textContent=msg; }
+
+    // ===== Firestore punten =====
+    async function getUserPoints(){
+      const db=firebase.firestore();
+      const parochieId=localStorage.getItem("ingelogdeParochie");
+      const ouderLogin=localStorage.getItem("loginKeuze");
+      const kindId=localStorage.getItem("ingelogdKindId");
+      if(!parochieId||!ouderLogin||!kindId)return 0;
+      const ref=db.collection("parochies").doc(parochieId).collection("leden").doc(ouderLogin).collection("kinderen").doc(kindId);
+      const snap=await ref.get(); return snap.exists?(snap.data().punten||0):0;
+    }
+    async function deductPoints(amount){
+      const db=firebase.firestore();
+      const parochieId=localStorage.getItem("ingelogdeParochie");
+      const ouderLogin=localStorage.getItem("loginKeuze");
+      const kindId=localStorage.getItem("ingelogdKindId");
+      if(!parochieId||!ouderLogin||!kindId)return;
+      const ref=db.collection("parochies").doc(parochieId).collection("leden").doc(ouderLogin).collection("kinderen").doc(kindId);
+      await db.runTransaction(async tx=>{
+        const snap=await tx.get(ref);
+        if(!snap.exists)return;
+        const current=snap.data().punten||0;
+        if(current>=amount) tx.update(ref,{punten:current-amount});
+      });
+    }
+
+    // ===== Start & Reset =====
+    document.getElementById("startBtn").addEventListener("click",async()=>{
+      const points=await getUserPoints();
+      if(points<20){ alert("Niet genoeg punten om te spelen!"); return; }
+      await deductPoints(20);
+      document.getElementById("startBtn").style.display="none";
+      document.getElementById("resetBtn").style.display="inline-block";
+      document.getElementById("boardWrapper").style.display="inline-block";
+      boardSvg.innerHTML=boardSvg.innerHTML; // reset lijnen
+      stones={}; placed={player:0,computer:0}; current="player"; gameOver=false;
+      drawPoints(); status("Jij mag beginnen");
+    });
+    document.getElementById("resetBtn").addEventListener("click",()=>location.reload());
+
+    drawPoints();
+  </script>
+</body>
+</html>
