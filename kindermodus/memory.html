@@ -24,7 +24,8 @@
       position:relative;
       display:none;
       margin:20px auto 60px auto;
-      width:800px; height:800px;   /* GROTER */
+      width:800px; height:800px; /* vergroot speelvak */
+      max-width:95vw; max-height:95vw; /* responsive fallback */
       overflow:hidden;
     }
     #ark{
@@ -32,15 +33,14 @@
       display:block;
     }
     #gameBoard{
-      display:grid; grid-gap:16px; justify-content:center;  /* Iets ruimer */
-      position:absolute; top:160px; left:0; right:0; margin:auto;
+      display:grid; grid-gap:12px; justify-content:center;
+      position:absolute; top:18%; left:0; right:0; margin:auto;
       z-index:3;
     }
     .card{
-      width:100px; height:100px;  /* GROTER */
-      background:#7bb235; border-radius:8px;
+      width:90px; height:90px; background:#7bb235; border-radius:8px;
       cursor:pointer; display:flex; align-items:center; justify-content:center;
-      font-size:52px; font-weight:bold; color:#fff; transition:transform 0.3s;
+      font-size:48px; font-weight:bold; color:#fff; transition:transform 0.3s;
     }
     .flipped{ background:#fff; color:#000; cursor:default; }
 
@@ -145,12 +145,17 @@
     function startRain(hevig=false){
       const regen=document.getElementById("regen");
       regen.innerHTML="";
-      const druppels=hevig?120:60;
-      for(let i=0;i<druppels;i++){
+      const wrapper=document.getElementById("boardWrapper");
+      const area = wrapper.offsetWidth * wrapper.offsetHeight;
+      let baseDrops = Math.floor(area / 3500); // schaal factor
+      if(baseDrops < 40) baseDrops = 40;       // minimum
+      if(hevig) baseDrops *= 2;                // hevige regen
+
+      for(let i=0;i<baseDrops;i++){
         const d=document.createElement("div");
         d.className="druppel";
         d.style.left=Math.random()*100+"%";
-        d.style.top=Math.random()*100+"%"; // start overal in het vak
+        d.style.top=Math.random()*100+"%";
         d.style.height=(8+Math.random()*14)+"px";
         d.style.animationDuration=(Math.random()*2+1)+"s";
         d.style.animationDelay=(Math.random()*2)+"s";
@@ -188,7 +193,7 @@
 
       const deck=[...animals.slice(0,pairs),...animals.slice(0,pairs)].sort(()=>Math.random()-0.5);
       const cols=pairs<=4?4:pairs<=8?5:6;
-      gameBoard.style.gridTemplateColumns=`repeat(${cols},100px)`; // grotere kolommen
+      gameBoard.style.gridTemplateColumns=`repeat(${cols},90px)`;
 
       deck.forEach(animal=>{
         const card=document.createElement("div");
