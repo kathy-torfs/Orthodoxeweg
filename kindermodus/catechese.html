@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Catechese – Orthodoxe Kinderpagina</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
 
@@ -12,20 +12,18 @@
       background:#fff6e5;
     }
     main{ max-width: 900px; margin: 24px auto; padding: 0 2vw; }
-    h1{color:#7bb235}
+    h1{color:#7bb235;text-align:center}
+
+    .tabs{display:flex;justify-content:center;gap:14px;margin-bottom:20px}
+    .tab-btn{background:#fff3c4;border:2px solid #f0d77a;border-radius:10px;
+      padding:10px 18px;cursor:pointer;font-weight:bold}
+    .tab-btn.active{background:#ffe892;border-color:#f4c84b}
 
     .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
-    .card{
-      background:#fffef9; border:1.5px solid #f1e6c8; border-radius:16px;
-      box-shadow:0 4px 16px rgba(0,0,0,.08); padding:16px; text-align:center;
-      transition:transform .2s, box-shadow .2s; cursor:pointer;
-    }
-    .card:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,.15);}
-    .card .icon{font-size:48px; margin-bottom:8px; color:#7bb235;}
-    .card img{
-      max-width:100%; max-height:80px; object-fit:cover;
-      border-radius:8px; margin-bottom:6px;
-    }
+    .card{background:#fffef9;border:1.5px solid #f1e6c8;border-radius:16px;
+      box-shadow:0 4px 16px rgba(0,0,0,.08);padding:16px;text-align:center;cursor:pointer}
+    .card .icon{font-size:48px;margin-bottom:8px;color:#7bb235}
+    .card img{max-width:100%;max-height:80px;object-fit:cover;border-radius:8px;margin-bottom:6px}
     .card h3{margin:6px 0;color:#7bb235;font-size:1.1rem}
     .card button{
       background:#7bb235;color:#fff;border:none;border-radius:6px;
@@ -35,16 +33,13 @@
 
     #lesModal{position:fixed;inset:0;background:rgba(0,0,0,.5);
       display:none;align-items:center;justify-content:center;z-index:1000}
-    #lesModal .content{
-      background:#fffef9;max-width:700px;width:92%;max-height:90vh;overflow:auto;
-      border-radius:14px;padding:20px;box-shadow:0 8px 30px rgba(0,0,0,.25)
-    }
+    #lesModal .content{background:#fffef9;max-width:700px;width:92%;max-height:90vh;overflow:auto;
+      border-radius:14px;padding:20px;box-shadow:0 8px 30px rgba(0,0,0,.25)}
     #lesModal h2{margin-top:0;color:#7bb235}
     .quiz-vraag{margin:14px 0;padding:12px;border:1px solid #dab97a;border-radius:10px;background:#fffdf5}
     .quiz-vraag h4{margin:0 0 8px;color:#7a5f35}
     .quiz-vraag label{display:block;margin:4px 0}
-    .btn{background:#7bb235;color:#fff;border:none;border-radius:8px;
-      padding:8px 16px;font-weight:bold;cursor:pointer;margin:6px 4px}
+    .btn{background:#7bb235;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-weight:bold;cursor:pointer;margin:6px 4px}
     .btn:hover{background:#5e8f1c}
   </style>
 
@@ -59,10 +54,19 @@
 
   <main>
     <h1>📖 Catechese</h1>
-    <div id="lessenGrid" class="grid">Laden…</div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="toonTab('kleuters')">👶 Kleuters</button>
+      <button class="tab-btn" onclick="toonTab('lagere')">📚 Lagere school</button>
+    </div>
+
+    <!-- Grid per doelgroep -->
+    <div id="kleuters" class="grid"></div>
+    <div id="lagere" class="grid" style="display:none"></div>
   </main>
 
-  <!-- Modal voor details -->
+  <!-- Modal -->
   <div id="lesModal">
     <div class="content">
       <button class="btn" onclick="sluitLes()">❌ Sluiten</button>
@@ -72,6 +76,7 @@
   </div>
 
   <script>
+    // Firebase init
     if (!firebase.apps.length) {
       firebase.initializeApp({
         apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
@@ -81,41 +86,48 @@
     }
     const db=firebase.firestore();
 
-    // ✅ Context ophalen uit localStorage
+    // Context
     const parochieId = localStorage.getItem("ingelogdeParochie");
     const ouderId    = localStorage.getItem("loginKeuze");
     const kindId     = localStorage.getItem("ingelogdKindId");
 
-    const grid=document.getElementById("lessenGrid");
     const modal=document.getElementById("lesModal");
     const detail=document.getElementById("lesDetail");
 
-    async function laadLessen(){
-      if(!parochieId||!ouderId||!kindId){
-        grid.innerHTML="⚠️ Niet ingelogd.";
-        return;
-      }
+    // Tabs
+    function toonTab(tab){
+      document.querySelectorAll(".grid").forEach(g=>g.style.display="none");
+      document.getElementById(tab).style.display="grid";
+      document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+      event.target.classList.add("active");
+    }
+
+    // Lessen laden per doelgroep
+    async function laadLessen(doelgroep){
+      const grid=document.getElementById(doelgroep);
+      grid.innerHTML="⏳ Laden…";
       try{
-        let snap=await db.collection("parochies").doc(parochieId)
-            .collection("catecheselessen")
-            .where("zichtbaar","==",true)
-            .orderBy("aangemaaktOp","desc")
-            .get();
+        const snap=await db.collection("parochies").doc(parochieId)
+          .collection("catecheselessen")
+          .where("zichtbaar","==",true)
+          .where("doelgroep","==",doelgroep)
+          .orderBy("aangemaaktOp","desc")
+          .get();
 
         grid.innerHTML="";
         if(snap.empty){
           grid.innerHTML="<p>Nog geen lessen beschikbaar.</p>";
           return;
         }
+
         snap.forEach(doc=>{
           const d=doc.data();
           const eerstePlaat = d.platen && d.platen[0] ? d.platen[0].url : null;
-
           const kaart=document.createElement("div");
           kaart.className="card";
           kaart.innerHTML=`
             <div class="icon">📖</div>
-            ${eerstePlaat ? `<img src="${eerstePlaat}" alt="plaat">` : ""}
+            ${eerstePlaat?`<img src="${eerstePlaat}" alt="plaat">`:""}
             <h3>${d.titel}</h3>
             <button onclick="openLes('${doc.id}')">Klik om te lezen</button>
           `;
@@ -127,20 +139,18 @@
       }
     }
 
+    // Les openen
     async function openLes(id){
-      const doc = await db.collection("parochies").doc(parochieId)
-        .collection("catecheselessen").doc(id).get();
+      const doc=await db.collection("parochies").doc(parochieId).collection("catecheselessen").doc(id).get();
       const d=doc.data();
 
       modal.style.display="flex";
       let html=`<h2>${d.titel}</h2>`;
-
-      if(d.platen && d.platen.length){
+      if(d.platen&&d.platen.length){
         d.platen.forEach(p=>{
-          html += `<div><img src="${p.url}" style="max-width:100%;border-radius:10px"><p>${p.tekst||""}</p></div>`;
+          html+=`<div><img src="${p.url}" style="max-width:100%;border-radius:10px"><p>${p.tekst||""}</p></div>`;
         });
       }
-
       if(d.vragen&&d.vragen.length){
         html+="<h3>Quiz</h3>";
         d.vragen.forEach((v,i)=>{
@@ -155,19 +165,12 @@
       detail.innerHTML=html;
     }
 
-    function sluitLes(){
-      modal.style.display="none";
-      detail.innerHTML="";
-    }
-
+    function sluitLes(){modal.style.display="none";detail.innerHTML="";}
     function printLes(){
-      const inhoud = document.getElementById("lesDetail").innerHTML;
-      const w = window.open("", "_blank");
-      w.document.write("<html><head><title>Les print</title></head><body>");
-      w.document.write(inhoud);
-      w.document.write("</body></html>");
-      w.document.close();
-      w.print();
+      const inhoud=detail.innerHTML;
+      const w=window.open("","","width=800,height=600");
+      w.document.write("<html><head><title>Les print</title></head><body>"+inhoud+"</body></html>");
+      w.document.close();w.print();
     }
 
     async function indienenQuiz(lesId,aantal){
@@ -178,24 +181,19 @@
         antwoorden.push(sel?parseInt(sel.value):-1);
       }
       if(antwoorden.includes(-1)){alert("Beantwoord alle vragen!");return;}
-
-      const doc=await db.collection("parochies").doc(parochieId)
-        .collection("catecheselessen").doc(lesId).get();
+      const doc=await db.collection("parochies").doc(parochieId).collection("catecheselessen").doc(lesId).get();
       const les=doc.data();
       let score=0;
-      antwoorden.forEach((a,i)=>{if(a===les.vragen[i].correct) score++;});
-
-      await db.collection("parochies").doc(parochieId)
-        .collection("leden").doc(ouderId)
-        .collection("kinderen").doc(kindId)
-        .collection("lessen").doc(lesId)
+      antwoorden.forEach((a,i)=>{if(a===les.vragen[i].correct)score++;});
+      await db.collection("parochies").doc(parochieId).collection("leden").doc(ouderId).collection("kinderen").doc(kindId).collection("lessen").doc(lesId)
         .set({antwoorden,score,totaal:aantal,datum:new Date()});
-
       alert(`🎉 Je scoorde ${score} van de ${aantal}!`);
       sluitLes();
     }
 
-    laadLessen();
+    // Init: beide doelgroepen laden
+    laadLessen("kleuters");
+    laadLessen("lagere");
   </script>
 </body>
 </html>
