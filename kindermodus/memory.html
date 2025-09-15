@@ -4,17 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Noach's Ark Memory – Orthodoxe Kinderpagina</title>
-  <link rel="icon" href="images/kruis.png" />
+  <link rel="icon" href="../images/kruis.png" />
 
   <style>
     :root{ --primair:#7bb235; }
     body{
       margin:0; font-family:'Comic Sans MS', Arial, sans-serif;
       color:#333; min-height:100vh;
-      background:url("images/arkvannoah.png") center/cover no-repeat;
+      background:url("../images/arkvannoah.png") center/cover no-repeat;
       display:flex; flex-direction:column; align-items:center;
+      overflow:hidden;
     }
-    main{ max-width:1000px; margin:20px auto; text-align:center }
+    main{ max-width:1000px; margin:20px auto; text-align:center; z-index:5; position:relative; }
 
     #gameBoard{
       display:grid; grid-gap:12px; justify-content:center; margin-top:20px;
@@ -46,12 +47,20 @@
       to{ transform:translateY(110vh); }
     }
     .hevig .druppel{ background:rgba(0,0,180,0.7); height:16px; }
+
+    /* Water overlay bij verlies */
+    #water{
+      position:fixed; bottom:-100%; left:0; width:100%; height:100%;
+      background:rgba(0,150,255,0.7);
+      z-index:9; transition: bottom 5s linear;
+    }
+    #water.stijgt{ bottom:0; }
   </style>
 
-  <script defer src="common/layout.js"></script>
+  <script defer src="../common/layout.js"></script>
 </head>
 <body>
-  <div id="kinder-header" data-header-src="common/header.html"></div>
+  <div id="kinder-header" data-header-src="../common/header.html"></div>
 
   <main>
     <h1>Noach's Ark Memory 🛶🌈</h1>
@@ -66,6 +75,7 @@
   </main>
 
   <div id="regen"></div>
+  <div id="water"></div>
 
   <script>
     const animals=["🐶","🐱","🐭","🐰","🦊","🐻","🐼","🐨","🦁","🐯","🐮","🐷","🐸","🐵","🐔"];
@@ -102,8 +112,10 @@
           timeLeft--; updateTimer();
           if(timeLeft===Math.floor(time/2)) startRain(false);
           if(timeLeft<=0){
-            clearInterval(timerId); startRain(true);
-            status("De ark liep vol water… probeer opnieuw! 🌧️");
+            clearInterval(timerId);
+            startRain(true);
+            document.getElementById("water").classList.add("stijgt");
+            status("De ark liep vol water… probeer opnieuw! 🌊");
             lock=true;
           }
         }
@@ -114,7 +126,7 @@
       const gameBoard=document.getElementById("gameBoard");
       gameBoard.innerHTML="";
       totalPairs=pairs; matches=0; firstCard=null; lock=false;
-      stopRain();
+      stopRain(); document.getElementById("water").classList.remove("stijgt");
 
       const deck=[...animals.slice(0,pairs),...animals.slice(0,pairs)].sort(()=>Math.random()-0.5);
       const cols=pairs<=4?4:pairs<=8?5:6;
@@ -141,7 +153,8 @@
           if(matches===totalPairs){
             clearInterval(timerId); stopRain();
             if(currentLevel<levels.length-1){
-              currentLevel++; status("Goed gedaan! Op naar level "+(currentLevel+1));
+              currentLevel++;
+              status("Goed gedaan! Op naar level "+(currentLevel+1));
               setTimeout(startLevel,2000);
             }else{ status("Fantastisch! Alle dieren zijn veilig in de Ark 🎉"); }
           }
