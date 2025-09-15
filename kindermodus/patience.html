@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Patience – Orthodoxe Kinderpagina</title>
+  <link rel="icon" href="images/kruis.png" />
+  <style>
+    :root{
+      --primair:#7bb235; --donker:#67510C;
+      --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
+    }
+    body{
+      margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
+      min-height:100vh; background:var(--pastel1);
+    }
+    main{ max-width:1200px; margin:20px auto; padding:0 16px; text-align:center }
+    h1{ color:var(--primair); }
+
+    #game{
+      display:flex; flex-direction:column; align-items:center; gap:20px;
+    }
+    #topRow, #tableau{
+      display:flex; justify-content:center; gap:16px;
+      flex-wrap:wrap;
+    }
+    .pile{
+      width:90px; height:120px; border:2px dashed #aaa;
+      border-radius:8px; position:relative;
+    }
+    .card{
+      width:90px; height:120px; border-radius:8px;
+      position:absolute; top:0; left:0;
+      display:flex; justify-content:center; align-items:center;
+      font-size:32px; font-weight:bold; background:#fff;
+      border:2px solid #444; cursor:grab; user-select:none;
+    }
+    .back{
+      background:#1a237e; color:#ffd600;
+      justify-content:center; font-size:24px;
+    }
+    .hidden{display:none;}
+    .dragging{opacity:0.6;}
+
+    #status{margin-top:20px; font-weight:bold;}
+    .btn{
+      background:var(--primair); color:#fff; border:none; border-radius:8px;
+      padding:8px 14px; font-weight:bold; cursor:pointer; margin:4px;
+    }
+  </style>
+  <script defer src="common/layout.js"></script>
+</head>
+<body>
+  <div id="kinder-header" data-header-src="common/header.html"></div>
+
+  <main>
+    <h1>Patience 🃏🙏</h1>
+    <button id="newGameBtn" class="btn">Nieuw spel</button>
+    <div id="game">
+      <div id="topRow">
+        <div id="stock" class="pile"></div>
+        <div id="waste" class="pile"></div>
+        <div style="flex:1"></div>
+        <div id="foundations" style="display:flex; gap:16px;">
+          <div class="pile foundation" data-suit="angel"></div>
+          <div class="pile foundation" data-suit="cross"></div>
+          <div class="pile foundation" data-suit="bible"></div>
+          <div class="pile foundation" data-suit="hands"></div>
+        </div>
+      </div>
+      <div id="tableau"></div>
+    </div>
+    <div id="status"></div>
+  </main>
+
+  <script>
+    // header laden
+    (function boot(){
+      if (!(window.KinderLayout)) return setTimeout(boot,120);
+      const el=document.getElementById('kinder-header');
+      window.KinderLayout.mountHeader({ rootId:'kinder-header', headerSrc:el.dataset.headerSrc, active:'spelletjes' });
+    })();
+
+    const suits = {
+      angel:"😇",
+      cross:"✝️",
+      bible:"📖",
+      hands:"🙏"
+    };
+    let deck=[], stock=[], waste=[], foundations={}, tableau=[];
+    let dragData=null;
+
+    function createDeck(){
+      let d=[];
+      Object.keys(suits).forEach(s=>{
+        for(let v=1; v<=13; v++){
+          d.push({suit:s,value:v,icon:suits[s]});
+        }
+      });
+      return d.sort(()=>Math.random()-0.5);
+    }
+
+    function newGame(){
+      deck=createDeck(); stock=[...deck]; waste=[]; foundations={angel:[],cross:[],bible:[],hands:[]};
+      tableau=[[],[],[],[],[],[],[]];
+      // deal to tableau
+      for(let col=0; col<7; col++){
+        for(let row=0; row<=col; row++){
+          let card=stock.pop();
+          card.faceUp=(row===col);
+          tableau[col].push(card);
+        }
+      }
+      render();
+      status("Nieuw spel gestart!");
+    }
+
+    function render(){
+      const stockDiv=document.getElementById("stock");
+      stockDiv.innerHTML="";
+      if(stock.length){
+        let back=document.createElement("div");
+        back.className="card back"; back.textContent="✝️";
+        back.addEventListener("click",drawCard);
+        stockDiv.appendChild(back);
+      }
+
+      const wasteDiv=document.getElementById("waste");
+      wasteDiv.innerHTML="";
+      if(waste.length){
+        let card=renderCard(waste[waste.length-1],true);
+        wasteDiv.appendChild(card);
+      }
+
+      document.querySelectorAll(".foundation").forEach(f=>{
+        f.innerHTML="";
+        let s=f.dataset.suit;
+        if(foundations[s].length){
+          let card=renderCard(foundations[s][foundations[s].length-1],true);
+          f.appendChild(card);
+        }
+      });
+
+      const tabDiv=document.getElementById("tableau");
+      tabDiv.innerHTML="";
+      tableau.forEach((col,i)=>{
+        let pile=document.createElement("div");
+        pile.className="pile";
+        col.forEach((card,row)=>{
+          let el=renderCard(card,card.faceUp);
+          el.style.top=(row*28)+"px";
+          pile.appendChild(el);
+        });
+        tabDiv.appendChild(pile);
+      });
+    }
+
+    function renderCard(card,faceUp){
+      let el=document.createElement("div");
+      el.className="card";
+      if(!faceUp){ el.classList.add("back"); el.textContent="✝️"; return el; }
+      el.textContent=card.icon+" "+card.value;
+      el.draggable=true;
+      el.addEventListener("dragstart",ev=>{dragData=card; ev.target.classList.add("dragging");});
+      el.addEventListener("dragend",ev=>{ev.target.classList.remove("dragging");});
+      return el;
+    }
+
+    function drawCard(){
+      if(stock.length){
+        waste.push(stock.pop());
+      }else{
+        stock=waste.reverse(); waste=[];
+      }
+      render();
+    }
+
+    function status(msg){ document.getElementById("status").textContent=msg; }
+
+    document.getElementById("newGameBtn").addEventListener("click",newGame);
+
+    newGame();
+  </script>
+</body>
+</html>
