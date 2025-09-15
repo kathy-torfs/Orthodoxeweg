@@ -177,6 +177,10 @@
       timerId=setInterval(()=>{
         if(!paused){
           timeLeft--; updateTimer();
+          // Water stijgt proportioneel met tijd
+          const percent=((time - timeLeft)/time)*100;
+          fillWater(percent);
+
           if(timeLeft===Math.floor(time/2)) startRain(false);
           if(timeLeft<=0){
             clearInterval(timerId);
@@ -195,7 +199,7 @@
       totalPairs=pairs; matches=0; firstCard=null; lock=false;
       stopRain(); fillWater(0);
 
-      // Reset ark
+      // Reset ark positie
       const ark=document.getElementById("ark");
       ark.classList.remove("sail-away");
 
@@ -244,11 +248,15 @@
 
     function animateArk(){
       const ark=document.getElementById("ark");
-      setTimeout(()=>ark.classList.add("sail-away"),800);
+      ark.classList.add("sail-away");
       if(currentLevel<levels.length-1){
         currentLevel++;
         status("Alle dieren zijn veilig in de Ark! 🚢 Volgend level...");
-        setTimeout(startLevel,5000);
+        setTimeout(()=>{
+          // Ark terug en pas daarna nieuwe kaarten
+          ark.classList.remove("sail-away");
+          startLevel();
+        },4000);
       }else{
         status("Fantastisch! Alle dieren zijn veilig en de Ark vaart weg 🎉");
       }
