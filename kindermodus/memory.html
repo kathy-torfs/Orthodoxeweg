@@ -24,17 +24,14 @@
       position:relative;
       display:none;
       margin:20px auto 60px auto;
-      width:800px; height:800px;
-      max-width:95vw; max-height:95vw;
+      width:800px; height:800px; /* vergroot speelvak */
+      max-width:95vw; max-height:95vw; /* responsive fallback */
       overflow:hidden;
     }
     #ark{
       width:100%; height:100%; object-fit:contain;
-      display:block; transition:transform 5s ease-in-out;
-      z-index:2; position:relative;
+      display:block;
     }
-    #ark.sail-away{ transform:translateY(-120%); }
-
     #gameBoard{
       display:grid; grid-gap:12px; justify-content:center;
       position:absolute; top:18%; left:0; right:0; margin:auto;
@@ -91,19 +88,6 @@
       from{ transform:translateX(0); }
       to{ transform:translateX(-50%); }
     }
-
-    /* Eindscherm */
-    #endScreen{
-      display:none;
-      position:fixed; top:0; left:0; right:0; bottom:0;
-      background:linear-gradient(to top, #a0e0ff, #ffffff);
-      text-align:center; padding-top:10vh; z-index:999;
-    }
-    #endScreen h1{ font-size:2.2em; color:#444; margin-bottom:20px; }
-    #endScreen .duif{ font-size:5em; }
-    #endScreen .regenboog{
-      font-size:4em; display:block; margin:20px 0;
-    }
   </style>
 
   <script defer src="common/layout.js"></script>
@@ -129,14 +113,6 @@
 
     <div id="status"></div>
   </main>
-
-  <!-- Eindscherm -->
-  <div id="endScreen">
-    <div class="regenboog">🌈</div>
-    <div class="duif">🕊️</div>
-    <h1>Proficiat! Je hebt alle dieren gered! 🎉</h1>
-    <button onclick="location.reload()" class="btn">Opnieuw spelen</button>
-  </div>
 
   <script>
     // Achtergrond wisselen
@@ -171,9 +147,10 @@
       regen.innerHTML="";
       const wrapper=document.getElementById("boardWrapper");
       const area = wrapper.offsetWidth * wrapper.offsetHeight;
-      let baseDrops = Math.floor(area / 3500);
-      if(baseDrops < 40) baseDrops = 40;
-      if(hevig) baseDrops *= 2;
+      let baseDrops = Math.floor(area / 3500); // schaal factor
+      if(baseDrops < 40) baseDrops = 40;       // minimum
+      if(hevig) baseDrops *= 2;                // hevige regen
+
       for(let i=0;i<baseDrops;i++){
         const d=document.createElement("div");
         d.className="druppel";
@@ -196,7 +173,7 @@
       timerId=setInterval(()=>{
         if(!paused){
           timeLeft--; updateTimer();
-          if(timeLeft===Math.floor(time/2)) startRain(false);
+          if(timeLeft===Math.floor(time/2)) startRain(false); // regen in de helft
           if(timeLeft<=0){
             clearInterval(timerId);
             startRain(true);
@@ -241,9 +218,7 @@
             if(currentLevel<levels.length-1){
               currentLevel++; status("Goed gedaan! Op naar level "+(currentLevel+1));
               setTimeout(startLevel,2000);
-            }else{
-              finaleWin();
-            }
+            }else{ status("Fantastisch! Alle dieren zijn veilig in de Ark 🎉"); }
           }
         }else{
           lock=true;
@@ -254,17 +229,6 @@
           },800);
         }
       }
-    }
-
-    function finaleWin(){
-      const ark=document.getElementById("ark");
-      fillWater(100);
-      ark.classList.add("sail-away");
-      status("De Ark vaart weg... 🌊🚢");
-      setTimeout(()=>{
-        document.getElementById("boardWrapper").style.display="none";
-        document.getElementById("endScreen").style.display="block";
-      },6000);
     }
 
     function status(msg){ document.getElementById("status").textContent=msg; }
