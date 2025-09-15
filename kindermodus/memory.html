@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Noach's Ark Memory – Orthodoxe Kinderpagina</title>
+  <link rel="icon" href="images/kruis.png" />
+
+  <style>
+    :root{
+      --primair:#7bb235;
+    }
+    body{
+      margin:0; font-family:'Comic Sans MS', Arial, sans-serif;
+      color:#333; min-height:100vh; 
+      background:url("arkvannoah.png") center/cover no-repeat;
+      display:flex; flex-direction:column; align-items:center;
+    }
+    main{ max-width:1000px; margin:20px auto; text-align:center; }
+
+    #gameBoard{
+      display:grid; grid-gap:12px; justify-content:center;
+      margin-top:20px;
+    }
+    .card{
+      width:80px; height:80px;
+      background:#7bb235; border-radius:8px;
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      font-size:42px; font-weight:bold; color:#fff;
+      transition: transform 0.3s;
+    }
+    .flipped{ background:#fff; color:#000; cursor:default; }
+    #status{ margin-top:20px; font-weight:bold }
+    .btn{
+      background:var(--primair); color:#fff; border:none;
+      border-radius:8px; padding:8px 14px; font-weight:bold; cursor:pointer;
+      margin:4px;
+    }
+
+    /* Regen overlay */
+    #regen{
+      position:fixed; top:0; left:0; width:100%; height:100%;
+      pointer-events:none; overflow:hidden; z-index:10;
+    }
+    .druppel{
+      position:absolute; width:2px; height:12px;
+      background:rgba(0,0,255,0.4); border-radius:1px;
+      animation: vallen linear infinite;
+    }
+    @keyframes vallen{
+      from{ transform:translateY(-20px); }
+      to{ transform:translateY(110vh); }
+    }
+
+    /* Hevige regen */
+    .hevig .druppel{
+      background:rgba(0,0,180,0.7);
+      height:16px;
+    }
+  </style>
+
+  <script defer src="common/layout.js"></script>
+</head>
+<body>
+  <div id="kinder-header" data-header-src="common/header.html"></div>
+
+  <main>
+    <h1>Noach's Ark Memory 🛶🌈</h1>
+    <div>
+      <button id="startBtn" class="btn">Spel starten (20 punten)</button>
+      <button id="resetBtn" class="btn" style="display:none;">Opnieuw spelen</button>
+    </div>
+    <div id="timer"></div>
+    <div id="gameBoard"></div>
+    <div id="status"></div>
+  </main>
+
+  <div id="regen"></div>
+
+  <script>
+    // Dieren
+    const animals=["🐶","🐱","🐭","🐰","🦊","🐻","🐼","🐨","🦁","🐯",
+                   "🐮","🐷","🐸","🐵","🐔"];
+
+    // Level-instellingen: aantal paren + tijd (in sec)
+    const levels=[
+      {pairs:2,time:40},
+      {pairs:4,time:60},
+      {pairs:6,time:90},
+      {pairs:8,time:120},
+      {pairs:10,time:150},
+      {pairs:15,time:180}
+    ];
+
+    let currentLevel=0, matches=0, totalPairs=0;
+    let firstCard=null, lock=false;
+    let timerId=null, timeLeft=0;
+
+    // Regen
+    function startRain(hevig=false){
+      const regen=document.getElementById("regen");
+      regen.innerHTML="";
+      regen.className=hevig?"hevig":"";
+      const druppels=hevig?100:40;
+      for(let i=0;i<druppels;i++){
+        const d=document.createElement("div");
+        d.className="druppel";
+        d.style.left=Math.random()*100+"vw";
+        d.style.animationDuration=(Math.random()*1+0.5)+"s";
+        d.style.animationDelay=(Math.random()*2)+"s";
+        regen.appendChild(d);
+      }
+    }
+    function stopRain(){ document.getElementById("regen").innerHTML=""; }
+
+    function startLevel(){
+      const {pairs,time}=levels[currentLevel];
+      createBoard(pairs);
+      timeLeft=time;
+      updateTimer();
+      timerId=setInterval(()=>{
+        timeLeft--; updateTimer();
+        if(timeLeft===Math.floor(time/2)) startRain(false); // zacht
+        if(timeLeft<=0){
+          clearInterval(timerId);
+          startRain(true); // hevig
+          status("De ark liep vol water… probeer opnieuw! 🌧️");
+          lock=true;
+        }
+      },1000);
+    }
+
+    function createBoard(pairs){
+      const gameBoard=document.getElementById("gameBoard");
+      gameBoard.innerHTML="";
+      totalPairs=pairs; matches=0; firstCard=null; lock=false;
+      stopRain();
+
+      const deck=[...animals.slice(0,pairs),...animals.slice(0,pairs)].sort(()=>Math.random()-0.5);
+      const cols=pairs<=4?4:pairs<=8?5:6;
+      gameBoard.style.gridTemplateColumns=`repeat(${cols},80px)`;
+
+      deck.forEach(animal=>{
+        const card=document.createElement("div");
+        card.className="card";
+        card.dataset.symbol=animal;
+        card.addEventListener("click",()=>flipCard(card));
+        gameBoard.appendChild(card);
+      });
+      status(`Level ${currentLevel+1} – Zoek de paren!`);
+    }
+
+    function flipCard(card){
+      if(lock || card.classList.contains("flipped")) return;
+      card.textContent=card.dataset.symbol;
+      card.classList.add("flipped");
+      if(!firstCard){
+        firstCard=card;
+      }else{
+        if(firstCard.dataset.symbol===card.dataset.symbol){
+          firstCard=null; matches++;
+          if(matches===totalPairs){
+            clearInterval(timerId); stopRain();
+            if(currentLevel<levels.length-1){
+              currentLevel++;
+              status("Goed gedaan! Op naar level "+(currentLevel+1));
+              setTimeout(startLevel,2000);
+            }else{
+              status("Fantastisch! Alle dieren zijn veilig in de Ark 🎉");
+            }
+          }
+        }else{
+          lock=true;
+          setTimeout(()=>{
+            firstCard.textContent=""; firstCard.classList.remove("flipped");
+            card.textContent=""; card.classList.remove("flipped");
+            firstCard=null; lock=false;
+          },800);
+        }
+      }
+    }
+
+    function status(msg){ document.getElementById("status").textContent=msg; }
+    function updateTimer(){ document.getElementById("timer").textContent="⏳ Tijd: "+timeLeft+"s"; }
+
+    // Firestore punten
+    async function getUserPoints(){
+      const db=firebase.firestore();
+      const parochieId=localStorage.getItem("ingelogdeParochie");
+      const ouderLogin=localStorage.getItem("loginKeuze");
+      const kindId=localStorage.getItem("ingelogdKindId");
+      if(!parochieId||!ouderLogin||!kindId)return 0;
+      const ref=db.collection("parochies").doc(parochieId).collection("leden").doc(ouderLogin).collection("kinderen").doc(kindId);
+      const snap=await ref.get(); return snap.exists?(snap.data().punten||0):0;
+    }
+    async function deductPoints(amount){
+      const db=firebase.firestore();
+      const parochieId=localStorage.getItem("ingelogdeParochie");
+      const ouderLogin=localStorage.getItem("loginKeuze");
+      const kindId=localStorage.getItem("ingelogdKindId");
+      if(!parochieId||!ouderLogin||!kindId)return;
+      const ref=db.collection("parochies").doc(parochieId).collection("leden").doc(ouderLogin).collection("kinderen").doc(kindId);
+      await db.runTransaction(async tx=>{
+        const snap=await tx.get(ref);
+        if(!snap.exists)return;
+        const current=snap.data().punten||0;
+        if(current>=amount) tx.update(ref,{punten:current-amount});
+      });
+    }
+
+    // Start & Reset
+    document.getElementById("startBtn").addEventListener("click",async()=>{
+      const points=await getUserPoints();
+      if(points<20){ alert("Niet genoeg punten om te spelen!"); return; }
+      await deductPoints(20);
+      document.getElementById("startBtn").style.display="none";
+      document.getElementById("resetBtn").style.display="inline-block";
+      currentLevel=0;
+      startLevel();
+    });
+    document.getElementById("resetBtn").addEventListener("click",()=>location.reload());
+  </script>
+</body>
+</html>
