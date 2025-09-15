@@ -171,6 +171,7 @@
 
     function isDraw(){ return board.every(row => row.every(cell => cell)); }
 
+    // ✅ Verbeterde checkWin
     function checkWin(who, grid=board){
       const dirs = [[0,1],[1,0],[1,1],[1,-1]];
       for(let r=0;r<rows;r++){
@@ -178,13 +179,15 @@
           if(grid[r][c]!==who) continue;
           for(const [dr,dc] of dirs){
             let coords = [[r,c]];
-            let rr=r+dr, cc=c+dc;
-            while(rr>=0&&rr<rows&&cc>=0&&cc<cols&&grid[rr][cc]===who){
-              coords.push([rr,cc]);
-              rr+=dr; cc+=dc;
+            for (let k=1;k<4;k++){
+              const rr = r + dr*k, cc = c + dc*k;
+              if (rr<0||rr>=rows||cc<0||cc>=cols) break;
+              if (grid[rr][cc]===who){
+                coords.push([rr,cc]);
+              } else break;
             }
-            if(coords.length>=4){
-              return coords; // return coördinaten
+            if(coords.length===4){
+              return coords; // exact 4 gevonden
             }
           }
         }
@@ -231,7 +234,9 @@
           if (checkWin('player', tmp)){
             drop(c,'computer'); renderChips();
             const winCoords = checkWin('computer');
-            return endGame('De computer wint! 🤖', winCoords);
+            if (winCoords) return endGame('De computer wint! 🤖', winCoords);
+            statusDiv.textContent = 'Jij (rood) bent aan de beurt';
+            return;
           }
         }
       }
