@@ -4,15 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Noach's Ark Memory – Orthodoxe Kinderpagina</title>
-  <link rel="icon" href="../images/kruis.png" />
+  <link rel="icon" href="images/kruis.png" />
 
   <style>
     :root{ --primair:#7bb235; }
     body{
       margin:0; font-family:'Comic Sans MS', Arial, sans-serif;
       color:#333; min-height:100vh;
-      background:url("../images/arkvannoah.png") center no-repeat;
+      background:url("images/arkvannoah.png") center no-repeat;
       background-size:contain;
+      background-color:#f5e9b8;
       display:flex; flex-direction:column; align-items:center;
       overflow:hidden;
     }
@@ -49,9 +50,11 @@
     }
     .hevig .druppel{ background:rgba(0,0,180,0.7); height:16px; }
 
-    /* Water overlay bij verlies */
+    /* Water overlay */
     #water{
-      position:fixed; bottom:-100%; left:0; width:200%; height:120%;
+      position:fixed;
+      bottom:-120%; left:0;
+      width:200%; height:120%;
       background:rgba(0,150,255,0.7);
       z-index:9; transition: bottom 5s linear;
       border-radius:40% 60% 55% 45% / 60% 55% 45% 40%;
@@ -63,13 +66,21 @@
       0%,100%{ transform:translateX(0); }
       50%{ transform:translateX(-50px); }
     }
+
+    /* Pauze overlay */
+    #overlay{
+      position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,0.4); display:none;
+      z-index:15; color:#fff; font-size:2em;
+      align-items:center; justify-content:center;
+    }
+    #overlay.active{ display:flex; }
   </style>
 
-  <script defer src="../common/layout.js"></script>
+  <script defer src="common/layout.js"></script>
 </head>
 <body>
-  <!-- Header -->
-  <div id="kinder-header" data-header-src="../common/header.html"></div>
+  <div id="kinder-header" data-header-src="common/header.html"></div>
 
   <main>
     <h1>Noach's Ark Memory 🛶🌈</h1>
@@ -85,6 +96,7 @@
 
   <div id="regen"></div>
   <div id="water"></div>
+  <div id="overlay">⏸️ Pauze</div>
 
   <script>
     const animals=["🐶","🐱","🐭","🐰","🦊","🐻","🐼","🐨","🦁","🐯","🐮","🐷","🐸","🐵","🐔"];
@@ -162,8 +174,7 @@
           if(matches===totalPairs){
             clearInterval(timerId); stopRain();
             if(currentLevel<levels.length-1){
-              currentLevel++;
-              status("Goed gedaan! Op naar level "+(currentLevel+1));
+              currentLevel++; status("Goed gedaan! Op naar level "+(currentLevel+1));
               setTimeout(startLevel,2000);
             }else{ status("Fantastisch! Alle dieren zijn veilig in de Ark 🎉"); }
           }
@@ -220,6 +231,7 @@
     document.getElementById("pauseBtn").addEventListener("click",()=>{
       paused=!paused;
       document.getElementById("pauseBtn").textContent=paused?"Hervatten":"Pauze";
+      document.getElementById("overlay").classList.toggle("active",paused);
       status(paused?"Pauze – neem even rust":"Ga verder met spelen!");
     });
   </script>
