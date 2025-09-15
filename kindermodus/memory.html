@@ -110,6 +110,7 @@
       <button id="startBtn" class="btn">Spel starten (20 punten)</button>
       <button id="resetBtn" class="btn" style="display:none;">Opnieuw spelen</button>
       <button id="pauseBtn" class="btn" style="display:none;">Pauze</button>
+      <button id="nextLevelBtn" class="btn" style="display:none;">Volgend level ➡️</button>
     </div>
     <div id="timer"></div>
 
@@ -177,7 +178,6 @@
       timerId=setInterval(()=>{
         if(!paused){
           timeLeft--; updateTimer();
-          // Water stijgt proportioneel met tijd
           const percent=((time - timeLeft)/time)*100;
           fillWater(percent);
 
@@ -199,7 +199,7 @@
       totalPairs=pairs; matches=0; firstCard=null; lock=false;
       stopRain(); fillWater(0);
 
-      // Reset ark positie
+      // Reset ark
       const ark=document.getElementById("ark");
       ark.classList.remove("sail-away");
 
@@ -250,22 +250,24 @@
       const ark=document.getElementById("ark");
       ark.classList.add("sail-away");
       if(currentLevel<levels.length-1){
-        currentLevel++;
-        status("Alle dieren zijn veilig in de Ark! 🚢 Volgend level...");
-        setTimeout(()=>{
-          // Ark terug en pas daarna nieuwe kaarten
-          ark.classList.remove("sail-away");
-          startLevel();
-        },4000);
+        status("Alle dieren zijn veilig in de Ark! 🚢");
+        document.getElementById("nextLevelBtn").style.display="inline-block";
       }else{
         status("Fantastisch! Alle dieren zijn veilig en de Ark vaart weg 🎉");
       }
     }
 
+    function nextLevel(){
+      currentLevel++;
+      document.getElementById("nextLevelBtn").style.display="none";
+      createBoard(levels[currentLevel].pairs);
+      startLevel();
+    }
+
     function status(msg){ document.getElementById("status").textContent=msg; }
     function updateTimer(){ document.getElementById("timer").textContent="⏳ Tijd: "+timeLeft+"s"; }
 
-    // Start & Reset & Pauze
+    // Start & Reset & Pauze & Volgend level
     document.getElementById("startBtn").addEventListener("click",()=>{
       document.getElementById("startBtn").style.display="none";
       document.getElementById("resetBtn").style.display="inline-block";
@@ -279,6 +281,7 @@
       document.getElementById("pauseBtn").textContent=paused?"Hervatten":"Pauze";
       status(paused?"Pauze – neem even rust":"Ga verder met spelen!");
     });
+    document.getElementById("nextLevelBtn").addEventListener("click",nextLevel);
   </script>
 </body>
 </html>
