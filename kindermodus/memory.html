@@ -18,31 +18,40 @@
       margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
       min-height:100vh; background:var(--pastel1); transition:background .6s;
     }
-    main{ max-width:1200px; margin:20px auto; padding:0 16px; text-align:center }
+    main{ max-width:1000px; margin:20px auto; padding:0 16px; text-align:center }
 
     #boardWrapper{
       position:relative;
       display:none;
       margin:20px auto 60px auto;
-      width:800px; height:800px; /* vergroot speelvak */
-      max-width:95vw; max-height:95vw; /* responsive fallback */
+      width:700px; height:700px;
+      max-width:95vw; max-height:95vw;
       overflow:hidden;
     }
     #ark{
       width:100%; height:100%; object-fit:contain;
-      display:block;
+      display:block; transition:transform 4s ease-in-out;
+      z-index:2; position:relative;
     }
+    #ark.sail-away{ transform:translateY(-120%); }
+
     #gameBoard{
       display:grid; grid-gap:12px; justify-content:center;
-      position:absolute; top:18%; left:0; right:0; margin:auto;
+      position:absolute; top:120px; left:0; right:0; margin:auto;
       z-index:3;
     }
     .card{
-      width:90px; height:90px; background:#7bb235; border-radius:8px;
+      width:80px; height:80px; background:#7bb235; border-radius:8px;
       cursor:pointer; display:flex; align-items:center; justify-content:center;
-      font-size:48px; font-weight:bold; color:#fff; transition:transform 0.3s;
+      font-size:42px; font-weight:bold; color:#fff; transition:transform 0.3s;
     }
     .flipped{ background:#fff; color:#000; cursor:default; }
+    .in-ark{
+      animation: flyIntoArk 1s forwards;
+    }
+    @keyframes flyIntoArk{
+      to{ transform:scale(0) translateY(-150px); opacity:0; }
+    }
 
     #status{ margin-top:20px; font-weight:bold }
     #timer{ margin-top:10px; font-weight:bold }
@@ -55,7 +64,7 @@
     /* Regen */
     #regen{
       position:absolute; top:0; left:0; width:100%; height:100%;
-      pointer-events:none; overflow:hidden; z-index:2;
+      pointer-events:none; overflow:hidden; z-index:4;
     }
     .druppel{
       position:absolute;
@@ -145,13 +154,8 @@
     function startRain(hevig=false){
       const regen=document.getElementById("regen");
       regen.innerHTML="";
-      const wrapper=document.getElementById("boardWrapper");
-      const area = wrapper.offsetWidth * wrapper.offsetHeight;
-      let baseDrops = Math.floor(area / 3500); // schaal factor
-      if(baseDrops < 40) baseDrops = 40;       // minimum
-      if(hevig) baseDrops *= 2;                // hevige regen
-
-      for(let i=0;i<baseDrops;i++){
+      const druppels=hevig?150:80;
+      for(let i=0;i<druppels;i++){
         const d=document.createElement("div");
         d.className="druppel";
         d.style.left=Math.random()*100+"%";
@@ -173,7 +177,7 @@
       timerId=setInterval(()=>{
         if(!paused){
           timeLeft--; updateTimer();
-          if(timeLeft===Math.floor(time/2)) startRain(false); // regen in de helft
+          if(timeLeft===Math.floor(time/2)) startRain(false);
           if(timeLeft<=0){
             clearInterval(timerId);
             startRain(true);
@@ -191,9 +195,13 @@
       totalPairs=pairs; matches=0; firstCard=null; lock=false;
       stopRain(); fillWater(0);
 
+      // Reset ark
+      const ark=document.getElementById("ark");
+      ark.classList.remove("sail-away");
+
       const deck=[...animals.slice(0,pairs),...animals.slice(0,pairs)].sort(()=>Math.random()-0.5);
       const cols=pairs<=4?4:pairs<=8?5:6;
-      gameBoard.style.gridTemplateColumns=`repeat(${cols},90px)`;
+      gameBoard.style.gridTemplateColumns=`repeat(${cols},80px)`;
 
       deck.forEach(animal=>{
         const card=document.createElement("div");
@@ -212,13 +220,16 @@
         firstCard=card;
       }else{
         if(firstCard.dataset.symbol===card.dataset.symbol){
+          firstCard.classList.add("in-ark");
+          card.classList.add("in-ark");
+          setTimeout(()=>{
+            firstCard.textContent=""; card.textContent="";
+          },800);
+
           firstCard=null; matches++;
           if(matches===totalPairs){
             clearInterval(timerId); stopRain(); fillWater(0);
-            if(currentLevel<levels.length-1){
-              currentLevel++; status("Goed gedaan! Op naar level "+(currentLevel+1));
-              setTimeout(startLevel,2000);
-            }else{ status("Fantastisch! Alle dieren zijn veilig in de Ark 🎉"); }
+            animateArk();
           }
         }else{
           lock=true;
@@ -228,6 +239,18 @@
             firstCard=null; lock=false;
           },800);
         }
+      }
+    }
+
+    function animateArk(){
+      const ark=document.getElementById("ark");
+      setTimeout(()=>ark.classList.add("sail-away"),800);
+      if(currentLevel<levels.length-1){
+        currentLevel++;
+        status("Alle dieren zijn veilig in de Ark! 🚢 Volgend level...");
+        setTimeout(startLevel,5000);
+      }else{
+        status("Fantastisch! Alle dieren zijn veilig en de Ark vaart weg 🎉");
       }
     }
 
