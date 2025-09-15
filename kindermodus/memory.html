@@ -18,40 +18,34 @@
       margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
       min-height:100vh; background:var(--pastel1); transition:background .6s;
     }
-    main{ max-width:1000px; margin:20px auto; padding:0 16px; text-align:center }
+    main{ max-width:1200px; margin:20px auto; padding:0 16px; text-align:center }
 
     #boardWrapper{
       position:relative;
       display:none;
-      margin:20px auto 20px auto;
-      width:700px; height:700px;
+      margin:20px auto 60px auto;
+      width:800px; height:800px;
       max-width:95vw; max-height:95vw;
       overflow:hidden;
     }
     #ark{
       width:100%; height:100%; object-fit:contain;
-      display:block; transition:transform 4s ease-in-out;
+      display:block; transition:transform 5s ease-in-out;
       z-index:2; position:relative;
     }
     #ark.sail-away{ transform:translateY(-120%); }
 
     #gameBoard{
       display:grid; grid-gap:12px; justify-content:center;
-      position:absolute; top:120px; left:0; right:0; margin:auto;
+      position:absolute; top:18%; left:0; right:0; margin:auto;
       z-index:3;
     }
     .card{
-      width:80px; height:80px; background:#7bb235; border-radius:8px;
+      width:90px; height:90px; background:#7bb235; border-radius:8px;
       cursor:pointer; display:flex; align-items:center; justify-content:center;
-      font-size:42px; font-weight:bold; color:#fff; transition:transform 0.3s;
+      font-size:48px; font-weight:bold; color:#fff; transition:transform 0.3s;
     }
     .flipped{ background:#fff; color:#000; cursor:default; }
-    .in-ark{
-      animation: flyIntoArk 1s forwards;
-    }
-    @keyframes flyIntoArk{
-      to{ transform:scale(0) translateY(-150px); opacity:0; }
-    }
 
     #status{ margin-top:20px; font-weight:bold }
     #timer{ margin-top:10px; font-weight:bold }
@@ -64,7 +58,7 @@
     /* Regen */
     #regen{
       position:absolute; top:0; left:0; width:100%; height:100%;
-      pointer-events:none; overflow:hidden; z-index:4;
+      pointer-events:none; overflow:hidden; z-index:2;
     }
     .druppel{
       position:absolute;
@@ -98,14 +92,17 @@
       to{ transform:translateX(-50%); }
     }
 
-    /* Volgend level knop */
-    #nextLevelBtn{
-      position:absolute;
-      top:50%; left:50%;
-      transform:translate(-50%,-50%);
-      font-size:22px;
+    /* Eindscherm */
+    #endScreen{
       display:none;
-      z-index:5;
+      position:fixed; top:0; left:0; right:0; bottom:0;
+      background:linear-gradient(to top, #a0e0ff, #ffffff);
+      text-align:center; padding-top:10vh; z-index:999;
+    }
+    #endScreen h1{ font-size:2.2em; color:#444; margin-bottom:20px; }
+    #endScreen .duif{ font-size:5em; }
+    #endScreen .regenboog{
+      font-size:4em; display:block; margin:20px 0;
     }
   </style>
 
@@ -128,11 +125,18 @@
       <div id="gameBoard"></div>
       <div id="regen"></div>
       <div id="water"></div>
-      <button id="nextLevelBtn" class="btn">Volgend level ➡️</button>
     </div>
 
     <div id="status"></div>
   </main>
+
+  <!-- Eindscherm -->
+  <div id="endScreen">
+    <div class="regenboog">🌈</div>
+    <div class="duif">🕊️</div>
+    <h1>Proficiat! Je hebt alle dieren gered! 🎉</h1>
+    <button onclick="location.reload()" class="btn">Opnieuw spelen</button>
+  </div>
 
   <script>
     // Achtergrond wisselen
@@ -165,8 +169,12 @@
     function startRain(hevig=false){
       const regen=document.getElementById("regen");
       regen.innerHTML="";
-      const druppels=hevig?150:80;
-      for(let i=0;i<druppels;i++){
+      const wrapper=document.getElementById("boardWrapper");
+      const area = wrapper.offsetWidth * wrapper.offsetHeight;
+      let baseDrops = Math.floor(area / 3500);
+      if(baseDrops < 40) baseDrops = 40;
+      if(hevig) baseDrops *= 2;
+      for(let i=0;i<baseDrops;i++){
         const d=document.createElement("div");
         d.className="druppel";
         d.style.left=Math.random()*100+"%";
@@ -188,9 +196,6 @@
       timerId=setInterval(()=>{
         if(!paused){
           timeLeft--; updateTimer();
-          const percent=((time - timeLeft)/time)*100;
-          fillWater(percent);
-
           if(timeLeft===Math.floor(time/2)) startRain(false);
           if(timeLeft<=0){
             clearInterval(timerId);
@@ -209,12 +214,9 @@
       totalPairs=pairs; matches=0; firstCard=null; lock=false;
       stopRain(); fillWater(0);
 
-      const ark=document.getElementById("ark");
-      ark.classList.remove("sail-away"); // Ark pats terug
-
       const deck=[...animals.slice(0,pairs),...animals.slice(0,pairs)].sort(()=>Math.random()-0.5);
       const cols=pairs<=4?4:pairs<=8?5:6;
-      gameBoard.style.gridTemplateColumns=`repeat(${cols},80px)`;
+      gameBoard.style.gridTemplateColumns=`repeat(${cols},90px)`;
 
       deck.forEach(animal=>{
         const card=document.createElement("div");
@@ -233,16 +235,15 @@
         firstCard=card;
       }else{
         if(firstCard.dataset.symbol===card.dataset.symbol){
-          firstCard.classList.add("in-ark");
-          card.classList.add("in-ark");
-          setTimeout(()=>{
-            firstCard.textContent=""; card.textContent="";
-          },800);
-
           firstCard=null; matches++;
           if(matches===totalPairs){
             clearInterval(timerId); stopRain(); fillWater(0);
-            handleWin();
+            if(currentLevel<levels.length-1){
+              currentLevel++; status("Goed gedaan! Op naar level "+(currentLevel+1));
+              setTimeout(startLevel,2000);
+            }else{
+              finaleWin();
+            }
           }
         }else{
           lock=true;
@@ -255,29 +256,21 @@
       }
     }
 
-    function handleWin(){
-      if(currentLevel<levels.length-1){
-        const ark=document.getElementById("ark");
-        ark.classList.add("sail-away"); // Ark vaart weg
-        status("Alle dieren zijn veilig in de Ark! 🚢");
-        document.getElementById("nextLevelBtn").style.display="inline-block";
-      }else{
-        const ark=document.getElementById("ark");
-        ark.classList.add("sail-away");
-        status("Fantastisch! Alle dieren zijn veilig en de Ark vaart weg 🎉");
-      }
-    }
-
-    function nextLevel(){
-      currentLevel++;
-      document.getElementById("nextLevelBtn").style.display="none";
-      startLevel();
+    function finaleWin(){
+      const ark=document.getElementById("ark");
+      fillWater(100);
+      ark.classList.add("sail-away");
+      status("De Ark vaart weg... 🌊🚢");
+      setTimeout(()=>{
+        document.getElementById("boardWrapper").style.display="none";
+        document.getElementById("endScreen").style.display="block";
+      },6000);
     }
 
     function status(msg){ document.getElementById("status").textContent=msg; }
     function updateTimer(){ document.getElementById("timer").textContent="⏳ Tijd: "+timeLeft+"s"; }
 
-    // Start & Reset & Pauze & Volgend level
+    // Start & Reset & Pauze
     document.getElementById("startBtn").addEventListener("click",()=>{
       document.getElementById("startBtn").style.display="none";
       document.getElementById("resetBtn").style.display="inline-block";
@@ -291,7 +284,6 @@
       document.getElementById("pauseBtn").textContent=paused?"Hervatten":"Pauze";
       status(paused?"Pauze – neem even rust":"Ga verder met spelen!");
     });
-    document.getElementById("nextLevelBtn").addEventListener("click",nextLevel);
   </script>
 </body>
 </html>
