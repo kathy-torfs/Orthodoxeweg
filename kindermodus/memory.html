@@ -7,34 +7,28 @@
   <link rel="icon" href="images/kruis.png" />
 
   <style>
-    :root{
-      --primair:#7bb235;
-    }
+    :root{ --primair:#7bb235; }
     body{
       margin:0; font-family:'Comic Sans MS', Arial, sans-serif;
-      color:#333; min-height:100vh; 
-      background:url("arkvannoah.png") center/cover no-repeat;
+      color:#333; min-height:100vh;
+      background:url("images/arkvannoah.png") center/cover no-repeat;
       display:flex; flex-direction:column; align-items:center;
     }
-    main{ max-width:1000px; margin:20px auto; text-align:center; }
+    main{ max-width:1000px; margin:20px auto; text-align:center }
 
     #gameBoard{
-      display:grid; grid-gap:12px; justify-content:center;
-      margin-top:20px;
+      display:grid; grid-gap:12px; justify-content:center; margin-top:20px;
     }
     .card{
-      width:80px; height:80px;
-      background:#7bb235; border-radius:8px;
+      width:80px; height:80px; background:#7bb235; border-radius:8px;
       cursor:pointer; display:flex; align-items:center; justify-content:center;
-      font-size:42px; font-weight:bold; color:#fff;
-      transition: transform 0.3s;
+      font-size:42px; font-weight:bold; color:#fff; transition: transform 0.3s;
     }
     .flipped{ background:#fff; color:#000; cursor:default; }
     #status{ margin-top:20px; font-weight:bold }
     .btn{
-      background:var(--primair); color:#fff; border:none;
-      border-radius:8px; padding:8px 14px; font-weight:bold; cursor:pointer;
-      margin:4px;
+      background:var(--primair); color:#fff; border:none; border-radius:8px;
+      padding:8px 14px; font-weight:bold; cursor:pointer; margin:4px;
     }
 
     /* Regen overlay */
@@ -51,12 +45,7 @@
       from{ transform:translateY(-20px); }
       to{ transform:translateY(110vh); }
     }
-
-    /* Hevige regen */
-    .hevig .druppel{
-      background:rgba(0,0,180,0.7);
-      height:16px;
-    }
+    .hevig .druppel{ background:rgba(0,0,180,0.7); height:16px; }
   </style>
 
   <script defer src="common/layout.js"></script>
@@ -69,6 +58,7 @@
     <div>
       <button id="startBtn" class="btn">Spel starten (20 punten)</button>
       <button id="resetBtn" class="btn" style="display:none;">Opnieuw spelen</button>
+      <button id="pauseBtn" class="btn" style="display:none;">Pauze</button>
     </div>
     <div id="timer"></div>
     <div id="gameBoard"></div>
@@ -78,29 +68,19 @@
   <div id="regen"></div>
 
   <script>
-    // Dieren
-    const animals=["🐶","🐱","🐭","🐰","🦊","🐻","🐼","🐨","🦁","🐯",
-                   "🐮","🐷","🐸","🐵","🐔"];
-
-    // Level-instellingen: aantal paren + tijd (in sec)
+    const animals=["🐶","🐱","🐭","🐰","🦊","🐻","🐼","🐨","🦁","🐯","🐮","🐷","🐸","🐵","🐔"];
     const levels=[
-      {pairs:2,time:40},
-      {pairs:4,time:60},
-      {pairs:6,time:90},
-      {pairs:8,time:120},
-      {pairs:10,time:150},
-      {pairs:15,time:180}
+      {pairs:2,time:40},{pairs:4,time:60},{pairs:6,time:90},
+      {pairs:8,time:120},{pairs:10,time:150},{pairs:15,time:180}
     ];
 
     let currentLevel=0, matches=0, totalPairs=0;
     let firstCard=null, lock=false;
-    let timerId=null, timeLeft=0;
+    let timerId=null, timeLeft=0, paused=false;
 
-    // Regen
     function startRain(hevig=false){
       const regen=document.getElementById("regen");
-      regen.innerHTML="";
-      regen.className=hevig?"hevig":"";
+      regen.innerHTML=""; regen.className=hevig?"hevig":"";
       const druppels=hevig?100:40;
       for(let i=0;i<druppels;i++){
         const d=document.createElement("div");
@@ -116,16 +96,16 @@
     function startLevel(){
       const {pairs,time}=levels[currentLevel];
       createBoard(pairs);
-      timeLeft=time;
-      updateTimer();
+      timeLeft=time; updateTimer();
       timerId=setInterval(()=>{
-        timeLeft--; updateTimer();
-        if(timeLeft===Math.floor(time/2)) startRain(false); // zacht
-        if(timeLeft<=0){
-          clearInterval(timerId);
-          startRain(true); // hevig
-          status("De ark liep vol water… probeer opnieuw! 🌧️");
-          lock=true;
+        if(!paused){
+          timeLeft--; updateTimer();
+          if(timeLeft===Math.floor(time/2)) startRain(false);
+          if(timeLeft<=0){
+            clearInterval(timerId); startRain(true);
+            status("De ark liep vol water… probeer opnieuw! 🌧️");
+            lock=true;
+          }
         }
       },1000);
     }
@@ -142,8 +122,7 @@
 
       deck.forEach(animal=>{
         const card=document.createElement("div");
-        card.className="card";
-        card.dataset.symbol=animal;
+        card.className="card"; card.dataset.symbol=animal;
         card.addEventListener("click",()=>flipCard(card));
         gameBoard.appendChild(card);
       });
@@ -151,7 +130,7 @@
     }
 
     function flipCard(card){
-      if(lock || card.classList.contains("flipped")) return;
+      if(lock || paused || card.classList.contains("flipped")) return;
       card.textContent=card.dataset.symbol;
       card.classList.add("flipped");
       if(!firstCard){
@@ -162,12 +141,9 @@
           if(matches===totalPairs){
             clearInterval(timerId); stopRain();
             if(currentLevel<levels.length-1){
-              currentLevel++;
-              status("Goed gedaan! Op naar level "+(currentLevel+1));
+              currentLevel++; status("Goed gedaan! Op naar level "+(currentLevel+1));
               setTimeout(startLevel,2000);
-            }else{
-              status("Fantastisch! Alle dieren zijn veilig in de Ark 🎉");
-            }
+            }else{ status("Fantastisch! Alle dieren zijn veilig in de Ark 🎉"); }
           }
         }else{
           lock=true;
@@ -208,17 +184,22 @@
       });
     }
 
-    // Start & Reset
+    // Start & Reset & Pauze
     document.getElementById("startBtn").addEventListener("click",async()=>{
       const points=await getUserPoints();
       if(points<20){ alert("Niet genoeg punten om te spelen!"); return; }
       await deductPoints(20);
       document.getElementById("startBtn").style.display="none";
       document.getElementById("resetBtn").style.display="inline-block";
-      currentLevel=0;
-      startLevel();
+      document.getElementById("pauseBtn").style.display="inline-block";
+      currentLevel=0; startLevel();
     });
     document.getElementById("resetBtn").addEventListener("click",()=>location.reload());
+    document.getElementById("pauseBtn").addEventListener("click",()=>{
+      paused=!paused;
+      document.getElementById("pauseBtn").textContent=paused?"Hervatten":"Pauze";
+      status(paused?"Pauze – neem even rust":"Ga verder met spelen!");
+    });
   </script>
 </body>
 </html>
