@@ -2,148 +2,146 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Vier op een Rij – Orthodoxe Kinderpagina</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
+  <!-- Laad jullie layout.js (inclusief includeHTML) -->
+  <script src="https://kathy-torfs.github.io/Orthodoxeweg/common/layout.js" defer></script>
+
   <style>
-    :root {
+    :root{
       --primair:#7bb235; --donker:#67510C;
-      --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
     }
-    body { margin:0; font-family:Arial,sans-serif; background:#f5e9b8; color:#6f4e1a; }
+    body{margin:0; font-family:Arial,sans-serif; background:#f5e9b8; color:#6f4e1a}
 
-    /* ===== HEADER ===== */
-    header {
-      background: var(--primair);
-      color: white;
-      padding: 10px;
-      text-align: center;
-      font-size: 20px;
-      font-weight: bold;
-    }
-    header img {
-      height: 28px;
-      vertical-align: middle;
-      margin-right: 8px;
-    }
+    /* Ruimte onder header/nav die via include geladen worden */
+    main{max-width:1000px; margin:20px auto; padding:0 16px; text-align:center}
 
-    /* ===== MENUBALK ===== */
-    nav.menu {
-      background: var(--donker);
-      display: flex; flex-wrap: wrap;
-      justify-content: center;
-      gap: 12px;
-      padding: 10px;
+    /* Spelbord */
+    #board{
+      display:grid;
+      grid-template-columns:repeat(7, min(12vw,60px));
+      grid-template-rows:repeat(6, min(12vw,60px));
+      gap:6px;
+      margin:20px auto;
+      width:max-content;
+      touch-action:manipulation;
     }
-    nav.menu a {
-      color: white; text-decoration: none;
-      font-weight: bold; padding: 6px 10px;
-      background: var(--primair); border-radius: 6px;
+    .cell{
+      width:min(12vw,60px);
+      height:min(12vw,60px);
+      border-radius:50%;
+      background:#fff;
+      border:2px solid #6f4e1a;
+      cursor:pointer;
+      box-shadow:0 1px 2px rgba(0,0,0,.1) inset;
     }
+    .player{ background:#e53935; }   /* rood */
+    .computer{ background:#ffeb3b; } /* geel */
 
-    /* ===== SPEL ===== */
-    main { text-align:center; padding:20px; }
-    #board {
-      display: grid;
-      grid-template-columns: repeat(7, 60px);
-      grid-template-rows: repeat(6, 60px);
-      gap: 5px;
-      margin: 20px auto;
-      width: max-content;
+    #status{ margin-top:10px; font-weight:bold }
+    .actions{ margin:14px 0 6px }
+    .btn{
+      background:var(--primair); color:#fff; border:none; border-radius:8px;
+      padding:8px 14px; font-weight:bold; cursor:pointer;
     }
-    .cell {
-      width: 60px; height: 60px;
-      border-radius: 50%;
-      background-color: #fff;
-      border: 2px solid #6f4e1a;
-      cursor: pointer;
-    }
-    .player { background-color: red; }
-    .computer { background-color: yellow; }
-    #status { margin-top: 15px; font-size: 18px; font-weight: bold; }
+    .btn:disabled{ opacity:.6; cursor:not-allowed }
   </style>
 </head>
 <body>
-  <!-- HEADER -->
-  <header>
-    <img src="https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos.png" alt="Photeinos">
-    Welkom bij de spelletjes!
-  </header>
+  <!-- JULLIE HEADER VIA INCLUDE (géén eigen header in deze pagina) -->
+  <div data-include-html="https://kathy-torfs.github.io/Orthodoxeweg/common/header.html"></div>
 
-  <!-- MENU -->
-  <nav class="menu">
-    <a href="gebeden.html">🙏 Ik bid</a>
-    <a href="spelletjes.html">🎮 Spelletjes</a>
-    <a href="catechese.html">📖 Catechese</a>
-    <a href="dagboek.html">📔 Dagboek</a>
-  </nav>
-
-  <!-- SPEL -->
   <main>
     <h1>Vier op een Rij</h1>
-    <div id="board"></div>
+
+    <div class="actions">
+      <button id="resetBtn" class="btn" type="button">Opnieuw spelen</button>
+    </div>
+
+    <div id="board" aria-label="Vier op een rij speelbord"></div>
     <div id="status">Jij (rood) bent aan de beurt</div>
   </main>
 
   <script>
+    // Wacht tot layout.js geladen is en voer includeHTML uit indien nodig
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof includeHTML === 'function') { includeHTML(); }
+    });
+
+    // ===== Spel-logica =====
     const rows = 6, cols = 7;
-    let board = Array.from({ length: rows }, () => Array(cols).fill(null));
-    let gameOver = false;
+    let board, gameOver, busy;
 
-    const boardDiv = document.getElementById("board");
-    const statusDiv = document.getElementById("status");
+    const boardDiv = document.getElementById('board');
+    const statusDiv = document.getElementById('status');
+    const resetBtn = document.getElementById('resetBtn');
 
-    function createBoard() {
-      boardDiv.innerHTML = "";
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          const cell = document.createElement("div");
-          cell.classList.add("cell");
+    function init(){
+      board = Array.from({length:rows}, () => Array(cols).fill(null));
+      gameOver = false;
+      busy = false;
+      drawBoard();
+      statusDiv.textContent = 'Jij (rood) bent aan de beurt';
+    }
+
+    function drawBoard(){
+      boardDiv.innerHTML = '';
+      for(let r=0;r<rows;r++){
+        for(let c=0;c<cols;c++){
+          const cell = document.createElement('div');
+          cell.className = 'cell';
           cell.dataset.row = r;
           cell.dataset.col = c;
-          cell.addEventListener("click", playerMove);
+          cell.addEventListener('click', onCellClick, {passive:true});
           boardDiv.appendChild(cell);
         }
       }
+      renderChips();
     }
 
-    function playerMove(e) {
-      if (gameOver) return;
-      const col = e.target.dataset.col;
-      if (makeMove(col, "player")) {
-        if (checkWin("player")) return endGame("Jij wint! 🎉");
-        setTimeout(() => computerMove(), 400);
-      }
+    function renderChips(){
+      boardDiv.querySelectorAll('.cell').forEach(cell=>{
+        cell.classList.remove('player','computer');
+        const r = +cell.dataset.row, c = +cell.dataset.col;
+        if (board[r][c]==='player') cell.classList.add('player');
+        if (board[r][c]==='computer') cell.classList.add('computer');
+      });
     }
 
-    function makeMove(col, who) {
-      for (let r = rows - 1; r >= 0; r--) {
-        if (!board[r][col]) {
-          board[r][col] = who;
-          updateBoard();
-          return true;
-        }
+    function onCellClick(e){
+      if (gameOver || busy) return;
+      const col = +e.currentTarget.dataset.col;
+      if (!drop(col,'player')) return;            // kolom vol
+      renderChips();
+      if (checkWin('player')) return endGame('Jij wint! 🎉');
+      if (isDraw()) return endGame('Gelijkspel 🤝');
+      busy = true;
+      setTimeout(()=>{ computerMove(); busy=false; }, 350);
+    }
+
+    function drop(col, who){
+      for(let r=rows-1;r>=0;r--){
+        if(!board[r][col]){ board[r][col]=who; return true; }
       }
       return false;
     }
 
-    function updateBoard() {
-      boardDiv.querySelectorAll(".cell").forEach(cell => {
-        const r = cell.dataset.row, c = cell.dataset.col;
-        cell.classList.remove("player", "computer");
-        if (board[r][c] === "player") cell.classList.add("player");
-        if (board[r][c] === "computer") cell.classList.add("computer");
-      });
+    function getNextOpenRow(col){
+      for(let r=rows-1;r>=0;r--) if(!board[r][col]) return r;
+      return -1;
     }
 
-    function checkWin(who) {
-      const directions = [[0,1],[1,0],[1,1],[1,-1]];
-      for (let r=0;r<rows;r++) {
-        for (let c=0;c<cols;c++) {
-          if (board[r][c]!==who) continue;
-          for (let [dr,dc] of directions) {
+    function isDraw(){ return board.every(row => row.every(cell => cell)); }
+
+    function checkWin(who, grid=board){
+      const dirs = [[0,1],[1,0],[1,1],[1,-1]];
+      for(let r=0;r<rows;r++){
+        for(let c=0;c<cols;c++){
+          if(grid[r][c]!==who) continue;
+          for(const [dr,dc] of dirs){
             let count=1, rr=r+dr, cc=c+dc;
-            while(rr>=0&&rr<rows&&cc>=0&&cc<cols&&board[rr][cc]===who){
+            while(rr>=0&&rr<rows&&cc>=0&&cc<cols&&grid[rr][cc]===who){
               count++; rr+=dr; cc+=dc;
             }
             if(count>=4) return true;
@@ -153,67 +151,68 @@
       return false;
     }
 
-    function endGame(msg) {
-      statusDiv.textContent = msg;
-      gameOver = true;
-      boardDiv.querySelectorAll(".cell").forEach(cell => cell.style.pointerEvents = "none");
-    }
-
-    /* ======= Kindvriendelijke AI ======= */
-    function computerMove() {
-      if (gameOver) return;
-
-      // 1. Kan de computer winnen?
-      for (let c=0;c<cols;c++){
-        let r = getNextOpenRow(c);
-        if (r!==-1){
-          let temp = board.map(row=>[...row]);
-          temp[r][c]="computer";
-          if (checkWinner(temp)==="computer"){ makeMove(c,"computer"); if(checkWin("computer")) return endGame("De computer wint! 🤖"); return; }
-        }
-      }
-
-      // 2. Moet de computer blokkeren?
-      for (let c=0;c<cols;c++){
-        let r = getNextOpenRow(c);
-        if (r!==-1){
-          let temp = board.map(row=>[...row]);
-          temp[r][c]="player";
-          if (checkWinner(temp)==="player"){ makeMove(c,"computer"); if(checkWin("computer")) return endGame("De computer wint! 🤖"); return; }
-        }
-      }
-
-      // 3. Anders: random zet
-      let available = [];
-      for (let c=0;c<cols;c++) if(getNextOpenRow(c)!==-1) available.push(c);
-      const col = available[Math.floor(Math.random()*available.length)];
-      makeMove(col,"computer");
-      if(checkWin("computer")) return endGame("De computer wint! 🤖");
-      statusDiv.textContent = "Jij (rood) bent aan de beurt";
-    }
-
-    function getNextOpenRow(c){
-      for(let r=rows-1;r>=0;r--){ if(!board[r][c]) return r; }
-      return -1;
-    }
-
-    function checkWinner(tempBoard){
-      const directions=[[0,1],[1,0],[1,1],[1,-1]];
-      for(let r=0;r<rows;r++){
-        for(let c=0;c<cols;c++){
-          if(!tempBoard[r][c]) continue;
-          const who=tempBoard[r][c];
-          for(let[dr,dc] of directions){
-            let count=1,rr=r+dr,cc=c+dc;
-            while(rr>=0&&rr<rows&&cc>=0&&cc<cols&&tempBoard[rr][cc]===who){count++;rr+=dr;cc+=dc;}
-            if(count>=4)return who;
-          }
-        }
-      }
+    function checkWinner(grid){
+      if (checkWin('player', grid)) return 'player';
+      if (checkWin('computer', grid)) return 'computer';
       return null;
     }
 
-    createBoard();
+    function endGame(msg){
+      statusDiv.textContent = msg;
+      gameOver = true;
+    }
+
+    // ===== Kindvriendelijke AI =====
+    // 1) Pakt winst als die klaar ligt
+    // 2) Blokkeert speler als die op 1 zet van winst staat
+    // 3) Anders: willekeurige geldige kolom
+    function computerMove(){
+      if (gameOver) return;
+
+      // 1. Win-chance pakken
+      for (let c=0;c<cols;c++){
+        const r = getNextOpenRow(c);
+        if (r!==-1){
+          const tmp = board.map(row=>row.slice());
+          tmp[r][c]='computer';
+          if (checkWinner(tmp)==='computer'){
+            drop(c,'computer'); renderChips();
+            if (checkWin('computer')) return endGame('De computer wint! 🤖');
+            if (isDraw()) return endGame('Gelijkspel 🤝');
+            statusDiv.textContent = 'Jij (rood) bent aan de beurt';
+            return;
+          }
+        }
+      }
+
+      // 2. Blokkeren als speler bijna wint
+      for (let c=0;c<cols;c++){
+        const r = getNextOpenRow(c);
+        if (r!==-1){
+          const tmp = board.map(row=>row.slice());
+          tmp[r][c]='player';
+          if (checkWinner(tmp)==='player'){
+            drop(c,'computer'); renderChips();
+            if (checkWin('computer')) return endGame('De computer wint! 🤖');
+            if (isDraw()) return endGame('Gelijkspel 🤝');
+            statusDiv.textContent = 'Jij (rood) bent aan de beurt';
+            return;
+          }
+        }
+      }
+
+      // 3. Willekeurig zetten
+      const options = [];
+      for (let c=0;c<cols;c++) if (getNextOpenRow(c)!==-1) options.push(c);
+      const choice = options[Math.floor(Math.random()*options.length)];
+      drop(choice,'computer'); renderChips();
+      if (checkWin('computer')) return endGame('De computer wint! 🤖');
+      if (isDraw()) return endGame('Gelijkspel 🤝');
+      statusDiv.textContent = 'Jij (rood) bent aan de beurt';
+    }
+
+    resetBtn.addEventListener('click', init);
+    init();
   </script>
 </body>
 </html>
