@@ -23,15 +23,17 @@
     #boardWrapper{
       position:relative;
       display:none;
-      margin:20px auto 40px auto; /* ruimte onderaan */
-      padding:20px;
-      background:url("images/arkvannoah.png") center/contain no-repeat;
+      margin:20px auto 60px auto;
       width:600px; height:600px;
     }
-
+    #ark{
+      width:100%; height:100%; object-fit:contain;
+      display:block;
+    }
     #gameBoard{
       display:grid; grid-gap:12px; justify-content:center;
       position:absolute; top:120px; left:0; right:0; margin:auto;
+      z-index:3;
     }
     .card{
       width:80px; height:80px; background:#7bb235; border-radius:8px;
@@ -48,10 +50,10 @@
       padding:8px 14px; font-weight:bold; cursor:pointer; margin:4px;
     }
 
-    /* Regen overlay */
+    /* Regen */
     #regen{
       position:absolute; top:0; left:0; width:100%; height:100%;
-      pointer-events:none; overflow:hidden; z-index:5;
+      pointer-events:none; overflow:hidden; z-index:2;
     }
     .druppel{
       position:absolute; width:2px; height:12px;
@@ -64,11 +66,11 @@
     }
     .hevig .druppel{ background:rgba(0,0,180,0.7); height:16px; }
 
-    /* Water overlay */
+    /* Water */
     #water{
       position:absolute; left:0; bottom:0; width:100%; height:0;
       background:rgba(0,150,255,0.6);
-      z-index:4; transition:height 1s linear;
+      z-index:1; transition:height 3s linear;
     }
   </style>
 
@@ -87,6 +89,7 @@
     <div id="timer"></div>
 
     <div id="boardWrapper">
+      <img id="ark" src="images/arkvannoah.png" alt="Ark van Noach">
       <div id="gameBoard"></div>
       <div id="regen"></div>
       <div id="water"></div>
@@ -96,7 +99,7 @@
   </main>
 
   <script>
-    // Achtergrond wisselen
+    // Achtergrond
     (function(){
       const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)',
                'var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)',
@@ -136,10 +139,7 @@
       }
     }
     function stopRain(){ document.getElementById("regen").innerHTML=""; }
-
-    function fillWater(percent){
-      document.getElementById("water").style.height=percent+"%";
-    }
+    function fillWater(percent){ document.getElementById("water").style.height=percent+"%"; }
 
     function startLevel(){
       const {pairs,time}=levels[currentLevel];
@@ -148,11 +148,11 @@
       timerId=setInterval(()=>{
         if(!paused){
           timeLeft--; updateTimer();
-          if(timeLeft===Math.floor(time/2)) startRain(false);
-          const progress=((time-timeLeft)/time)*100;
-          fillWater(progress);
+          if(timeLeft===Math.floor(time/2)) startRain(false); // zachtjes regen
           if(timeLeft<=0){
-            clearInterval(timerId); startRain(true); fillWater(100);
+            clearInterval(timerId);
+            startRain(true);
+            fillWater(100);
             status("De ark liep vol water… probeer opnieuw! 🌊");
             lock=true;
           }
@@ -214,7 +214,7 @@
       document.getElementById("startBtn").style.display="none";
       document.getElementById("resetBtn").style.display="inline-block";
       document.getElementById("pauseBtn").style.display="inline-block";
-      document.getElementById("boardWrapper").style.display="block"; // FIX
+      document.getElementById("boardWrapper").style.display="block";
       currentLevel=0; startLevel();
     });
     document.getElementById("resetBtn").addEventListener("click",()=>location.reload());
