@@ -56,21 +56,35 @@
       pointer-events:none; overflow:hidden; z-index:2;
     }
     .druppel{
-      position:absolute; width:2px; height:12px;
-      background:rgba(0,0,255,0.4); border-radius:1px;
+      position:absolute;
+      width:2px;
+      background:rgba(0,0,255,0.4);
+      border-radius:1px;
       animation: vallen linear infinite;
+      transform: rotate(15deg);
     }
     @keyframes vallen{
-      from{ transform:translateY(-20px); }
-      to{ transform:translateY(110%); }
+      from{ transform: translateY(-20px) translateX(0) rotate(15deg); opacity:0.9; }
+      to{ transform: translateY(110%) translateX(20px) rotate(15deg); opacity:0.2; }
     }
-    .hevig .druppel{ background:rgba(0,0,180,0.7); height:16px; }
 
     /* Water */
     #water{
       position:absolute; left:0; bottom:0; width:100%; height:0;
       background:rgba(0,150,255,0.6);
       z-index:1; transition:height 3s linear;
+      overflow:hidden;
+    }
+    #water::before{
+      content:"";
+      position:absolute; left:0; top:-20px; width:200%; height:40px;
+      background:rgba(0,120,220,0.7);
+      border-radius:50%;
+      animation: golf 4s linear infinite;
+    }
+    @keyframes golf{
+      from{ transform:translateX(0); }
+      to{ transform:translateX(-50%); }
     }
   </style>
 
@@ -99,7 +113,7 @@
   </main>
 
   <script>
-    // Achtergrond
+    // Achtergrond wisselen
     (function(){
       const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)',
                'var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)',
@@ -125,16 +139,19 @@
     let firstCard=null, lock=false;
     let timerId=null, timeLeft=0, paused=false;
 
+    // Regen
     function startRain(hevig=false){
       const regen=document.getElementById("regen");
-      regen.innerHTML=""; regen.className=hevig?"hevig":"";
-      const druppels=hevig?100:40;
+      regen.innerHTML="";
+      const druppels=hevig?120:60;
       for(let i=0;i<druppels;i++){
         const d=document.createElement("div");
         d.className="druppel";
         d.style.left=Math.random()*100+"%";
-        d.style.animationDuration=(Math.random()*1+0.5)+"s";
+        d.style.height=(8+Math.random()*14)+"px";
+        d.style.animationDuration=(Math.random()*1.5+0.5)+"s";
         d.style.animationDelay=(Math.random()*2)+"s";
+        d.style.background=`rgba(0,0,255,${0.2+Math.random()*0.5})`;
         regen.appendChild(d);
       }
     }
@@ -148,7 +165,7 @@
       timerId=setInterval(()=>{
         if(!paused){
           timeLeft--; updateTimer();
-          if(timeLeft===Math.floor(time/2)) startRain(false); // zachtjes regen
+          if(timeLeft===Math.floor(time/2)) startRain(false); // regen in de helft
           if(timeLeft<=0){
             clearInterval(timerId);
             startRain(true);
