@@ -1,39 +1,127 @@
 <!DOCTYPE html>
-<html>
+<html lang="nl">
 <head>
-    <title>Vier op een rij</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Vier op een Rij</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5e9b8;
+      text-align: center;
+    }
+    h1 {
+      color: #6f4e1a;
+    }
+    #board {
+      display: grid;
+      grid-template-columns: repeat(7, 60px);
+      grid-template-rows: repeat(6, 60px);
+      gap: 5px;
+      margin: 20px auto;
+      width: max-content;
+    }
+    .cell {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background-color: #fff;
+      border: 2px solid #6f4e1a;
+      cursor: pointer;
+    }
+    .player1 {
+      background-color: red;
+    }
+    .player2 {
+      background-color: yellow;
+    }
+    #status {
+      margin-top: 15px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
-    <div id="gameBoard">
-        </div>
-    <script src="script.js"></script>
+  <h1>Vier op een Rij</h1>
+  <div id="board"></div>
+  <div id="status">Speler 1 (rood) is aan de beurt</div>
+
+  <script>
+    const rows = 6;
+    const cols = 7;
+    let board = Array.from({ length: rows }, () => Array(cols).fill(null));
+    let currentPlayer = 1;
+    const boardDiv = document.getElementById("board");
+    const statusDiv = document.getElementById("status");
+
+    function createBoard() {
+      boardDiv.innerHTML = "";
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const cell = document.createElement("div");
+          cell.classList.add("cell");
+          cell.dataset.row = r;
+          cell.dataset.col = c;
+          cell.addEventListener("click", handleClick);
+          boardDiv.appendChild(cell);
+        }
+      }
+    }
+
+    function handleClick(e) {
+      const col = e.target.dataset.col;
+      for (let r = rows - 1; r >= 0; r--) {
+        if (!board[r][col]) {
+          board[r][col] = currentPlayer;
+          updateBoard();
+          if (checkWin(r, col)) {
+            statusDiv.textContent = `Speler ${currentPlayer} wint!`;
+            boardDiv.querySelectorAll(".cell").forEach(cell => cell.style.pointerEvents = "none");
+          } else {
+            currentPlayer = currentPlayer === 1 ? 2 : 1;
+            statusDiv.textContent = `Speler ${currentPlayer} is aan de beurt`;
+          }
+          break;
+        }
+      }
+    }
+
+    function updateBoard() {
+      boardDiv.querySelectorAll(".cell").forEach(cell => {
+        const r = cell.dataset.row;
+        const c = cell.dataset.col;
+        cell.classList.remove("player1", "player2");
+        if (board[r][c] === 1) cell.classList.add("player1");
+        if (board[r][c] === 2) cell.classList.add("player2");
+      });
+    }
+
+    function checkWin(row, col) {
+      const directions = [
+        [0, 1], [1, 0], [1, 1], [1, -1]
+      ];
+      for (let [dr, dc] of directions) {
+        let count = 1;
+        count += countDirection(row, col, dr, dc);
+        count += countDirection(row, col, -dr, -dc);
+        if (count >= 4) return true;
+      }
+      return false;
+    }
+
+    function countDirection(row, col, dr, dc) {
+      let r = row + dr;
+      let c = col + dc;
+      let count = 0;
+      while (r >= 0 && r < rows && c >= 0 && c < cols && board[r][c] === currentPlayer) {
+        count++;
+        r += dr;
+        c += dc;
+      }
+      return count;
+    }
+
+    createBoard();
+  </script>
 </body>
 </html>
-#gameBoard {
-    display: grid;
-    grid-template-columns: repeat(7, 50px); /* 7 kolommen van 50px breed */
-    grid-template-rows: repeat(6, 50px);    /* 6 rijen van 50px hoog */
-    border: 2px solid black;
-    width: 350px; /* Breedte van het bord */
-    height: 300px; /* Hoogte van het bord */
-    margin: 20px;
-}
-
-.cell {
-    width: 50px;
-    height: 50px;
-    border: 1px solid lightgray;
-    box-sizing: border-box; /* Zorgt ervoor dat padding en border binnen de breedte/hoogte vallen */
-    text-align: center;
-    font-size: 24px;
-    cursor: pointer; /* Verander de cursor bij hover */
-}
-
-.red {
-    background-color: red;
-}
-
-.yellow {
-    background-color: yellow;
-}
