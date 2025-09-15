@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Vier op een Rij – Orthodoxe Kinderpagina</title>
-  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
+  <title>Springspel – Orthodoxe Kinderpagina</title>
+  <link rel="icon" href="images/kruis.png" />
 
   <style>
     :root{
@@ -17,46 +17,50 @@
     body{
       margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
       min-height:100vh; background:var(--pastel1); transition:background .6s;
+      overflow:hidden; /* geen scrollen bij canvas */
     }
-    main{ max-width:1000px; margin:20px auto; padding:0 16px; text-align:center }
-
-    #board{
-      display:grid;
-      grid-template-columns:repeat(7, min(12vw,60px));
-      grid-template-rows:repeat(6, min(12vw,60px));
-      gap:6px;
-      margin:20px auto;
-      width:max-content;
-      touch-action:manipulation;
+    #gameCanvas{
+      display:block;
+      width:100vw;
+      height:100vh;
     }
-    .cell{
-      width:min(12vw,60px);
-      height:min(12vw,60px);
-      border-radius:50%;
-      background:#fff;
-      border:2px solid #6f4e1a;
-      cursor:pointer;
-      box-shadow:0 1px 2px rgba(0,0,0,.1) inset;
-    }
-    .player{ background:#e53935; }
-    .computer{ background:#ffeb3b; }
-
-    #status{ margin-top:10px; font-weight:bold }
-    .actions{ margin:14px 0 6px }
-    .btn{
-      background:var(--primair); color:#fff; border:none; border-radius:8px;
-      padding:8px 14px; font-weight:bold; cursor:pointer;
-    }
-    .btn:disabled{ opacity:.6; cursor:not-allowed }
   </style>
 
   <!-- Header + menubalk + beveiliging -->
-  <script defer src="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/common/layout.js"></script>
+  <script defer src="common/layout.js"></script>
+  <!-- Het spel -->
+  <script defer src="springspel.js"></script>
 </head>
 <body>
-  <!-- Header en menubalk -->
-  <div id="kinder-header" data-header-src="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/common/header.html"></div>
+  <!-- Hier komt automatisch de header en menubalk uit header.html -->
+  <div id="kinder-header" data-header-src="common/header.html"></div>
 
+  <!-- Canvas voor het spel -->
+  <canvas id="gameCanvas"></canvas>
+
+  <script>
+    // Zachte pastelachtergrond
+    (function(){
+      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)',
+               'var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)',
+               'var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)',
+               'var(--pastel15)','var(--pastel16)'];
+      document.body.style.background = p[Math.floor(Math.random()*p.length)];
+    })();
+
+    // Header + menubalk activeren
+    (function boot(){
+      if (!(window.KinderLayout)) return setTimeout(boot, 120);
+      const el = document.getElementById('kinder-header');
+      window.KinderLayout.mountHeader({
+        rootId: 'kinder-header',
+        headerSrc: el.dataset.headerSrc,
+        active: 'spelletjes'
+      });
+    })();
+  </script>
+</body>
+</html>
   <main>
     <h1>Vier op een Rij</h1>
     <div class="actions">
