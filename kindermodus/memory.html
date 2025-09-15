@@ -7,85 +7,93 @@
   <link rel="icon" href="../images/kruis.png" />
 
   <style>
-    :root { --primair:#7bb235; }
+    :root{
+      --primair:#7bb235; --donker:#67510C;
+      --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
+      --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
+      --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
+      --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
+    }
+    body{
+      margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
+      min-height:100vh; background:var(--pastel1); transition:background .6s;
+    }
+    main{ max-width:1000px; margin:20px auto; padding:0 16px; text-align:center }
 
-    body {
-      margin:0;
-      font-family:'Comic Sans MS', Arial, sans-serif;
-      color:#333;
-      min-height:100vh;
-      background:url("../images/arkvannoah.png") center 200px/contain no-repeat;
-      display:flex; flex-direction:column; align-items:center;
+    #gameWrapper{
+      position:relative;
+      margin:20px auto;
+      width:90%; max-width:900px;
+      min-height:600px;
+      background:url("../images/arkvannoah.png") center top/contain no-repeat;
+      background-color:#e0f7fa;
+      border-radius:12px;
+      box-shadow:0 4px 10px rgba(0,0,0,0.25);
+      overflow:hidden;
+      padding-top:200px; /* ruimte voor de boot */
+      display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
     }
 
-    main { 
-      max-width:1000px; 
-      margin:200px auto 20px; 
-      text-align:center; 
-      position:relative; 
+    #gameBoard{
+      display:grid; grid-gap:12px; justify-content:center; margin-top:20px;
       z-index:10;
     }
 
-    #gameBoard {
-      display:grid; 
-      grid-gap:12px; 
-      justify-content:center; 
-      margin-top:20px;
+    .card{
+      width:80px; height:80px; background:#7bb235; border-radius:8px;
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      font-size:42px; font-weight:bold; color:#fff; transition: transform 0.3s;
     }
+    .flipped{ background:#fff; color:#000; cursor:default; }
 
-    .card {
-      width:80px; height:80px; 
-      background:#7bb235; 
-      border-radius:8px;
-      cursor:pointer; 
-      display:flex; 
-      align-items:center; 
-      justify-content:center;
-      font-size:42px; 
-      font-weight:bold; 
-      color:#fff; 
-      transition: transform 0.3s;
-    }
-    .flipped { background:#fff; color:#000; cursor:default; }
-
-    #status { margin-top:20px; font-weight:bold; }
-    .btn {
+    #status{ margin:12px 0; font-weight:bold; z-index:20; position:relative; }
+    .btn{
       background:var(--primair); color:#fff; border:none; border-radius:8px;
       padding:8px 14px; font-weight:bold; cursor:pointer; margin:4px;
     }
 
     /* Water */
-    #water {
-      position:fixed;
-      top:160px; left:0;
+    #water{
+      position:absolute;
+      bottom:0; left:0;
       width:100%; height:0;
       background:rgba(0,150,255,0.6);
       z-index:5;
       transition: height 8s linear;
     }
-    #water.stijgt { height:calc(100% - 160px); }
+    #water.stijgt{ height:100%; }
+
+    /* Regen */
+    #regen{
+      position:absolute;
+      top:0; left:0; width:100%; height:100%;
+      pointer-events:none; overflow:hidden; z-index:8;
+    }
+    .druppel{
+      position:absolute; width:2px; height:12px;
+      background:rgba(0,0,255,0.4); border-radius:1px;
+      animation: vallen linear infinite;
+    }
+    @keyframes vallen{
+      from{ transform:translateY(-20px); }
+      to{ transform:translateY(110%); }
+    }
+    #regen.hevig .druppel{ background:rgba(0,0,180,0.7); height:16px; }
 
     /* Game over bericht */
-    #gameOverMsg {
-      position:fixed;
-      top:180px; 
-      left:50%;
-      transform:translateX(-50%);
+    #gameOverMsg{
+      position:absolute;
+      top:40%; left:50%; transform:translate(-50%,-50%);
       background:rgba(255,255,255,0.9);
-      padding:16px 24px;
-      border-radius:12px;
-      font-size:1.4em;
-      font-weight:bold;
-      z-index:200;
-      display:none;
+      padding:16px 24px; border-radius:12px;
+      font-size:1.4em; font-weight:bold;
+      z-index:200; display:none;
     }
   </style>
 
-  <!-- Header + menubalk -->
   <script defer src="common/layout.js"></script>
 </head>
 <body>
-  <!-- Header komt hier dynamisch via layout.js -->
   <div id="kinder-header" data-header-src="common/header.html"></div>
 
   <main>
@@ -96,12 +104,15 @@
       <button id="pauseBtn" class="btn" style="display:none;">Pauze</button>
     </div>
     <div id="timer"></div>
-    <div id="gameBoard"></div>
-    <div id="status"></div>
-  </main>
 
-  <div id="water"></div>
-  <div id="gameOverMsg"></div>
+    <div id="gameWrapper">
+      <div id="gameBoard"></div>
+      <div id="status"></div>
+      <div id="water"></div>
+      <div id="regen"></div>
+      <div id="gameOverMsg"></div>
+    </div>
+  </main>
 
   <script>
     const animals=["🐶","🐱","🐭","🐰","🦊","🐻","🐼","🐨","🦁","🐯","🐮","🐷","🐸","🐵","🐔"];
@@ -114,8 +125,24 @@
     let firstCard=null, lock=false;
     let timerId=null, timeLeft=0, paused=false;
 
+    function startRain(hevig=false){
+      const regen=document.getElementById("regen");
+      regen.innerHTML=""; regen.className=hevig?"hevig":"";
+      const druppels=hevig?100:40;
+      for(let i=0;i<druppels;i++){
+        const d=document.createElement("div");
+        d.className="druppel";
+        d.style.left=Math.random()*100+"%";
+        d.style.animationDuration=(Math.random()*1+0.5)+"s";
+        d.style.animationDelay=(Math.random()*2)+"s";
+        regen.appendChild(d);
+      }
+    }
+    function stopRain(){ document.getElementById("regen").innerHTML=""; }
+
     function gameOver(){
       document.getElementById("water").classList.add("stijgt");
+      startRain(true);
       const msg=document.getElementById("gameOverMsg");
       msg.style.display="block";
       msg.textContent="De ark liep vol water… probeer opnieuw! 🌊";
@@ -128,10 +155,9 @@
       timerId=setInterval(()=>{
         if(!paused){
           timeLeft--; updateTimer();
+          if(timeLeft===Math.floor(time/2)) startRain(false);
           if(timeLeft<=0){
-            clearInterval(timerId);
-            gameOver();
-            lock=true;
+            clearInterval(timerId); gameOver(); lock=true;
           }
         }
       },1000);
@@ -142,9 +168,10 @@
       gameBoard.innerHTML="";
       totalPairs=pairs; matches=0; firstCard=null; lock=false;
 
-      // reset water + bericht
+      // reset water + regen + bericht
       document.getElementById("water").classList.remove("stijgt");
       document.getElementById("water").style.height="0";
+      stopRain();
       document.getElementById("gameOverMsg").style.display="none";
 
       const deck=[...animals.slice(0,pairs),...animals.slice(0,pairs)].sort(()=>Math.random()-0.5);
@@ -170,7 +197,7 @@
         if(firstCard.dataset.symbol===card.dataset.symbol){
           firstCard=null; matches++;
           if(matches===totalPairs){
-            clearInterval(timerId);
+            clearInterval(timerId); stopRain();
             if(currentLevel<levels.length-1){
               currentLevel++; status("Goed gedaan! Op naar level "+(currentLevel+1));
               setTimeout(startLevel,2000);
