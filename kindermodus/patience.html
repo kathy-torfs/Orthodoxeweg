@@ -8,11 +8,14 @@
   <style>
     :root{
       --primair:#7bb235; --donker:#67510C;
-      --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
+      --angel:#ffe8ec;   /* zacht roze */
+      --cross:#e7f8ff;   /* licht blauw */
+      --bible:#ecffe9;   /* licht groen */
+      --hands:#fff4ea;   /* licht oranje */
     }
     body{
       margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
-      min-height:100vh; background:var(--pastel1);
+      min-height:100vh; background:#fff6e5;
     }
     main{ max-width:1200px; margin:20px auto; padding:0 16px; text-align:center }
     h1{ color:var(--primair); }
@@ -25,15 +28,16 @@
       flex-wrap:wrap;
     }
     .pile{
-      width:90px; height:120px; border:2px dashed #aaa;
+      width:90px; min-height:120px; border:2px dashed #aaa;
       border-radius:8px; position:relative;
     }
     .card{
       width:90px; height:120px; border-radius:8px;
       position:absolute; top:0; left:0;
       display:flex; justify-content:center; align-items:center;
-      font-size:32px; font-weight:bold; background:#fff;
+      font-size:28px; font-weight:bold; 
       border:2px solid #444; cursor:grab; user-select:none;
+      transition:transform 0.2s;
     }
     .back{
       background:#1a237e; color:#ffd600;
@@ -41,6 +45,12 @@
     }
     .hidden{display:none;}
     .dragging{opacity:0.6;}
+
+    /* Kleuren per soort */
+    .angel { background:var(--angel); }
+    .cross { background:var(--cross); }
+    .bible { background:var(--bible); }
+    .hands { background:var(--hands); }
 
     #status{margin-top:20px; font-weight:bold;}
     .btn{
@@ -54,7 +64,7 @@
   <div id="kinder-header" data-header-src="common/header.html"></div>
 
   <main>
-    <h1>Patience 🃏🙏</h1>
+    <h1>Patience 😇✝️📖🙏</h1>
     <button id="newGameBtn" class="btn">Nieuw spel</button>
     <div id="game">
       <div id="topRow">
@@ -87,23 +97,22 @@
       bible:"📖",
       hands:"🙏"
     };
-    let deck=[], stock=[], waste=[], foundations={}, tableau=[];
-    let dragData=null;
+    const colors = { angel:"red", hands:"red", cross:"black", bible:"black" }; // twee kleuren
+    let stock=[], waste=[], foundations={}, tableau=[];
 
     function createDeck(){
       let d=[];
       Object.keys(suits).forEach(s=>{
         for(let v=1; v<=13; v++){
-          d.push({suit:s,value:v,icon:suits[s]});
+          d.push({suit:s,value:v,icon:suits[s],faceUp:false});
         }
       });
       return d.sort(()=>Math.random()-0.5);
     }
 
     function newGame(){
-      deck=createDeck(); stock=[...deck]; waste=[]; foundations={angel:[],cross:[],bible:[],hands:[]};
-      tableau=[[],[],[],[],[],[],[]];
-      // deal to tableau
+      stock=createDeck();
+      waste=[]; foundations={angel:[],cross:[],bible:[],hands:[]}; tableau=[[],[],[],[],[],[],[]];
       for(let col=0; col<7; col++){
         for(let row=0; row<=col; row++){
           let card=stock.pop();
@@ -128,7 +137,7 @@
       const wasteDiv=document.getElementById("waste");
       wasteDiv.innerHTML="";
       if(waste.length){
-        let card=renderCard(waste[waste.length-1],true);
+        let card=renderCard(waste[waste.length-1]);
         wasteDiv.appendChild(card);
       }
 
@@ -136,9 +145,11 @@
         f.innerHTML="";
         let s=f.dataset.suit;
         if(foundations[s].length){
-          let card=renderCard(foundations[s][foundations[s].length-1],true);
+          let card=renderCard(foundations[s][foundations[s].length-1]);
           f.appendChild(card);
         }
+        f.ondragover=e=>e.preventDefault();
+        f.ondrop=e=>dropFoundation(s);
       });
 
       const tabDiv=document.getElementById("tableau");
@@ -147,32 +158,96 @@
         let pile=document.createElement("div");
         pile.className="pile";
         col.forEach((card,row)=>{
-          let el=renderCard(card,card.faceUp);
+          let el=renderCard(card);
           el.style.top=(row*28)+"px";
           pile.appendChild(el);
         });
+        pile.ondragover=e=>e.preventDefault();
+        pile.ondrop=e=>dropTableau(i);
         tabDiv.appendChild(pile);
       });
     }
 
-    function renderCard(card,faceUp){
+    function renderCard(card){
       let el=document.createElement("div");
-      el.className="card";
-      if(!faceUp){ el.classList.add("back"); el.textContent="✝️"; return el; }
+      el.className="card "+card.suit;
+      if(!card.faceUp){ el.classList.add("back"); el.textContent="✝️"; return el; }
       el.textContent=card.icon+" "+card.value;
       el.draggable=true;
-      el.addEventListener("dragstart",ev=>{dragData=card; ev.target.classList.add("dragging");});
-      el.addEventListener("dragend",ev=>{ev.target.classList.remove("dragging");});
+      el.dataset.suit=card.suit;
+      el.dataset.value=card.value;
+      el.addEventListener("dragstart",()=>{el.classList.add("dragging"); el.id="dragging";});
+      el.addEventListener("dragend",()=>{el.classList.remove("dragging"); el.removeAttribute("id");});
       return el;
     }
 
     function drawCard(){
       if(stock.length){
-        waste.push(stock.pop());
+        let c=stock.pop(); c.faceUp=true; waste.push(c);
       }else{
-        stock=waste.reverse(); waste=[];
+        stock=waste.reverse(); waste=[]; stock.forEach(c=>c.faceUp=false);
       }
       render();
+    }
+
+    function dropFoundation(suit){
+      const drag=document.getElementById("dragging");
+      if(!drag) return;
+      const val=parseInt(drag.dataset.value), s=drag.dataset.suit;
+      if(s!==suit) return;
+      let pile=foundations[suit];
+      if((pile.length===0 && val===1) || (pile.length && pile[pile.length-1].value===val-1)){
+        moveCard(suit,"foundation");
+      }
+    }
+
+    function dropTableau(index){
+      const drag=document.getElementById("dragging");
+      if(!drag) return;
+      const val=parseInt(drag.dataset.value), s=drag.dataset.suit;
+      const color=colors[s];
+      let pile=tableau[index];
+      if(pile.length===0){
+        if(val===13){ moveCard(index,"tableau"); } // alleen Koning mag leeg
+      }else{
+        let top=pile[pile.length-1];
+        if(top.faceUp && colors[top.suit]!==color && top.value===val+1){
+          moveCard(index,"tableau");
+        }
+      }
+    }
+
+    function moveCard(target,zone){
+      const drag=document.getElementById("dragging");
+      if(!drag) return;
+      const val=parseInt(drag.dataset.value), s=drag.dataset.suit;
+      // zoek in tableau of waste
+      let found=false;
+      if(waste.length && waste[waste.length-1].value===val && waste[waste.length-1].suit===s){
+        let c=waste.pop();
+        if(zone==="foundation") foundations[target].push(c);
+        else tableau[target].push(c);
+        found=true;
+      }
+      tableau.forEach(col=>{
+        col.forEach((c,i)=>{
+          if(c.value===val && c.suit===s && c.faceUp && !found){
+            let moved=col.splice(i);
+            if(zone==="foundation") foundations[target].push(moved[0]);
+            else tableau[target]=tableau[target].concat(moved);
+            if(col.length && !col[col.length-1].faceUp) col[col.length-1].faceUp=true;
+            found=true;
+          }
+        });
+      });
+      render();
+      checkWin();
+    }
+
+    function checkWin(){
+      let total=0;
+      Object.values(foundations).forEach(f=>total+=f.length);
+      if(total===52){ status("🎉 Proficiat! Je hebt gewonnen! 🌈"); }
     }
 
     function status(msg){ document.getElementById("status").textContent=msg; }
