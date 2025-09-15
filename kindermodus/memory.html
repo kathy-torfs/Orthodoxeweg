@@ -21,50 +21,37 @@
     main{ max-width:1000px; margin:20px auto; padding:0 16px; text-align:center }
 
     #boardWrapper{
-      display:inline-block;
-      margin-top:12px;
-      background:#f5f5f5 url("images/arkvannoah.png") center top/contain no-repeat;
-      border-radius:12px;
-      box-shadow:0 4px 10px rgba(0,0,0,0.25);
-      width:90%; max-width:700px;
-      aspect-ratio:1/1;
       position:relative;
-      overflow:hidden;
+      display:none;
+      margin:20px auto 40px auto; /* ruimte onderaan */
+      padding:20px;
+      background:url("images/arkvannoah.png") center/contain no-repeat;
+      width:600px; height:600px;
     }
 
     #gameBoard{
-      position:absolute; top:35%; left:50%;
-      transform:translateX(-50%);
       display:grid; grid-gap:12px; justify-content:center;
+      position:absolute; top:120px; left:0; right:0; margin:auto;
     }
     .card{
-      width:70px; height:70px; background:#7bb235; border-radius:8px;
+      width:80px; height:80px; background:#7bb235; border-radius:8px;
       cursor:pointer; display:flex; align-items:center; justify-content:center;
-      font-size:40px; font-weight:bold; color:#fff; transition: transform 0.3s;
+      font-size:42px; font-weight:bold; color:#fff; transition:transform 0.3s;
     }
     .flipped{ background:#fff; color:#000; cursor:default; }
 
-    #status{ margin-top:12px; font-weight:bold }
-    #timer{ margin-top:8px; font-weight:bold }
+    #status{ margin-top:20px; font-weight:bold }
+    #timer{ margin-top:10px; font-weight:bold }
 
     .btn{
       background:var(--primair); color:#fff; border:none; border-radius:8px;
       padding:8px 14px; font-weight:bold; cursor:pointer; margin:4px;
     }
 
-    /* Water overlay */
-    #water{
-      position:absolute; bottom:0; left:0;
-      width:100%; height:0;
-      background:rgba(0,150,255,0.6);
-      z-index:5;
-      transition:height 1s linear;
-    }
-
     /* Regen overlay */
     #regen{
       position:absolute; top:0; left:0; width:100%; height:100%;
-      pointer-events:none; overflow:hidden; z-index:6;
+      pointer-events:none; overflow:hidden; z-index:5;
     }
     .druppel{
       position:absolute; width:2px; height:12px;
@@ -75,12 +62,13 @@
       from{ transform:translateY(-20px); }
       to{ transform:translateY(110%); }
     }
+    .hevig .druppel{ background:rgba(0,0,180,0.7); height:16px; }
 
-    #gameOverMsg{
-      position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-      background:rgba(255,255,255,0.9); padding:16px 20px;
-      border-radius:10px; font-size:18px; font-weight:bold;
-      z-index:10; display:none;
+    /* Water overlay */
+    #water{
+      position:absolute; left:0; bottom:0; width:100%; height:0;
+      background:rgba(0,150,255,0.6);
+      z-index:4; transition:height 1s linear;
     }
   </style>
 
@@ -91,33 +79,30 @@
 
   <main>
     <h1>Noach's Ark Memory 🛶🌈</h1>
-
     <div>
       <button id="startBtn" class="btn">Spel starten (20 punten)</button>
       <button id="resetBtn" class="btn" style="display:none;">Opnieuw spelen</button>
       <button id="pauseBtn" class="btn" style="display:none;">Pauze</button>
     </div>
-
     <div id="timer"></div>
 
-    <div id="boardWrapper" style="display:none;">
+    <div id="boardWrapper">
       <div id="gameBoard"></div>
-      <div id="water"></div>
       <div id="regen"></div>
-      <div id="gameOverMsg">De ark liep vol water… probeer opnieuw! 🌊</div>
+      <div id="water"></div>
     </div>
 
     <div id="status"></div>
   </main>
 
   <script>
-    // Achtergrond random pastel
+    // Achtergrond wisselen
     (function(){
-      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)',
-               'var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)',
-               'var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)',
-               'var(--pastel15)','var(--pastel16)'];
-      document.body.style.background = p[Math.floor(Math.random()*p.length)];
+      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)',
+               'var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)',
+               'var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)',
+               'var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
+      document.body.style.background=p[Math.floor(Math.random()*p.length)];
     })();
 
     // Header
@@ -127,18 +112,19 @@
       window.KinderLayout.mountHeader({ rootId:'kinder-header', headerSrc:el.dataset.headerSrc, active:'spelletjes' });
     })();
 
-    // Memory spel logica
     const animals=["🐶","🐱","🐭","🐰","🦊","🐻","🐼","🐨","🦁","🐯","🐮","🐷","🐸","🐵","🐔"];
     const levels=[
       {pairs:2,time:40},{pairs:4,time:60},{pairs:6,time:90},
       {pairs:8,time:120},{pairs:10,time:150},{pairs:15,time:180}
     ];
+
     let currentLevel=0, matches=0, totalPairs=0;
-    let firstCard=null, lock=false, timerId=null, timeLeft=0, paused=false;
+    let firstCard=null, lock=false;
+    let timerId=null, timeLeft=0, paused=false;
 
     function startRain(hevig=false){
       const regen=document.getElementById("regen");
-      regen.innerHTML=""; regen.className="";
+      regen.innerHTML=""; regen.className=hevig?"hevig":"";
       const druppels=hevig?100:40;
       for(let i=0;i<druppels;i++){
         const d=document.createElement("div");
@@ -151,19 +137,23 @@
     }
     function stopRain(){ document.getElementById("regen").innerHTML=""; }
 
+    function fillWater(percent){
+      document.getElementById("water").style.height=percent+"%";
+    }
+
     function startLevel(){
       const {pairs,time}=levels[currentLevel];
       createBoard(pairs);
-      timeLeft=time; updateTimer();
+      timeLeft=time; updateTimer(); fillWater(0);
       timerId=setInterval(()=>{
         if(!paused){
           timeLeft--; updateTimer();
           if(timeLeft===Math.floor(time/2)) startRain(false);
+          const progress=((time-timeLeft)/time)*100;
+          fillWater(progress);
           if(timeLeft<=0){
-            clearInterval(timerId);
-            document.getElementById("water").style.height="100%";
-            startRain(true);
-            document.getElementById("gameOverMsg").style.display="block";
+            clearInterval(timerId); startRain(true); fillWater(100);
+            status("De ark liep vol water… probeer opnieuw! 🌊");
             lock=true;
           }
         }
@@ -174,12 +164,11 @@
       const gameBoard=document.getElementById("gameBoard");
       gameBoard.innerHTML="";
       totalPairs=pairs; matches=0; firstCard=null; lock=false;
-      stopRain(); document.getElementById("water").style.height="0";
-      document.getElementById("gameOverMsg").style.display="none";
+      stopRain(); fillWater(0);
 
       const deck=[...animals.slice(0,pairs),...animals.slice(0,pairs)].sort(()=>Math.random()-0.5);
       const cols=pairs<=4?4:pairs<=8?5:6;
-      gameBoard.style.gridTemplateColumns=`repeat(${cols},70px)`;
+      gameBoard.style.gridTemplateColumns=`repeat(${cols},80px)`;
 
       deck.forEach(animal=>{
         const card=document.createElement("div");
@@ -200,7 +189,7 @@
         if(firstCard.dataset.symbol===card.dataset.symbol){
           firstCard=null; matches++;
           if(matches===totalPairs){
-            clearInterval(timerId); stopRain();
+            clearInterval(timerId); stopRain(); fillWater(0);
             if(currentLevel<levels.length-1){
               currentLevel++; status("Goed gedaan! Op naar level "+(currentLevel+1));
               setTimeout(startLevel,2000);
@@ -225,6 +214,7 @@
       document.getElementById("startBtn").style.display="none";
       document.getElementById("resetBtn").style.display="inline-block";
       document.getElementById("pauseBtn").style.display="inline-block";
+      document.getElementById("boardWrapper").style.display="block"; // FIX
       currentLevel=0; startLevel();
     });
     document.getElementById("resetBtn").addEventListener("click",()=>location.reload());
