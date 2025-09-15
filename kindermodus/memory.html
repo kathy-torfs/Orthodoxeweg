@@ -4,78 +4,97 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Noach's Ark Memory – Orthodoxe Kinderpagina</title>
-  <link rel="icon" href="../images/kruis.png" />
+  <link rel="icon" href="images/kruis.png" />
 
   <style>
-    :root{ --primair:#7bb235; }
-    body{
-      margin:0; font-family:'Comic Sans MS', Arial, sans-serif;
-      color:#333; min-height:100vh;
-      background:url("../images/arkvannoah.png") center no-repeat;
-      background-size:contain;
-      background-color:#f5e9b8;
-      display:flex; flex-direction:column; align-items:center;
-      overflow:hidden;
-    }
-    main{ max-width:1000px; margin:20px auto; text-align:center; z-index:5; position:relative; }
+    :root { --primair:#7bb235; }
 
-    #gameBoard{
+    body {
+      margin:0; font-family:'Comic Sans MS', Arial, sans-serif;
+      color:#333;
+      background:#f5e9b8;
+    }
+
+    /* Header bovenaan */
+    #kinder-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+    }
+
+    /* Spel eronder */
+    main {
+      margin-top: 160px;
+      text-align: center;
+      position: relative;
+      z-index: 10;
+      background:url("images/arkvannoah.png") center top no-repeat;
+      background-size: 600px auto;
+      padding-top: 240px; /* ruimte voor ark-dek */
+    }
+
+    #gameBoard {
       display:grid; grid-gap:12px; justify-content:center; margin-top:20px;
     }
-    .card{
+    .card {
       width:80px; height:80px; background:#7bb235; border-radius:8px;
       cursor:pointer; display:flex; align-items:center; justify-content:center;
       font-size:42px; font-weight:bold; color:#fff; transition: transform 0.3s;
     }
-    .flipped{ background:#fff; color:#000; cursor:default; }
-    #status{ margin-top:20px; font-weight:bold }
-    .btn{
+    .flipped { background:#fff; color:#000; cursor:default; }
+    #status { margin-top:20px; font-weight:bold; }
+    .btn {
       background:var(--primair); color:#fff; border:none; border-radius:8px;
       padding:8px 14px; font-weight:bold; cursor:pointer; margin:4px;
     }
 
-    /* Regen overlay */
-    #regen{
-      position:fixed; top:0; left:0; width:100%; height:100%;
-      pointer-events:none; overflow:hidden; z-index:10;
+    /* Regen */
+    #regen {
+      position:fixed; top:160px; left:0; width:100%; height:calc(100% - 160px);
+      pointer-events:none; overflow:hidden; z-index:20;
     }
-    .druppel{
+    .druppel {
       position:absolute; width:2px; height:12px;
       background:rgba(0,0,255,0.4); border-radius:1px;
       animation: vallen linear infinite;
     }
-    @keyframes vallen{
-      from{ transform:translateY(-20px); }
-      to{ transform:translateY(110vh); }
+    @keyframes vallen {
+      from { transform:translateY(-20px); }
+      to { transform:translateY(110vh); }
     }
-    .hevig .druppel{ background:rgba(0,0,180,0.7); height:16px; }
+    .hevig .druppel { background:rgba(0,0,180,0.7); height:16px; }
 
-    /* Water overlay */
-    #water{
-      position:fixed;
-      bottom:-120%; left:0;
-      width:200%; height:120%;
-      background:rgba(0,150,255,0.7);
-      z-index:9; transition: bottom 5s linear;
-      border-radius:40% 60% 55% 45% / 60% 55% 45% 40%;
+    /* Water */
+    #water {
+      position: fixed;
+      top:160px; left:0;
+      width:100%; height:calc(100% - 160px);
+      background: rgba(0,150,255,0.6);
+      bottom: -100%;
+      transition: bottom 10s linear;
+      z-index:15;
+      border-radius: 40% 60% 55% 45% / 60% 55% 45% 40%;
       animation: golf 4s ease-in-out infinite;
     }
-    #water.stijgt{ bottom:0; }
+    #water.stijgt { bottom:0; }
 
     @keyframes golf {
-      0%,100%{ transform:translateX(0); }
-      50%{ transform:translateX(-50px); }
+      0%,100% { border-radius:40% 60% 55% 45% / 60% 55% 45% 40%; }
+      50%     { border-radius:60% 40% 45% 55% / 55% 60% 40% 45%; }
     }
 
-    /* Pauze overlay (alleen visueel, niet blokkerend) */
-    #overlay{
-      position:fixed; top:0; left:0; width:100%; height:100%;
-      background:rgba(0,0,0,0.4); display:none;
-      z-index:15; color:#fff; font-size:2em;
-      align-items:center; justify-content:center;
-      pointer-events:none; /* belangrijk! */
+    /* Game over bericht */
+    #gameOverMsg {
+      position: fixed;
+      top:180px; left:50%;
+      transform:translateX(-50%);
+      background:rgba(255,255,255,0.95);
+      padding:16px 24px;
+      border-radius:12px;
+      font-size:1.4em; font-weight:bold;
+      z-index:200;
+      display:none;
     }
-    #overlay.active{ display:flex; }
   </style>
 
   <script defer src="common/layout.js"></script>
@@ -97,7 +116,7 @@
 
   <div id="regen"></div>
   <div id="water"></div>
-  <div id="overlay">⏸️ Pauze</div>
+  <div id="gameOverMsg"></div>
 
   <script>
     const animals=["🐶","🐱","🐭","🐰","🦊","🐻","🐼","🐨","🦁","🐯","🐮","🐷","🐸","🐵","🐔"];
@@ -106,9 +125,9 @@
       {pairs:8,time:120},{pairs:10,time:150},{pairs:15,time:180}
     ];
 
-    let currentLevel=0, matches=0, totalPairs=0;
-    let firstCard=null, lock=false;
-    let timerId=null, timeLeft=0, paused=false;
+    let currentLevel=0,matches=0,totalPairs=0;
+    let firstCard=null,lock=false;
+    let timerId=null,timeLeft=0,paused=false;
 
     function startRain(hevig=false){
       const regen=document.getElementById("regen");
@@ -125,6 +144,13 @@
     }
     function stopRain(){ document.getElementById("regen").innerHTML=""; }
 
+    function gameOver(){
+      document.getElementById("water").classList.add("stijgt");
+      const msg=document.getElementById("gameOverMsg");
+      msg.style.display="block";
+      msg.textContent="De ark liep vol water… probeer opnieuw! 🌊";
+    }
+
     function startLevel(){
       const {pairs,time}=levels[currentLevel];
       createBoard(pairs);
@@ -136,8 +162,7 @@
           if(timeLeft<=0){
             clearInterval(timerId);
             startRain(true);
-            document.getElementById("water").classList.add("stijgt");
-            status("De ark liep vol water… probeer opnieuw! 🌊");
+            gameOver();
             lock=true;
           }
         }
@@ -148,7 +173,9 @@
       const gameBoard=document.getElementById("gameBoard");
       gameBoard.innerHTML="";
       totalPairs=pairs; matches=0; firstCard=null; lock=false;
-      stopRain(); document.getElementById("water").classList.remove("stijgt");
+      stopRain();
+      document.getElementById("water").classList.remove("stijgt");
+      document.getElementById("gameOverMsg").style.display="none";
 
       const deck=[...animals.slice(0,pairs),...animals.slice(0,pairs)].sort(()=>Math.random()-0.5);
       const cols=pairs<=4?4:pairs<=8?5:6;
@@ -164,7 +191,7 @@
     }
 
     function flipCard(card){
-      if(lock || paused || card.classList.contains("flipped")) return;
+      if(lock||paused||card.classList.contains("flipped"))return;
       card.textContent=card.dataset.symbol;
       card.classList.add("flipped");
       if(!firstCard){
@@ -232,7 +259,6 @@
     document.getElementById("pauseBtn").addEventListener("click",()=>{
       paused=!paused;
       document.getElementById("pauseBtn").textContent=paused?"Hervatten":"Pauze";
-      document.getElementById("overlay").classList.toggle("active",paused);
       status(paused?"Pauze – neem even rust":"Ga verder met spelen!");
     });
   </script>
