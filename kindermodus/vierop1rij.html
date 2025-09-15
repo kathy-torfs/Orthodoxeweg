@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Vier op een Rij – Orthodoxe Kinderpagina</title>
-  <link rel="icon" href="images/kruis.png" />
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
 
   <style>
     :root{
@@ -51,19 +51,20 @@
   </style>
 
   <!-- Header + menubalk + beveiliging -->
-  <script defer src="common/layout.js"></script>
+  <script defer src="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/common/layout.js"></script>
 </head>
 <body>
   <!-- Header en menubalk -->
-  <div id="kinder-header" data-header-src="common/header.html"></div>
+  <div id="kinder-header" data-header-src="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/common/header.html"></div>
 
   <main>
     <h1>Vier op een Rij</h1>
     <div class="actions">
-      <button id="resetBtn" class="btn" type="button">Opnieuw spelen</button>
+      <button id="startBtn" class="btn" type="button">Spel starten (20 punten)</button>
+      <button id="resetBtn" class="btn" type="button" style="display:none;">Opnieuw spelen</button>
     </div>
-    <div id="board" aria-label="Vier op een rij speelbord"></div>
-    <div id="status">Jij (rood) bent aan de beurt</div>
+    <div id="board" aria-label="Vier op een rij speelbord" style="display:none;"></div>
+    <div id="status"></div>
   </main>
 
   <script>
@@ -87,11 +88,12 @@
       });
     })();
 
-    // ===== Spel Vier op een Rij =====
+    // ===== Vier op een Rij =====
     const rows = 6, cols = 7;
     let board, gameOver, busy;
     const boardDiv = document.getElementById('board');
     const statusDiv = document.getElementById('status');
+    const startBtn = document.getElementById('startBtn');
     const resetBtn = document.getElementById('resetBtn');
 
     function init(){
@@ -224,8 +226,18 @@
       statusDiv.textContent = 'Jij (rood) bent aan de beurt';
     }
 
+    // ===== Start & Reset =====
+    startBtn.addEventListener('click', () => {
+      // TODO: Firestore puntencontrole (nu dummy)
+      // if (points < 20) { alert("Niet genoeg punten"); return; }
+      // else { punten aftrekken }
+      startBtn.style.display = 'none';
+      resetBtn.style.display = 'inline-block';
+      boardDiv.style.display = 'grid';
+      init();
+    });
+
     resetBtn.addEventListener('click', init);
-    init();
   </script>
 </body>
 </html>
