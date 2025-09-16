@@ -14,207 +14,215 @@
       --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
       --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
     }
-    body{margin:0;font-family:'Comic Sans MS',Arial,sans-serif;min-height:100vh;
-      background:var(--pastel1);transition:background .6s;}
-    main{max-width:1200px;margin:20px auto;padding:0 16px;text-align:center}
+    body{
+      margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
+      background:var(--pastel1); transition:background .6s;
+    }
+    main{ max-width:1200px; margin:20px auto; padding:0 16px; text-align:center }
 
-    .btn{background:var(--primair);color:#fff;border:none;border-radius:8px;
-      padding:8px 14px;font-weight:bold;cursor:pointer;margin:6px;}
+    .board{display:flex; flex-direction:column; align-items:center; margin-top:20px}
+    .top-row{display:flex; justify-content:space-between; width:100%; max-width:1100px; margin-bottom:40px}
+    .foundations, .stock-waste{display:flex; gap:12px}
+    .tableau{display:flex; gap:12px; justify-content:center}
 
-    #gameArea{display:none;flex-direction:column;align-items:center;margin-top:20px}
-    .topRow{display:flex;justify-content:space-between;width:100%;max-width:1000px;margin-bottom:20px}
-    .foundations,.stockWaste{display:flex;gap:12px}
-    .pile{width:90px;height:120px;background:#fff;border:2px dashed #aaa;border-radius:8px;
-      position:relative;display:flex;justify-content:center;align-items:center;font-size:28px;color:#888}
-    .pile .icon{position:absolute;top:4px;left:4px;font-size:18px}
-    .tableau{display:flex;justify-content:center;gap:12px;width:100%;max-width:1000px}
-    .tableau .pile{height:400px;align-items:flex-start}
+    .pile{
+      width:90px; min-height:120px;
+      border:2px dashed #aaa; border-radius:8px;
+      position:relative; background:rgba(255,255,255,0.3);
+    }
 
-    .card{width:80px;height:110px;border-radius:8px;border:1px solid #ccc;
-      display:flex;justify-content:center;align-items:center;font-size:40px;
-      position:relative;user-select:none;background:#fff;cursor:pointer}
-    .card .corner{position:absolute;font-size:14px;font-weight:bold}
-    .tl{top:4px;left:6px}.tr{top:4px;right:6px}.bl{bottom:4px;left:6px}.br{bottom:4px;right:6px}
-    .red{color:red}.black{color:black}
+    .card{
+      width:90px; height:120px;
+      border-radius:8px; background:#fff;
+      position:absolute; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      font-size:36px; font-weight:bold;
+      user-select:none;
+    }
+    .card.red{color:red;}
+    .card.black{color:black;}
+    .card span.corner{
+      font-size:14px; position:absolute;
+    }
+    .card .tl{top:4px; left:6px}
+    .card .tr{top:4px; right:6px}
+    .card .bl{bottom:4px; left:6px}
+    .card .br{bottom:4px; right:6px}
+    .hidden{background:#7bb235; color:transparent; cursor:default}
 
-    #status{margin-top:20px;font-weight:bold}
-    #rules{background:#fffef8;border:2px solid #e2d6b3;border-radius:12px;
-      padding:16px;margin-top:30px;text-align:left}
+    .btn{
+      background:var(--primair); color:#fff; border:none; border-radius:8px;
+      padding:8px 14px; font-weight:bold; cursor:pointer; margin:4px;
+    }
+
+    #status{margin-top:16px; font-weight:bold}
   </style>
 
   <script defer src="common/layout.js"></script>
 </head>
 <body>
-<div id="kinder-header" data-header-src="common/header.html"></div>
+  <div id="kinder-header" data-header-src="common/header.html"></div>
 
-<main>
-  <h1>Patience (Solitair) ✝️👼📖🙏</h1>
-  <div>
-    <button id="startBtn" class="btn">Spel starten (20 punten)</button>
-    <select id="levelSelect" class="btn">
-      <option value="1">Level 1 – 1 kaart omdraaien</option>
-      <option value="2">Level 2 – 2 kaarten omdraaien</option>
-      <option value="3">Level 3 – 3 kaarten omdraaien</option>
-    </select>
-  </div>
-
-  <div id="gameArea">
-    <div class="topRow">
-      <div class="foundations">
-        <div class="pile" id="foundation1"><span class="icon">✝️</span></div>
-        <div class="pile" id="foundation2"><span class="icon">📖</span></div>
-        <div class="pile" id="foundation3"><span class="icon">🙏</span></div>
-        <div class="pile" id="foundation4"><span class="icon">👼</span></div>
-      </div>
-      <div class="stockWaste">
-        <div class="pile" id="stock"><span class="icon">📦</span></div>
-        <div class="pile" id="waste"><span class="icon">🃏</span></div>
-      </div>
+  <main>
+    <h1>Patience 🃏🙏</h1>
+    <div>
+      Kies level:
+      <select id="level">
+        <option value="1">Level 1 – 1 kaart draaien</option>
+        <option value="2">Level 2 – 2 kaarten draaien</option>
+        <option value="3">Level 3 – 3 kaarten draaien</option>
+      </select>
+      <button id="startBtn" class="btn">Spel starten (20 punten)</button>
+      <button id="resetBtn" class="btn" style="display:none;">Opnieuw spelen</button>
     </div>
 
-    <div class="tableau">
-      <div class="pile" id="tableau1"></div>
-      <div class="pile" id="tableau2"></div>
-      <div class="pile" id="tableau3"></div>
-      <div class="pile" id="tableau4"></div>
-      <div class="pile" id="tableau5"></div>
-      <div class="pile" id="tableau6"></div>
-      <div class="pile" id="tableau7"></div>
+    <div class="board">
+      <div class="top-row">
+        <div class="foundations" id="foundations"></div>
+        <div class="stock-waste">
+          <div class="pile" id="stock"></div>
+          <div class="pile" id="waste"></div>
+        </div>
+      </div>
+      <div class="tableau" id="tableau"></div>
     </div>
-  </div>
 
-  <div id="status"></div>
+    <div id="status"></div>
 
-  <div id="rules">
-    <h2>📖 Spelregels</h2>
-    <p>Het doel is om alle kaarten naar de vier <b>fundamenten</b> te verplaatsen:</p>
-    <ul>
-      <li><b>✝️ Kruisje</b>, <b>📖 Bijbel</b>, <b>🙏 Biddende handen</b>, <b>👼 Engeltje</b></li>
-      <li>Begin met Aas en bouw op tot Koning.</li>
-    </ul>
-    <p>In de <b>tableau</b> bouw je aflopend en afwisselend in kleur (rood/zwart).</p>
-    <p>Alleen een Koning (met rij) mag naar een lege plaats in de tableau.</p>
-    <p><b>Stock 📦</b>: klik om kaarten naar de <b>waste 🃏</b> te draaien.  
-      In level 1: 1 kaart, level 2: 2 kaarten, level 3: 3 kaarten.</p>
-    <p>Het spel is gewonnen als alle kaarten in de fundamenten liggen 🎉</p>
-  </div>
-</main>
+    <section style="margin-top:30px; text-align:left; max-width:800px; margin-left:auto; margin-right:auto">
+      <h2>Spelregels</h2>
+      <p>Het doel van Patience is om alle kaarten in de <b>vier fundament-stapels</b> linksboven te leggen, oplopend van Aas tot Koning.</p>
+      <ul>
+        <li>Op de tableau (de 7 rijen onderaan) leg je aflopend en afwisselend rood en zwart.</li>
+        <li>Op een lege tableau mag alleen een Koning worden gelegd.</li>
+        <li>Uit de stock (rechtsboven) draai je 1, 2 of 3 kaarten per keer, afhankelijk van het gekozen level.</li>
+        <li>Je kan kaarten van de waste naar de tableau of naar de fundamenten slepen.</li>
+      </ul>
+    </section>
+  </main>
 
-<script>
-(function(){
-  const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)',
-           'var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)',
-           'var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)',
-           'var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
-  document.body.style.background=p[Math.floor(Math.random()*p.length)];
-})();
+  <script>
+    // Achtergrond wisselen
+    (function(){
+      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)',
+               'var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)',
+               'var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)',
+               'var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
+      document.body.style.background=p[Math.floor(Math.random()*p.length)];
+    })();
 
-// header
-(function boot(){
-  if (!(window.KinderLayout)) return setTimeout(boot,120);
-  const el=document.getElementById('kinder-header');
-  window.KinderLayout.mountHeader({ rootId:'kinder-header', headerSrc:el.dataset.headerSrc, active:'spelletjes' });
-})();
+    // Header
+    (function boot(){
+      if (!(window.KinderLayout)) return setTimeout(boot,120);
+      const el=document.getElementById('kinder-header');
+      window.KinderLayout.mountHeader({ rootId:'kinder-header', headerSrc:el.dataset.headerSrc, active:'spelletjes' });
+    })();
 
-// kaartdefinities
-const suits = [
-  {icon:"✝️", color:"black"},
-  {icon:"📖", color:"red"},
-  {icon:"🙏", color:"black"},
-  {icon:"👼", color:"red"}
-];
-const values = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
+    // ICONS
+    const icons=["✝️","📖","🙏","👼"]; // kruis, bijbel, handen, engel
+    const suits=[0,1,2,3]; // 4 sets
+    const ranks=[1,2,3,4,5,6,7,8,9,10,11,12,13];
 
-let deck = [];
-let stock=[], waste=[], foundations=[[],[],[],[]], tableau=[[],[],[],[],[],[],[]];
-let level=1, punten=100;
+    let deck=[], stock=[], waste=[], foundations=[[],[],[],[]], tableau=[];
+    let drawCount=1;
 
-function createDeck(){
-  deck=[];
-  suits.forEach((suit,si)=>{
-    values.forEach(v=>{
-      deck.push({suit:si,value:v,color:suit.color});
-    });
-  });
-}
-function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
-
-function deal(){
-  // tableau
-  let dIndex=0;
-  for(let i=0;i<7;i++){
-    for(let j=0;j<=i;j++){
-      tableau[i].push(deck[dIndex++]);
+    function buildDeck(){
+      deck=[];
+      suits.forEach(s=>{
+        ranks.forEach(r=>{
+          deck.push({suit:s, rank:r});
+        });
+      });
+      for(let i=deck.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [deck[i],deck[j]]=[deck[j],deck[i]];
+      }
     }
-  }
-  stock=deck.slice(dIndex);
-  render();
-}
-function render(){
-  function makeCard(c){
-    const div=document.createElement("div");
-    div.className="card "+(c.color==="red"?"red":"black");
-    div.innerHTML=`<span class="corner tl">${c.value}</span>
-                   <span class="corner tr">${c.value}</span>
-                   <span>${suits[c.suit].icon}</span>
-                   <span class="corner bl">${c.value}</span>
-                   <span class="corner br">${c.value}</span>`;
-    return div;
-  }
-  // tableau
-  for(let i=0;i<7;i++){
-    const pile=document.getElementById("tableau"+(i+1));
-    pile.innerHTML="";
-    tableau[i].forEach((c,idx)=>{
-      const card=makeCard(c);
-      card.style.marginTop=idx*30+"px";
-      pile.appendChild(card);
-    });
-  }
-  // stock
-  document.getElementById("stock").innerHTML = stock.length? "📦":"";
-  // waste
-  const wasteDiv=document.getElementById("waste");
-  wasteDiv.innerHTML="";
-  waste.forEach((c,idx)=>{
-    const card=makeCard(c);
-    card.style.position="absolute";
-    card.style.left=(idx*15)+"px";
-    wasteDiv.appendChild(card);
-  });
-  // foundations
-  for(let i=0;i<4;i++){
-    const f=document.getElementById("foundation"+(i+1));
-    f.innerHTML="";
-    if(foundations[i].length){
-      f.appendChild(makeCard(foundations[i][foundations[i].length-1]));
-    } else {
-      f.innerHTML=`<span class="icon">${suits[i].icon}</span>`;
+
+    function startGame(){
+      drawCount=parseInt(document.getElementById("level").value);
+      buildDeck();
+      stock=[...deck]; waste=[]; foundations=[[],[],[],[]]; tableau=[];
+      for(let i=0;i<7;i++){
+        tableau[i]=stock.splice(0,i+1);
+      }
+      render();
+      document.getElementById("status").textContent="Spel gestart!";
     }
-  }
-}
-function stockClick(){
-  if(stock.length===0){ stock=waste.reverse(); waste=[]; }
-  else{
-    let n=Math.min(level,stock.length);
-    for(let i=0;i<n;i++){ waste.push(stock.pop()); }
-  }
-  render();
-}
 
-// start
-document.getElementById("startBtn").addEventListener("click",()=>{
-  punten-=20;
-  level=parseInt(document.getElementById("levelSelect").value,10);
-  createDeck(); shuffle(deck); stock=[]; waste=[]; foundations=[[],[],[],[]]; tableau=[[],[],[],[],[],[],[]];
-  deal();
-  document.getElementById("gameArea").style.display="flex";
-  document.getElementById("status").textContent="Spel gestart (Level "+level+") – Punten: "+punten;
-});
+    function cardColor(card){ return (card.suit===0||card.suit===2)?"red":"black"; }
+    function cardSymbol(card){ return icons[card.suit]; }
+    function cardRankName(r){
+      if(r===1) return "A"; if(r===11) return "J"; if(r===12) return "Q"; if(r===13) return "K"; return r;
+    }
 
-// stock click
-document.getElementById("stock").addEventListener("click",stockClick);
-})();
-</script>
+    function render(){
+      const foundationsEl=document.getElementById("foundations");
+      foundationsEl.innerHTML="";
+      foundations.forEach(f=>{
+        const pile=document.createElement("div");
+        pile.className="pile";
+        if(f.length){
+          pile.appendChild(renderCard(f[f.length-1]));
+        }
+        foundationsEl.appendChild(pile);
+      });
+
+      const stockEl=document.getElementById("stock");
+      stockEl.innerHTML="";
+      if(stock.length){
+        const c=document.createElement("div");
+        c.className="card hidden";
+        stockEl.appendChild(c);
+      }else{
+        stockEl.onclick=()=>{stock=waste.reverse();waste=[];render();};
+      }
+
+      const wasteEl=document.getElementById("waste");
+      wasteEl.innerHTML="";
+      waste.slice(-drawCount).forEach((card,i)=>{
+        const c=renderCard(card);
+        c.style.left=(i*20)+"px";
+        wasteEl.appendChild(c);
+      });
+
+      const tableauEl=document.getElementById("tableau");
+      tableauEl.innerHTML="";
+      tableau.forEach((pile,pi)=>{
+        const pileEl=document.createElement("div");
+        pileEl.className="pile";
+        pile.forEach((card,ci)=>{
+          const c=renderCard(card);
+          c.style.top=(ci*25)+"px";
+          pileEl.appendChild(c);
+        });
+        tableauEl.appendChild(pileEl);
+      });
+    }
+
+    function renderCard(card){
+      const el=document.createElement("div");
+      el.className="card "+cardColor(card);
+      el.innerHTML=`
+        <span class="corner tl">${cardRankName(card.rank)}</span>
+        <span class="corner tr">${cardRankName(card.rank)}</span>
+        <div>${cardSymbol(card)}</div>
+        <span class="corner bl">${cardRankName(card.rank)}</span>
+        <span class="corner br">${cardRankName(card.rank)}</span>
+      `;
+      return el;
+    }
+
+    // Start knop
+    document.getElementById("startBtn").addEventListener("click",async()=>{
+      // punten aftrekken
+      const points=20; // demo: zou firestore update doen
+      console.log("20 punten afgetrokken");
+      document.getElementById("startBtn").style.display="none";
+      document.getElementById("resetBtn").style.display="inline-block";
+      startGame();
+    });
+    document.getElementById("resetBtn").addEventListener("click",()=>location.reload());
+  </script>
 </body>
 </html>
