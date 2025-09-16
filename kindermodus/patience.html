@@ -8,9 +8,7 @@
 
   <style>
     :root{
-      --primair:#7bb235; --donker:#67510C;
-      --pastel1:#fff6e5; --pastel2:#fffde6;
-      --pastel3:#ffe8ec; --pastel4:#e7f8ff;
+      --primair:#7bb235; --donker:#67510C; --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff; --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff; --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6; --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
     }
     body{
       margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
@@ -18,29 +16,23 @@
     }
     main{ max-width:1200px; margin:20px auto; padding:0 16px; text-align:center }
 
-    #gameArea{
-      display:flex; justify-content:space-between; margin-top:20px;
+    #top{
+      display:flex; justify-content:space-between; margin-bottom:20px;
     }
-
-    .foundations, .stock-area{
-      display:flex; flex-direction:column; gap:12px; width:15%;
-    }
-
-    .foundations .pile, .stock-area .pile, .tableau .pile{
+    .pile{
       border:2px dashed #999; border-radius:8px;
       width:100px; height:140px;
+      position:relative; margin:0 6px;
       display:flex; align-items:center; justify-content:center;
       background:#fafafa;
-      position:relative;
     }
+    #foundations{ display:flex; gap:8px; }
+    #stockWaste{ display:flex; gap:8px; }
 
-    .tableau{
-      display:flex; justify-content:center; gap:12px; flex:1;
+    #tableau{
+      display:flex; justify-content:center; gap:12px;
     }
-
-    .tableau .pile{
-      flex-shrink:0; width:100px;
-    }
+    #tableau .pile{ width:100px; }
 
     .card{
       position:absolute; top:0; left:0;
@@ -80,22 +72,22 @@
     <button id="resetBtn" class="btn" style="display:none;">Opnieuw spelen</button>
 
     <div id="gameArea" style="display:none;">
-      <!-- Foundations links -->
-      <div class="foundations">
-        <div class="pile" id="foundation1"></div>
-        <div class="pile" id="foundation2"></div>
-        <div class="pile" id="foundation3"></div>
-        <div class="pile" id="foundation4"></div>
+      <!-- BOVEN -->
+      <div id="top">
+        <div id="stockWaste">
+          <div class="pile" id="stock"></div>
+          <div class="pile" id="waste"></div>
+        </div>
+        <div id="foundations">
+          <div class="pile" id="foundation1"></div>
+          <div class="pile" id="foundation2"></div>
+          <div class="pile" id="foundation3"></div>
+          <div class="pile" id="foundation4"></div>
+        </div>
       </div>
 
-      <!-- Tableau midden -->
-      <div class="tableau" id="tableau"></div>
-
-      <!-- Stock rechts -->
-      <div class="stock-area">
-        <div class="pile" id="stock"></div>
-        <div class="pile" id="waste"></div>
-      </div>
+      <!-- ONDER -->
+      <div id="tableau"></div>
     </div>
   </main>
 
@@ -119,13 +111,13 @@
     const pastel = ["var(--pastel1)","var(--pastel2)","var(--pastel3)","var(--pastel4)"];
     const ranks = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
 
-    let deck = [];
+    let deck = [], waste=[], foundations=[[],[],[],[]], tableau=[[],[],[],[],[],[],[]];
 
     function createDeck(){
       deck=[];
       for(let s=0;s<suits.length;s++){
         for(let r=0;r<ranks.length;r++){
-          deck.push({rank:ranks[r], suit:suits[s], color:colors[s], bg:pastel[s]});
+          deck.push({rank:ranks[r], suit:suits[s], color:colors[s], bg:pastel[s], suitIndex:s, rankIndex:r});
         }
       }
       shuffle(deck);
@@ -142,6 +134,9 @@
       const div=document.createElement("div");
       div.className="card";
       div.style.background=card.bg;
+      div.dataset.rankIndex=card.rankIndex;
+      div.dataset.suitIndex=card.suitIndex;
+      div.dataset.color=card.color;
       div.innerHTML=`
         <span class="corner tl ${card.color}">${card.rank}</span>
         <span class="corner tr ${card.color}">${card.rank}</span>
@@ -150,33 +145,84 @@
         <span class="corner br ${card.color}">${card.rank}</span>
       `;
       div.draggable=true;
+      div.addEventListener("dragstart", dragStart);
       return div;
+    }
+
+    function render(){
+      // foundations
+      for(let i=0;i<4;i++){
+        const pile=document.getElementById("foundation"+(i+1));
+        pile.innerHTML="";
+        if(foundations[i].length){
+          const top=foundations[i][foundations[i].length-1];
+          pile.appendChild(createCardElement(top));
+        }
+      }
+      // tableau
+      const t=document.getElementById("tableau");
+      t.innerHTML="";
+      for(let i=0;i<7;i++){
+        const pile=document.createElement("div");
+        pile.className="pile";
+        tableau[i].forEach((c,idx)=>{
+          const el=createCardElement(c);
+          el.style.top=(idx*25)+"px";
+          pile.appendChild(el);
+        });
+        pile.addEventListener("dragover",dragOver);
+        pile.addEventListener("drop",e=>dropTableau(e,i));
+        t.appendChild(pile);
+      }
+      // stock
+      const stock=document.getElementById("stock");
+      stock.innerHTML="";
+      if(deck.length){
+        stock.appendChild(createCardElement({rank:"",suit:"⬜",color:"black",bg:"#ccc"}));
+      }
+      // waste
+      const wastePile=document.getElementById("waste");
+      wastePile.innerHTML="";
+      if(waste.length){
+        wastePile.appendChild(createCardElement(waste[waste.length-1]));
+      }
+    }
+
+    function dragStart(e){
+      e.dataTransfer.setData("card", JSON.stringify({
+        rankIndex:e.target.dataset.rankIndex,
+        suitIndex:e.target.dataset.suitIndex,
+        color:e.target.dataset.color
+      }));
+    }
+    function dragOver(e){ e.preventDefault(); }
+
+    function dropTableau(e, pileIndex){
+      e.preventDefault();
+      const data=JSON.parse(e.dataTransfer.getData("card"));
+      const card={...data};
+      const targetPile=tableau[pileIndex];
+      if(!targetPile.length){
+        if(ranks[data.rankIndex]==="K"){
+          tableau[pileIndex].push(data); render();
+        }
+      } else {
+        const last=targetPile[targetPile.length-1];
+        if(last.color!==card.color && parseInt(data.rankIndex)==parseInt(last.rankIndex)-1){
+          tableau[pileIndex].push(data); render();
+        }
+      }
     }
 
     function setupGame(){
       createDeck();
-
-      // tableau 7 kolommen
-      const tableau=document.getElementById("tableau");
-      tableau.innerHTML="";
+      tableau=[[],[],[],[],[],[],[]];
       for(let i=0;i<7;i++){
-        const pile=document.createElement("div");
-        pile.className="pile";
         for(let j=0;j<=i;j++){
-          const card=deck.pop();
-          const el=createCardElement(card);
-          el.style.top=(j*20)+"px";
-          pile.appendChild(el);
+          tableau[i].push(deck.pop());
         }
-        tableau.appendChild(pile);
       }
-
-      // stock vullen
-      const stock=document.getElementById("stock");
-      stock.innerHTML="";
-      deck.forEach(c=>{
-        stock.appendChild(createCardElement(c));
-      });
+      render();
     }
 
     // Firestore punten
@@ -213,7 +259,7 @@
       await deductPoints(20);
       document.getElementById("startBtn").style.display="none";
       document.getElementById("resetBtn").style.display="inline-block";
-      document.getElementById("gameArea").style.display="flex";
+      document.getElementById("gameArea").style.display="block";
       setupGame();
     });
     document.getElementById("resetBtn").addEventListener("click",()=>location.reload());
