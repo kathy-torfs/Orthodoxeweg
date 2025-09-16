@@ -20,34 +20,70 @@
     }
     main{ max-width:1200px; margin:20px auto; padding:0 16px; text-align:center }
 
-    #gameArea{ display:flex; flex-direction:column; align-items:center; }
-    #topRow{ width:100%; display:flex; justify-content:space-between; margin-bottom:20px; }
-    #foundations, #stockArea{ display:flex; gap:12px; min-height:140px; }
-    .pile, .foundation, .stock, .waste{
-      width:90px; height:130px; border:2px dashed #bbb; border-radius:8px;
-      position:relative; background:rgba(255,255,255,0.3);
+    h1{ color:var(--primair); }
+
+    #game{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
     }
-    #tableau{ display:flex; gap:12px; width:100%; justify-content:center; }
+
+    .row{
+      display:flex;
+      justify-content:space-between;
+      width:100%;
+      max-width:1100px;
+      margin-bottom:20px;
+    }
+
+    .pile{
+      width:90px; height:130px;
+      border:2px dashed #ccc;
+      border-radius:8px;
+      position:relative;
+      margin:0 4px;
+    }
+    .pile.foundation{ background:#fafafa; }
+    .pile.stock{ background:#ddd; cursor:pointer; }
 
     .card{
-      width:90px; height:130px; border-radius:8px;
-      background:#fff; position:absolute;
-      box-shadow:0 2px 6px rgba(0,0,0,0.4);
-      font-weight:bold; user-select:none;
+      width:90px; height:130px;
+      border-radius:8px;
+      border:1px solid #333;
+      position:absolute;
+      background:white;
+      cursor:pointer;
+      user-select:none;
     }
-    .card.red{ color:red; }
-    .card.black{ color:black; }
-    .card.back{
-      background:linear-gradient(45deg, #7bb235, #67510C);
+    .card.face-down{
+      background:#7bb235;
+      border:2px solid #333;
     }
-    .corner{
-      position:absolute; font-size:14px; font-weight:bold;
+
+    .card .rank{
+      position:absolute;
+      font-size:14px;
+      font-weight:bold;
     }
-    .top-left{ top:4px; left:4px; text-align:left; }
-    .top-right{ top:4px; right:4px; text-align:right; }
-    .bottom-left{ bottom:4px; left:4px; text-align:left; transform:rotate(180deg); }
-    .bottom-right{ bottom:4px; right:4px; text-align:right; transform:rotate(180deg); }
-    .center{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:26px; }
+    .card .rank.tl{ top:4px; left:6px; }
+    .card .rank.tr{ top:4px; right:6px; }
+    .card .rank.bl{ bottom:4px; left:6px; }
+    .card .rank.br{ bottom:4px; right:6px; }
+    .card .icon{
+      font-size:36px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      height:100%;
+    }
+
+    /* kleur per soort */
+    .hearts, .diamonds{ color:#e53935; }
+    .spades, .clubs{ color:#000; }
+    .pastel1{ background:var(--pastel3); }
+    .pastel2{ background:var(--pastel4); }
+    .pastel3{ background:var(--pastel6); }
+    .pastel4{ background:var(--pastel10); }
   </style>
 
   <script defer src="common/layout.js"></script>
@@ -56,34 +92,40 @@
   <div id="kinder-header" data-header-src="common/header.html"></div>
 
   <main>
-    <h1>Patience 🃏⛪</h1>
-    <div id="gameArea">
-      <div id="topRow">
-        <div id="foundations">
-          <div class="foundation" data-foundation="0"></div>
-          <div class="foundation" data-foundation="1"></div>
-          <div class="foundation" data-foundation="2"></div>
-          <div class="foundation" data-foundation="3"></div>
+    <h1>Patience (Solitaire)</h1>
+    <button id="startBtn" class="btn">Spel starten (20 punten)</button>
+    <div id="status"></div>
+
+    <div id="game" style="display:none;">
+      <!-- Bovenste rij -->
+      <div class="row">
+        <div id="foundations" style="display:flex;gap:12px;">
+          <div class="pile foundation" data-foundation="0"></div>
+          <div class="pile foundation" data-foundation="1"></div>
+          <div class="pile foundation" data-foundation="2"></div>
+          <div class="pile foundation" data-foundation="3"></div>
         </div>
-        <div id="stockArea">
-          <div class="stock"></div>
-          <div class="waste"></div>
+        <div id="stockWaste" style="display:flex;gap:12px;">
+          <div id="stock" class="pile stock"></div>
+          <div id="waste" class="pile"></div>
         </div>
       </div>
-      <div id="tableau">
-        <div class="pile" data-pile="0"></div>
-        <div class="pile" data-pile="1"></div>
-        <div class="pile" data-pile="2"></div>
-        <div class="pile" data-pile="3"></div>
-        <div class="pile" data-pile="4"></div>
-        <div class="pile" data-pile="5"></div>
-        <div class="pile" data-pile="6"></div>
+
+      <!-- Tableau -->
+      <div id="tableau" class="row" style="justify-content:center;">
+        <div class="pile tableau" data-tableau="0"></div>
+        <div class="pile tableau" data-tableau="1"></div>
+        <div class="pile tableau" data-tableau="2"></div>
+        <div class="pile tableau" data-tableau="3"></div>
+        <div class="pile tableau" data-tableau="4"></div>
+        <div class="pile tableau" data-tableau="5"></div>
+        <div class="pile tableau" data-tableau="6"></div>
       </div>
     </div>
   </main>
 
   <script>
-    // Pastelachtergrond random
+    // Achtergrond
     (function(){
       const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)',
                'var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)',
@@ -92,104 +134,126 @@
       document.body.style.background=p[Math.floor(Math.random()*p.length)];
     })();
 
-    // Header laden
+    // Header
     (function boot(){
       if (!(window.KinderLayout)) return setTimeout(boot,120);
       const el=document.getElementById('kinder-header');
       window.KinderLayout.mountHeader({ rootId:'kinder-header', headerSrc:el.dataset.headerSrc, active:'spelletjes' });
     })();
 
-    const suits=["♠","♥","♦","♣"];
-    const values=["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
-    let deck=[], stock=[], waste=[], tableau=[[],[],[],[],[],[],[]], foundations=[[],[],[],[]];
+    // Kaartdefinitie
+    const suits = [
+      {name:"hearts", icon:"🙏", color:"red"},
+      {name:"spades", icon:"✝️", color:"black"},
+      {name:"diamonds", icon:"📖", color:"red"},
+      {name:"clubs", icon:"👼", color:"black"}
+    ];
+    const ranks = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
 
-    function init(){
-      deck=[];
-      suits.forEach(s=>{
-        values.forEach(v=>{
-          deck.push({suit:s,value:v,faceUp:false});
+    let stock=[], waste=[], foundations=[[],[],[],[]], tableau=[[],[],[],[],[],[],[]];
+
+    // Maak deck
+    function makeDeck(){
+      const deck=[];
+      suits.forEach((suit,s)=>{
+        ranks.forEach((rank,r)=>{
+          deck.push({suit:suit.name, icon:suit.icon, rank, value:r+1, color:suit.color});
         });
       });
-      shuffle(deck);
-      // Deel naar tableau
+      for(let i=deck.length-1;i>0;i--){
+        const j=Math.floor(Math.random()* (i+1));
+        [deck[i],deck[j]]=[deck[j],deck[i]];
+      }
+      return deck;
+    }
+
+    // Bouw bord
+    function deal(){
+      stock=[]; waste=[]; foundations=[[],[],[],[]]; tableau=[[],[],[],[],[],[],[]];
+      const deck=makeDeck();
       for(let i=0;i<7;i++){
         for(let j=0;j<=i;j++){
           const card=deck.pop();
-          if(j===i) card.faceUp=true;
+          card.faceUp=(j===i);
           tableau[i].push(card);
         }
       }
-      stock=deck; waste=[]; render();
-    }
-
-    function shuffle(a){
-      for(let i=a.length-1;i>0;i--){
-        const j=Math.floor(Math.random()*(i+1));
-        [a[i],a[j]]=[a[j],a[i]];
-      }
-    }
-
-    function createCardDiv(card, pileIndex, cardIndex){
-      const div=document.createElement("div");
-      div.classList.add("card");
-      if(!card.faceUp){
-        div.classList.add("back");
-        return div;
-      }
-      if(card.suit==="♥"||card.suit==="♦") div.classList.add("red");
-      else div.classList.add("black");
-      div.innerHTML=`
-        <div class="corner top-left">${card.value}${card.suit}</div>
-        <div class="corner top-right">${card.value}${card.suit}</div>
-        <div class="center">${card.suit}</div>
-        <div class="corner bottom-left">${card.value}${card.suit}</div>
-        <div class="corner bottom-right">${card.value}${card.suit}</div>
-      `;
-      div.draggable=true;
-      div.dataset.pile=pileIndex;
-      div.dataset.index=cardIndex;
-      return div;
+      stock=deck;
+      render();
     }
 
     function render(){
-      document.querySelectorAll(".pile").forEach((p,i)=>{
-        p.innerHTML="";
-        tableau[i].forEach((card,j)=>{
-          const div=createCardDiv(card,i,j);
-          div.style.top=(card.faceUp? j*30 : j*10)+"px";
-          p.appendChild(div);
-        });
-      });
-      // Stock & Waste
-      const stockDiv=document.querySelector(".stock");
-      const wasteDiv=document.querySelector(".waste");
-      stockDiv.innerHTML=stock.length?"<div class='card back'></div>":"";
-      wasteDiv.innerHTML="";
-      if(waste.length){
-        const top=waste[waste.length-1];
-        wasteDiv.appendChild(createCardDiv(top,null,null));
-      }
+      document.querySelectorAll('.pile').forEach(p=>p.innerHTML="");
+
       // Foundations
-      document.querySelectorAll(".foundation").forEach((f,i)=>{
-        f.innerHTML="";
-        if(foundations[i].length){
-          const top=foundations[i][foundations[i].length-1];
-          f.appendChild(createCardDiv(top,null,null));
+      foundations.forEach((f,i)=>{
+        if(f.length){
+          const c=f[f.length-1];
+          document.querySelector(`.pile.foundation[data-foundation="${i}"]`).appendChild(renderCard(c,true));
         }
+      });
+
+      // Stock
+      const stockEl=document.getElementById("stock");
+      if(stock.length){
+        const back=document.createElement("div");
+        back.className="card face-down";
+        stockEl.appendChild(back);
+      }
+
+      // Waste
+      if(waste.length){
+        const c=waste[waste.length-1];
+        document.getElementById("waste").appendChild(renderCard(c,true));
+      }
+
+      // Tableau
+      tableau.forEach((pile,i)=>{
+        const pileEl=document.querySelector(`.pile.tableau[data-tableau="${i}"]`);
+        pile.forEach((c,idx)=>{
+          const el=renderCard(c,c.faceUp);
+          el.style.top=(idx*25)+"px";
+          pileEl.appendChild(el);
+        });
       });
     }
 
-    // Stock click
-    document.querySelector(".stock").addEventListener("click",()=>{
-      if(stock.length){
-        const c=stock.pop(); c.faceUp=true; waste.push(c);
+    function renderCard(card,faceUp){
+      const el=document.createElement("div");
+      el.className="card pastel"+((card.value%4)+1);
+      if(!faceUp){ el.classList.add("face-down"); return el; }
+
+      const ranksHTML = `
+        <div class="rank tl ${card.suit}">${card.rank}</div>
+        <div class="rank tr ${card.suit}">${card.rank}</div>
+        <div class="rank bl ${card.suit}">${card.rank}</div>
+        <div class="rank br ${card.suit}">${card.rank}</div>
+      `;
+      const iconHTML = `<div class="icon">${card.icon}</div>`;
+      el.innerHTML = ranksHTML + iconHTML;
+      return el;
+    }
+
+    // Event listeners
+    document.getElementById("stock").addEventListener("click",()=>{
+      if(!stock.length){
+        stock=waste.reverse().map(c=>(c.faceUp=false,c));
+        waste=[];
       }else{
-        while(waste.length){ const c=waste.pop(); c.faceUp=false; stock.push(c); }
+        const c=stock.pop();
+        c.faceUp=true;
+        waste.push(c);
       }
       render();
     });
 
-    init();
+    document.getElementById("startBtn").addEventListener("click",()=>{
+      // 20 punten aftrek (Firestore)
+      console.log("20 punten aftrekken!");
+      document.getElementById("startBtn").style.display="none";
+      document.getElementById("game").style.display="flex";
+      deal();
+    });
   </script>
 </body>
 </html>
