@@ -5,256 +5,218 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Patience – Orthodoxe Kinderpagina</title>
   <link rel="icon" href="images/kruis.png" />
+
   <style>
     :root{
       --primair:#7bb235; --donker:#67510C;
-      --angel:#ffe8ec;   /* zacht roze */
-      --cross:#e7f8ff;   /* licht blauw */
-      --bible:#ecffe9;   /* licht groen */
-      --hands:#fff4ea;   /* licht oranje */
+      --pastel1:#fff6e5; --pastel2:#fffde6;
+      --pastel3:#ffe8ec; --pastel4:#e7f8ff;
     }
     body{
       margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
-      min-height:100vh; background:#fff6e5;
+      min-height:100vh; background:var(--pastel1); transition:background .6s;
     }
     main{ max-width:1200px; margin:20px auto; padding:0 16px; text-align:center }
-    h1{ color:var(--primair); }
 
-    #game{
-      display:flex; flex-direction:column; align-items:center; gap:20px;
+    #gameArea{
+      display:flex; justify-content:space-between; margin-top:20px;
     }
-    #topRow, #tableau{
-      display:flex; justify-content:center; gap:16px;
-      flex-wrap:wrap;
+
+    .foundations, .stock-area{
+      display:flex; flex-direction:column; gap:12px; width:15%;
     }
-    .pile{
-      width:90px; min-height:120px; border:2px dashed #aaa;
-      border-radius:8px; position:relative;
+
+    .foundations .pile, .stock-area .pile, .tableau .pile{
+      border:2px dashed #999; border-radius:8px;
+      width:100px; height:140px;
+      display:flex; align-items:center; justify-content:center;
+      background:#fafafa;
+      position:relative;
     }
+
+    .tableau{
+      display:flex; justify-content:center; gap:12px; flex:1;
+    }
+
+    .tableau .pile{
+      flex-shrink:0; width:100px;
+    }
+
     .card{
-      width:90px; height:120px; border-radius:8px;
       position:absolute; top:0; left:0;
-      display:flex; justify-content:center; align-items:center;
-      font-size:28px; font-weight:bold; 
-      border:2px solid #444; cursor:grab; user-select:none;
-      transition:transform 0.2s;
+      width:100px; height:140px;
+      border-radius:8px; border:2px solid #555;
+      background:#fff; cursor:grab;
+      display:flex; align-items:center; justify-content:center;
+      font-size:32px; font-weight:bold;
+      user-select:none;
     }
-    .back{
-      background:#1a237e; color:#ffd600;
-      justify-content:center; font-size:24px;
+    .card .corner{
+      position:absolute; font-size:14px; font-weight:bold;
     }
-    .hidden{display:none;}
-    .dragging{opacity:0.6;}
+    .card .corner.tl{ top:4px; left:6px; }
+    .card .corner.tr{ top:4px; right:6px; }
+    .card .corner.bl{ bottom:4px; left:6px; }
+    .card .corner.br{ bottom:4px; right:6px; }
+    .card .icon{ font-size:40px; }
 
-    /* Kleuren per soort */
-    .angel { background:var(--angel); }
-    .cross { background:var(--cross); }
-    .bible { background:var(--bible); }
-    .hands { background:var(--hands); }
+    .red{ color:#c62828; }
+    .black{ color:#000; }
 
-    #status{margin-top:20px; font-weight:bold;}
     .btn{
       background:var(--primair); color:#fff; border:none; border-radius:8px;
       padding:8px 14px; font-weight:bold; cursor:pointer; margin:4px;
     }
   </style>
+
   <script defer src="common/layout.js"></script>
 </head>
 <body>
   <div id="kinder-header" data-header-src="common/header.html"></div>
 
   <main>
-    <h1>Patience 😇✝️📖🙏</h1>
-    <button id="newGameBtn" class="btn">Nieuw spel</button>
-    <div id="game">
-      <div id="topRow">
-        <div id="stock" class="pile"></div>
-        <div id="waste" class="pile"></div>
-        <div style="flex:1"></div>
-        <div id="foundations" style="display:flex; gap:16px;">
-          <div class="pile foundation" data-suit="angel"></div>
-          <div class="pile foundation" data-suit="cross"></div>
-          <div class="pile foundation" data-suit="bible"></div>
-          <div class="pile foundation" data-suit="hands"></div>
-        </div>
+    <h1>Patience 🃏🙏</h1>
+    <button id="startBtn" class="btn">Spel starten (20 punten)</button>
+    <button id="resetBtn" class="btn" style="display:none;">Opnieuw spelen</button>
+
+    <div id="gameArea" style="display:none;">
+      <!-- Foundations links -->
+      <div class="foundations">
+        <div class="pile" id="foundation1"></div>
+        <div class="pile" id="foundation2"></div>
+        <div class="pile" id="foundation3"></div>
+        <div class="pile" id="foundation4"></div>
       </div>
-      <div id="tableau"></div>
+
+      <!-- Tableau midden -->
+      <div class="tableau" id="tableau"></div>
+
+      <!-- Stock rechts -->
+      <div class="stock-area">
+        <div class="pile" id="stock"></div>
+        <div class="pile" id="waste"></div>
+      </div>
     </div>
-    <div id="status"></div>
   </main>
 
   <script>
-    // header laden
+    // Achtergrond wisselen
+    (function(){
+      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)'];
+      document.body.style.background=p[Math.floor(Math.random()*p.length)];
+    })();
+
+    // Header
     (function boot(){
       if (!(window.KinderLayout)) return setTimeout(boot,120);
       const el=document.getElementById('kinder-header');
       window.KinderLayout.mountHeader({ rootId:'kinder-header', headerSrc:el.dataset.headerSrc, active:'spelletjes' });
     })();
 
-    const suits = {
-      angel:"😇",
-      cross:"✝️",
-      bible:"📖",
-      hands:"🙏"
-    };
-    const colors = { angel:"red", hands:"red", cross:"black", bible:"black" }; // twee kleuren
-    let stock=[], waste=[], foundations={}, tableau=[];
+    // Kaarten
+    const suits = ["✝️","📖","🙏","👼"];
+    const colors = ["red","black","red","black"];
+    const pastel = ["var(--pastel1)","var(--pastel2)","var(--pastel3)","var(--pastel4)"];
+    const ranks = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
+
+    let deck = [];
 
     function createDeck(){
-      let d=[];
-      Object.keys(suits).forEach(s=>{
-        for(let v=1; v<=13; v++){
-          d.push({suit:s,value:v,icon:suits[s],faceUp:false});
+      deck=[];
+      for(let s=0;s<suits.length;s++){
+        for(let r=0;r<ranks.length;r++){
+          deck.push({rank:ranks[r], suit:suits[s], color:colors[s], bg:pastel[s]});
         }
-      });
-      return d.sort(()=>Math.random()-0.5);
+      }
+      shuffle(deck);
     }
 
-    function newGame(){
-      stock=createDeck();
-      waste=[]; foundations={angel:[],cross:[],bible:[],hands:[]}; tableau=[[],[],[],[],[],[],[]];
-      for(let col=0; col<7; col++){
-        for(let row=0; row<=col; row++){
-          let card=stock.pop();
-          card.faceUp=(row===col);
-          tableau[col].push(card);
-        }
+    function shuffle(array){
+      for(let i=array.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [array[i],array[j]]=[array[j],array[i]];
       }
-      render();
-      status("Nieuw spel gestart!");
     }
 
-    function render(){
-      const stockDiv=document.getElementById("stock");
-      stockDiv.innerHTML="";
-      if(stock.length){
-        let back=document.createElement("div");
-        back.className="card back"; back.textContent="✝️";
-        back.addEventListener("click",drawCard);
-        stockDiv.appendChild(back);
-      }
+    function createCardElement(card){
+      const div=document.createElement("div");
+      div.className="card";
+      div.style.background=card.bg;
+      div.innerHTML=`
+        <span class="corner tl ${card.color}">${card.rank}</span>
+        <span class="corner tr ${card.color}">${card.rank}</span>
+        <span class="icon">${card.suit}</span>
+        <span class="corner bl ${card.color}">${card.rank}</span>
+        <span class="corner br ${card.color}">${card.rank}</span>
+      `;
+      div.draggable=true;
+      return div;
+    }
 
-      const wasteDiv=document.getElementById("waste");
-      wasteDiv.innerHTML="";
-      if(waste.length){
-        let card=renderCard(waste[waste.length-1]);
-        wasteDiv.appendChild(card);
-      }
+    function setupGame(){
+      createDeck();
 
-      document.querySelectorAll(".foundation").forEach(f=>{
-        f.innerHTML="";
-        let s=f.dataset.suit;
-        if(foundations[s].length){
-          let card=renderCard(foundations[s][foundations[s].length-1]);
-          f.appendChild(card);
-        }
-        f.ondragover=e=>e.preventDefault();
-        f.ondrop=e=>dropFoundation(s);
-      });
-
-      const tabDiv=document.getElementById("tableau");
-      tabDiv.innerHTML="";
-      tableau.forEach((col,i)=>{
-        let pile=document.createElement("div");
+      // tableau 7 kolommen
+      const tableau=document.getElementById("tableau");
+      tableau.innerHTML="";
+      for(let i=0;i<7;i++){
+        const pile=document.createElement("div");
         pile.className="pile";
-        col.forEach((card,row)=>{
-          let el=renderCard(card);
-          el.style.top=(row*28)+"px";
+        for(let j=0;j<=i;j++){
+          const card=deck.pop();
+          const el=createCardElement(card);
+          el.style.top=(j*20)+"px";
           pile.appendChild(el);
-        });
-        pile.ondragover=e=>e.preventDefault();
-        pile.ondrop=e=>dropTableau(i);
-        tabDiv.appendChild(pile);
-      });
-    }
-
-    function renderCard(card){
-      let el=document.createElement("div");
-      el.className="card "+card.suit;
-      if(!card.faceUp){ el.classList.add("back"); el.textContent="✝️"; return el; }
-      el.textContent=card.icon+" "+card.value;
-      el.draggable=true;
-      el.dataset.suit=card.suit;
-      el.dataset.value=card.value;
-      el.addEventListener("dragstart",()=>{el.classList.add("dragging"); el.id="dragging";});
-      el.addEventListener("dragend",()=>{el.classList.remove("dragging"); el.removeAttribute("id");});
-      return el;
-    }
-
-    function drawCard(){
-      if(stock.length){
-        let c=stock.pop(); c.faceUp=true; waste.push(c);
-      }else{
-        stock=waste.reverse(); waste=[]; stock.forEach(c=>c.faceUp=false);
-      }
-      render();
-    }
-
-    function dropFoundation(suit){
-      const drag=document.getElementById("dragging");
-      if(!drag) return;
-      const val=parseInt(drag.dataset.value), s=drag.dataset.suit;
-      if(s!==suit) return;
-      let pile=foundations[suit];
-      if((pile.length===0 && val===1) || (pile.length && pile[pile.length-1].value===val-1)){
-        moveCard(suit,"foundation");
-      }
-    }
-
-    function dropTableau(index){
-      const drag=document.getElementById("dragging");
-      if(!drag) return;
-      const val=parseInt(drag.dataset.value), s=drag.dataset.suit;
-      const color=colors[s];
-      let pile=tableau[index];
-      if(pile.length===0){
-        if(val===13){ moveCard(index,"tableau"); } // alleen Koning mag leeg
-      }else{
-        let top=pile[pile.length-1];
-        if(top.faceUp && colors[top.suit]!==color && top.value===val+1){
-          moveCard(index,"tableau");
         }
+        tableau.appendChild(pile);
       }
-    }
 
-    function moveCard(target,zone){
-      const drag=document.getElementById("dragging");
-      if(!drag) return;
-      const val=parseInt(drag.dataset.value), s=drag.dataset.suit;
-      // zoek in tableau of waste
-      let found=false;
-      if(waste.length && waste[waste.length-1].value===val && waste[waste.length-1].suit===s){
-        let c=waste.pop();
-        if(zone==="foundation") foundations[target].push(c);
-        else tableau[target].push(c);
-        found=true;
-      }
-      tableau.forEach(col=>{
-        col.forEach((c,i)=>{
-          if(c.value===val && c.suit===s && c.faceUp && !found){
-            let moved=col.splice(i);
-            if(zone==="foundation") foundations[target].push(moved[0]);
-            else tableau[target]=tableau[target].concat(moved);
-            if(col.length && !col[col.length-1].faceUp) col[col.length-1].faceUp=true;
-            found=true;
-          }
-        });
+      // stock vullen
+      const stock=document.getElementById("stock");
+      stock.innerHTML="";
+      deck.forEach(c=>{
+        stock.appendChild(createCardElement(c));
       });
-      render();
-      checkWin();
     }
 
-    function checkWin(){
-      let total=0;
-      Object.values(foundations).forEach(f=>total+=f.length);
-      if(total===52){ status("🎉 Proficiat! Je hebt gewonnen! 🌈"); }
+    // Firestore punten
+    async function getUserPoints(){
+      const db=firebase.firestore();
+      const parochieId=localStorage.getItem("ingelogdeParochie");
+      const ouderLogin=localStorage.getItem("loginKeuze");
+      const kindId=localStorage.getItem("ingelogdKindId");
+      if(!parochieId||!ouderLogin||!kindId)return 0;
+      const ref=db.collection("parochies").doc(parochieId)
+        .collection("leden").doc(ouderLogin).collection("kinderen").doc(kindId);
+      const snap=await ref.get(); return snap.exists?(snap.data().punten||0):0;
+    }
+    async function deductPoints(amount){
+      const db=firebase.firestore();
+      const parochieId=localStorage.getItem("ingelogdeParochie");
+      const ouderLogin=localStorage.getItem("loginKeuze");
+      const kindId=localStorage.getItem("ingelogdKindId");
+      if(!parochieId||!ouderLogin||!kindId)return;
+      const ref=db.collection("parochies").doc(parochieId)
+        .collection("leden").doc(ouderLogin).collection("kinderen").doc(kindId);
+      await db.runTransaction(async tx=>{
+        const snap=await tx.get(ref);
+        if(!snap.exists)return;
+        const current=snap.data().punten||0;
+        if(current>=amount) tx.update(ref,{punten:current-amount});
+      });
     }
 
-    function status(msg){ document.getElementById("status").textContent=msg; }
-
-    document.getElementById("newGameBtn").addEventListener("click",newGame);
-
-    newGame();
+    // Start & Reset
+    document.getElementById("startBtn").addEventListener("click",async()=>{
+      const points=await getUserPoints();
+      if(points<20){ alert("Niet genoeg punten om te spelen!"); return; }
+      await deductPoints(20);
+      document.getElementById("startBtn").style.display="none";
+      document.getElementById("resetBtn").style.display="inline-block";
+      document.getElementById("gameArea").style.display="flex";
+      setupGame();
+    });
+    document.getElementById("resetBtn").addEventListener("click",()=>location.reload());
   </script>
 </body>
 </html>
