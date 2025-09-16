@@ -68,19 +68,17 @@
       background: #fff;
       color: #000;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       font-weight: bold;
       font-size: 22px;
       user-select: none;
       box-shadow: 0 2px 6px rgba(0,0,0,0.4);
       transition: transform 0.2s;
-      margin-top: -105px; /* overlap */
+      margin-top: -105px;
+      position: relative;
     }
 
     .pile .card:first-child {
-      margin-top: 0; /* bovenste kaart netjes starten */
+      margin-top: 0;
     }
 
     .card.red { color: red; }
@@ -90,6 +88,25 @@
       background: linear-gradient(45deg, #7bb235, #67510C);
       color: transparent;
       cursor: pointer;
+    }
+
+    /* Hoekjes en symbool */
+    .card .corner {
+      position: absolute;
+      font-size: 14px;
+      font-weight: bold;
+    }
+    .card .tl { top: 4px; left: 4px; text-align: left; }
+    .card .tr { top: 4px; right: 4px; text-align: right; }
+    .card .bl { bottom: 4px; left: 4px; text-align: left; transform: rotate(180deg); }
+    .card .br { bottom: 4px; right: 4px; text-align: right; transform: rotate(180deg); }
+
+    .card .center {
+      font-size: 32px;
+      line-height: 130px;
+      text-align: center;
+      width: 100%;
+      height: 100%;
     }
 
     .hidden { display: none; }
@@ -171,9 +188,16 @@
           div.classList.add("card");
           if(!card.faceUp) div.classList.add("back");
           else{
-            div.textContent=card.value+card.suit;
             if(card.suit==="♥"||card.suit==="♦") div.classList.add("red");
             else div.classList.add("black");
+
+            div.innerHTML = `
+              <div class="corner tl">${card.value}${card.suit}</div>
+              <div class="corner tr">${card.value}${card.suit}</div>
+              <div class="corner bl">${card.value}${card.suit}</div>
+              <div class="corner br">${card.value}${card.suit}</div>
+              <div class="center">${card.suit}</div>
+            `;
           }
           div.dataset.pile=i;
           div.dataset.index=j;
@@ -193,11 +217,18 @@
       wasteDiv.innerHTML="";
       if(waste.length){
         const top=waste[waste.length-1];
-        const div=document.createElement("div");
+        const div=document.createElement("div","card");
         div.classList.add("card");
-        div.textContent=top.value+top.suit;
         if(top.suit==="♥"||top.suit==="♦") div.classList.add("red");
         else div.classList.add("black");
+
+        div.innerHTML = `
+          <div class="corner tl">${top.value}${top.suit}</div>
+          <div class="corner tr">${top.value}${top.suit}</div>
+          <div class="corner bl">${top.value}${top.suit}</div>
+          <div class="corner br">${top.value}${top.suit}</div>
+          <div class="center">${top.suit}</div>
+        `;
         wasteDiv.appendChild(div);
       }
       // foundations
@@ -208,9 +239,16 @@
           const top=foundations[suit][foundations[suit].length-1];
           const div=document.createElement("div");
           div.classList.add("card");
-          div.textContent=top.value+top.suit;
           if(top.suit==="♥"||top.suit==="♦") div.classList.add("red");
           else div.classList.add("black");
+
+          div.innerHTML = `
+            <div class="corner tl">${top.value}${top.suit}</div>
+            <div class="corner tr">${top.value}${top.suit}</div>
+            <div class="corner bl">${top.value}${top.suit}</div>
+            <div class="corner br">${top.value}${top.suit}</div>
+            <div class="center">${top.suit}</div>
+          `;
           f.appendChild(div);
         }
       });
@@ -219,7 +257,7 @@
     function valueIndex(v){ return values.indexOf(v); }
 
     function canPlaceOn(card,target){
-      if(!target) return card.value==="K"; // lege tableau alleen koning
+      if(!target) return card.value==="K";
       if(!target.faceUp) return false;
       const diff=valueIndex(target.value)-valueIndex(card.value);
       const redSuits=["♥","♦"];
@@ -267,9 +305,10 @@
         };
       });
       document.addEventListener("click",e=>{
-        if(e.target.classList.contains("card") && e.target.parentElement.classList.contains("pile")){
-          const pileIndex=parseInt(e.target.dataset.pile);
-          const cardIndex=parseInt(e.target.dataset.index);
+        if(e.target.closest(".card") && e.target.closest(".pile")){
+          const div=e.target.closest(".card");
+          const pileIndex=parseInt(div.dataset.pile);
+          const cardIndex=parseInt(div.dataset.index);
           const card=tableau[pileIndex][cardIndex];
           if(!card.faceUp){
             card.faceUp=true;
@@ -281,7 +320,6 @@
       });
     }
     function moveCard(card,from,pileIndex,cardIndex){
-      // try foundations
       if(canPlaceFoundation(card,card.suit)){
         if(from==="waste") waste.pop();
         else tableau[pileIndex].splice(cardIndex);
@@ -289,7 +327,6 @@
         render();
         return;
       }
-      // try tableau
       document.querySelectorAll(".pile").forEach((p,i)=>{
         if(i!==pileIndex){
           const target=tableau[i][tableau[i].length-1];
@@ -307,7 +344,6 @@
       }
     }
 
-    // init
     createDeck();
     deal();
     setupEvents();
