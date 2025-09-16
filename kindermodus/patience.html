@@ -2,22 +2,50 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Patience – Orthodoxe Kinderpagina</title>
+  <link rel="icon" href="images/kruis.png" />
+
   <style>
+    :root{
+      --primair:#7bb235; --donker:#67510C;
+      --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
+      --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
+      --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
+      --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
+    }
+
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #2e8b57;
-      color: #fff;
+      background: var(--pastel1);
+      color: #333;
+      min-height: 100vh;
+      transition: background .6s;
+    }
+
+    main { 
+      max-width: 1200px; 
+      margin: 20px auto; 
+      padding: 0 16px; 
       text-align: center;
     }
-    h1 { margin: 10px; }
+
+    h1 { margin: 10px; color: var(--donker); }
+
+    /* Game area */
+    #gameWrapper{
+      background: #2e8b57;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      margin-bottom: 20px;
+    }
 
     #game {
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin: 20px;
     }
 
     #top {
@@ -109,43 +137,74 @@
       height: 100%;
     }
 
-    .hidden { display: none; }
-
     #message {
       margin-top: 20px;
       font-size: 22px;
       font-weight: bold;
+      color: #fff;
     }
   </style>
+
+  <script defer src="common/layout.js"></script>
 </head>
 <body>
-  <h1>Patience – Klondike</h1>
-  <div id="game">
-    <div id="top">
-      <div style="display:flex;">
-        <div id="stock"></div>
-        <div id="waste"></div>
+  <!-- Header -->
+  <div id="kinder-header" data-header-src="common/header.html"></div>
+
+  <main>
+    <h1>Patience – Klondike</h1>
+
+    <!-- Spel in kader -->
+    <div id="gameWrapper">
+      <div id="game">
+        <div id="top">
+          <div style="display:flex;">
+            <div id="stock"></div>
+            <div id="waste"></div>
+          </div>
+          <div id="foundations">
+            <div class="foundation" data-suit="♠"></div>
+            <div class="foundation" data-suit="♥"></div>
+            <div class="foundation" data-suit="♦"></div>
+            <div class="foundation" data-suit="♣"></div>
+          </div>
+        </div>
+        <div id="tableau">
+          <div class="pile" data-index="0"></div>
+          <div class="pile" data-index="1"></div>
+          <div class="pile" data-index="2"></div>
+          <div class="pile" data-index="3"></div>
+          <div class="pile" data-index="4"></div>
+          <div class="pile" data-index="5"></div>
+          <div class="pile" data-index="6"></div>
+        </div>
       </div>
-      <div id="foundations">
-        <div class="foundation" data-suit="♠"></div>
-        <div class="foundation" data-suit="♥"></div>
-        <div class="foundation" data-suit="♦"></div>
-        <div class="foundation" data-suit="♣"></div>
-      </div>
+      <div id="message"></div>
     </div>
-    <div id="tableau">
-      <div class="pile" data-index="0"></div>
-      <div class="pile" data-index="1"></div>
-      <div class="pile" data-index="2"></div>
-      <div class="pile" data-index="3"></div>
-      <div class="pile" data-index="4"></div>
-      <div class="pile" data-index="5"></div>
-      <div class="pile" data-index="6"></div>
-    </div>
-  </div>
-  <div id="message"></div>
+  </main>
 
   <script>
+    // Achtergrond random pastel
+    (function(){
+      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)',
+               'var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)',
+               'var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)',
+               'var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
+      document.body.style.background=p[Math.floor(Math.random()*p.length)];
+    })();
+
+    // Header
+    (function boot(){
+      if (!(window.KinderLayout)) return setTimeout(boot,120);
+      const el=document.getElementById('kinder-header');
+      window.KinderLayout.mountHeader({
+        rootId:'kinder-header',
+        headerSrc:el.dataset.headerSrc,
+        active:'spelletjes'
+      });
+    })();
+
+    // --- Patience logica ---
     const suits = ["♠","♥","♦","♣"];
     const values = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
     let deck = [];
@@ -190,7 +249,6 @@
           else{
             if(card.suit==="♥"||card.suit==="♦") div.classList.add("red");
             else div.classList.add("black");
-
             div.innerHTML = `
               <div class="corner tl">${card.value}${card.suit}</div>
               <div class="corner tr">${card.value}${card.suit}</div>
@@ -221,7 +279,6 @@
         div.classList.add("card");
         if(top.suit==="♥"||top.suit==="♦") div.classList.add("red");
         else div.classList.add("black");
-
         div.innerHTML = `
           <div class="corner tl">${top.value}${top.suit}</div>
           <div class="corner tr">${top.value}${top.suit}</div>
@@ -241,7 +298,6 @@
           div.classList.add("card");
           if(top.suit==="♥"||top.suit==="♦") div.classList.add("red");
           else div.classList.add("black");
-
           div.innerHTML = `
             <div class="corner tl">${top.value}${top.suit}</div>
             <div class="corner tr">${top.value}${top.suit}</div>
