@@ -23,37 +23,45 @@
     h1{ color:var(--primair); margin-bottom:16px }
 
     #gameArea{
-      margin:20px auto; padding:20px; background:#fffef9;
+      margin:20px auto; padding:10px; background:#fffef9;
       border:2px solid #e6d8a5; border-radius:12px;
       box-shadow:0 2px 8px rgba(0,0,0,0.15);
+      min-height:70vh;
     }
     .board{
       display:flex; justify-content:space-between; margin-bottom:20px;
     }
     .pile{
-      width:100px; height:140px; border:1.5px dashed #ccc;
-      border-radius:8px; margin:0 4px; position:relative;
+      width:var(--card-w); height:var(--card-h);
+      border:1.5px dashed #ccc; border-radius:8px;
+      margin:0 4px; position:relative;
     }
     .card{
-      width:100px; height:140px;
+      width:var(--card-w); height:var(--card-h);
       border-radius:8px; background:white; border:1px solid #333;
       position:absolute; cursor:pointer;
       display:flex; justify-content:center; align-items:center;
-      font-size:32px; font-weight:bold;
+      font-size:calc(var(--card-w) * 0.32); font-weight:bold;
       user-select:none;
     }
     .card.red{ color:red }
     .card.black{ color:black }
     .card.back{ background:#7bb235; border:1px solid #333; color:transparent }
 
-    .tableau{ display:flex; justify-content:center }
+    .tableau{ display:flex; justify-content:center; margin-top:20px }
     .tableau .pile{ margin:0 6px }
 
-    #rules{
-      margin-top:30px; padding:16px; background:#fffef2;
-      border:2px solid #e6d8a5; border-radius:12px; text-align:left;
+    /* Responsiveness */
+    :root{
+      --card-w:100px;
+      --card-h:140px;
     }
-    #rules h2{ margin-top:0; color:var(--donker) }
+    @media(max-width:900px){
+      :root{ --card-w:70px; --card-h:100px; }
+    }
+    @media(max-width:600px){
+      :root{ --card-w:55px; --card-h:78px; }
+    }
   </style>
 
   <script defer src="common/layout.js"></script>
@@ -87,36 +95,9 @@
         <div id="tableau6" class="pile"></div>
       </div>
     </div>
-
-    <div id="rules">
-      <h2>Spelregels</h2>
-      <p>🂡 Doel: bouw vier stapels op in de foundations, oplopend van Aas tot Koning per soort.</p>
-      <p>🂡 Je mag in de tableau aflopende reeksen vormen, waarbij rood en zwart elkaar afwisselen.</p>
-      <p>🂡 Alleen een Koning of een reeks die met een Koning begint mag in een lege stapel geplaatst worden.</p>
-      <p>🂡 Klik op de stock om één kaart naar de waste te draaien.</p>
-      <p>🂡 Je kan kaarten van de waste naar de tableau of foundations verplaatsen.</p>
-      <p>🂡 Het spel is gewonnen zodra alle vier de foundations compleet zijn van Aas tot Koning.</p>
-    </div>
   </main>
 
   <script>
-    // Achtergrond wisselen
-    (function(){
-      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)',
-               'var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)',
-               'var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)',
-               'var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
-      document.body.style.background=p[Math.floor(Math.random()*p.length)];
-    })();
-
-    // Header laden
-    (function boot(){
-      if (!(window.KinderLayout)) return setTimeout(boot,120);
-      const el=document.getElementById('kinder-header');
-      window.KinderLayout.mountHeader({ rootId:'kinder-header', headerSrc:el.dataset.headerSrc, active:'spelletjes' });
-    })();
-
-    // Solitaire logica
     const suits = ["♠","♥","♣","♦"];
     const colors = {"♠":"black","♣":"black","♥":"red","♦":"red"};
     let deck=[], stock=[], waste=[], foundations=[[],[],[],[]], tableaus=[[],[],[],[],[],[],[]];
@@ -172,7 +153,7 @@
       el.innerHTML="";
       pile.forEach((card,i)=>{
         const c=createCardElement(card,i,id);
-        c.style.top=(i*25)+"px";
+        c.style.top=(i*20)+"px";
         el.appendChild(c);
       });
     }
