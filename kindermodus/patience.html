@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Patience – Orthodoxe Kinderpagina</title>
   <link rel="icon" href="images/kruis.png" />
-
   <style>
     :root{
       --primair:#7bb235; --donker:#67510C;
@@ -14,53 +13,35 @@
       --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
       --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
     }
-    body{
-      margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
-      min-height:100vh; background:var(--pastel1); transition:background .6s;
-    }
+    body{ margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
+      min-height:100vh; background:var(--pastel1); transition:background .6s; }
     main{ max-width:1200px; margin:20px auto; padding:0 16px; text-align:center }
 
     .controls{ margin-bottom:10px }
-    .btn{
-      background:var(--primair); color:#fff; border:none; border-radius:8px;
-      padding:8px 14px; font-weight:bold; cursor:pointer; margin:4px;
-    }
+    .btn{ background:var(--primair); color:#fff; border:none; border-radius:8px;
+      padding:8px 14px; font-weight:bold; cursor:pointer; margin:4px; }
     select.btn{ padding:7px 10px; }
 
-    /* Bordindeling */
-    #board{ margin-top:16px; display:flex; flex-direction:column; align-items:center; }
-    .topRow{
-      display:flex; justify-content:space-between; align-items:flex-start;
-      width:100%; max-width:1100px; margin-bottom:16px;
-    }
-    .leftTop{ display:flex; gap:12px; align-items:center; }
-    .rightTop{ display:flex; gap:12px; align-items:center; }
+    #board{ margin-top:16px; display:none; flex-direction:column; align-items:center; }
+    .topRow{ display:flex; justify-content:space-between; align-items:flex-start;
+      width:100%; max-width:1100px; margin-bottom:16px; }
+    .leftTop,.rightTop{ display:flex; gap:12px; align-items:center; }
     .labels{ font-size:12px; color:#666; text-align:center; margin-top:4px; }
 
-    .pile{
-      width:100px; height:140px; position:relative;
-      border:2px dashed #bbb; border-radius:10px; background:#fafafa;
-    }
+    .pile{ width:100px; height:140px; position:relative; border:2px dashed #bbb;
+      border-radius:10px; background:#fafafa; cursor:pointer; }
     .pile.small{ width:90px; height:126px; }
     .pile.foundation{ background:#fffef8; }
-    .pileLabel{ font-size:12px; margin-top:6px; }
 
-    /* Tableau */
     #tableauRow{ display:flex; gap:12px; justify-content:center; max-width:1100px; width:100%; }
-    .tableauPile{ width:100px; min-height:350px; position:relative; border:2px dashed #bbb; border-radius:10px; background:#fdfdfd; }
+    .tableauPile{ width:100px; min-height:350px; position:relative; border:2px dashed #bbb;
+      border-radius:10px; background:#fdfdfd; cursor:pointer; }
 
-    /* Kaarten */
-    .card{
-      width:100px; height:140px; border-radius:10px; border:1px solid #ccc;
-      position:absolute; left:0; top:0;
-      display:flex; align-items:center; justify-content:center;
-      background:#fff; font-size:38px; font-weight:bold;
-      box-shadow:0 2px 6px rgba(0,0,0,0.15);
-      user-select:none; cursor:pointer;
-      transition: transform .12s ease;
-    }
-    .card.red{ color:#c62828; }
-    .card.black{ color:#000; }
+    .card{ width:100px; height:140px; border-radius:10px; border:1px solid #ccc;
+      position:absolute; left:0; top:0; display:flex; align-items:center; justify-content:center;
+      background:#fff; font-size:38px; font-weight:bold; box-shadow:0 2px 6px rgba(0,0,0,.15);
+      user-select:none; cursor:pointer; transition:transform .12s ease; }
+    .card.red{ color:#c62828; } .card.black{ color:#000; }
     .card.hidden{ background:#7bb235; color:transparent; border:1px solid #699a2f; cursor:default; }
     .card.selected{ outline:3px solid #7bb235; z-index:5; }
 
@@ -68,14 +49,10 @@
     .tl{ top:4px; left:6px } .tr{ top:4px; right:6px }
     .bl{ bottom:4px; left:6px } .br{ bottom:4px; right:6px }
 
-    /* Status + regels */
     #status{ margin-top:12px; font-weight:bold; }
-    #rules{
-      background:#fffef8; border:2px solid #e2d6b3; border-radius:12px;
-      padding:16px; margin-top:24px; text-align:left; max-width:1000px; margin-left:auto; margin-right:auto;
-    }
+    #rules{ background:#fffef8; border:2px solid #e2d6b3; border-radius:12px;
+      padding:16px; margin-top:24px; text-align:left; max-width:1000px; margin-inline:auto; }
   </style>
-
   <script defer src="common/layout.js"></script>
 </head>
 <body>
@@ -83,7 +60,6 @@
 
   <main>
     <h1>Patience (Solitair) ✝️📖🙏👼</h1>
-
     <div class="controls">
       <select id="levelSelect" class="btn">
         <option value="1">Level 1 – 1 kaart draaien</option>
@@ -94,9 +70,8 @@
       <button id="resetBtn" class="btn" style="display:none;">Opnieuw spelen</button>
     </div>
 
-    <div id="board" style="display:none;">
+    <div id="board">
       <div class="topRow">
-        <!-- LINKS BOVEN: stock & waste -->
         <div class="leftTop">
           <div>
             <div id="stock" class="pile small" aria-label="stock"></div>
@@ -107,29 +82,14 @@
             <div class="labels">🃏 Waste</div>
           </div>
         </div>
-
-        <!-- RECHTS BOVEN: foundations -->
         <div class="rightTop" id="foundationsWrap">
-          <div>
-            <div id="f0" class="pile foundation small"></div>
-            <div class="labels">✝️ Foundation</div>
-          </div>
-          <div>
-            <div id="f1" class="pile foundation small"></div>
-            <div class="labels">📖 Foundation</div>
-          </div>
-          <div>
-            <div id="f2" class="pile foundation small"></div>
-            <div class="labels">🙏 Foundation</div>
-          </div>
-          <div>
-            <div id="f3" class="pile foundation small"></div>
-            <div class="labels">👼 Foundation</div>
-          </div>
+          <div><div id="f0" class="pile foundation small"></div><div class="labels">✝️ Foundation</div></div>
+          <div><div id="f1" class="pile foundation small"></div><div class="labels">📖 Foundation</div></div>
+          <div><div id="f2" class="pile foundation small"></div><div class="labels">🙏 Foundation</div></div>
+          <div><div id="f3" class="pile foundation small"></div><div class="labels">👼 Foundation</div></div>
         </div>
       </div>
 
-      <!-- ONDER: tableau -->
       <div id="tableauRow">
         <div id="t0" class="tableauPile"></div>
         <div id="t1" class="tableauPile"></div>
@@ -146,11 +106,10 @@
     <div id="rules">
       <h2>📖 Spelregels</h2>
       <ul>
-        <li><b>Doel:</b> leg alle kaarten in de 4 foundations (✝️ 📖 🙏 👼) van Aas (A) naar Koning (K).</li>
-        <li><b>Tableau (onderaan):</b> bouw aflopend (bijv. 9 op 10) en afwisselend in kleur (rood/zwart). Alleen een <b>Koning</b> mag op een lege plek.</li>
-        <li><b>Stock (📦):</b> klik om kaarten naar de <b>waste (🃏)</b> te draaien. In Level 1/2/3 draai je 1/2/3 kaarten tegelijk.</li>
-        <li><b>Sleep niet nodig:</b> klik op een kaart om te <b>selecteren</b>, klik op een doelstapel om <b>neer te leggen</b>.</li>
-        <li><b>Dubbelklik</b> op een bovenste kaart (tableau of waste) om automatisch naar de juiste foundation te leggen (indien mogelijk).</li>
+        <li><b>Doel:</b> leg alle kaarten in de 4 foundations (✝️ 📖 🙏 👼) van A (Aas) tot K (Koning).</li>
+        <li><b>Tableau:</b> aflopend (bijv. 9 op 10) en afwisselend rood/zwart. Lege plek = alleen Koning.</li>
+        <li><b>Stock (📦):</b> klik om 1/2/3 kaarten (level) naar <b>waste</b> te draaien. Lege stock → klik om waste terug te zetten.</li>
+        <li><b>Verplaatsen:</b> klik om te <b>selecteren</b> → klik op <b>bestemming</b> (foundation of tableau). <b>Dubbelklik</b> op top-kaart = automatisch naar foundation (indien mogelijk).</li>
       </ul>
     </div>
   </main>
@@ -162,9 +121,8 @@
                'var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)',
                'var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)',
                'var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
-      document.body.style.background = p[Math.floor(Math.random()*p.length)];
+      document.body.style.background=p[Math.floor(Math.random()*p.length)];
     })();
-
     // Header
     (function boot(){
       if (!(window.KinderLayout)) return setTimeout(boot,120);
@@ -172,372 +130,233 @@
       window.KinderLayout.mountHeader({ rootId:'kinder-header', headerSrc:el.dataset.headerSrc, active:'spelletjes' });
     })();
 
-    // --------- Kaarten & speltoestand ----------
-    const SUITS = [
-      {icon:"✝️", color:"black"}, // 0
-      {icon:"📖", color:"red"},   // 1
-      {icon:"🙏", color:"black"}, // 2
-      {icon:"👼", color:"red"}    // 3
-    ];
-    const RANKS = [null,"A","2","3","4","5","6","7","8","9","10","J","Q","K"];
-
-    let drawCount = 1;  // level
-    let deck=[], stock=[], waste=[], foundations=[[],[],[],[]], tableau=[[],[],[],[],[],[],[]];
-
-    // selectie (klik-klik verplaatsen)
-    let selected = null; // {from:'waste'|'tableau'|'foundation', pile: idx, index: kaartIndexInPile}
+    // Suits & ranks
+    const SUITS=[ {icon:"✝️", color:"black"}, {icon:"📖", color:"red"}, {icon:"🙏", color:"black"}, {icon:"👼", color:"red"} ];
+    const RANKS=[null,"A","2","3","4","5","6","7","8","9","10","J","Q","K"];
+    let drawCount=1, deck=[], stock=[], waste=[], foundations=[[],[],[],[]], tableau=[[],[],[],[],[],[],[]];
+    let selected=null; // {from:'waste'|'tableau', pile:idx, index:idxInPile}
 
     function makeDeck(){
       deck=[];
-      for(let s=0; s<4; s++){
-        for(let r=1; r<=13; r++){
-          deck.push({suit:s, rank:r, faceUp:false});
-        }
-      }
-      // shuffle
-      for(let i=deck.length-1;i>0;i--){
-        const j=Math.floor(Math.random()*(i+1));
-        [deck[i],deck[j]]=[deck[j],deck[i]];
-      }
+      for(let s=0;s<4;s++) for(let r=1;r<=13;r++) deck.push({suit:s,rank:r,faceUp:false});
+      for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]];}
     }
+    function colorOf(c){return SUITS[c.suit].color;}
+    function rankName(r){return RANKS[r]}
+    function iconOf(s){return SUITS[s].icon}
 
     function start(){
-      drawCount = parseInt(document.getElementById("levelSelect").value,10);
-      makeDeck();
-      stock = deck.slice();
-      waste = [];
-      foundations = [[],[],[],[]];
-      tableau = [[],[],[],[],[],[],[]];
-
-      // deal tableau (klassiek) en draai top faceUp
-      for(let col=0; col<7; col++){
-        for(let i=0;i<=col;i++){
-          const c = stock.pop();
-          tableau[col].push(c);
-        }
-        tableau[col][tableau[col].length-1].faceUp = true;
+      drawCount=parseInt(document.getElementById('levelSelect').value,10);
+      makeDeck(); stock=[...deck]; waste=[]; foundations=[[],[],[],[]]; tableau=[[],[],[],[],[],[],[]];
+      for(let col=0;col<7;col++){
+        for(let i=0;i<=col;i++){ const c=stock.pop(); tableau[col].push(c); }
+        tableau[col][tableau[col].length-1].faceUp=true;
       }
-
-      render();
-      status("Spel gestart! Kies kaarten en klik op een stapel om te leggen.");
+      render(); status("Spel gestart! Klik kaart → klik bestemming.");
     }
 
-    function colorOf(card){ return SUITS[card.suit].color; }
-    function rankName(r){ return RANKS[r]; }
-    function iconOf(s){ return SUITS[s].icon; }
-
-    // ---------- Regels ----------
-    function canMoveToTableau(card, destPile){
-      // leeg: alleen Koning
-      if(destPile.length===0) return card.rank===13;
-      const top = destPile[destPile.length-1];
-      if(!top.faceUp) return false;
-      const altColor = colorOf(card)!==colorOf(top);
-      const rankOK = card.rank === top.rank-1;
-      return altColor && rankOK;
-    }
-    function canMoveToFoundation(card, fIndex){
-      // suit moet overeenkomen met foundation index
-      if(card.suit!==fIndex) return false;
-      const f = foundations[fIndex];
-      if(f.length===0) return card.rank===1; // Aas
-      return card.rank === f[f.length-1].rank + 1;
-    }
-
-    // ---------- Rendering ----------
     function render(){
-      // Stock
-      const stockEl = document.getElementById("stock");
-      stockEl.innerHTML="";
+      // stock
+      const stockEl=document.getElementById('stock'); stockEl.innerHTML="";
       if(stock.length){
-        const back = cardElement({suit:0,rank:0,faceUp:false}, true);
-        stockEl.appendChild(back);
-        stockEl.onclick = ()=>drawFromStock();
+        stockEl.appendChild(cardElement({faceUp:false},true));
+        stockEl.onclick=()=>drawFromStock();
       }else{
-        const empty = document.createElement("div");
-        empty.className = "card hidden";
-        empty.style.position="absolute";
-        empty.style.left="0"; empty.style.top="0";
-        stockEl.appendChild(empty);
-        stockEl.onclick = ()=>recycleWaste();
+        const back=document.createElement('div'); back.className='card hidden'; back.style.left='0'; back.style.top='0';
+        stockEl.appendChild(back); stockEl.onclick=()=>recycleWaste();
       }
-
-      // Waste
-      const wasteEl = document.getElementById("waste");
-      wasteEl.innerHTML="";
-      const show = Math.min(drawCount, waste.length);
-      for(let i=waste.length-show; i<waste.length; i++){
-        const c = waste[i];
-        c.faceUp=true;
-        const el = cardElement(c);
-        el.style.left = (i-(waste.length-show))*18 + "px";
-        el.dataset.from="waste";
-        el.dataset.pile="-1";
-        el.dataset.index = i;
-        el.addEventListener("click", onCardClick);
-        el.addEventListener("dblclick", onCardDoubleClick);
+      // waste
+      const wasteEl=document.getElementById('waste'); wasteEl.innerHTML="";
+      const show=Math.min(drawCount,waste.length);
+      for(let i=waste.length-show;i<waste.length;i++){
+        const c=waste[i]; c.faceUp=true;
+        const el=cardElement(c);
+        el.style.left=(i-(waste.length-show))*18+'px';
+        el.dataset.from='waste'; el.dataset.pile='-1'; el.dataset.index=i;
+        el.addEventListener('click',onCardClick);
+        el.addEventListener('dblclick',onCardDoubleClick);
         wasteEl.appendChild(el);
       }
-
-      // Foundations
-      for(let f=0; f<4; f++){
-        const fe = document.getElementById("f"+f);
-        fe.innerHTML="";
+      // foundations
+      for(let f=0;f<4;f++){
+        const fe=document.getElementById('f'+f); fe.innerHTML="";
         if(foundations[f].length){
-          const top = foundations[f][foundations[f].length-1];
-          const el = cardElement(top);
-          fe.appendChild(el);
+          const top=foundations[f][foundations[f].length-1];
+          fe.appendChild(cardElement(top));
         }else{
-          const placeholder = document.createElement("div");
-          placeholder.className="card hidden";
-          placeholder.style.position="absolute";
-          placeholder.style.left="0"; placeholder.style.top="0";
-          fe.appendChild(placeholder);
+          fe.appendChild(emptyCard());
         }
-        fe.onclick = ()=>attemptDropOnFoundation(f);
+        fe.onclick=()=>attemptDropOnFoundation(f);
       }
-
-      // Tableau
-      for(let t=0; t<7; t++){
-        const te = document.getElementById("t"+t);
-        te.innerHTML="";
-        const pile = tableau[t];
-        if(pile.length===0){
-          // klik op lege plek = droppen toegestaan
-          te.onclick = ()=>attemptDropOnTableau(t);
-        }else{
-          te.onclick = null;
-        }
-        pile.forEach((c, idx)=>{
-          const el = cardElement(c);
-          el.style.top = (idx*28)+"px";
-          el.dataset.from="tableau";
-          el.dataset.pile = t;
-          el.dataset.index = idx;
+      // tableau
+      for(let t=0;t<7;t++){
+        const te=document.getElementById('t'+t); te.innerHTML="";
+        const pile=tableau[t];
+        te.onclick=()=>attemptDropOnTableau(t); // <-- ook bij NIET-lege stapel droppen mogelijk
+        pile.forEach((c,idx)=>{
+          const el=cardElement(c);
+          el.style.top=(idx*28)+'px';
+          el.dataset.from='tableau'; el.dataset.pile=t; el.dataset.index=idx;
           if(c.faceUp){
-            el.addEventListener("click", onCardClick);
-            el.addEventListener("dblclick", onCardDoubleClick);
+            el.addEventListener('click',onCardClick);
+            el.addEventListener('dblclick',onCardDoubleClick);
           }
           te.appendChild(el);
         });
       }
-
-      highlightSelected();
-      checkWin();
+      highlightSelected(); checkWin();
     }
 
-    function cardElement(card, forceBack=false){
-      const el = document.createElement("div");
-      const isFaceUp = card.faceUp && !forceBack && card.rank!==0;
-      el.className = "card " + (isFaceUp ? (colorOf(card)==="red"?"red":"black") : "hidden");
-      el.innerHTML = isFaceUp
-        ? `
-          <span class="corner tl">${rankName(card.rank)}</span>
-          <span class="corner tr">${rankName(card.rank)}</span>
-          <div>${iconOf(card.suit)}</div>
-          <span class="corner bl">${rankName(card.rank)}</span>
-          <span class="corner br">${rankName(card.rank)}</span>
-        `
-        : "";
+    function cardElement(card,forceBack=false){
+      const face = card.faceUp && !forceBack && card.rank;
+      const el=document.createElement('div');
+      el.className='card '+(face?(colorOf(card)==='red'?'red':'black'):'hidden');
+      el.innerHTML= face ? `
+        <span class="corner tl">${rankName(card.rank)}</span>
+        <span class="corner tr">${rankName(card.rank)}</span>
+        <div>${iconOf(card.suit)}</div>
+        <span class="corner bl">${rankName(card.rank)}</span>
+        <span class="corner br">${rankName(card.rank)}</span>
+      ` : '';
       return el;
     }
+    function emptyCard(){ const d=document.createElement('div'); d.className='card hidden'; d.style.left='0'; d.style.top='0'; return d; }
 
-    // ---------- Interactie (klik-klik) ----------
+    // --- regels
+    function canMoveToTableau(card, dest){
+      if(dest.length===0) return card.rank===13;
+      const top=dest[dest.length-1]; if(!top.faceUp) return false;
+      return colorOf(card)!==colorOf(top) && card.rank===top.rank-1;
+    }
+    function canMoveToFoundation(card,f){
+      if(card.suit!==f) return false;
+      const pile=foundations[f];
+      if(pile.length===0) return card.rank===1;
+      return card.rank===pile[pile.length-1].rank+1;
+    }
+    function isValidRun(run){
+      if(!run.length) return false;
+      for(const c of run) if(!c.faceUp) return false;
+      for(let i=0;i<run.length-1;i++){
+        if(colorOf(run[i])===colorOf(run[i+1])) return false;
+        if(run[i].rank!==run[i+1].rank+1) return false;
+      }
+      return true;
+    }
+
+    // --- interactie
     function onCardClick(e){
-      const el = e.currentTarget;
-      const from = el.dataset.from;
-      if(from==="waste"){
-        // Alleen top van waste selecteerbaar
-        const i = parseInt(el.dataset.index,10);
-        if(i !== waste.length-1) return;
-        toggleSelect({from:"waste", pile:-1, index:i});
-      }else if(from==="tableau"){
-        const p = parseInt(el.dataset.pile,10);
-        const i = parseInt(el.dataset.index,10);
-        // Alleen bovenste kaart of deelrij die allemaal faceUp zijn selecteren
+      const el=e.currentTarget;
+      const from=el.dataset.from;
+      if(from==='waste'){
+        const i=parseInt(el.dataset.index,10);
+        if(i!==waste.length-1){ return; }
+        // als er al iets geselecteerd is en je klikt op tableau-top → drop
+        toggleSelect({from:'waste',pile:-1,index:i});
+      }else if(from==='tableau'){
+        const p=parseInt(el.dataset.pile,10), i=parseInt(el.dataset.index,10);
         if(!tableau[p][i].faceUp) return;
-        toggleSelect({from:"tableau", pile:p, index:i});
+
+        // NIEUW: als er al iets geselecteerd is en je klikt op de TOP van een tableau-stapel -> probeer droppen op die stapel
+        const isTop = (i===tableau[p].length-1);
+        if(selected && isTop && !(selected.from==='tableau' && selected.pile===p && selected.index===i)){
+          attemptDropOnTableau(p);
+          return;
+        }
+        // anders: selecteer (vanaf i = hele ketting)
+        toggleSelect({from:'tableau',pile:p,index:i});
       }
     }
-
     function onCardDoubleClick(e){
-      // Snel naar foundation, indien kan
-      const el = e.currentTarget;
-      const from = el.dataset.from;
-      if(from==="waste"){
-        const i = parseInt(el.dataset.index,10);
-        if(i !== waste.length-1) return;
-        const card = waste[i];
-        for(let f=0; f<4; f++){
-          if(canMoveSingleToFoundation(card, f)){
-            moveWasteToFoundation(f);
-            return render();
-          }
-        }
-      }else if(from==="tableau"){
-        const p = parseInt(el.dataset.pile,10);
-        const i = parseInt(el.dataset.index,10);
-        // Alleen bovenste kaart naar foundation
-        if(i !== tableau[p].length-1) return;
-        const card = tableau[p][i];
-        for(let f=0; f<4; f++){
-          if(canMoveSingleToFoundation(card, f)){
-            moveTableauTopToFoundation(p, f);
-            return render();
-          }
-        }
+      const el=e.currentTarget, from=el.dataset.from;
+      if(from==='waste'){
+        const i=parseInt(el.dataset.index,10); if(i!==waste.length-1) return;
+        const card=waste[i];
+        for(let f=0;f<4;f++){ if(canMoveToFoundation(card,f)){ waste.pop(); foundations[f].push(card); render(); return; } }
+      }else if(from==='tableau'){
+        const p=parseInt(el.dataset.pile,10), i=parseInt(el.dataset.index,10);
+        if(i!==tableau[p].length-1) return;
+        const card=tableau[p][i];
+        for(let f=0;f<4;f++){ if(canMoveToFoundation(card,f)){ tableau[p].pop(); foundations[f].push(card); flipTopIfNeeded(p); render(); return; } }
       }
     }
-
     function toggleSelect(sel){
-      // deselecteer dezelfde -> uit
-      if(selected &&
-         selected.from===sel.from &&
-         selected.pile===sel.pile &&
-         selected.index===sel.index){
+      if(selected && selected.from===sel.from && selected.pile===sel.pile && selected.index===sel.index){
         selected=null;
       }else{
         selected=sel;
       }
       highlightSelected();
     }
-
     function highlightSelected(){
-      // visueel kader
-      document.querySelectorAll(".card").forEach(c=>c.classList.remove("selected"));
+      document.querySelectorAll('.card').forEach(c=>c.classList.remove('selected'));
       if(!selected) return;
-      if(selected.from==="waste"){
-        const wasteEl=document.getElementById("waste");
-        const last = wasteEl.lastElementChild;
-        if(last) last.classList.add("selected");
-      }else if(selected.from==="tableau"){
-        // highlight de ketting vanaf index
-        const pileEl = document.getElementById("t"+selected.pile);
-        const children = [...pileEl.children];
-        for(let i=selected.index;i<children.length;i++){
-          children[i].classList.add("selected");
-        }
+      if(selected.from==='waste'){
+        const wasteEl=document.getElementById('waste');
+        if(wasteEl.lastElementChild) wasteEl.lastElementChild.classList.add('selected');
+      }else if(selected.from==='tableau'){
+        const pileEl=document.getElementById('t'+selected.pile);
+        const children=[...pileEl.children];
+        for(let i=selected.index;i<children.length;i++) children[i].classList.add('selected');
       }
     }
 
-    // Drop pogingen
-    function attemptDropOnTableau(destPileIndex){
+    // droppen
+    function attemptDropOnTableau(dest){
       if(!selected) return;
-      if(selected.from==="waste"){
-        const card = waste[waste.length-1];
-        if(canMoveToTableau(card, tableau[destPileIndex])){
-          tableau[destPileIndex].push(waste.pop());
-          render();
-        }
-      }else if(selected.from==="tableau"){
-        const src = selected.pile;
-        const startIdx = selected.index;
-        const moving = tableau[src].slice(startIdx);
-        // controle: rij is geldig (alle faceUp en aflopend/afwisselend onderling)
-        if(!isValidTableauRun(moving)) return status("Die rij is niet geldig om te verplaatsen.");
-        if(canMoveToTableau(moving[0], tableau[destPileIndex])){
-          tableau[destPileIndex].push(...moving);
-          tableau[src].length = startIdx;
-          // draai nieuwe top om indien nodig
-          flipTopIfNeeded(src);
-          selected=null;
-          render();
+      if(selected.from==='waste'){
+        const card=waste[waste.length-1];
+        if(canMoveToTableau(card, tableau[dest])){ tableau[dest].push(waste.pop()); selected=null; render(); }
+      }else if(selected.from==='tableau'){
+        const src=selected.pile, start=selected.index;
+        if(src===dest) return; // geen no-op
+        const moving=tableau[src].slice(start);
+        if(!isValidRun(moving)) return status('Die rij kan zo niet verplaatst worden.');
+        if(canMoveToTableau(moving[0], tableau[dest])){
+          tableau[dest].push(...moving);
+          tableau[src].length=start;
+          flipTopIfNeeded(src); selected=null; render();
         }
       }
     }
-
-    function attemptDropOnFoundation(fIndex){
+    function attemptDropOnFoundation(f){
       if(!selected) return;
-      if(selected.from==="waste"){
-        const card = waste[waste.length-1];
-        if(canMoveSingleToFoundation(card,fIndex)){
-          moveWasteToFoundation(fIndex);
-          render();
-        }
-      }else if(selected.from==="tableau"){
-        // alleen bovenste kaart naar foundation
-        const src = selected.pile;
-        if(selected.index !== tableau[src].length-1) return;
-        const card = tableau[src][selected.index];
-        if(canMoveSingleToFoundation(card,fIndex)){
-          moveTableauTopToFoundation(src,fIndex);
-          render();
-        }
+      if(selected.from==='waste'){
+        const card=waste[waste.length-1];
+        if(canMoveToFoundation(card,f)){ foundations[f].push(waste.pop()); selected=null; render(); }
+      }else if(selected.from==='tableau'){
+        const src=selected.pile;
+        if(selected.index!==tableau[src].length-1) return; // alleen top
+        const card=tableau[src][selected.index];
+        if(canMoveToFoundation(card,f)){ foundations[f].push(tableau[src].pop()); flipTopIfNeeded(src); selected=null; render(); }
       }
     }
-
-    function isValidTableauRun(run){
-      // run moet allemaal faceUp zijn, en intern aflopend/afwisselend
-      if(!run.length) return false;
-      for(let i=0;i<run.length;i++){
-        if(!run[i].faceUp) return false;
-      }
-      for(let i=0;i<run.length-1;i++){
-        const a=run[i], b=run[i+1];
-        if(colorOf(a)===colorOf(b)) return false;
-        if(a.rank !== b.rank+1) return false;
-      }
-      return true;
+    function flipTopIfNeeded(p){
+      const pile=tableau[p];
+      if(pile.length && !pile[pile.length-1].faceUp) pile[pile.length-1].faceUp=true;
     }
 
-    function canMoveSingleToFoundation(card,fIndex){
-      return canMoveToFoundation(card,fIndex);
-    }
-
-    function moveWasteToFoundation(fIndex){
-      const card = waste.pop();
-      foundations[fIndex].push(card);
-      selected=null;
-    }
-
-    function moveTableauTopToFoundation(src,fIndex){
-      const card = tableau[src].pop();
-      foundations[fIndex].push(card);
-      flipTopIfNeeded(src);
-      selected=null;
-    }
-
-    function flipTopIfNeeded(pileIndex){
-      const pile = tableau[pileIndex];
-      if(pile.length && !pile[pile.length-1].faceUp){
-        pile[pile.length-1].faceUp = true;
-      }
-    }
-
-    // Stock/Waste
+    // stock/waste
     function drawFromStock(){
       if(!stock.length) return;
-      const n = Math.min(drawCount, stock.length);
-      for(let i=0;i<n;i++){
-        const c = stock.pop();
-        c.faceUp=true;
-        waste.push(c);
-      }
-      selected=null;
-      render();
+      const n=Math.min(drawCount,stock.length);
+      for(let k=0;k<n;k++){ const c=stock.pop(); c.faceUp=true; waste.push(c); }
+      selected=null; render();
     }
     function recycleWaste(){
       if(stock.length) return;
-      while(waste.length){
-        const c=waste.pop();
-        c.faceUp=false;
-        stock.push(c);
-      }
-      selected=null;
-      render();
+      while(waste.length){ const c=waste.pop(); c.faceUp=false; stock.push(c); }
+      selected=null; render();
     }
 
-    // Wincheck
+    // winst
     function checkWin(){
-      const totalInFoundations = foundations.reduce((sum,f)=>sum+f.length,0);
-      if(totalInFoundations===52){
-        status("🎉 Proficiat! Je hebt gewonnen!");
-      }
+      const total=foundations.reduce((s,f)=>s+f.length,0);
+      if(total===52) status('🎉 Proficiat! Je hebt gewonnen!');
     }
+    function status(msg){ document.getElementById('status').textContent=msg; }
 
-    function status(msg){ document.getElementById("status").textContent = msg; }
-
-    // --------- Firestore punten (zoals op je andere pagina’s) ---------
+    // Firestore punten
     async function getUserPoints(){
       try{
         const db=firebase.firestore();
@@ -545,11 +364,8 @@
         const ouderLogin=localStorage.getItem("loginKeuze");
         const kindId=localStorage.getItem("ingelogdKindId");
         if(!parochieId||!ouderLogin||!kindId) return 0;
-        const ref=db.collection("parochies").doc(parochieId)
-          .collection("leden").doc(ouderLogin)
-          .collection("kinderen").doc(kindId);
-        const snap=await ref.get();
-        return snap.exists?(snap.data().punten||0):0;
+        const ref=db.collection("parochies").doc(parochieId).collection("leden").doc(ouderLogin).collection("kinderen").doc(kindId);
+        const snap=await ref.get(); return snap.exists?(snap.data().punten||0):0;
       }catch(e){ console.warn(e); return 0; }
     }
     async function deductPoints(amount){
@@ -559,31 +375,25 @@
         const ouderLogin=localStorage.getItem("loginKeuze");
         const kindId=localStorage.getItem("ingelogdKindId");
         if(!parochieId||!ouderLogin||!kindId) return;
-        const ref=db.collection("parochies").doc(parochieId)
-          .collection("leden").doc(ouderLogin)
-          .collection("kinderen").doc(kindId);
+        const ref=db.collection("parochies").doc(parochieId).collection("leden").doc(ouderLogin).collection("kinderen").doc(kindId);
         await db.runTransaction(async tx=>{
-          const snap=await tx.get(ref);
-          if(!snap.exists) return;
-          const current=snap.data().punten||0;
-          if(current>=amount) tx.update(ref,{punten:current-amount});
+          const snap=await tx.get(ref); if(!snap.exists) return;
+          const curr=snap.data().punten||0; if(curr>=amount) tx.update(ref,{punten:curr-amount});
         });
       }catch(e){ console.warn(e); }
     }
 
-    // --------- Start & Reset ----------
-    document.getElementById("startBtn").addEventListener("click", async ()=>{
-      // punten
-      const points = await getUserPoints();
-      if(points<20){ alert("Niet genoeg punten om te spelen!"); return; }
+    // start/reset
+    document.getElementById('startBtn').addEventListener('click', async ()=>{
+      const points=await getUserPoints();
+      if(points<20){ alert('Niet genoeg punten om te spelen!'); return; }
       await deductPoints(20);
-
-      document.getElementById("board").style.display="flex";
-      document.getElementById("startBtn").style.display="none";
-      document.getElementById("resetBtn").style.display="inline-block";
+      document.getElementById('board').style.display='flex';
+      document.getElementById('startBtn').style.display='none';
+      document.getElementById('resetBtn').style.display='inline-block';
       start();
     });
-    document.getElementById("resetBtn").addEventListener("click",()=>location.reload());
+    document.getElementById('resetBtn').addEventListener('click',()=>location.reload());
   </script>
 </body>
 </html>
