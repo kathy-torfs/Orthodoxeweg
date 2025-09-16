@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Tic Tac Toe – Orthodoxe Kinderpagina</title>
+  <link rel="icon" href="images/kruis.png" />
+
+  <style>
+    :root{
+      --primair:#7bb235; --donker:#67510C;
+      --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
+      --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
+      --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
+      --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
+    }
+    body{
+      margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
+      min-height:100vh; background:var(--pastel1); transition:background .6s;
+    }
+    main{ max-width:900px; margin:20px auto; padding:0 16px; text-align:center }
+
+    #gameWrapper{
+      margin:20px auto; padding:20px;
+      width:360px; height:360px;
+      display:grid; grid-template-columns:repeat(3,1fr);
+      grid-template-rows:repeat(3,1fr);
+      gap:6px;
+      background:var(--donker); border-radius:12px;
+    }
+    .cell{
+      background:#fff; border-radius:8px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:64px; cursor:pointer;
+      transition:background .3s;
+    }
+    .cell:hover{ background:var(--pastel4); }
+    .disabled{ pointer-events:none; }
+
+    #status{ margin:20px 0; font-weight:bold; font-size:20px; }
+    .btn{
+      background:var(--primair); color:#fff; border:none; border-radius:8px;
+      padding:8px 14px; font-weight:bold; cursor:pointer; margin:4px;
+    }
+  </style>
+
+  <script defer src="common/layout.js"></script>
+</head>
+<body>
+  <div id="kinder-header" data-header-src="common/header.html"></div>
+
+  <main>
+    <h1>Tic Tac Toe 😇✝️</h1>
+    <div>
+      <button id="startBtn" class="btn">Spel starten (20 punten)</button>
+      <button id="resetBtn" class="btn" style="display:none;">Opnieuw spelen</button>
+    </div>
+
+    <div id="status"></div>
+    <div id="gameWrapper" style="display:none;"></div>
+  </main>
+
+  <script>
+    // Achtergrond random pastel
+    (function(){
+      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)',
+               'var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)',
+               'var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)',
+               'var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
+      document.body.style.background=p[Math.floor(Math.random()*p.length)];
+    })();
+
+    // Header laden
+    (function boot(){
+      if (!(window.KinderLayout)) return setTimeout(boot,120);
+      const el=document.getElementById('kinder-header');
+      window.KinderLayout.mountHeader({ rootId:'kinder-header', headerSrc:el.dataset.headerSrc, active:'spelletjes' });
+    })();
+
+    const player = "😇";
+    const ai = "✝️";
+    let board = Array(9).fill(null);
+    let gameOver = false;
+
+    const gameWrapper = document.getElementById("gameWrapper");
+    const statusEl = document.getElementById("status");
+    const startBtn = document.getElementById("startBtn");
+    const resetBtn = document.getElementById("resetBtn");
+
+    startBtn.addEventListener("click", () => {
+      startBtn.style.display="none";
+      resetBtn.style.display="inline-block";
+      gameWrapper.style.display="grid";
+      status("Jij begint, veel succes!");
+      initBoard();
+      // hier kan 20 puntenaftrek toegevoegd worden
+    });
+
+    resetBtn.addEventListener("click", resetGame);
+
+    function initBoard(){
+      gameWrapper.innerHTML="";
+      board = Array(9).fill(null);
+      gameOver=false;
+      for(let i=0;i<9;i++){
+        const cell=document.createElement("div");
+        cell.className="cell";
+        cell.dataset.index=i;
+        cell.addEventListener("click", ()=>handleMove(i));
+        gameWrapper.appendChild(cell);
+      }
+    }
+
+    function handleMove(index){
+      if(gameOver || board[index]) return;
+      board[index]=player;
+      render();
+      if(checkWinner(player)){ status("😇 Jij wint!"); gameOver=true; return; }
+      if(board.every(c=>c)){ status("Gelijkspel 🤝"); gameOver=true; return; }
+      status("Beurt van ✝️ ...");
+      setTimeout(aiMove, 600);
+    }
+
+    function aiMove(){
+      // simpele AI: probeer te winnen, anders random
+      let move=findBestMove();
+      if(move===null){
+        let empties=board.map((v,i)=>v?null:i).filter(v=>v!==null);
+        move=empties[Math.floor(Math.random()*empties.length)];
+      }
+      board[move]=ai;
+      render();
+      if(checkWinner(ai)){ status("✝️ wint dit potje!"); gameOver=true; return; }
+      if(board.every(c=>c)){ status("Gelijkspel 🤝"); gameOver=true; return; }
+      status("Jij bent aan de beurt 😇");
+    }
+
+    function findBestMove(){
+      // zoek winnende zet
+      for(let i=0;i<9;i++){
+        if(!board[i]){
+          board[i]=ai;
+          if(checkWinner(ai)){ board[i]=null; return i; }
+          board[i]=null;
+        }
+      }
+      // blokkeer speler
+      for(let i=0;i<9;i++){
+        if(!board[i]){
+          board[i]=player;
+          if(checkWinner(player)){ board[i]=null; return i; }
+          board[i]=null;
+        }
+      }
+      return null;
+    }
+
+    function checkWinner(sym){
+      const wins=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+      return wins.some(([a,b,c])=>board[a]===sym && board[b]===sym && board[c]===sym);
+    }
+
+    function render(){
+      [...gameWrapper.children].forEach((cell,i)=>{
+        cell.textContent=board[i]||"";
+      });
+    }
+
+    function resetGame(){
+      initBoard();
+      status("Nieuw spel gestart! Jij mag weer beginnen 😇");
+    }
+
+    function status(msg){ statusEl.textContent=msg; }
+  </script>
+</body>
+</html>
