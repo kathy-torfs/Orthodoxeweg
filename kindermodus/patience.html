@@ -1,231 +1,219 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <title>Klassiek Solitaire – Patience</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Klassiek Solitaire – Orthodoxe Kinderpagina</title>
+  <link rel="icon" href="images/kruis.png" />
   <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background: green;
-      color: white;
-      font-family: Arial, sans-serif;
-      user-select: none;
+    :root{
+      --primair:#7bb235; --donker:#67510C;
+      --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
+      --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
+      --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
+      --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
     }
-    h1 {
-      text-align: center;
-      margin: 10px;
+    body{
+      margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
+      background:var(--pastel1); transition:background .6s; min-height:100vh;
     }
-    #game {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    main{ max-width:1200px; margin:20px auto; padding:0 16px; text-align:center }
+    #gameArea{ margin-top:20px; }
+
+    .row{ display:flex; justify-content:space-between; width:100%; max-width:1000px; margin:10px auto; }
+    .pile{
+      width:90px; height:130px; border:2px dashed #999; border-radius:8px;
+      position:relative; margin:0 5px;
     }
-    #top-row, #tableau {
-      display: flex;
-      margin: 10px;
+    .card{
+      width:90px; height:130px; border-radius:8px; border:1px solid #333;
+      background:#fff; cursor:pointer; position:absolute;
+      user-select:none;
     }
-    .pile {
-      width: 80px;
-      height: 120px;
-      border: 2px dashed rgba(255,255,255,0.4);
-      margin: 5px;
-      position: relative;
+    .red{ color:red; }
+    .black{ color:black; }
+    .back{
+      background:#7bb235; border:2px solid #333;
     }
-    .card {
-      width: 80px;
-      height: 120px;
-      border-radius: 6px;
-      border: 1px solid #333;
-      background: white;
-      color: black;
-      position: absolute;
-      top: 0; left: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 20px;
-      cursor: grab;
+    .card span{
+      position:absolute; font-size:16px; font-weight:bold;
     }
-    .card.red { color: red; }
-    .card.back {
-      background: darkblue;
-      color: transparent;
-      cursor: pointer;
-    }
-    #foundations, #stock-area {
-      display: flex;
-      flex: 1;
-      justify-content: space-between;
-      margin: 0 20px;
-    }
+    .tl{ top:4px; left:4px; }
+    .tr{ top:4px; right:4px; }
+    .bl{ bottom:4px; left:4px; }
+    .br{ bottom:4px; right:4px; }
+    .center{ font-size:40px; top:50%; left:50%; transform:translate(-50%,-50%); }
+    .dragging{ opacity:0.6; }
   </style>
 </head>
 <body>
-  <h1>Patience – Solitaire</h1>
-  <div id="game">
-    <div id="top-row">
-      <div id="stock-area">
+  <div id="kinder-header" data-header-src="common/header.html"></div>
+  <main>
+    <h1>Klassiek Solitaire</h1>
+    <div id="gameArea">
+      <div class="row">
         <div id="stock" class="pile"></div>
         <div id="waste" class="pile"></div>
+        <div style="flex:1"></div>
+        <div id="foundations" style="display:flex; gap:10px;">
+          <div class="pile foundation" data-suit="♠"></div>
+          <div class="pile foundation" data-suit="♥"></div>
+          <div class="pile foundation" data-suit="♦"></div>
+          <div class="pile foundation" data-suit="♣"></div>
+        </div>
       </div>
-      <div id="foundations">
-        <div id="foundation-0" class="pile"></div>
-        <div id="foundation-1" class="pile"></div>
-        <div id="foundation-2" class="pile"></div>
-        <div id="foundation-3" class="pile"></div>
-      </div>
+      <div class="row" id="tableau"></div>
     </div>
-    <div id="tableau">
-      <div id="tableau-0" class="pile"></div>
-      <div id="tableau-1" class="pile"></div>
-      <div id="tableau-2" class="pile"></div>
-      <div id="tableau-3" class="pile"></div>
-      <div id="tableau-4" class="pile"></div>
-      <div id="tableau-5" class="pile"></div>
-      <div id="tableau-6" class="pile"></div>
-    </div>
-  </div>
+  </main>
 
+  <script defer src="common/layout.js"></script>
   <script>
-    const suits = ['♠','♥','♦','♣'];
-    const values = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-    let deck = [];
-    let stock = [], waste = [], foundations = [[],[],[],[]], tableau = [[],[],[],[],[],[],[]];
+    // Achtergrond telkens wisselen
+    (function(){
+      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)',
+               'var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)',
+               'var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)',
+               'var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
+      document.body.style.background=p[Math.floor(Math.random()*p.length)];
+    })();
+    // Header
+    (function boot(){
+      if (!(window.KinderLayout)) return setTimeout(boot,120);
+      const el=document.getElementById('kinder-header');
+      window.KinderLayout.mountHeader({ rootId:'kinder-header', headerSrc:el.dataset.headerSrc, active:'spelletjes' });
+    })();
 
-    function createDeck() {
-      deck = [];
-      for (let s of suits) {
-        for (let v of values) {
-          deck.push({suit:s, value:v, color:(s==='♥'||s==='♦')?'red':'black'});
+    const suits = ["♠","♥","♦","♣"];
+    const values = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
+    let deck = [];
+
+    function createDeck(){
+      deck=[];
+      for(let s of suits){
+        for(let v of values){
+          deck.push({suit:s,value:v, color:(s==="♥"||s==="♦")?"red":"black"});
         }
       }
-      shuffle(deck);
     }
-    function shuffle(array) {
-      for (let i=array.length-1; i>0; i--) {
+    function shuffle(array){
+      for(let i=array.length-1;i>0;i--){
         const j=Math.floor(Math.random()*(i+1));
         [array[i],array[j]]=[array[j],array[i]];
       }
     }
-
-    function deal() {
-      tableau.forEach(p=>p.splice(0));
-      for (let i=0;i<7;i++) {
-        for (let j=0;j<=i;j++) {
-          let card = deck.pop();
-          card.faceUp = (j===i);
-          tableau[i].push(card);
-        }
-      }
-      stock = deck.splice(0);
-      waste = [];
-      render();
-    }
-
-    function render() {
-      document.querySelectorAll('.pile').forEach(p=>p.innerHTML='');
-      // stock
-      stock.forEach((c,i)=>{
-        let el = createCard(c,false);
-        el.classList.add('back');
-        el.style.top = `${i*0.2}px`;
-        document.getElementById('stock').appendChild(el);
-      });
-      // waste
-      waste.forEach((c,i)=>{
-        let el=createCard(c,c.faceUp);
-        el.style.left=`${i*15}px`;
-        document.getElementById('waste').appendChild(el);
-      });
-      // foundations
-      foundations.forEach((pile,pi)=>{
-        pile.forEach((c,i)=>{
-          let el=createCard(c,true);
-          el.style.top=`${i*2}px`;
-          document.getElementById('foundation-'+pi).appendChild(el);
-        });
-      });
-      // tableau
-      tableau.forEach((pile,pi)=>{
-        pile.forEach((c,i)=>{
-          let el=createCard(c,c.faceUp);
-          el.style.top=`${i*25}px`;
-          el.dataset.pile='tableau';
-          el.dataset.index=pi;
-          if(c.faceUp) makeDraggable(el,c,pi,i);
-          document.getElementById('tableau-'+pi).appendChild(el);
-        });
-      });
-    }
-
-    function createCard(card,faceUp) {
-      let el=document.createElement('div');
-      el.className='card '+(card.color==='red'?'red':'');
-      if(faceUp) {
-        el.innerHTML=`<div style="position:absolute;top:2px;left:4px;font-size:14px">${card.value}${card.suit}</div>
-                      <div style="font-size:28px">${card.suit}</div>
-                      <div style="position:absolute;bottom:2px;right:4px;font-size:14px">${card.value}${card.suit}</div>`;
-      }
+    function createCardEl(card){
+      const el=document.createElement("div");
+      el.classList.add("card", card.color);
+      el.dataset.suit=card.suit;
+      el.dataset.value=card.value;
+      el.draggable=true;
+      el.innerHTML=`
+        <span class="tl">${card.value}${card.suit}</span>
+        <span class="tr">${card.value}${card.suit}</span>
+        <span class="bl">${card.value}${card.suit}</span>
+        <span class="br">${card.value}${card.suit}</span>
+        <span class="center">${card.suit}</span>
+      `;
       return el;
     }
 
-    function makeDraggable(el,card,pileIndex,cardIndex) {
-      el.draggable=true;
-      el.addEventListener('dragstart',e=>{
-        e.dataTransfer.setData('text/plain',JSON.stringify({pileIndex,cardIndex}));
+    const stock=document.getElementById("stock");
+    const waste=document.getElementById("waste");
+    const tableau=document.getElementById("tableau");
+    const foundations=document.querySelectorAll(".foundation");
+
+    function deal(){
+      createDeck(); shuffle(deck);
+      tableau.innerHTML="";
+      for(let i=0;i<7;i++){
+        const pile=document.createElement("div");
+        pile.classList.add("pile","tableau");
+        tableau.appendChild(pile);
+        for(let j=0;j<=i;j++){
+          const card=deck.pop();
+          const el=createCardEl(card);
+          el.style.top=(j*25)+"px";
+          if(j<i) el.classList.add("back");
+          pile.appendChild(el);
+        }
+      }
+      stock.innerHTML="";
+      deck.forEach(c=>{
+        const el=createCardEl(c);
+        el.classList.add("back");
+        stock.appendChild(el);
       });
     }
 
-    // drop targets
-    document.querySelectorAll('.pile').forEach(p=>{
-      p.addEventListener('dragover',e=>e.preventDefault());
-      p.addEventListener('drop',e=>{
+    // Stock click: draai 1 kaart
+    stock.addEventListener("click",()=>{
+      if(stock.children.length){
+        const card=stock.lastChild;
+        stock.removeChild(card);
+        card.classList.remove("back");
+        waste.appendChild(card);
+      }else{
+        while(waste.children.length){
+          const card=waste.lastChild;
+          waste.removeChild(card);
+          card.classList.add("back");
+          stock.appendChild(card);
+        }
+      }
+    });
+
+    // Drag & drop logica
+    document.addEventListener("dragstart", e=>{
+      if(e.target.classList.contains("card") && !e.target.classList.contains("back")){
+        e.dataTransfer.setData("text/plain", JSON.stringify({
+          suit:e.target.dataset.suit,
+          value:e.target.dataset.value
+        }));
+        e.target.classList.add("dragging");
+      } else {
         e.preventDefault();
-        let data=JSON.parse(e.dataTransfer.getData('text/plain'));
-        let source=tableau[data.pileIndex];
-        let moving=source.slice(data.cardIndex);
-        // example: only allow move if target is empty (for K) or descending alternating
-        let targetId=p.id;
-        if(targetId.startsWith('tableau-')) {
-          let ti=parseInt(targetId.split('-')[1]);
-          let target=tableau[ti];
-          if(target.length===0) {
-            if(moving[0].value==='K') {
-              tableau[ti]=target.concat(moving);
-              source.splice(data.cardIndex);
-            }
+      }
+    });
+    document.addEventListener("dragend", e=>{
+      if(e.target.classList.contains("card")) e.target.classList.remove("dragging");
+    });
+
+    const allPiles=[...document.querySelectorAll(".pile")];
+    allPiles.forEach(p=>{
+      p.addEventListener("dragover",e=>e.preventDefault());
+      p.addEventListener("drop",e=>{
+        e.preventDefault();
+        const data=JSON.parse(e.dataTransfer.getData("text/plain"));
+        const cardEl=document.querySelector(".dragging");
+        if(!cardEl) return;
+
+        if(p.classList.contains("foundation")){
+          // alleen juiste suit en oplopend
+          const suit=p.dataset.suit;
+          if(data.suit!==suit) return;
+          const top=p.lastElementChild;
+          const val=values.indexOf(data.value);
+          if(!top && data.value==="A" || (top && values.indexOf(top.dataset.value)===val-1)){
+            p.appendChild(cardEl);
+            cardEl.style.top="0px";
+          }
+        } else if(p.classList.contains("tableau")){
+          // aflopend, wisselende kleuren
+          const top=p.lastElementChild;
+          const val=values.indexOf(data.value);
+          if(!top){
+            if(data.value==="K"){ p.appendChild(cardEl); cardEl.style.top="0px"; }
           } else {
-            let top=target[target.length-1];
-            if(top.faceUp && isValidMove(moving[0],top)) {
-              tableau[ti]=target.concat(moving);
-              source.splice(data.cardIndex);
+            const topVal=values.indexOf(top.dataset.value);
+            if(topVal===val+1 && top.classList.contains(top.dataset.suit==="♥"||top.dataset.suit==="♦"?"red":"black")!==cardEl.classList.contains("red")){
+              cardEl.style.top=(p.children.length*25)+"px";
+              p.appendChild(cardEl);
             }
           }
         }
-        // TODO: foundation logic
-        render();
       });
     });
 
-    function isValidMove(card,target) {
-      return card.color!==target.color && values.indexOf(card.value)===values.indexOf(target.value)-1;
-    }
-
-    // stock click
-    document.getElementById('stock').addEventListener('click',()=>{
-      if(stock.length===0) {
-        stock=waste.reverse().map(c=>(c.faceUp=false,c));
-        waste=[];
-      } else {
-        let c=stock.pop();
-        c.faceUp=true;
-        waste.push(c);
-      }
-      render();
-    });
-
-    createDeck();
     deal();
   </script>
 </body>
