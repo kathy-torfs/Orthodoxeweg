@@ -3,197 +3,308 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Patience (Solitaire)</title>
+  <title>Patience – Orthodoxe Kinderpagina</title>
+  <link rel="icon" href="images/kruis.png" />
+
   <style>
-    body {
-      margin:0; font-family:Arial, sans-serif;
-      background:green; color:white; text-align:center;
+    :root{
+      --primair:#7bb235; --donker:#67510C;
+      --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
+      --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
+      --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
+      --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
     }
-    h1 { margin:10px; }
-    #game { padding:10px; }
-    #top { display:flex; justify-content:space-between; margin-bottom:20px; }
-    .pile {
-      width:80px; height:120px;
-      border:1px solid white; border-radius:8px;
-      background:rgba(255,255,255,0.2);
-      position:relative; margin:0 5px;
+    body{
+      margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
+      min-height:100vh; background:var(--pastel1); transition:background .6s;
     }
-    #tableau { display:flex; justify-content:space-between; margin-top:20px; }
-    .card {
-      width:80px; height:120px;
-      border-radius:8px; background:white; color:black;
-      border:1px solid black; position:absolute;
-      text-align:center; font-size:20px; font-weight:bold;
-      cursor:grab; user-select:none;
-      display:flex; align-items:center; justify-content:center;
+    main{ max-width:1200px; margin:20px auto; padding:0 16px; text-align:center }
+
+    h1{ color:var(--primair); }
+
+    .btn{
+      background:var(--primair); color:#fff; border:none; border-radius:8px;
+      padding:8px 14px; font-weight:bold; cursor:pointer; margin:6px;
     }
-    .red { color:red; }
-    .hidden {
-      background:darkblue; border:1px solid #ccc; color:transparent;
-      cursor:default;
+
+    #gameArea{
+      margin-top:20px; display:flex; flex-direction:column; align-items:center;
+    }
+
+    /* Bovenste rij: foundations links, stock/waste rechts */
+    #topRow{
+      display:flex; justify-content:space-between; width:100%; max-width:1000px;
+      margin-bottom:20px;
+    }
+    #foundations, #stockWaste{
+      display:flex; gap:12px;
+    }
+    .pile{
+      width:90px; height:120px; border:2px dashed #bbb; border-radius:8px;
+      background:#fffef9; position:relative;
+    }
+
+    /* Tableau */
+    #tableau{
+      display:flex; gap:12px; justify-content:center;
+      width:100%; max-width:1000px;
+    }
+    .tableau-col{
+      flex:1; min-width:90px; position:relative;
+    }
+
+    /* Kaarten */
+    .card{
+      width:90px; height:120px; border-radius:8px;
+      background:#fff; position:absolute;
+      box-shadow:0 2px 4px rgba(0,0,0,0.2);
+      cursor:pointer; user-select:none;
+      display:flex; flex-direction:column; justify-content:space-between;
+      padding:4px;
+    }
+    .card .corner{
+      font-size:14px; font-weight:bold;
+    }
+    .card .center{
+      flex:1; display:flex; align-items:center; justify-content:center;
+      font-size:32px;
+    }
+    .red{ color:#d22; }
+    .black{ color:#000; }
+
+    .hidden{
+      background:#7bb235; cursor:default;
+    }
+    .hidden .corner, .hidden .center{ visibility:hidden; }
+
+    /* Regels */
+    #rules{
+      margin-top:40px; text-align:left; background:#fffef9;
+      border:2px solid #eee0b5; border-radius:12px; padding:16px;
+      max-width:800px;
     }
   </style>
+  <script defer src="common/layout.js"></script>
 </head>
 <body>
-  <h1>Patience (Solitaire)</h1>
-  <div id="game">
-    <div id="top">
-      <div id="foundations" style="display:flex; gap:10px;">
-        <div class="pile" id="foundation-0"></div>
-        <div class="pile" id="foundation-1"></div>
-        <div class="pile" id="foundation-2"></div>
-        <div class="pile" id="foundation-3"></div>
+  <div id="kinder-header" data-header-src="common/header.html"></div>
+
+  <main>
+    <h1>Patience – Orthodox spelletje 🃏</h1>
+    <button id="startBtn" class="btn">Spel starten (20 punten)</button>
+    <div id="gameArea" style="display:none;">
+      <div id="topRow">
+        <div id="foundations"></div>
+        <div id="stockWaste">
+          <div id="stock" class="pile"></div>
+          <div id="waste" class="pile"></div>
+        </div>
       </div>
-      <div id="stockWaste" style="display:flex; gap:10px;">
-        <div class="pile" id="stock"></div>
-        <div class="pile" id="waste"></div>
-      </div>
+      <div id="tableau"></div>
+      <div id="status"></div>
     </div>
-    <div id="tableau"></div>
-  </div>
-  <div id="status"></div>
+
+    <div id="rules">
+      <h2>Spelregels</h2>
+      <p>Het doel is om alle kaarten in de 4 <b>foundation-stapels</b> linksboven te leggen, oplopend van Aas tot Koning.</p>
+      <ul>
+        <li>Kaarten in de tableau leg je aflopend en afwisselend rood/zwart.</li>
+        <li>Alleen een Koning mag op een lege tableau-kolom.</li>
+        <li>Je mag 1 kaart van de stock naar de waste draaien. (Bij dit spel altijd 1 per keer.)</li>
+        <li>Een Aas kan naar een lege foundation. Daarna bouw je oplopend tot Koning in dezelfde soort.</li>
+        <li>Je wint als alle kaarten in de foundations liggen. 🎉</li>
+      </ul>
+    </div>
+  </main>
 
   <script>
-    const suits=["♠","♥","♦","♣"];
+    // Achtergrond wisselen
+    (function(){
+      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)',
+               'var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)',
+               'var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)',
+               'var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
+      document.body.style.background=p[Math.floor(Math.random()*p.length)];
+    })();
+
+    // Header laden
+    (function boot(){
+      if (!(window.KinderLayout)) return setTimeout(boot,120);
+      const el=document.getElementById('kinder-header');
+      window.KinderLayout.mountHeader({ rootId:'kinder-header', headerSrc:el.dataset.headerSrc, active:'spelletjes' });
+    })();
+
+    const suits=[{sym:"😇",name:"engel"},{sym:"✝️",name:"kruis"},{sym:"📖",name:"bijbel"},{sym:"🙏",name:"hand"}];
     const values=["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
-    let deck=[],tableau=[[],[],[],[],[],[],[]],foundations=[[],[],[],[]],stock=[],waste=[];
-    let dragged=null;
+
+    let stock=[], waste=[], foundations=[[],[],[],[]], tableau=[[],[],[],[],[],[],[]];
+    let dragData=null;
 
     function createDeck(){
-      deck=[];
-      for(let s of suits){
-        for(let v of values){
-          deck.push({suit:s,value:v,color:(s=="♥"||s=="♦")?"red":"black"});
-        }
-      }
+      let deck=[];
+      suits.forEach((suit,s)=>{
+        values.forEach((val,v)=>{
+          deck.push({suit:s,val:val,value:v+1});
+        });
+      });
       for(let i=deck.length-1;i>0;i--){
         const j=Math.floor(Math.random()*(i+1));
         [deck[i],deck[j]]=[deck[j],deck[i]];
       }
+      return deck;
     }
 
-    function deal(){
+    function startGame(){
+      document.getElementById("startBtn").style.display="none";
+      document.getElementById("gameArea").style.display="block";
+      stock=[]; waste=[]; foundations=[[],[],[],[]]; tableau=[[],[],[],[],[],[],[]];
+      let deck=createDeck();
       for(let i=0;i<7;i++){
         for(let j=0;j<=i;j++){
-          const c=deck.pop(); c.hidden=j<i;
-          tableau[i].push(c);
+          let card=deck.pop();
+          if(j<i) card.hidden=true;
+          tableau[i].push(card);
         }
       }
-      stock=deck; deck=[];
+      stock=deck;
       render();
     }
 
     function render(){
-      const tabEl=document.getElementById("tableau");
-      tabEl.innerHTML="";
-      tableau.forEach((pile,pi)=>{
-        const pileDiv=document.createElement("div");
-        pileDiv.className="pile"; pileDiv.style.width="80px"; pileDiv.style.position="relative";
-        pile.forEach((card,ci)=>{
-          const cDiv=document.createElement("div");
-          cDiv.className="card"+(card.color=="red"?" red":"");
-          if(card.hidden) cDiv.classList.add("hidden");
-          cDiv.textContent=card.hidden?"":card.value+card.suit;
-          cDiv.style.top=(ci*25)+"px";
-          cDiv.draggable=!card.hidden;
-          cDiv.dataset.pi=pi; cDiv.dataset.ci=ci;
-          cDiv.addEventListener("dragstart",dragStart);
-          pileDiv.appendChild(cDiv);
-        });
-        pileDiv.addEventListener("dragover",dragOver);
-        pileDiv.addEventListener("drop",drop);
-        tabEl.appendChild(pileDiv);
+      const f=document.getElementById("foundations");
+      f.innerHTML=""; foundations.forEach((pile,idx)=>{
+        let d=document.createElement("div");
+        d.className="pile"; d.dataset.type="foundation"; d.dataset.index=idx;
+        if(pile.length>0){ d.appendChild(renderCard(pile[pile.length-1])); }
+        f.appendChild(d);
       });
 
-      const stockDiv=document.getElementById("stock");
-      stockDiv.innerHTML="";
-      if(stock.length){
-        const back=document.createElement("div");
-        back.className="card hidden";
-        stockDiv.appendChild(back);
-        stockDiv.onclick=drawFromStock;
-      } else stockDiv.onclick=null;
-
-      const wasteDiv=document.getElementById("waste");
-      wasteDiv.innerHTML="";
-      if(waste.length){
-        const top=waste[waste.length-1];
-        const cDiv=document.createElement("div");
-        cDiv.className="card"+(top.color=="red"?" red":"");
-        cDiv.textContent=top.value+top.suit;
-        cDiv.draggable=true; cDiv.dataset.waste="1";
-        cDiv.addEventListener("dragstart",dragStart);
-        wasteDiv.appendChild(cDiv);
+      const st=document.getElementById("stock");
+      st.innerHTML=""; if(stock.length>0){
+        let back=document.createElement("div");
+        back.className="card hidden"; back.style.position="relative";
+        st.appendChild(back);
+        st.onclick=()=>{ drawStock(); };
+      } else {
+        st.onclick=null;
       }
 
-      for(let i=0;i<4;i++){
-        const f=document.getElementById("foundation-"+i);
-        f.innerHTML="";
-        if(foundations[i].length){
-          const top=foundations[i][foundations[i].length-1];
-          const cDiv=document.createElement("div");
-          cDiv.className="card"+(top.color=="red"?" red":"");
-          cDiv.textContent=top.value+top.suit;
-          f.appendChild(cDiv);
+      const w=document.getElementById("waste");
+      w.innerHTML=""; if(waste.length>0){
+        let c=waste[waste.length-1];
+        let cardEl=renderCard(c);
+        cardEl.draggable=true;
+        cardEl.ondragstart=(ev)=>dragStart(ev,c,"waste");
+        w.appendChild(cardEl);
+      }
+
+      const tab=document.getElementById("tableau");
+      tab.innerHTML="";
+      tableau.forEach((col,idx)=>{
+        let colDiv=document.createElement("div");
+        colDiv.className="tableau-col"; colDiv.dataset.index=idx;
+        let y=0;
+        col.forEach(card=>{
+          let cardEl=renderCard(card);
+          cardEl.style.top=y+"px";
+          cardEl.draggable=!card.hidden;
+          if(!card.hidden){
+            cardEl.ondragstart=(ev)=>dragStart(ev,card,"tableau",idx);
+          }
+          colDiv.appendChild(cardEl);
+          y+=26;
+        });
+        colDiv.ondragover=(ev)=>ev.preventDefault();
+        colDiv.ondrop=(ev)=>drop(ev,"tableau",idx);
+        tab.appendChild(colDiv);
+      });
+
+      checkWin();
+    }
+
+    function renderCard(card){
+      let d=document.createElement("div");
+      d.className="card";
+      if(card.hidden){ d.classList.add("hidden"); return d; }
+      let col=(card.value%2===0)?"red":"black";
+      d.classList.add(col);
+      d.innerHTML=`<div class="corner ${col}">${card.val}</div>
+                   <div class="center">${suits[card.suit].sym}</div>
+                   <div class="corner ${col}" style="text-align:right;">${card.val}</div>`;
+      return d;
+    }
+
+    function drawStock(){
+      if(stock.length===0){
+        stock=waste.reverse(); waste=[];
+      } else {
+        let c=stock.pop(); c.hidden=false;
+        waste.push(c);
+      }
+      render();
+    }
+
+    function dragStart(ev,card,from,fromIndex){
+      dragData={card,from,fromIndex};
+    }
+
+    function drop(ev,to,toIndex){
+      ev.preventDefault();
+      if(!dragData) return;
+      const {card,from,fromIndex}=dragData;
+
+      if(to==="foundation"){
+        let pile=foundations[toIndex];
+        if(canPlaceFoundation(card,pile)){
+          moveCard(card,from,to,toIndex,fromIndex);
         }
-        f.addEventListener("dragover",dragOver);
-        f.addEventListener("drop",dropFoundation);
       }
-    }
-
-    function drawFromStock(){
-      if(stock.length){ waste.push(stock.pop()); }
-      else { stock=waste.reverse(); waste=[]; }
+      if(to==="tableau"){
+        let pile=tableau[toIndex];
+        if(canPlaceTableau(card,pile)){
+          moveCard(card,from,to,toIndex,fromIndex);
+        }
+      }
+      dragData=null;
       render();
     }
 
-    function dragStart(e){ dragged={pi:e.target.dataset.pi,ci:e.target.dataset.ci,waste:e.target.dataset.waste}; }
-    function dragOver(e){ e.preventDefault(); }
-
-    function canPlaceOn(card,target){
-      if(!target) return card.value=="K"; // alleen koning op lege stapel
-      const v1=values.indexOf(card.value),v2=values.indexOf(target.value);
-      return card.color!=target.color && v1==v2-1;
+    function canPlaceFoundation(card,pile){
+      if(pile.length===0) return card.val==="A";
+      let top=pile[pile.length-1];
+      return top.suit===card.suit && card.value===top.value+1;
     }
 
-    function drop(e){
-      e.preventDefault(); if(!dragged) return;
-      let moving;
-      if(dragged.waste){ moving=[waste.pop()]; }
-      else { moving=tableau[dragged.pi].slice(dragged.ci); tableau[dragged.pi]=tableau[dragged.pi].slice(0,dragged.ci); }
-      const pi=[...e.currentTarget.parentNode.children].indexOf(e.currentTarget);
-      const pile=tableau[pi];
-      if(canPlaceOn(moving[0],pile[pile.length-1])){ tableau[pi].push(...moving); }
-      else { if(dragged.waste) waste.push(...moving); else tableau[dragged.pi].push(...moving); }
-      tableau.forEach(p=>{ if(p.length&&p[p.length-1].hidden) p[p.length-1].hidden=false; });
-      render();
+    function canPlaceTableau(card,pile){
+      if(pile.length===0) return card.val==="K";
+      let top=pile[pile.length-1];
+      if(top.hidden) return false;
+      let diff=top.value-card.value;
+      let diffColor=(top.value%2)!==(card.value%2);
+      return diff===1 && diffColor;
     }
 
-    function canPlaceFoundation(card,fPile){
-      if(!fPile.length) return card.value=="A";
-      const v1=values.indexOf(card.value),v2=values.indexOf(fPile[fPile.length-1].value);
-      return card.suit==fPile[fPile.length-1].suit && v1==v2+1;
-    }
-
-    function dropFoundation(e){
-      e.preventDefault(); if(!dragged) return;
-      let card;
-      if(dragged.waste){ card=waste.pop(); }
-      else { card=tableau[dragged.pi].pop(); }
-      const idx=parseInt(e.currentTarget.id.split("-")[1]);
-      if(canPlaceFoundation(card,foundations[idx])){ foundations[idx].push(card); }
-      else { if(dragged.waste) waste.push(card); else tableau[dragged.pi].push(card); }
-      tableau.forEach(p=>{ if(p.length&&p[p.length-1].hidden) p[p.length-1].hidden=false; });
-      render(); checkWin();
+    function moveCard(card,from,to,toIndex,fromIndex){
+      if(from==="waste"){ waste.pop(); }
+      else if(from==="tableau"){ tableau[fromIndex].pop(); 
+        if(tableau[fromIndex].length>0){
+          tableau[fromIndex][tableau[fromIndex].length-1].hidden=false;
+        }
+      }
+      if(to==="foundation"){ foundations[toIndex].push(card); }
+      if(to==="tableau"){ tableau[toIndex].push(card); }
     }
 
     function checkWin(){
-      if(foundations.every(f=>f.length==13)){
-        document.getElementById("status").textContent="🎉 Gefeliciteerd, je hebt gewonnen!";
+      let total=foundations.reduce((a,b)=>a+b.length,0);
+      if(total===52){
+        document.getElementById("status").innerText="🎉 Proficiat! Je hebt gewonnen!";
+      } else {
+        document.getElementById("status").innerText="";
       }
     }
 
-    createDeck(); deal();
+    document.getElementById("startBtn").addEventListener("click",startGame);
   </script>
 </body>
 </html>
