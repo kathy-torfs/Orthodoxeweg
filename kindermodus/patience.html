@@ -20,36 +20,34 @@
     }
     main{ max-width:1200px; margin:20px auto; padding:0 16px; text-align:center }
 
-    #gameArea{
-      display:flex; flex-direction:column; align-items:center;
-    }
-
-    #topRow{
-      width:100%; display:flex; justify-content:space-between; margin-bottom:20px;
-    }
-    #foundations, #stockArea{
-      display:flex; gap:12px; min-height:140px;
-    }
+    #gameArea{ display:flex; flex-direction:column; align-items:center; }
+    #topRow{ width:100%; display:flex; justify-content:space-between; margin-bottom:20px; }
+    #foundations, #stockArea{ display:flex; gap:12px; min-height:140px; }
     .pile, .foundation, .stock, .waste{
       width:90px; height:130px; border:2px dashed #bbb; border-radius:8px;
       position:relative; background:rgba(255,255,255,0.3);
     }
-    #tableau{
-      display:flex; gap:12px; width:100%; justify-content:center;
-    }
+    #tableau{ display:flex; gap:12px; width:100%; justify-content:center; }
+
     .card{
       width:90px; height:130px; border-radius:8px;
-      background:#fff; position:absolute; cursor:pointer;
-      display:flex; align-items:center; justify-content:center;
-      font-weight:bold; font-size:22px; user-select:none;
+      background:#fff; position:absolute;
       box-shadow:0 2px 6px rgba(0,0,0,0.4);
+      font-weight:bold; user-select:none;
     }
     .card.red{ color:red; }
     .card.black{ color:black; }
     .card.back{
       background:linear-gradient(45deg, #7bb235, #67510C);
-      color:transparent;
     }
+    .corner{
+      position:absolute; font-size:14px; font-weight:bold;
+    }
+    .top-left{ top:4px; left:4px; text-align:left; }
+    .top-right{ top:4px; right:4px; text-align:right; }
+    .bottom-left{ bottom:4px; left:4px; text-align:left; transform:rotate(180deg); }
+    .bottom-right{ bottom:4px; right:4px; text-align:right; transform:rotate(180deg); }
+    .center{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:26px; }
   </style>
 
   <script defer src="common/layout.js"></script>
@@ -85,7 +83,7 @@
   </main>
 
   <script>
-    // Achtergrond random pastel
+    // Pastelachtergrond random
     (function(){
       const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)',
                'var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)',
@@ -94,7 +92,7 @@
       document.body.style.background=p[Math.floor(Math.random()*p.length)];
     })();
 
-    // Header
+    // Header laden
     (function boot(){
       if (!(window.KinderLayout)) return setTimeout(boot,120);
       const el=document.getElementById('kinder-header');
@@ -131,23 +129,34 @@
       }
     }
 
+    function createCardDiv(card, pileIndex, cardIndex){
+      const div=document.createElement("div");
+      div.classList.add("card");
+      if(!card.faceUp){
+        div.classList.add("back");
+        return div;
+      }
+      if(card.suit==="♥"||card.suit==="♦") div.classList.add("red");
+      else div.classList.add("black");
+      div.innerHTML=`
+        <div class="corner top-left">${card.value}${card.suit}</div>
+        <div class="corner top-right">${card.value}${card.suit}</div>
+        <div class="center">${card.suit}</div>
+        <div class="corner bottom-left">${card.value}${card.suit}</div>
+        <div class="corner bottom-right">${card.value}${card.suit}</div>
+      `;
+      div.draggable=true;
+      div.dataset.pile=pileIndex;
+      div.dataset.index=cardIndex;
+      return div;
+    }
+
     function render(){
-      // Tableau
       document.querySelectorAll(".pile").forEach((p,i)=>{
         p.innerHTML="";
         tableau[i].forEach((card,j)=>{
-          const div=document.createElement("div");
-          div.classList.add("card");
-          if(!card.faceUp) div.classList.add("back");
-          else{
-            div.textContent=card.value+card.suit;
-            if(card.suit==="♥"||card.suit==="♦") div.classList.add("red");
-            else div.classList.add("black");
-          }
+          const div=createCardDiv(card,i,j);
           div.style.top=(card.faceUp? j*30 : j*10)+"px";
-          div.draggable=card.faceUp;
-          div.dataset.pile=i;
-          div.dataset.index=j;
           p.appendChild(div);
         });
       });
@@ -158,30 +167,19 @@
       wasteDiv.innerHTML="";
       if(waste.length){
         const top=waste[waste.length-1];
-        const div=document.createElement("div");
-        div.classList.add("card");
-        div.textContent=top.value+top.suit;
-        if(top.suit==="♥"||top.suit==="♦") div.classList.add("red");
-        else div.classList.add("black");
-        div.dataset.waste="1"; div.draggable=true;
-        wasteDiv.appendChild(div);
+        wasteDiv.appendChild(createCardDiv(top,null,null));
       }
       // Foundations
       document.querySelectorAll(".foundation").forEach((f,i)=>{
         f.innerHTML="";
         if(foundations[i].length){
           const top=foundations[i][foundations[i].length-1];
-          const div=document.createElement("div");
-          div.classList.add("card");
-          div.textContent=top.value+top.suit;
-          if(top.suit==="♥"||top.suit==="♦") div.classList.add("red");
-          else div.classList.add("black");
-          f.appendChild(div);
+          f.appendChild(createCardDiv(top,null,null));
         }
       });
     }
 
-    // Click stock
+    // Stock click
     document.querySelector(".stock").addEventListener("click",()=>{
       if(stock.length){
         const c=stock.pop(); c.faceUp=true; waste.push(c);
@@ -189,39 +187,6 @@
         while(waste.length){ const c=waste.pop(); c.faceUp=false; stock.push(c); }
       }
       render();
-    });
-
-    // Drag & Drop
-    document.addEventListener("dragstart",e=>{
-      if(e.target.classList.contains("card")){
-        e.dataTransfer.setData("text/plain",JSON.stringify({
-          pile:e.target.dataset.pile,
-          index:e.target.dataset.index,
-          waste:e.target.dataset.waste
-        }));
-      }
-    });
-    document.querySelectorAll(".pile,.foundation,.waste").forEach(zone=>{
-      zone.addEventListener("dragover",e=>e.preventDefault());
-      zone.addEventListener("drop",e=>{
-        e.preventDefault();
-        const data=JSON.parse(e.dataTransfer.getData("text/plain"));
-        let card;
-        if(data.waste){
-          card=waste.pop();
-        }else{
-          card=tableau[data.pile].splice(data.index);
-          if(tableau[data.pile].length && !tableau[data.pile][tableau[data.pile].length-1].faceUp){
-            tableau[data.pile][tableau[data.pile].length-1].faceUp=true;
-          }
-        }
-        if(zone.classList.contains("pile")){
-          tableau[zone.dataset.pile]=tableau[zone.dataset.pile].concat(card);
-        }else if(zone.classList.contains("foundation")){
-          foundations[zone.dataset.foundation].push(...card);
-        }
-        render();
-      });
     });
 
     init();
