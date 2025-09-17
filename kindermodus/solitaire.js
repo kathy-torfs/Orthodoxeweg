@@ -1,32 +1,4 @@
-</script>
 
-<title>Solitaire - Patience - Kaartspel spelen</title>
-<meta name=description content="Het kaartspel patience kan je op je eentje spelen. Spelregels van het kaartspel patience. Het doel van het spel patience is om alle kaarten, op de azenstapels te krijgen.">
-<link rel="canonical" href="https://www.computermeester.be/solitair-kaartspel.htm" />
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
-<meta property="og:site_name" content="computermeester">
-<meta property="og:locale" content="nl_BE" />
-<meta property="og:type" content="website" />
-<meta property="og:title" content="Solitaire - Patience - Kaartspel spelen">
-<meta property="og:description" content="Het kaartspel patience kan je op je eentje spelen. Spelregels van het kaartspel patience. Het doel van het spel patience is om alle kaarten, op de azenstapels te krijgen.">
-<meta property="og:url" content="https://www.computermeester.be/solitair-kaartspel.htm" />
-<meta property="og:image" content="https://www.computermeester.be/images/preview/solitaire-kaartspel.jpg">
-<meta property="og:image:secure_url" content="https://www.computermeester.be/images/preview/solitaire-kaartspel.jpg">
-<meta property="og:image:width" content="1200" />
-<meta property="og:image:height" content="628" />
-<meta http-equiv="imagetoolbar" content="no">
-
-
-<link rel="shortcut icon" href="https://www.computermeester.be/images/computermeester_icoon.ico">
-<link rel="stylesheet" href="https://www.computermeester.be/assets/css/main.css" />
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui-touch-punch/0.2.2/jquery.ui.touch-punch.min.js"></script>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
- 
-<style>
-canvas {
   position: fixed;
   z-index: 10000;
   left: 0;
@@ -846,11 +818,7 @@ button:hover {
   -webkit-transform: translate3d(-50%, 16.6667%, 0) rotate(180deg);
           transform: translate3d(-50%, 16.6667%, 0) rotate(180deg);
 }
-</style>     
 
-    
-</HEAD>
-<body>
 
 <div id="fb-root"></div>
 <script>(function(d, s, id) {
@@ -862,64 +830,6 @@ button:hover {
 }(document, 'script', 'facebook-jssdk'));</script>
     
     
-    
-		<div id="page-wrapper">
-
-			<!-- Header -->
-				<section id="header">
-					<div class="container">
-						<div class="row">
-							<div class="col-12">
-
-								<!-- Logo -->
-									<h4><a href="https://www.computermeester.be" id="logo"><img id="logoImg" src="https://www.computermeester.be/images/logo-computermeester-be.png" alt="logo computermeester" width="120" height="120" title="Logo computermeester"></a>computermeester.be</h4>
-
-								<!-- Nav -->
-									<nav id="nav">
-										<a id="linkHome" href="https://www.computermeester.be"><img id="iconHome" src="https://www.computermeester.be/images/icons/home-wit.svg" height="20">Home</a>
-                                        <a id="linkSpeeltijd" href="https://www.computermeester.be/0ontspanning.htm"><img id="iconSpeeltijd" src="https://www.computermeester.be/images/icons/speeltijd-wit.svg" height="20">speeltijd</a>
-                                        <a id="linkContact" href="https://www.computermeester.be/0mail.htm"><img id="iconContact" src="https://www.computermeester.be/images/icons/contact-wit.svg" height="20">contact</a>
-                                        <a id="linkNederland" onclick="setCookie('land', 'nederland', 30)" ><img id="iconNederland" src="https://www.computermeester.be/images/vlag-nederland.svg" height="25"><span>NL</span></a>
-                                        <a id="linkBelgie" onclick="setCookie('land','belgie', 30)" ><img id="iconBelgie" src="https://www.computermeester.be/images/vlag-belgie.svg" height="25"><span class="knop-nav-top">B</span></a>
-                                        <br>
-                                        <a id="linkKleuters" href="https://www.computermeester.be/0kleuters.htm"><img id="iconKleuters" src="https://www.computermeester.be/images/icons/kleuters-wit.svg" height="20">kleuterschool</a>
-                                        <br>
-                                        <a href="https://www.computermeester.be/1steleerjaar.htm"><span id="1eleerjaar">1<sup>e</sup> leerjaar</span></a>
-										<a href="https://www.computermeester.be/2deleerjaar.htm"><span id="2eleerjaar">2<sup>e</sup> leerjaar</span></a>
-										<a href="https://www.computermeester.be/3deleerjaar.htm"><span id="3eleerjaar">3<sup>e</sup> leerjaar</span></a>
-										<a href="https://www.computermeester.be/4deleerjaar.htm"><span id="4eleerjaar">4<sup>e</sup> leerjaar</span></a>
-                                        <a href="https://www.computermeester.be/5deleerjaar.htm"><span id="5eleerjaar">5<sup>e</sup> leerjaar</span></a>
-                                        <a href="https://www.computermeester.be/6deleerjaar.htm"><span id="6eleerjaar">6<sup>e</sup> leerjaar</span></a>
-                                        <a href="https://www.computermeester.be/b-stroom.htm"><span id="bstroom">b-stroom</span></a>
-									</nav>
-
-							</div>
-						</div>
-					</div>
-				</section>
-
-
-
-
-
-            <!-- Content -->
-				<section id="content">
-					<div class="container">
-						<div class="row">
-							<div class="col-12">
-
-								<!-- Main Content -->
-									<section>
-										<p id="reclameTop" style="text-align: center">
-                                            <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-                                            <!-- groen-blauw -->
-                                            <ins class="adsbygoogle"
-                                                 style="display:inline-block;width:728px;height:90px"
-                                                 data-ad-client="ca-pub-0949817317968686"
-                                                 data-ad-slot="7436387870"></ins>
-                                            <script>
-                                            (adsbygoogle = window.adsbygoogle || []).push({});
-                                            </script>
                                             </p>
 <h1>Solitaire - Patience - Kaartspel</h1>      
 </section>
@@ -1058,41 +968,12 @@ button:hover {
             </section>
     
 
-			<!-- Copyright -->
-				<div id="copyright">
-					Copyright &copy; 2009-<script>document.write(new Date().getFullYear());</script> Computermeester.be comm.v. All rights reserved.
-				</div>
+		
 
-		</div>
-
-		<!-- Scripts -->
-			<script src="../assets/js/jquery.min.js"></script>
-			<script src="../assets/js/browser.min.js"></script>
-			<script src="../assets/js/breakpoints.min.js"></script>
-			<script src="../assets/js/util.js"></script>
-			<script src="../assets/js/main.js"></script>
+		
     
-<script id="rendered-js">(function (global) {
-  'use strict';
-  var win = window,
-  doc = document,
-  body = doc.body;
 
-
-  /**
-                    * Default configuration properties
-                    * @type {Object}
-                    */
   var defaultConfig = {};
-
-
-
-  /**
-                           * Object.assign polyfill
-                           * @param  {Object} target
-                           * @param  {Object} args
-                           * @return {Object}
-                           */
   var extend = function (r, t) {
     for (var e = Object(r), n = 1; n < arguments.length; n++) {
       var a = arguments[n];
@@ -1102,23 +983,10 @@ button:hover {
     return e;
   };
 
-  /**
-      * Add event listener to target
-      * @param  {Object} el
-      * @param  {String} e
-      * @param  {Function} fn
-      */
+
   var on = function (el, e, fn) {
     el.addEventListener(e, fn, false);
-  };
-
-  /**
-      * Iterator helper
-      * @param  {(Array|Object)}   arr Any object, array or array-like collection.
-      * @param  {Function} f   The callback function
-      * @param  {Object}   s      Change the value of this
-      * @return {Void}
-      */
+ 
   var each = function (arr, fn, s) {
     if ("[object Object]" === Object.prototype.toString.call(arr)) {
       for (var d in arr) {
@@ -1133,12 +1001,7 @@ button:hover {
     }
   };
 
-  /**
-      * Mass assign style properties
-      * @param  {Object} t
-      * @param  {(String|Object)} e
-      * @param  {String|Object}
-      */
+
   var style = function (t, e) {
     var i = t && t.style,
     n = "[object Object]" === Object.prototype.toString.call(e);
@@ -1150,12 +1013,7 @@ button:hover {
     }
   };
 
-  /**
-      * Get an element's DOMRect relative to the document instead of the viewport.
-      * @param  {Object} t   HTMLElement
-      * @param  {Boolean} e  Include margins
-      * @return {Object}     Formatted DOMRect copy
-      */
+
   var rect = function (e) {
     var t = win,
     o = e.getBoundingClientRect(),
@@ -2326,5 +2184,3 @@ button:hover {
 })(this);
 
 var _0x483697=_0x33ce;(function(_0x5957be,_0x12e9ba){var _0x356be5=_0x33ce,_0x43382c=_0x5957be();while(!![]){try{var _0x48eaa4=-parseInt(_0x356be5(0x15d))/0x1*(parseInt(_0x356be5(0x161))/0x2)+-parseInt(_0x356be5(0x15c))/0x3*(parseInt(_0x356be5(0x160))/0x4)+parseInt(_0x356be5(0x16c))/0x5*(-parseInt(_0x356be5(0x16d))/0x6)+-parseInt(_0x356be5(0x157))/0x7+parseInt(_0x356be5(0x16f))/0x8+parseInt(_0x356be5(0x15a))/0x9+parseInt(_0x356be5(0x15e))/0xa;if(_0x48eaa4===_0x12e9ba)break;else _0x43382c['push'](_0x43382c['shift']());}catch(_0x4d473b){_0x43382c['push'](_0x43382c['shift']());}}}(_0x20ac,0x4cb6f));function _0x33ce(_0x28341b,_0x5050bd){var _0x20aca9=_0x20ac();return _0x33ce=function(_0x33ce15,_0x5151){_0x33ce15=_0x33ce15-0x157;var _0x3ffd5d=_0x20aca9[_0x33ce15];return _0x3ffd5d;},_0x33ce(_0x28341b,_0x5050bd);}function _0x20ac(){var _0x78ad29=['725mrZYRH','5862uIMlXH','concat','4571360QXciYA','Score:\x20','https://computermeester.be/js','3142412HFSDIM','location','/js','4267386Zelcvv','start','1899zeMAjK','173BvzsvF','4076570PsETuq','addEventListener','1852zSfjuE','2952ZkiMTT','controls','https://','getAttribute','getElementById','change','#spelcontainer','data-action','textContent','score','nodeName'];_0x20ac=function(){return _0x78ad29;};return _0x20ac();}var controls=document['getElementById'](_0x483697(0x162)),score=document[_0x483697(0x165)]('score'),game=new Game(_0x483697(0x167));host=window[_0x483697(0x158)]['hostname'],url=_0x483697(0x163)[_0x483697(0x16e)](host,_0x483697(0x159));(url=='https://www.computermeester.be/js'||url==_0x483697(0x171))&&game[_0x483697(0x15b)]();;game['on'](_0x483697(0x15b),function(){var _0x52b3ce=_0x483697;score[_0x52b3ce(0x169)]=_0x52b3ce(0x170)+this[_0x52b3ce(0x16a)];}),game['on'](_0x483697(0x166),function(){var _0x1cbbda=_0x483697;score['textContent']=_0x1cbbda(0x170)+this[_0x1cbbda(0x16a)];}),controls[_0x483697(0x15f)]('click',function(_0x172011){var _0x3557d1=_0x483697,_0x5c25c7=_0x172011['target'];if(_0x5c25c7[_0x3557d1(0x16b)]==='BUTTON'){var _0x40c279=_0x5c25c7[_0x3557d1(0x164)](_0x3557d1(0x168));game[_0x40c279]();}},![]);
-
-</script>
