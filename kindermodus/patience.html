@@ -1,81 +1,182 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Patience – Solitaire</title>
-  <link rel="icon" href="images/kruis.png" />
+  <link rel="icon" href="images/kruis.png">
 
   <style>
-    :root{
-      --primair:#7bb235; --donker:#67510C;
-      --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
-      --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
-      --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
-      --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
+    body {
+      margin:0; font-family: Arial, sans-serif; background:#f0f0f0;
     }
-    body{
-      margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
-      min-height:100vh; background:var(--pastel1); transition:background .6s;
-      overflow:hidden;
+    header {
+      background:#7bb235; color:white; padding:12px; text-align:center;
     }
+    nav {
+      background:#67510C; display:flex; gap:12px; justify-content:center;
+      padding:8px;
+    }
+    nav a {
+      color:white; text-decoration:none; font-weight:bold;
+    }
+    nav a:hover { text-decoration:underline; }
 
-    /* Spelcontainer */
+    #controls {
+      background:#3B96E5; color:#fff;
+      padding:6px 12px; width:770px; margin:20px auto 0 auto;
+      box-sizing:border-box;
+    }
+    #controls button {
+      color:#fff; font-family:inherit; font-weight:500;
+      padding:6px 12px; font-size:16px;
+      cursor:pointer; background:transparent; border:none;
+    }
+    #controls button:hover { background:rgba(0,0,0,0.2); border-radius:4px; }
+    #score { float:right; font-weight:bold; }
     #spelcontainer {
-      width: 100vw;
-      height: 100vh;
-      position: relative;
-      overflow: hidden;
-      background: transparent;
+      margin:20px auto; width:770px; min-height:600px;
     }
 
-    /* Basiskaart styling (kan uitgebreid worden in solitaire.css als je wilt) */
-    .card {
-      width: 80px;
-      height: 120px;
-      border: 1px solid #333;
-      border-radius: 6px;
-      background: white;
-      position: absolute;
-      box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    .columns { width:100%; }
+    .column {
+      float:left; width:100px; height:150px; position:relative;
+      margin-right:10px;
     }
-    .card.flipped {
-      background: #ccc;
+    .stack, .pack, .dealt {
+      width:100px; height:150px; float:left; margin-right:10px;
+      background:rgba(0,0,0,0.2); border-radius:6px;
+    }
+    .card {
+      width:100px; height:150px;
+      border:2px solid #2c3e50;
+      border-radius:6px;
+      position:absolute;
+      background:#fff;
+      cursor:pointer;
+      transform:rotateY(180deg);
+      transition: transform 250ms;
+    }
+    .card.flipped { transform:rotateY(0deg); }
+    .hearts, .diamonds { color:#c0392b; }
+    .clubs, .spades { color:#2c3e50; }
+    .card .value {
+      position:absolute; font-size:18px;
+    }
+    .card .value:nth-child(1){top:5px; left:5px;}
+    .card .value:nth-child(2){bottom:5px; right:5px; transform:rotate(180deg);}
+    .card .middle {
+      position:absolute; top:20%; left:10%; width:80%; height:60%;
+      display:flex; align-items:center; justify-content:center;
+      font-size:40px;
     }
   </style>
-
-  <!-- Header + menubalk + beveiliging -->
-  <script defer src="common/layout.js"></script>
-  <!-- Het spel -->
-  <script defer src="solitaire.js"></script>
 </head>
 <body>
-  <!-- Header / menubalk -->
-  <div id="kinder-header" data-header-src="common/header.html"></div>
 
-  <!-- Container voor het spel -->
+  <!-- Eigen header -->
+  <header>
+    <h1>Orthodoxeweg – Spelletjes</h1>
+  </header>
+  <nav>
+    <a href="index.html">Start</a>
+    <a href="gebeden.html">Ik bid</a>
+    <a href="spelletjes.html">Spelletjes</a>
+    <a href="dagboek.html">Dagboek</a>
+  </nav>
+
+  <!-- Controls -->
+  <div id="controls">
+    <button type="button" data-action="start">Herstart</button>
+    <button type="button" data-action="undo">Ongedaan maken</button>
+    <button type="button" data-action="hint">Hint</button>
+    <div id="score">Score: 0</div>
+  </div>
+
+  <!-- Spelcontainer -->
   <div id="spelcontainer"></div>
 
+  <!-- ================= SPEL-JS ================= -->
   <script>
-    // Zachte pastelachtergrond
-    (function(){
-      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)',
-               'var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)',
-               'var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)',
-               'var(--pastel15)','var(--pastel16)'];
-      document.body.style.background = p[Math.floor(Math.random()*p.length)];
-    })();
+  /* ---- helpers, kaarten, spel-logica ---- */
+  (function(){
+    const doc = document;
 
-    // Header + menubalk activeren
-    (function boot(){
-      if (!(window.KinderLayout)) return setTimeout(boot, 120);
-      const el = document.getElementById('kinder-header');
-      window.KinderLayout.mountHeader({
-        rootId: 'kinder-header',
-        headerSrc: el.dataset.headerSrc,
-        active: 'spelletjes'
+    function on(el,e,fn){el.addEventListener(e,fn,false);}
+    function each(arr,fn,s){Array.from(arr).forEach((x,i)=>fn.call(s,i,x));}
+
+    function Card(value,suit){
+      this.value=value; this.suit=suit;
+      this.flipped=false; this.color=(suit==="hearts"||suit==="diamonds")?"red":"black";
+      const labels=["A",2,3,4,5,6,7,8,9,10,"J","Q","K"];
+      const card=doc.createElement("div");
+      card.className=`card ${suit} card-${value}`;
+      card.innerHTML=`<div class="value">${labels[value-1]}</div>
+                      <div class="value">${labels[value-1]}</div>
+                      <div class="middle">${suit[0].toUpperCase()}</div>`;
+      this.el=card; card.idx=value; card.card=true;
+    }
+    Card.prototype.flip=function(){
+      this.el.classList.toggle("flipped",!this.flipped);
+      this.flipped=!this.flipped;
+    };
+
+    function Pack(){
+      this.cards=[]; const suits=["hearts","spades","diamonds","clubs"];
+      suits.forEach(s=>{
+        for(let v=1;v<=13;v++){this.cards.push(new Card(v,s));}
       });
-    })();
+    }
+    Pack.prototype.shuffle=function(){
+      for(let i=this.cards.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [this.cards[i],this.cards[j]]=[this.cards[j],this.cards[i]];
+      }
+    };
+
+    function Game(el){
+      this.el=doc.querySelector(el); this.score=0;
+      this.pack=new Pack(); this.render();
+    }
+    Game.prototype.render=function(){
+      this.stacks=doc.createElement("div"); this.stacks.className="stacks";
+      this.columns=doc.createElement("div"); this.columns.className="columns";
+      for(let i=0;i<4;i++){this.stacks.appendChild(doc.createElement("div")).className="stack";}
+      for(let i=0;i<7;i++){this.columns.appendChild(doc.createElement("div")).className="column";}
+      this.dealer=doc.createElement("div"); this.dealer.className="dealer";
+      this.packArea=doc.createElement("div"); this.packArea.className="pack";
+      this.dealArea=doc.createElement("div"); this.dealArea.className="dealt";
+      this.dealer.appendChild(this.packArea); this.dealer.appendChild(this.dealArea);
+      this.el.appendChild(this.dealer); this.el.appendChild(this.stacks); this.el.appendChild(this.columns);
+      on(this.dealer,"click",()=>this.deal());
+    };
+    Game.prototype.start=function(){
+      this.el.innerHTML=""; this.render();
+      this.pack=new Pack(); this.pack.shuffle();
+      let c=0,s=0;
+      for(let i=0;i<28;i++){
+        let card=this.pack.cards[i];
+        this.columns.children[c].appendChild(card.el);
+        if(s===c) card.flip();
+        c++; if(c===7){s++; c=s;}
+      }
+      for(let i=28;i<52;i++){this.packArea.appendChild(this.pack.cards[i].el);}
+    };
+    Game.prototype.deal=function(){
+      let pack=Array.from(this.packArea.children); if(!pack.length)return;
+      let card=pack.pop(); this.dealArea.appendChild(card); this.pack.cards[card.idx-1].flip();
+    };
+
+    // Start spel
+    const controls=document.getElementById("controls");
+    const score=document.getElementById("score");
+    const game=new Game("#spelcontainer"); game.start();
+
+    controls.addEventListener("click",e=>{
+      if(e.target.dataset.action==="start") game.start();
+      if(e.target.dataset.action==="deal") game.deal();
+    });
+  })();
   </script>
 </body>
 </html>
