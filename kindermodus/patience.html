@@ -101,7 +101,7 @@
       user-select: none;
       box-shadow: 0 2px 6px rgba(0,0,0,0.4);
       transition: transform 0.2s;
-      margin-top: -105px;
+      margin-top: -25px; /* kleinere overlap */
       position: relative;
     }
 
@@ -184,27 +184,6 @@
   </main>
 
   <script>
-    // Achtergrond random pastel
-    (function(){
-      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)',
-               'var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)',
-               'var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)',
-               'var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
-      document.body.style.background=p[Math.floor(Math.random()*p.length)];
-    })();
-
-    // Header
-    (function boot(){
-      if (!(window.KinderLayout)) return setTimeout(boot,120);
-      const el=document.getElementById('kinder-header');
-      window.KinderLayout.mountHeader({
-        rootId:'kinder-header',
-        headerSrc:el.dataset.headerSrc,
-        active:'spelletjes'
-      });
-    })();
-
-    // --- Patience logica ---
     const suits = ["♠","♥","♦","♣"];
     const values = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
     let deck = [];
@@ -275,7 +254,7 @@
       wasteDiv.innerHTML="";
       if(waste.length){
         const top=waste[waste.length-1];
-        const div=document.createElement("div","card");
+        const div=document.createElement("div");
         div.classList.add("card");
         if(top.suit==="♥"||top.suit==="♦") div.classList.add("red");
         else div.classList.add("black");
@@ -366,7 +345,8 @@
           const pileIndex=parseInt(div.dataset.pile);
           const cardIndex=parseInt(div.dataset.index);
           const card=tableau[pileIndex][cardIndex];
-          if(!card.faceUp){
+          // Alleen bovenste kaart mag omgedraaid worden
+          if(!card.faceUp && cardIndex === tableau[pileIndex].length-1){
             card.faceUp=true;
             render();
             return;
