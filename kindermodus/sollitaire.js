@@ -1,31 +1,117 @@
 // ===== CSS injecteren =====
 const css = `
-  /* Orthodoxeweg kleuren */
-  :root {
-    --primair:#7bb235; --donker:#67510C;
-    --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
-    --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
-    --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
-    --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
-  }
+:root{
+  --primair:#7bb235; --donker:#67510C;
+  --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
+  --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
+  --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
+  --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
+}
 
-  body {
-    margin:0;
-    font-family:'Comic Sans MS', Arial, sans-serif;
-    color:#333;
-    min-height:100vh;
-    background:var(--pastel1);
-    transition:background .6s;
-  }
+body{
+  margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
+  min-height:100vh; background:var(--pastel1); transition:background .6s;
+}
 
-  /* ... al je andere CSS ... */
+button {
+  color:#fff; font-family:inherit; font-weight:500;
+  padding:6px 12px; font-size:16px; cursor:pointer;
+  background-color:transparent; border:none;
+}
+button:hover {
+  background-color:rgba(0,0,0,0.3);
+  border-color:rgba(0,0,0,0.3);
+}
+
+#spelcontainer::after, .clearfix::after {
+  clear:both; content:""; display:table;
+}
+#spelcontainer {
+  position:absolute; left:10px; top:60px;
+  height:80vh; width:770px; text-align:center;
+}
+
+#controls {
+  position:absolute; width:770px; left:10px; top:5px;
+  box-sizing:border-box; background-color:#3B96E5;
+}
+#score {
+  color:#fff; float:right; padding:6px 12px;
+}
+
+.columns { width:100%; }
+.column { float:left; position:relative; width:100px; height:150px; }
+
+.column .card:nth-child(1), .column .ghost:nth-child(1) { top:0px; z-index:11; }
+.column .card:nth-child(2), .column .ghost:nth-child(2) { top:25px; z-index:12; }
+.column .card:nth-child(3), .column .ghost:nth-child(3) { top:50px; z-index:13; }
+.column .card:nth-child(4), .column .ghost:nth-child(4) { top:75px; z-index:14; }
+.column .card:nth-child(5), .column .ghost:nth-child(5) { top:100px; z-index:15; }
+.column .card:nth-child(6), .column .ghost:nth-child(6) { top:125px; z-index:16; }
+.column .card:nth-child(7), .column .ghost:nth-child(7) { top:150px; z-index:17; }
+.column .card:nth-child(8), .column .ghost:nth-child(8) { top:175px; z-index:18; }
+.column .card:nth-child(9), .column .ghost:nth-child(9) { top:200px; z-index:19; }
+.column .card:nth-child(10), .column .ghost:nth-child(10) { top:225px; z-index:20; }
+.column .card:nth-child(11), .column .ghost:nth-child(11) { top:250px; z-index:21; }
+.column .card:nth-child(12), .column .ghost:nth-child(12) { top:275px; z-index:22; }
+.column .card:nth-child(13), .column .ghost:nth-child(13) { top:300px; z-index:23; }
+.column .card:nth-child(14), .column .ghost:nth-child(14) { top:325px; z-index:24; }
+.column .card:nth-child(15), .column .ghost:nth-child(15) { top:350px; z-index:25; }
+.column .card:nth-child(16), .column .ghost:nth-child(16) { top:375px; z-index:26; }
+.column .card:nth-child(17), .column .ghost:nth-child(17) { top:400px; z-index:27; }
+.column .card:nth-child(18), .column .ghost:nth-child(18) { top:425px; z-index:28; }
+.column .card:nth-child(19), .column .ghost:nth-child(19) { top:450px; z-index:29; }
+.column .card:nth-child(20), .column .ghost:nth-child(20) { top:475px; z-index:30; }
+
+.pack, .dealt {
+  position:relative; width:100px; height:150px; float:left;
+}
+.stack {
+  width:100px; height:150px; border-radius:6.25px;
+  display:inline-block; position:relative; box-sizing:border-box;
+}
+.dealer, .stacks { float:left; }
+.dealer { width:30%; text-align:left; }
+.stacks { width:70%; text-align:right; }
+.pack, .dealt, .stack, .column {
+  background-color:rgba(0,0,0,0.3);
+  margin:0 10px 10px 0; border-radius:6.25px;
+}
+
+/* De kaarten */
+.card {
+  width:100px; height:150px; border:2px solid #2c3e50;
+  border-radius:6.25px; position:absolute;
+  background-color:#fff; cursor:pointer; left:0; top:0;
+  transform:rotateY(180deg); z-index:1;
+  transform-style:preserve-3d;
+  transition:transform 250ms, z-index 250ms step-end;
+}
+.column .card.flipped { box-shadow:0 0 20px -5px #000; }
+.card, .card * { pointer-events:none; }
+.dealt .card { pointer-events:none; }
+.dealt .card:last-child,
+.column .card.flipped,
+.stack .card.flipped:last-child { pointer-events:inherit; }
+
+.card > div {
+  display:block; height:100%; width:100%; position:absolute;
+  backface-visibility:hidden; border-radius:6.25px;
+}
+.card .rear {
+  background:#fff url("images/solitair-back.png") center/82% 88% no-repeat;
+  transform:rotateY(180deg);
+}
+.card.flipped {
+  transform:rotateY(0deg); z-index:2;
+}
 `;
 
 const style = document.createElement("style");
 style.textContent = css;
 document.head.appendChild(style);
 
-<script id="rendered-js">
+// ===== Spelcode start =====
 (function (global) {
   'use strict';
   var win = window,
@@ -65,7 +151,6 @@ document.head.appendChild(style);
       }
     }
   };
-
   /** Style helper */
   var style = function (t, e) {
     var i = t && t.style,
@@ -99,6 +184,7 @@ document.head.appendChild(style);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min)) + min;
   };
+
   /* EMITTER */
   var Emitter = function () {};
   Emitter.prototype = {
@@ -221,7 +307,6 @@ document.head.appendChild(style);
       this.cards[m].el.idx = m;
     }
   };
-
   // GAME
   function Game(el, options) {
     if (typeof el === "string") {
@@ -316,6 +401,7 @@ document.head.appendChild(style);
     on(doc, "dragover", this.events.dragover);
     on(doc, "dragend", this.events.dragend);
   };
+
   Game.prototype.click = function (e) {
     var t = e.target;
     if (t.classList.contains("pack")) {
@@ -404,7 +490,7 @@ document.head.appendChild(style);
         "px, " +
         y +
         "px, 0px);";
-      this.activeCard.el.style.cssText = css;
+      c.el.style.cssText = css;
 
       if (this.siblings.length) {
         each(this.siblings, function (i, card) {
@@ -784,7 +870,6 @@ document.head.appendChild(style);
       }, this.animationInterval);
     }
   };
-
   Game.prototype.start = function () {
     var columns = 7;
     var current = 0;
@@ -821,6 +906,7 @@ document.head.appendChild(style);
 
     this.emit("start");
   };
+
   Game.prototype.hint = function () {
     this.hinted = false;
 
@@ -842,7 +928,7 @@ document.head.appendChild(style);
       if (c) {
         var card = this.pack.cards[c.idx];
         var isLast,
-          siblings = [];
+            siblings = [];
 
         var nodeIndex = [].slice.call(card.el.parentNode.children).indexOf(card.el);
 
@@ -875,7 +961,7 @@ document.head.appendChild(style);
         each(columns, function (idx, col) {
           if (this.isLegalMove(card, col) && isLast && !this.hinted) {
             var lastCard,
-              last = col.lastElementChild;
+                last = col.lastElementChild;
 
             if (last) {
               lastCard = this.pack.cards[last.idx].el;
@@ -938,7 +1024,6 @@ document.head.appendChild(style);
       stack.classList.remove("empty");
     });
   };
-
   Game.prototype.win = function () {
     if (this.won) {
       return false;
@@ -1071,6 +1156,7 @@ document.head.appendChild(style);
     setGravity();
     setWind();
   };
+
   Game.prototype.cheat = function () {
     var that = this;
     this.checked = false;
@@ -1087,15 +1173,9 @@ document.head.appendChild(style);
         s = n;
         if (n > 10) {
           switch (n) {
-            case 11:
-              s = "J";
-              break;
-            case 12:
-              s = "Q";
-              break;
-            case 13:
-              s = "K";
-              break;
+            case 11: s = "J"; break;
+            case 12: s = "Q"; break;
+            case 13: s = "K"; break;
           }
         }
 
@@ -1147,39 +1227,7 @@ document.head.appendChild(style);
   global.Game = Game;
 })(this);
 
-var controls = document.getElementById("controls"),
-  score = document.getElementById("score"),
-  game = new Game("#spelcontainer");
-
-game.start();
-
-game.on("start", function () {
-  score.textContent = "Score: " + this.score;
-});
-
-game.on("change", function () {
-  score.textContent = "Score: " + this.score;
-});
-
-controls.addEventListener(
-  "click",
-  function (e) {
-    var t = e.target;
-    if (t.nodeName === "BUTTON") {
-      var action = t.getAttribute("data-action");
-      game[action]();
-    }
-  },
-  false
-);
-</script>
-
-(function (global) {
-  'use strict';
-  // ... volledige spelcode ...
-})(this);
-
-// Init
+// ===== Init spel =====
 var controls = document.getElementById("controls"),
     score = document.getElementById("score"),
     game = new Game("#spelcontainer");
