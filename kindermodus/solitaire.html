@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patience – Solitaire</title>
+
+  <style>
+    body {
+      margin:0; font-family: Arial, sans-serif; background:#f0f0f0;
+    }
+    #controls {
+      background:#3B96E5;
+      color:#fff;
+      padding:6px 12px;
+    }
+    #controls button {
+      color: #fff;
+      font-family: inherit;
+      font-weight: 500;
+      padding: 6px 12px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: transparent;
+      border: none;
+    }
+    #controls button:hover {
+      background-color: rgba(0, 0, 0, 0.2);
+      border-radius:4px;
+    }
+    #score {
+      float:right;
+      font-weight:bold;
+    }
+    #spelcontainer {
+      margin:20px auto;
+      width:770px;
+      min-height:600px;
+    }
+
+    /* Kaarten en layout – uit originele code */
+    .columns { width: 100%; }
+    .column {
+      float:left; width:100px; height:150px; position:relative;
+      margin-right:10px;
+    }
+    .stack, .pack, .dealt {
+      width:100px; height:150px; float:left; margin-right:10px;
+      background:rgba(0,0,0,0.2); border-radius:6px;
+    }
+    .card {
+      width:100px; height:150px;
+      border:2px solid #2c3e50;
+      border-radius:6px;
+      position:absolute;
+      background:#fff;
+      cursor:pointer;
+      transform:rotateY(180deg);
+      transition: transform 250ms;
+    }
+    .card.flipped { transform:rotateY(0deg); }
+    .hearts, .diamonds { color:#c0392b; }
+    .clubs, .spades { color:#2c3e50; }
+    .card .value {
+      position:absolute; font-size:18px;
+    }
+    .card .value:nth-child(1){top:5px; left:5px;}
+    .card .value:nth-child(2){bottom:5px; right:5px; transform:rotate(180deg);}
+    .card .middle {
+      position:absolute; top:20%; left:10%; width:80%; height:60%;
+      display:flex; align-items:center; justify-content:center;
+      font-size:40px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Controls -->
+  <div id="controls">
+    <button type="button" data-action="start">Herstart</button>
+    <button type="button" data-action="undo">Ongedaan maken</button>
+    <button type="button" data-action="hint">Hint</button>
+    <div id="score">Score: 0</div>
+  </div>
+
+  <!-- Spelcontainer -->
+  <div id="spelcontainer"></div>
+
+  <!-- Spel JS -->
+  <script>
+  (function (global) {
+    'use strict';
+    var win = window, doc = document;
+
+    var extend = function(r,t){for(var e=Object(r),n=1;n<arguments.length;n++){var a=arguments[n];if(null!=a)for(var o in a)Object.prototype.hasOwnProperty.call(a,o)&&(e[o]=a[o]);}return e;};
+    var on = function(el,e,fn){el.addEventListener(e,fn,false);};
+    var each = function(arr,fn,s){if("[object Object]"===Object.prototype.toString.call(arr)){for(var d in arr)if(Object.prototype.hasOwnProperty.call(arr,d))fn.call(s,d,arr[d]);}else{for(var e=0,f=arr.length;e<f;e++)fn.call(s,e,arr[e]);}};  
+    var rect=function(e){var t=win,o=e.getBoundingClientRect(),b=doc.documentElement,n=void 0!==t.pageXOffset?t.pageXOffset:b.scrollLeft,r=void 0!==t.pageYOffset?t.pageYOffset:b.scrollTop;return{left:o.left+n,top:o.top+r,height:Math.round(o.height),width:Math.round(o.width)}};
+
+    var Emitter=function(){};Emitter.prototype={on:function(ev,f){this._events=this._events||{};this._events[ev]=this._events[ev]||[];this._events[ev].push(f);},emit:function(ev){this._events=this._events||{};if(!(ev in this._events))return;for(var i=0;i<this._events[ev].length;i++)this._events[ev][i].apply(this,Array.prototype.slice.call(arguments,1));}};
+    Emitter.mixin=function(obj){['on','emit'].forEach(p=>{if(typeof obj==='function')obj.prototype[p]=Emitter.prototype[p];else obj[p]=Emitter.prototype[p];});return obj;};
+
+    function Card(value,suit){
+      this.value=value;this.suit=suit;this.flipped=false;
+      this.color=(suit==="hearts"||suit==="diamonds")?"red":"black";
+      var cards=["A",2,3,4,5,6,7,8,9,10,"J","Q","K"];
+      var card=doc.createElement("div");
+      card.className=`card ${suit}`;
+      card.innerHTML=`<div class="value">${cards[value-1]}</div>
+                      <div class="value">${cards[value-1]}</div>
+                      <div class="middle">${this.color==="red"?(suit==="hearts"?"♥":"♦"):(suit==="spades"?"♠":"♣")}</div>`;
+      card.card=true;this.el=card;
+    }
+    Card.prototype.flip=function(){this.el.classList.toggle("flipped",!this.flipped);this.flipped=!this.flipped;};
+
+    function Pack(){this.cards=[];this.suits=["hearts","spades","diamonds","clubs"];var count=0;each(this.suits,function(i,suit){for(var i=1;i<14;i++){var card=new Card(i,suit);card.el.idx=count;this.cards.push(card);count++;}},this);}
+    Pack.prototype.shuffle=function(){var m=this.cards.length,t,i;while(m){i=Math.floor(Math.random()*m--);t=this.cards[m];this.cards[m]=this.cards[i];this.cards[i]=t;this.cards[i].el.idx=i;this.cards[m].el.idx=m;}};
+
+    function Game(el){if(typeof el==="string")el=doc.querySelector(el);this.el=el;this.score=0;this.pack=new Pack();Emitter.mixin(this);this.render();}
+    Game.prototype.render=function(){
+      var frag=doc.createDocumentFragment();
+      this.columns=doc.createElement("div");this.columns.className="columns";
+      this.stacks=doc.createElement("div");this.stacks.className="stacks";
+      for(var i=0;i<4;i++){var stack=doc.createElement("div");stack.className="stack";this.stacks.appendChild(stack);}
+      for(var i=0;i<7;i++){var col=doc.createElement("div");col.className="column";this.columns.appendChild(col);}
+      this.dealer=doc.createElement("div");this.dealer.className="dealer";
+      this.packArea=doc.createElement("div");this.packArea.className="pack";
+      this.dealArea=doc.createElement("div");this.dealArea.className="dealt";
+      this.dealer.appendChild(this.packArea);this.dealer.appendChild(this.dealArea);
+      frag.appendChild(this.dealer);frag.appendChild(this.stacks);frag.appendChild(this.columns);
+      this.el.appendChild(frag);
+      on(this.dealer,"click",this.deal.bind(this));
+    };
+    Game.prototype.deal=function(){
+      var frag=doc.createDocumentFragment();
+      var pack=[].slice.call(this.packArea.children);var count=pack.length;
+      if(!count){while(this.dealArea.childElementCount){var card=this.pack.cards[this.dealArea.lastElementChild.idx];card.flip();frag.appendChild(card.el);}this.packArea.appendChild(frag);return;}
+      var items=pack.slice(count-1);this.dealCount=items.length;
+      items.forEach(c=>{c=this.pack.cards[c.idx];this.dealArea.appendChild(c.el);c.flip();});
+    };
+    Game.prototype.start=function(){
+      var current=0,start=0;this.reset();this.pack.shuffle();
+      for(var i=0;i<28;i++){var card=this.pack.cards[i];this.columns.children[current].appendChild(card.el);if(start===current)card.flip();current++;if(current===7){start++;current=start;}}
+      for(var i=28;i<52;i++)this.packArea.appendChild(this.pack.cards[i].el);
+      this.emit("start");
+    };
+    Game.prototype.reset=function(){this.score=0;this.pack.cards.forEach(c=>{if(c.flipped)c.flip();c.checked=false;});};
+
+    global.Game=Game;
+  })(this);
+
+  // Init
+  var score=document.getElementById("score");
+  var game=new Game("#spelcontainer");
+  game.start();
+  game.on("start",function(){score.textContent="Score: "+this.score;});
+  </script>
+</body>
+</html>
