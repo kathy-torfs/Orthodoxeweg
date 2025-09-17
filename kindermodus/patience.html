@@ -1,27 +1,63 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Patience – Orthodoxeweg</title>
-  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>patience – Orthodoxe Kinderpagina</title>
+  <link rel="icon" href="images/kruis.png" />
 
-  <!-- Jouw vaste header + layout -->
-  <script src="header.html" defer></script>
-  <script src="layout.js" defer></script>
+  <style>
+    :root{
+      --primair:#7bb235; --donker:#67510C;
+      --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
+      --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
+      --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
+      --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
+    }
+    body{
+      margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
+      min-height:100vh; background:var(--pastel1); transition:background .6s;
+      overflow:hidden; /* geen scrollen bij canvas */
+    }
+    #gameCanvas{
+      display:block;
+      width:100vw;
+      height:100vh;
+    }
+  </style>
+
+  <!-- Header + menubalk + beveiliging -->
+  <script defer src="common/layout.js"></script>
+  <!-- Het spel -->
+  <script defer src="solitaire.js"></script>
 </head>
 <body>
-  <!-- Spelcontainer -->
-  <div id="controls">
-    <button data-action="start">Nieuw spel</button>
-    <button data-action="hint">Hint</button>
-    <button data-action="undo">Ongedaan maken</button>
-    <span id="score">Score: 0</span>
-  </div>
+  <!-- Hier komt automatisch de header en menubalk uit header.html -->
+  <div id="kinder-header" data-header-src="common/header.html"></div>
 
-  <div id="spelcontainer"></div>
+  <!-- Canvas voor het spel -->
+  <canvas id="gameCanvas"></canvas>
 
-  <!-- Spelcode -->
-  <script src="solitaire.js"></script>
+  <script>
+    // Zachte pastelachtergrond
+    (function(){
+      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)',
+               'var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)',
+               'var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)',
+               'var(--pastel15)','var(--pastel16)'];
+      document.body.style.background = p[Math.floor(Math.random()*p.length)];
+    })();
+
+    // Header + menubalk activeren
+    (function boot(){
+      if (!(window.KinderLayout)) return setTimeout(boot, 120);
+      const el = document.getElementById('kinder-header');
+      window.KinderLayout.mountHeader({
+        rootId: 'kinder-header',
+        headerSrc: el.dataset.headerSrc,
+        active: 'spelletjes'
+      });
+    })();
+  </script>
 </body>
 </html>
