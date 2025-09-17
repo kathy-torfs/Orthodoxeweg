@@ -106,6 +106,46 @@ button:hover {
   transform:rotateY(0deg); z-index:2;
 }
 `;
+/* Symbolen op de kaarten */
+.card.hearts .value,
+.card.diamonds .value {
+  color: red;
+}
+
+.card.clubs .value,
+.card.spades .value {
+  color: black;
+}
+
+.card .middle span {
+  display: inline-block;
+  font-size: 20px;
+  margin: 2px;
+}
+
+.card.hearts .middle span::before { content: "♥"; color:red; }
+.card.diamonds .middle span::before { content: "♦"; color:red; }
+.card.spades .middle span::before { content: "♠"; color:black; }
+.card.clubs .middle span::before { content: "♣"; color:black; }
+
+/* Voor de plaatjeskaarten */
+.picture .middle {
+  background-image: url("images/solitair-cards.jpg");
+  background-size: 256.25px 600px;
+  background-repeat: no-repeat;
+}
+.hearts.card-J .middle { background-position:   0px -150px; }
+.hearts.card-Q .middle { background-position: -86px -150px; }
+.hearts.card-K .middle { background-position:-170px -150px; }
+.clubs.card-J  .middle { background-position:   0px    0px; }
+.clubs.card-Q  .middle { background-position: -86px    0px; }
+.clubs.card-K  .middle { background-position:-170px    0px; }
+.spades.card-J .middle { background-position:   0px -300px; }
+spades.card-Q  .middle { background-position: -86px -300px; }
+.spades.card-K .middle { background-position:-170px -300px; }
+.diamonds.card-J .middle { background-position:   0px -450px; }
+.diamonds.card-Q .middle { background-position: -86px -450px; }
+.diamonds.card-K .middle { background-position:-170px -450px; }
 
 const style = document.createElement("style");
 style.textContent = css;
