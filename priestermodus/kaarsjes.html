@@ -41,10 +41,7 @@
       position: relative;
       transition: box-shadow 0.15s;
     }
-    .kaars-info {
-      flex: 1;
-      min-width: 0;
-    }
+    .kaars-info { flex: 1; min-width: 0; }
     .kaars-info b { color: #b89025;}
     .kaars-intentie .vinkje-btn {
       font-size: 2.1em;
@@ -86,7 +83,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script>
-    // Enkel toegankelijk voor priesters (pas evt aan indien nodig)
+    // Enkel toegankelijk voor priesters
     if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "priester") {
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     }
@@ -106,7 +103,6 @@
       const bord = document.getElementById("kaarsjesBord");
       bord.innerHTML = "<div style='color:#b3a46b'>Laden...</div>";
 
-      // Eerst alle leden ophalen
       const ledenSnap = await db.collection("parochies").doc(parochieId).collection("leden").get();
       let intenties = [];
       for (let lidDoc of ledenSnap.docs) {
@@ -148,7 +144,6 @@
           <button class="vinkje-btn" title="Markeer als gelezen">&#10003;</button>
         `;
         div.querySelector('.vinkje-btn').onclick = async () => {
-          // Zet status op 'gelezen'
           await db.collection("parochies").doc(parochieId)
             .collection("leden").doc(int.lidId)
             .collection("kaarsjes").doc(int.docId)
@@ -164,9 +159,15 @@
   </script>
 </head>
 <body>
+  <!-- Priester header -->
+  <div id="priester-header"></div>
+
   <div class="bord-container">
     <h1>Overzicht kaarsintenties</h1>
     <div id="kaarsjesBord" class="kaarsbord"></div>
   </div>
+
+  <!-- Layout script -->
+  <script src="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/common/layout.js"></script>
 </body>
 </html>
