@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Beheer Heiligen – Orthodoxeweg</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
+  <style>
+    body {margin:0;font-family:Arial,sans-serif;background:#f5e9b8;color:#6f4e1a}
+    h1{text-align:center;color:#4e2710;margin:20px 0}
+
+    main{max-width:1200px;margin:0 auto;padding:0 20px;display:flex;gap:20px}
+    .lijst{flex:1;background:#fff9e2;border:2px solid #d6c290;border-radius:12px;padding:12px;max-height:80vh;overflow-y:auto}
+    .lijst h2{margin:0 0 10px;text-align:center}
+    .item{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #dbc592;border-radius:8px;padding:6px 8px;margin-bottom:6px;cursor:pointer}
+    .item:hover{background:#f7eecb}
+    .item img{width:32px;height:32px;object-fit:cover;border-radius:6px}
+    .item small{color:#8a6b29}
+    .add-btn{display:block;width:100%;margin-top:10px;padding:8px;text-align:center;background:#7bb235;color:#fff;font-weight:bold;border:none;border-radius:8px;cursor:pointer}
+
+    .detail{flex:2;background:#fffef9;border:2px solid #e2d1a5;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.12);padding:20px;min-height:500px}
+    .detail h2{text-align:center}
+    .blok{background:#fff;border:1px solid #dab97a;border-radius:8px;padding:10px;margin-top:10px}
+    img.klein{max-height:3cm;border-radius:6px;margin:6px 0;display:block}
+
+    label{font-weight:bold;display:block;margin:8px 0 4px}
+    input,textarea{width:100%;padding:8px;border:1px solid #dbc592;border-radius:8px;background:#fffdf5;font-family:inherit;margin-bottom:8px}
+    textarea{min-height:120px;resize:vertical}
+
+    .btn-row{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
+    .btn{padding:8px 16px;border:none;border-radius:8px;cursor:pointer;font-weight:bold}
+    .btn.save{background:#7bb235;color:#fff}
+    .btn.delete{background:#e24343;color:#fff}
+    .btn.cancel{background:#999;color:#fff}
+    .btn.save:hover{background:#5e8e29}
+    .btn.delete:hover{background:#b72828}
+  </style>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+  <script defer src="common/layout.js"></script>
+
+  <script>
+    // Alleen beheerders
+    const modus = localStorage.getItem("modus");
+    const rol = JSON.parse(localStorage.getItem("rol") || "[]");
+    const email = localStorage.getItem("email");
+    const superUser = "kathy.torfs@telenet.be";
+    if ((modus !== "volwassene" || !rol.includes("beheerder")) && email !== superUser) {
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    }
+  </script>
+</head>
+<body>
+  <div id="volwassen-header" data-header-src="common/header.html"></div>
+
+  <h1>📖 Heiligen (lagere school)</h1>
+
+  <main>
+    <!-- Lijst -->
+    <div class="lijst">
+      <h2>📜 Heiligenlijst</h2>
+      <div id="heiligenLijst">⏳ Laden...</div>
+      <button class="add-btn" onclick="nieuweHeilige()">+ Heilige toevoegen</button>
+    </div>
+
+    <!-- Detail -->
+    <div class="detail" id="detailPaneel">
+      <p style="text-align:center;color:#888;">⬅️ Kies links een heilige</p>
+    </div>
+  </main>
+
+  <!-- Upload voortgang -->
+  <div id="uploadProgress" style="display:none;margin:10px 20px">
+    <progress id="progressBar" value="0" max="100" style="width:100%"></progress>
+    <span id="progressText">0%</span>
+  </div>
+
+  <script>
+    // Firebase init
+    if (!firebase.apps.length) {
+      firebase.initializeApp({
+        apiKey:"AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
+        authDomain:"orthodoxeweg.firebaseapp.com",
+        projectId:"orthodoxeweg",
+        storageBucket:"orthodoxeweg.firebasestorage.app"
+      });
+    }
+    const db=firebase.firestore();
+    const storage=firebase.storage();
+
+    let editId=null;
+    let origineel=null;
+
+    const lijstEl=document.getElementById("heiligenLijst");
+    const detailEl=document.getElementById("detailPaneel");
+
+    // Upload met voortgang
+    async function uploadBestand(file,pad){
+      return new Promise((resolve,reject)=>{
+        const ref=storage.ref(pad);
+        const task=ref.put(file);
+        document.getElementById("uploadProgress").style.display="block";
+        task.on("state_changed",
+          snap=>{
+            const pct=Math.round((snap.bytesTransferred/snap.totalBytes)*100);
+            document.getElementById("progressBar").value=pct;
+            document.getElementById("progressText").innerText=pct+"%";
+          },
+          err=>reject(err),
+          async()=>{
+            document.getElementById("uploadProgress").style.display="none";
+            const url=await task.snapshot.ref.getDownloadURL();
+            resolve(url);
+          }
+        );
+      });
+    }
+
+    // Nieuwe heilige
+    function nieuweHeilige(){
+      toonDetail({id:"",titel:"",verhaal:"",zichtbaar:false,platen:[],vragen:[]});
+      editId=null;origineel=null;
+    }
+
+    // Toon detail
+    function toonDetail(h){
+      origineel=h;
+      detailEl.innerHTML=`
+        <h2>${h.titel||"Nieuwe heilige"}</h2>
+        <label>Naam</label>
+        <input id="titelInput" value="${h.titel||""}">
+        <label>Verhaal</label>
+        <textarea id="verhaalInput">${(h.verhaal||"").replace(/<br>/g,"\n")}</textarea>
+        <label><input type="checkbox" id="zichtbaarChk" ${h.zichtbaar?"checked":""}> Zichtbaar voor kinderen</label>
+
+        <h3>Vertelplaten</h3>
+        <div id="platenContainer"></div>
+        <button onclick="voegPlaatToe()">➕ Plaat toevoegen</button>
+
+        <h3>Quizvragen</h3>
+        <div id="quizContainer"></div>
+        <button onclick="voegVraagToe()">➕ Vraag toevoegen</button>
+
+        <div class="btn-row">
+          <button class="btn save" onclick="opslaanHeilige('${h.id}')">Opslaan</button>
+          ${h.id?`<button class="btn delete" onclick="verwijderHeilige('${h.id}')">Verwijderen</button>`:""}
+          <button class="btn cancel" onclick="annuleerBewerking()">Annuleren</button>
+        </div>
+      `;
+      (h.platen||[]).forEach(p=>voegPlaatToe({
+        url:p.url,
+        tekst:(p.tekst||"").replace(/<br>/g,"\n")
+      }));
+      (h.vragen||[]).forEach(q=>voegVraagToe({
+        vraag:(q.vraag||"").replace(/<br>/g,"\n"),
+        antwoorden:q.antwoorden||["","","",""],
+        correct:q.correct||0
+      }));
+    }
+
+    // Voeg plaat toe
+    function voegPlaatToe(p={}){
+      const div=document.createElement("div");
+      div.className="blok";
+      div.innerHTML=`
+        <h4>Plaat</h4>
+        <input type="file" class="plaatFile" accept="image/*"><br>
+        <input type="hidden" class="bestaandeUrl" value="${p.url||""}">
+        <label>Tekst:</label>
+        <textarea class="plaatTekst">${p.tekst||""}</textarea>
+        ${p.url?`<img src="${p.url}" class="klein">`:""}
+      `;
+      document.getElementById("platenContainer").appendChild(div);
+    }
+
+    // Voeg vraag toe
+    function voegVraagToe(q={}){
+      const div=document.createElement("div");
+      div.className="blok";
+      div.innerHTML=`
+        <h4>Vraag</h4>
+        <input type="text" class="vraag" placeholder="Vraag" value="${q.vraag||""}"><br>
+        ${[0,1,2,3].map(i=>`
+          <input type="text" class="antw" placeholder="Antwoord ${i+1}" value="${q.antwoorden?q.antwoorden[i]:""}"><br>
+        `).join("")}
+        <label>Correct (1-4):</label>
+        <input type="number" class="correct" min="1" max="4" value="${(q.correct||0)+1}">
+      `;
+      document.getElementById("quizContainer").appendChild(div);
+    }
+
+    // Opslaan heilige
+    async function opslaanHeilige(id){
+      const titel=document.getElementById("titelInput").value.trim();
+      if(!titel) return alert("Naam verplicht!");
+      const docId=titel.toLowerCase().replace(/\s+/g,"-");
+
+      const data={
+        titel,
+        doelgroep:"lagere",
+        verhaal:document.getElementById("verhaalInput").value.trim().replace(/\n/g,"<br>"),
+        zichtbaar:document.getElementById("zichtbaarChk").checked,
+        platen:[],
+        vragen:[],
+        aangemaaktOp:new Date()
+      };
+
+      for(let blok of document.querySelectorAll("#platenContainer .blok")){
+        const file=blok.querySelector(".plaatFile").files[0];
+        const tekst=blok.querySelector(".plaatTekst").value.trim().replace(/\n/g,"<br>");
+        const bestaand=blok.querySelector(".bestaandeUrl").value;
+        if(file){
+          const pad=`heiligen_kinderen/${docId}/${Date.now()}_${file.name}`;
+          const url=await uploadBestand(file,pad);
+          data.platen.push({url,tekst});
+        } else if(bestaand){
+          data.platen.push({url:bestaand,tekst});
+        }
+      }
+
+      document.querySelectorAll("#quizContainer .blok").forEach(div=>{
+        const vraag=div.querySelector(".vraag").value.trim().replace(/\n/g,"<br>");
+        const antwoorden=[...div.querySelectorAll(".antw")].map(i=>i.value.trim());
+        const correct=parseInt(div.querySelector(".correct").value)-1;
+        if(vraag && antwoorden.filter(a=>a).length===4){
+          data.vragen.push({vraag,antwoorden,correct});
+        }
+      });
+
+      await db.collection("heiligen_kinderen").doc(docId).set(data);
+      laadHeiligen();
+      detailEl.innerHTML=`<p style="text-align:center;color:#888;">✅ Heilige opgeslagen</p>`;
+    }
+
+    // Verwijderen
+    async function verwijderHeilige(id){
+      if(!confirm("Heilige verwijderen?")) return;
+      await db.collection("heiligen_kinderen").doc(id).delete();
+      laadHeiligen();
+      detailEl.innerHTML=`<p style="text-align:center;color:#888;">⬅️ Kies links een heilige</p>`;
+    }
+
+    // Annuleren
+    function annuleerBewerking(){
+      detailEl.innerHTML=`<p style="text-align:center;color:#888;">⬅️ Kies links een heilige</p>`;
+    }
+
+    // Lijst laden
+    async function laadHeiligen(){
+      lijstEl.innerHTML="⏳ Laden...";
+      let items=[];
+
+      const snap=await db.collection("heiligen_kinderen").get();
+      snap.forEach(doc=>items.push({id:doc.id,...doc.data()}));
+
+      lijstEl.innerHTML="";
+      if(items.length===0){lijstEl.innerHTML="<p>Geen heiligen.</p>";return;}
+      items.forEach(h=>{
+        const div=document.createElement("div");
+        div.className="item";
+        div.innerHTML=`${h.platen&&h.platen[0]?`<img src="${h.platen[0].url}">`:""}<div>${h.titel||h.id}</div>`;
+        div.onclick=()=>toonDetail(h);
+        lijstEl.appendChild(div);
+      });
+    }
+
+    laadHeiligen();
+  </script>
+</body>
+</html>
