@@ -33,6 +33,7 @@
       padding: 12px;
       border-bottom: 1px solid #e2c475;
       text-align: left;
+      vertical-align: middle;
     }
 
     th {
@@ -44,22 +45,31 @@
       background: #f6ecd1;
     }
 
-    select, button {
-      padding: 6px 10px;
-      font-size: 0.95em;
-      border-radius: 6px;
-      border: 1px solid #c8a74f;
-    }
-
     button {
-      background: #45a745;
-      color: white;
+      padding: 6px 12px;
+      border-radius: 6px;
       border: none;
       cursor: pointer;
+      font-weight: bold;
     }
 
-    button:hover {
-      background: #358135;
+    .aanvaard {
+      background: #45a745;
+      color: white;
+    }
+    .aanvaard:hover { background: #358135; }
+
+    .weiger {
+      background: #b42c25;
+      color: white;
+    }
+    .weiger:hover { background: #92201b; }
+
+    input[type="password"] {
+      padding: 6px;
+      border: 1px solid #c8a74f;
+      border-radius: 5px;
+      width: 140px;
     }
   </style>
 
@@ -69,7 +79,7 @@
     let rol = [];
     try { rol = JSON.parse(localStorage.getItem("rol") || "[]"); } catch(e) { rol = []; }
     const email = localStorage.getItem("email");
-    const superUser = "kathy.torfs@telenet.be"; // jouw noodtoegang
+    const superUser = "kathy.torfs@telenet.be"; // noodtoegang
 
     if ((modus !== "volwassene" || !rol.includes("beheerder")) && email !== superUser) {
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
@@ -86,11 +96,11 @@
   <table>
     <thead>
       <tr>
-        <th>Naam</th>
-        <th>Gemeente</th>
+        <th>Parochie</th>
+        <th>Priester(s)</th>
         <th>Email</th>
-        <th>Priesters</th>
-        <th>Status</th>
+        <th>Website</th>
+        <th>Wachtwoord</th>
         <th>Actie</th>
       </tr>
     </thead>
@@ -103,7 +113,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script>
-    // FIREBASE INIT
     const firebaseConfig = {
       apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -119,9 +128,9 @@
       const tbody = document.getElementById("parochieAanvragenTabel");
       tbody.innerHTML = "<tr><td colspan='6'>Bezig met laden...</td></tr>";
 
-      const snap = await db.collection("parochie_aanvragen").get();
+      const snap = await db.collection("parochie_aanvragen").where("status","==","nieuw").get();
       if (snap.empty) {
-        tbody.innerHTML = "<tr><td colspan='6'>Geen aanvragen gevonden.</td></tr>";
+        tbody.innerHTML = "<tr><td colspan='6'>Geen nieuwe aanvragen gevonden.</td></tr>";
         return;
       }
 
@@ -129,30 +138,57 @@
       snap.forEach(doc => {
         const d = doc.data();
         html += `
-          <tr>
+          <tr id="row-${doc.id}">
             <td>${d.naam || ""}</td>
-            <td>${d.gemeente || ""}</td>
-            <td>${d.email || ""}</td>
             <td>${(d.priesters || []).join(", ")}</td>
+            <td>${d.email || ""}</td>
+            <td>${d.website ? `<a href="${d.website}" target="_blank">${d.website}</a>` : "-"}</td>
+            <td><input type="password" id="ww-${doc.id}" placeholder="Wachtwoord" /></td>
             <td>
-              <select id="status-${doc.id}">
-                <option value="nieuw" ${d.status === "nieuw" ? "selected" : ""}>Nieuw</option>
-                <option value="goedgekeurd" ${d.status === "goedgekeurd" ? "selected" : ""}>Goedgekeurd</option>
-                <option value="geweigerd" ${d.status === "geweigerd" ? "selected" : ""}>Geweigerd</option>
-              </select>
+              <button class="aanvaard" onclick="aanvaardParochie('${doc.id}')">Aanvaarden</button>
+              <button class="weiger" onclick="weigerParochie('${doc.id}')">Weigeren</button>
             </td>
-            <td><button onclick="updateStatus('${doc.id}')">Opslaan</button></td>
           </tr>
         `;
       });
       tbody.innerHTML = html;
     }
 
-    async function updateStatus(id) {
-      const nieuweStatus = document.getElementById("status-" + id).value;
-      await db.collection("parochie_aanvragen").doc(id).update({ status: nieuweStatus });
-      alert("Status bijgewerkt naar: " + nieuweStatus);
+    async function aanvaardParochie(id) {
+      const ww = document.getElementById("ww-" + id).value.trim();
+      if (!ww) {
+        alert("Geef een wachtwoord in voor de parochie.");
+        return;
+      }
+
+      const docSnap = await db.collection("parochie_aanvragen").doc(id).get();
+      if (!docSnap.exists) return;
+
+      const data = docSnap.data();
+      await db.collection("parochies").doc(id).set({
+        naam: data.naam,
+        gemeente: data.gemeente,
+        provincie: data.provincie,
+        postcode: data.postcode,
+        email: data.email,
+        telefoon: data.telefoon,
+        website: data.website,
+        priesters: data.priesters,
+        wachtwoord: ww,
+        status: "actief",
+        aangemaakt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      await db.collection("parochie_aanvragen").doc(id).update({ status: "goedgekeurd" });
+
+      alert("Parochie goedgekeurd en toegevoegd!");
       laadAanvragen();
+    }
+
+    async function weigerParochie(id) {
+      await db.collection("parochie_aanvragen").doc(id).update({ status: "geweigerd" });
+      document.getElementById("row-" + id).remove();
+      alert("Parochie geweigerd.");
     }
 
     window.addEventListener("DOMContentLoaded", laadAanvragen);
