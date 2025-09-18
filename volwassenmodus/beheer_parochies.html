@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Beheer Parochies - Orthodoxeweg</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #faf0c8;
+      color: #5b4320;
+    }
+
+    h1 {
+      text-align: center;
+      margin: 30px 0 20px;
+      color: #4e2710;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 0 2vw 60px 2vw;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fcf8ea;
+      box-shadow: 0 2px 14px #9c7c308f;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 14px;
+      border-bottom: 1px solid #e2c475;
+      text-align: left;
+    }
+    th {
+      background: #e2c475;
+      color: #fff;
+    }
+    tr:hover {
+      background: #f6ecd1;
+    }
+
+    .actieknoppen button {
+      margin-right: 6px;
+      padding: 6px 14px;
+      font-size: 0.9em;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .bewerken { background: #7bb235; color: white; }
+    .verwijderen { background: #c0392b; color: white; }
+  </style>
+
+  <script>
+    // Bescherming: enkel beheerder of superuser
+    const modus = localStorage.getItem("modus");
+    const rol = JSON.parse(localStorage.getItem("rol") || "[]");
+    const email = localStorage.getItem("email");
+    const superUser = "kathy.torfs@telenet.be";
+
+    if ((modus !== "volwassene" || !rol.includes("beheerder")) && email !== superUser) {
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    }
+  </script>
+</head>
+<body>
+  <!-- Uniforme header -->
+  <div id="volwassen-header" data-header-src="common/header.html"></div>
+  <script src="layout.js" defer></script>
+
+  <h1>📋 Parochies beheren</h1>
+
+  <div class="container">
+    <table id="parochiesTabel">
+      <thead>
+        <tr>
+          <th>Naam</th>
+          <th>Gemeente</th>
+          <th>Postcode</th>
+          <th>Email</th>
+          <th>Acties</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- dynamisch gevuld -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:2e02833fa0d4d8903ceedb"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    function laadParochies() {
+      const tbody = document.querySelector("#parochiesTabel tbody");
+      tbody.innerHTML = "";
+
+      db.collection("parochies").get().then(snapshot => {
+        snapshot.forEach(doc => {
+          const p = doc.data();
+          const tr = document.createElement("tr");
+
+          tr.innerHTML = `
+            <td>${p.naam || "-"}</td>
+            <td>${p.gemeente || "-"}</td>
+            <td>${p.postcode || "-"}</td>
+            <td>${p.email || "-"}</td>
+            <td class="actieknoppen">
+              <button class="bewerken" onclick="bewerkenParochie('${doc.id}')">Bewerken</button>
+              <button class="verwijderen" onclick="verwijderenParochie('${doc.id}')">Verwijderen</button>
+            </td>
+          `;
+
+          tbody.appendChild(tr);
+        });
+      });
+    }
+
+    function bewerkenParochie(id) {
+      alert("✏️ Bewerken van parochie " + id + " (hier komt later een formulier).");
+    }
+
+    function verwijderenParochie(id) {
+      if (confirm("Weet je zeker dat je deze parochie wil verwijderen?")) {
+        db.collection("parochies").doc(id).delete().then(() => {
+          alert("Parochie verwijderd.");
+          laadParochies();
+        });
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", laadParochies);
+  </script>
+</body>
+</html>
