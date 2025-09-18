@@ -1,4 +1,4 @@
-// Volwassenmodus layout.js  
+// Volwassenmodus layout.js   
 (function () {
   const CONFIG = {
     headerDefaultMountId: "volwassen-header",
@@ -81,6 +81,30 @@
     tweedeRij.appendChild(a);
   }
 
+  // === Beheerder knop ===
+  function voegBeheerderKnopToe() {
+    let rol = localStorage.getItem("rol");
+    try { rol = JSON.parse(rol); } catch { rol = rol ? [rol] : []; }
+
+    if (!rol.includes("beheerder")) return;
+
+    const menuRows = document.querySelectorAll("nav.menu .menu-row");
+    if (!menuRows.length) return;
+
+    const tweedeRij = menuRows[1];
+    if (!tweedeRij) return;
+
+    if (document.getElementById("beheerder-menu-item")) return;
+
+    const a = document.createElement("a");
+    a.className = "menu-item";
+    a.id = "beheerder-menu-item";
+    a.href = "https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/beheerderspagina.html";
+    a.innerHTML = "🛠️ <span class=\"label\">Beheerder</span>";
+
+    tweedeRij.appendChild(a);
+  }
+
   // === Kindermodus knop ===
   async function voegKindermodusKnopToe() {
     const parochieId = localStorage.getItem("ingelogdeParochie");
@@ -157,6 +181,7 @@
     setAvatar();
     bindLogout();
     voegCatecheetKnopToe();   // catecheet menu toevoegen
+    voegBeheerderKnopToe();   // beheerder menu toevoegen
     voegKindermodusKnopToe(); // kindermodus menu toevoegen
   }
 
