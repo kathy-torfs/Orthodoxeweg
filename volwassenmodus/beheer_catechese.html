@@ -2,31 +2,29 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
+  <title>Beheer Catechese – Orthodoxeweg</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Catecheselessen – Orthodoxeweg</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
     body {margin:0;font-family:Arial,sans-serif;background:#f5e9b8;color:#6f4e1a}
-    .container{max-width:1000px;margin:20px auto;padding:0 20px}
+    .container{max-width:1100px;margin:20px auto;padding:0 20px}
     h1{text-align:center;color:#4e2710}
     .tabs{display:flex;justify-content:center;gap:12px;margin:20px 0}
     .tabs button{padding:8px 14px;border:none;border-radius:6px;cursor:pointer;font-weight:bold}
     .tabs button.actief{background:#7bb235;color:#fff}
-    form{background:#fff8eb;border:2px solid #dab97a;border-radius:12px;padding:16px;box-shadow:0 2px 6px rgba(0,0,0,.1);margin-top:20px}
-    form h2{margin-top:0;color:#7a5f35}
-    label{display:block;margin:10px 0 4px}
+    .parochie-selector{background:#fff;padding:10px;border:1px solid #dab97a;border-radius:8px;max-height:200px;overflow-y:auto;margin-bottom:10px}
+    .les-lijst{margin:20px 0;display:flex;flex-direction:column;gap:8px}
+    .les-kaart{background:#fff;border:2px solid #dab97a;border-radius:10px;padding:10px}
+    .les-kaart h3{margin:0;color:#7a5f35;cursor:pointer}
+    .les-kaart small{color:#8f7437}
+    form{background:#fff8eb;border:2px solid #dab97a;border-radius:12px;padding:16px;margin-top:20px}
+    label{display:block;margin:8px 0 4px}
     input[type=text],textarea{width:100%;padding:8px;border:1px solid #dab97a;border-radius:6px;background:#fffdf6}
     textarea{min-height:80px;resize:vertical}
-    button{background:#7bb235;color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:bold;margin:4px 4px 0 0}
+    button{background:#7bb235;color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:bold;margin:4px}
     button:hover{background:#5e8e29}
-    .blok{background:#fff;border:1px solid #dab97a;border-radius:8px;padding:10px;margin-top:10px}
-    .blok h4{margin:0 0 6px;color:#7a5f35}
-    .les-lijst{display:flex;flex-direction:column;gap:10px;margin-top:20px}
-    .les-kaart{background:#fff;border:2px solid #dab97a;border-radius:10px;padding:10px;cursor:pointer}
-    .les-kaart h3{margin:0;color:#7a5f35}
-    .les-kaart small{color:#8f7437}
-    img.klein {max-height:3cm;border-radius:6px;margin:6px 0}
-    .parochie-selectie{margin:10px 0;padding:10px;border:1px solid #dab97a;border-radius:8px;background:#fffdf5}
+    .delete{background:#e24343}
+    .delete:hover{background:#b72828}
   </style>
 </head>
 <body>
@@ -35,28 +33,21 @@
   <script src="common/layout.js" defer></script>
 
   <div class="container">
-    <h1>📖 Catecheselessen</h1>
+    <h1>📖 Beheer Catechese</h1>
 
     <!-- Tabs -->
     <div class="tabs">
       <button id="tabKleuters" class="actief" onclick="wisselDoelgroep('kleuters')">👶 Kleuters</button>
       <button id="tabLagere" onclick="wisselDoelgroep('lagere')">📚 Lagere school</button>
-      <button id="tabVolwassenen" onclick="wisselDoelgroep('volwassenen')">👩‍🦳 Volwassenen</button>
+      <button id="tabVolwassen" onclick="wisselDoelgroep('volwassenen')">✉ Volwassenen</button>
     </div>
 
-    <!-- Index van lessen -->
+    <!-- Overzicht -->
     <div id="lessenOverzicht" class="les-lijst">Laden…</div>
 
-    <!-- Nieuw / bewerken -->
+    <!-- Formulier -->
     <form id="lesForm">
-      <h2>Nieuwe les toevoegen / bewerken</h2>
-
-      <!-- Parochiekeuze -->
-      <div class="parochie-selectie">
-        <label><input type="radio" name="parochieOptie" value="alle" checked> Opslaan in alle parochies</label><br>
-        <label><input type="radio" name="parochieOptie" value="selectief"> Opslaan in geselecteerde parochies</label>
-        <div id="parochieCheckboxes" style="display:none;margin-top:10px;"></div>
-      </div>
+      <h2 id="formTitel">Nieuwe les toevoegen</h2>
 
       <label>Titel</label>
       <input type="text" id="lesTitel" required>
@@ -66,183 +57,158 @@
 
       <label><input type="checkbox" id="lesZichtbaar"> Zichtbaar</label>
 
-      <h3>Vertelplaten</h3>
-      <div id="platenContainer"></div>
-      <button type="button" onclick="voegPlaatToe()">➕ Plaat toevoegen</button>
-
-      <h3>Quizvragen</h3>
-      <div id="quizContainer"></div>
-      <button type="button" onclick="voegVraagToe()">➕ Vraag toevoegen</button>
+      <h3>Kies parochies</h3>
+      <div><button type="button" onclick="selecteerAlle()">Selecteer alle</button></div>
+      <div id="parochieSelector" class="parochie-selector">⏳ Laden...</div>
 
       <div style="margin-top:10px;">
         <button type="submit">📌 Opslaan</button>
+        <button type="button" class="delete" onclick="verwijderLes()">🗑 Verwijderen</button>
         <button type="button" onclick="annuleerBewerking()">❌ Annuleren</button>
       </div>
     </form>
   </div>
 
-  <!-- Firebase SDKs -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 
   <script>
-    // Config
     const firebaseConfig = {
-      apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
-      authDomain: "orthodoxeweg.firebaseapp.com",
-      projectId: "orthodoxeweg",
-      storageBucket: "orthodoxeweg.firebasestorage.app"
+      apiKey:"AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
+      authDomain:"orthodoxeweg.firebaseapp.com",
+      projectId:"orthodoxeweg"
     };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const storage = firebase.storage();
+    if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db=firebase.firestore();
 
-    let huidigDoelgroep = "kleuters";
-    let editId = null;
-    let origineel = null;
+    let huidigDoelgroep="kleuters";
+    let editId=null;
+    let geselecteerdeParochies=[];
+    let alleParochies=[];
 
-    const overzicht = document.getElementById("lessenOverzicht");
-    const form = document.getElementById("lesForm");
-    const platenContainer = document.getElementById("platenContainer");
-    const quizContainer = document.getElementById("quizContainer");
-    const parochieCheckboxes = document.getElementById("parochieCheckboxes");
+    const overzicht=document.getElementById("lessenOverzicht");
+    const form=document.getElementById("lesForm");
+    const titelInput=document.getElementById("lesTitel");
+    const inhoudInput=document.getElementById("lesInhoud");
+    const zichtbaarChk=document.getElementById("lesZichtbaar");
+    const parochieSelector=document.getElementById("parochieSelector");
+    const formTitel=document.getElementById("formTitel");
 
     // Tabs wisselen
-    function wisselDoelgroep(d) {
-      huidigDoelgroep = d;
-      document.getElementById("tabKleuters").classList.toggle("actief", d==="kleuters");
-      document.getElementById("tabLagere").classList.toggle("actief", d==="lagere");
-      document.getElementById("tabVolwassenen").classList.toggle("actief", d==="volwassenen");
+    function wisselDoelgroep(d){
+      huidigDoelgroep=d;
+      ["Kleuters","Lagere","Volwassen"].forEach(n=>{
+        document.getElementById("tab"+n).classList.toggle("actief", n.toLowerCase().includes(d));
+      });
       laadLessen();
     }
 
-    // Parochiekeuze tonen/verbergen
-    document.querySelectorAll("input[name='parochieOptie']").forEach(radio=>{
-      radio.addEventListener("change",()=>{
-        parochieCheckboxes.style.display = (radio.value==="selectief" && radio.checked)?"block":"none";
-      });
-    });
-
-    // Vul parochielijst
-    async function laadParochies() {
-      const snap = await db.collection("parochies").get();
-      parochieCheckboxes.innerHTML="";
+    // Parochies laden
+    async function laadParochies(){
+      const snap=await db.collection("parochies").get();
+      alleParochies=[];
+      parochieSelector.innerHTML="";
       snap.forEach(doc=>{
-        const d = doc.data();
-        const label=document.createElement("label");
-        label.innerHTML=`<input type="checkbox" value="${doc.id}"> ${d.naam} (${d.gemeente})`;
-        parochieCheckboxes.appendChild(label);
-        parochieCheckboxes.appendChild(document.createElement("br"));
+        alleParochies.push({id:doc.id,...doc.data()});
+        const d=doc.data();
+        const lbl=document.createElement("label");
+        lbl.innerHTML=`<input type="checkbox" value="${doc.id}"> ${d.naam||doc.id}`;
+        parochieSelector.appendChild(lbl);
       });
     }
-    laadParochies();
 
-    // ➕ Plaat
-    function voegPlaatToe(p={}) {
-      const div=document.createElement("div");
-      div.className="blok";
-      div.innerHTML=`
-        <h4>Plaat</h4>
-        <input type="file" class="plaatFile" accept="image/*"><br>
-        <input type="hidden" class="bestaandeUrl" value="${p.url||""}">
-        <label>Tekst:</label>
-        <textarea class="plaatTekst">${(p.tekst||"").replace(/<br>/g,"\n")}</textarea>
-        ${p.url?`<img src="${p.url}" class="klein">`:""}
-      `;
-      platenContainer.appendChild(div);
+    function selecteerAlle(){
+      parochieSelector.querySelectorAll("input[type=checkbox]").forEach(cb=>cb.checked=true);
     }
 
-    // ➕ Vraag
-    function voegVraagToe(q={}) {
-      const div=document.createElement("div");
-      div.className="blok";
-      div.innerHTML=`
-        <h4>Vraag</h4>
-        <input type="text" class="vraag" value="${q.vraag||""}">
-        ${[0,1,2,3].map(i=>`<input type="text" class="antw" value="${q.antwoorden?q.antwoorden[i]:""}"><br>`).join("")}
-        <label>Correct (1-4):</label>
-        <input type="number" min="1" max="4" class="correct" value="${(q.correct||0)+1}">
-      `;
-      quizContainer.appendChild(div);
+    // Lessen laden
+    async function laadLessen(){
+      overzicht.innerHTML="⏳ Laden...";
+      overzicht.innerHTML="";
+      for(const par of alleParochies){
+        const coll=(huidigDoelgroep==="volwassenen"?"priesterbrieven":"catecheselessen");
+        const q=huidigDoelgroep==="volwassenen"
+          ? db.collection("parochies").doc(par.id).collection(coll)
+          : db.collection("parochies").doc(par.id).collection(coll).where("doelgroep","==",huidigDoelgroep);
+
+        const snap=await q.get();
+        snap.forEach(doc=>{
+          const d=doc.data();
+          const kaart=document.createElement("div");
+          kaart.className="les-kaart";
+          kaart.innerHTML=`
+            <h3 onclick="bewerkLes('${doc.id}','${par.id}')">${d.titel}</h3>
+            <small>${par.naam} • ${d.zichtbaar?"✅":"🚫"} ${(d.inhoud||"").replace(/<br>/g," ").substring(0,50)}</small>
+          `;
+          overzicht.appendChild(kaart);
+        });
+      }
+    }
+
+    // Bewerken
+    async function bewerkLes(id,parochieId){
+      const coll=(huidigDoelgroep==="volwassenen"?"priesterbrieven":"catecheselessen");
+      const docRef=await db.collection("parochies").doc(parochieId).collection(coll).doc(id).get();
+      if(!docRef.exists) return;
+      const d=docRef.data();
+      editId=id;
+      formTitel.textContent="Les bewerken";
+      titelInput.value=d.titel;
+      inhoudInput.value=(d.inhoud||"").replace(/<br>/g,"\n");
+      zichtbaarChk.checked=d.zichtbaar;
+
+      // Parochies terug aanvinken (nog niet perfect, we nemen alle)
+      parochieSelector.querySelectorAll("input[type=checkbox]").forEach(cb=>{
+        cb.checked=true;
+      });
     }
 
     // Opslaan
-    form.addEventListener("submit", async(e)=>{
+    form.addEventListener("submit",async e=>{
       e.preventDefault();
-      const titel=form.lesTitel.value.trim();
+      const titel=titelInput.value.trim();
       if(!titel) return alert("Titel verplicht!");
-      const docId=titel.toLowerCase().replace(/\s+/g,"-");
-      const data={
-        titel,doelgroep:huidigDoelgroep,
-        inhoud:form.lesInhoud.value.trim().replace(/\n/g,"<br>"),
-        zichtbaar:form.lesZichtbaar.checked,
-        platen:[],vragen:[],aangemaaktOp:new Date()
-      };
-      // platen
-      for(let blok of platenContainer.querySelectorAll(".blok")){
-        const file=blok.querySelector(".plaatFile").files[0];
-        const tekst=blok.querySelector(".plaatTekst").value.trim().replace(/\n/g,"<br>");
-        const bestaand=blok.querySelector(".bestaandeUrl").value;
-        if(file){
-          const pad=`catecheselessen/${docId}/${Date.now()}_${file.name}`;
-          const snap=await storage.ref(pad).put(file);
-          const url=await snap.ref.getDownloadURL();
-          data.platen.push({url,tekst});
-        } else if(bestaand){
-          data.platen.push({url:bestaand,tekst});
-        }
-      }
-      // vragen
-      quizContainer.querySelectorAll(".blok").forEach(div=>{
-        const vraag=div.querySelector(".vraag").value.trim();
-        const antwoorden=[...div.querySelectorAll(".antw")].map(i=>i.value.trim());
-        const correct=parseInt(div.querySelector(".correct").value)-1;
-        if(vraag && antwoorden.filter(a=>a).length===4) data.vragen.push({vraag,antwoorden,correct});
-      });
+      const inhoud=inhoudInput.value.trim().replace(/\n/g,"<br>");
+      const zichtbaar=zichtbaarChk.checked;
+      geselecteerdeParochies=[...parochieSelector.querySelectorAll("input[type=checkbox]:checked")].map(cb=>cb.value);
+      if(geselecteerdeParochies.length===0) return alert("Selecteer minstens één parochie");
 
-      // Waar opslaan?
-      const optie=document.querySelector("input[name='parochieOptie']:checked").value;
-      let doelParochies=[];
-      if(optie==="alle"){
-        const snap=await db.collection("parochies").get();
-        doelParochies=snap.docs.map(d=>d.id);
-      } else {
-        doelParochies=[...parochieCheckboxes.querySelectorAll("input:checked")].map(cb=>cb.value);
-      }
+      const docId=editId||titel.toLowerCase().replace(/\s+/g,"-");
+      const data={titel,inhoud,zichtbaar,aangemaaktOp:new Date()};
+      if(huidigDoelgroep!=="volwassenen") data.doelgroep=huidigDoelgroep;
 
-      for(let pid of doelParochies){
-        const coll=huidigDoelgroep==="volwassenen"?"priesterbrieven":"catecheselessen";
+      for(const pid of geselecteerdeParochies){
+        const coll=(huidigDoelgroep==="volwassenen"?"priesterbrieven":"catecheselessen");
         await db.collection("parochies").doc(pid).collection(coll).doc(docId).set(data);
       }
 
-      form.reset();platenContainer.innerHTML="";quizContainer.innerHTML="";
-      alert("✅ Les opgeslagen in "+doelParochies.length+" parochie(s).");
+      alert("Les opgeslagen in "+geselecteerdeParochies.length+" parochie(s).");
+      form.reset();editId=null;formTitel.textContent="Nieuwe les toevoegen";
       laadLessen();
     });
 
-    // Lessen laden (alleen uit huidige sessie-parochie om te tonen)
-    async function laadLessen(){
-      overzicht.innerHTML="Laden…";
-      const parochieId=localStorage.getItem("ingelogdeParochie");
-      if(!parochieId){overzicht.innerHTML="<p>Geen parochie geselecteerd.</p>";return;}
-      const coll=huidigDoelgroep==="volwassenen"?"priesterbrieven":"catecheselessen";
-      const snap=await db.collection("parochies").doc(parochieId).collection(coll)
-        .where("doelgroep","==",huidigDoelgroep).get();
-      overzicht.innerHTML="";
-      if(snap.empty){overzicht.innerHTML="<p>Geen lessen.</p>";return;}
-      snap.forEach(doc=>{
-        const d=doc.data();
-        const kaart=document.createElement("div");
-        kaart.className="les-kaart";
-        kaart.innerHTML=`
-          <h3>${d.titel}</h3>
-          <small>${d.zichtbaar?"✅":"🚫"} ${(d.inhoud||"").replace(/<br>/g," ").substring(0,50)}</small>
-        `;
-        overzicht.appendChild(kaart);
-      });
+    // Verwijderen
+    async function verwijderLes(){
+      if(!editId) return alert("Geen les geselecteerd.");
+      if(!confirm("Les verwijderen uit ALLE geselecteerde parochies?")) return;
+      const docId=editId;
+      for(const pid of geselecteerdeParochies){
+        const coll=(huidigDoelgroep==="volwassenen"?"priesterbrieven":"catecheselessen");
+        await db.collection("parochies").doc(pid).collection(coll).doc(docId).delete();
+      }
+      alert("Les verwijderd.");
+      form.reset();editId=null;formTitel.textContent="Nieuwe les toevoegen";
+      laadLessen();
     }
-    laadLessen();
+
+    // Annuleren
+    function annuleerBewerking(){
+      form.reset();editId=null;formTitel.textContent="Nieuwe les toevoegen";
+    }
+
+    // Init
+    laadParochies().then(laadLessen);
   </script>
 </body>
 </html>
