@@ -1,4 +1,4 @@
-// Volwassenmodus layout.js   
+// Volwassenmodus layout.js
 (function () {
   const CONFIG = {
     headerDefaultMountId: "volwassen-header",
@@ -59,10 +59,18 @@
     });
   }
 
+  // === Hulpfunctie om rol uit localStorage te lezen ===
+  function getRollen() {
+    let rol = localStorage.getItem("rol");
+    try { rol = JSON.parse(rol); } catch { rol = rol ? [rol] : []; }
+    if (!Array.isArray(rol)) rol = [rol];
+    return rol;
+  }
+
   // === Catecheet knop ===
   function voegCatecheetKnopToe() {
-    const rol = localStorage.getItem("rol");
-    if (rol !== "catecheet") return;
+    const rollen = getRollen();
+    if (!rollen.includes("catecheet")) return;
 
     const menuRows = document.querySelectorAll("nav.menu .menu-row");
     if (!menuRows.length) return;
@@ -83,10 +91,8 @@
 
   // === Beheerder knop ===
   function voegBeheerderKnopToe() {
-    let rol = localStorage.getItem("rol");
-    try { rol = JSON.parse(rol); } catch { rol = rol ? [rol] : []; }
-
-    if (!rol.includes("beheerder")) return;
+    const rollen = getRollen();
+    if (!rollen.includes("beheerder")) return;
 
     const menuRows = document.querySelectorAll("nav.menu .menu-row");
     if (!menuRows.length) return;
