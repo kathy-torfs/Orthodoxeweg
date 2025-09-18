@@ -2,84 +2,73 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>Beheer Parochies - Orthodoxeweg</title>
+  <title>Beheer Parochie-aanvragen - Orthodoxeweg</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
+      margin: 0; padding: 0;
       background: #faf0c8;
       color: #5b4320;
     }
-
     h1 {
       text-align: center;
-      margin: 30px 0 20px;
+      margin: 30px 0;
+      color: #5d4c2f;
     }
-
-    table {
-      width: 95%;
-      margin: 0 auto 40px auto;
-      border-collapse: collapse;
-      background: #fffdf6;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 3px 12px #0002;
+    .lijst {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #fffef9;
+      border-radius: 18px;
+      box-shadow: 0 6px 32px #d7cbb142;
+      padding: 30px 24px;
     }
-
-    th, td {
-      padding: 12px;
-      border-bottom: 1px solid #e2c475;
-      text-align: left;
-      vertical-align: middle;
+    .aanvraag {
+      border-bottom: 1.5px dashed #e5d3ad;
+      padding: 18px 4px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: flex-start;
+      justify-content: space-between;
     }
-
-    th {
-      background: #7bb235;
-      color: white;
+    .aanvraag:last-child { border-bottom: none; }
+    .info { flex: 1 1 300px; }
+    .naam { font-weight: bold; font-size: 1.18em; }
+    .veld { color: #725721; margin: 2px 0; }
+    .actie {
+      display: flex; flex-direction: column;
+      gap: 8px; min-width: 180px;
     }
-
-    tr:hover td {
-      background: #f6ecd1;
+    input[type="text"] {
+      padding: 6px; border: 1px solid #bbb; border-radius: 6px;
+      font-size: 1em;
     }
-
     button {
-      padding: 6px 12px;
-      border-radius: 6px;
+      padding: 8px 15px;
+      border-radius: 7px;
       border: none;
-      cursor: pointer;
+      font-size: 1em;
       font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
     }
-
-    .aanvaard {
-      background: #45a745;
-      color: white;
-    }
-    .aanvaard:hover { background: #358135; }
-
-    .weiger {
-      background: #b42c25;
-      color: white;
-    }
-    .weiger:hover { background: #92201b; }
-
-    input[type="password"] {
-      padding: 6px;
-      border: 1px solid #c8a74f;
-      border-radius: 5px;
-      width: 140px;
-    }
+    .goedkeur { background: #45a745; color: #fff; }
+    .goedkeur:hover { background: #358135; }
+    .weiger { background: #b42c25; color: #fff; }
+    .weiger:hover { background: #a32018; }
+    .geen { color: #aa8e4a; text-align: center; font-size: 1.15em; }
   </style>
 
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <script>
-    // Beheerdersbescherming
+    // Alleen beheerders
     const modus = localStorage.getItem("modus");
-    let rol = [];
-    try { rol = JSON.parse(localStorage.getItem("rol") || "[]"); } catch(e) { rol = []; }
+    const rol = JSON.parse(localStorage.getItem("rol") || "[]");
     const email = localStorage.getItem("email");
-    const superUser = "kathy.torfs@telenet.be"; // noodtoegang
+    const superUser = "kathy.torfs@telenet.be";
 
     if ((modus !== "volwassene" || !rol.includes("beheerder")) && email !== superUser) {
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
@@ -87,50 +76,37 @@
   </script>
 </head>
 <body>
-  <!-- Uniforme header -->
+  <!-- Header -->
   <div id="volwassen-header"></div>
   <script src="common/layout.js" defer></script>
 
-  <h1>Nieuwe parochie-aanvragen</h1>
+  <h1>Parochie-aanvragen</h1>
+  <div class="lijst" id="aanvragenContainer">
+    <div class="geen">Bezig met laden...</div>
+  </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Parochie</th>
-        <th>Priester(s)</th>
-        <th>Email</th>
-        <th>Website</th>
-        <th>Wachtwoord</th>
-        <th>Actie</th>
-      </tr>
-    </thead>
-    <tbody id="parochieAanvragenTabel">
-      <tr><td colspan="6">Bezig met laden...</td></tr>
-    </tbody>
-  </table>
-
-  <!-- Firebase scripts -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script>
+    // Firebase init
     const firebaseConfig = {
-      apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain: "orthodoxeweg.firebaseapp.com",
       projectId: "orthodoxeweg",
       storageBucket: "orthodoxeweg.appspot.com",
       messagingSenderId: "408582263618",
-      appId: "1:408582263618:web:2e02833fa0d4d8903ceedb"
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    // Aanvragen laden
     async function laadAanvragen() {
-      const tbody = document.getElementById("parochieAanvragenTabel");
-      tbody.innerHTML = "<tr><td colspan='6'>Bezig met laden...</td></tr>";
+      const container = document.getElementById("aanvragenContainer");
+      container.innerHTML = '<div class="geen">Bezig met laden...</div>';
 
-      const snap = await db.collection("parochie_aanvragen").where("status","==","nieuw").get();
+      const snap = await db.collection("parochie_aanvragen").where("status", "==", "nieuw").get();
+
       if (snap.empty) {
-        tbody.innerHTML = "<tr><td colspan='6'>Geen nieuwe aanvragen gevonden.</td></tr>";
+        container.innerHTML = '<div class="geen">Geen nieuwe aanvragen.</div>';
         return;
       }
 
@@ -138,60 +114,92 @@
       snap.forEach(doc => {
         const d = doc.data();
         html += `
-          <tr id="row-${doc.id}">
-            <td>${d.naam || ""}</td>
-            <td>${(d.priesters || []).join(", ")}</td>
-            <td>${d.email || ""}</td>
-            <td>${d.website ? `<a href="${d.website}" target="_blank">${d.website}</a>` : "-"}</td>
-            <td><input type="password" id="ww-${doc.id}" placeholder="Wachtwoord" /></td>
-            <td>
-              <button class="aanvaard" onclick="aanvaardParochie('${doc.id}')">Aanvaarden</button>
-              <button class="weiger" onclick="weigerParochie('${doc.id}')">Weigeren</button>
-            </td>
-          </tr>
+          <div class="aanvraag" data-id="${doc.id}">
+            <div class="info">
+              <div class="naam">${d.naam}</div>
+              <div class="veld">Priesters: ${d.priesters.join(", ")}</div>
+              <div class="veld">Email: ${d.email}</div>
+              <div class="veld">Website: ${d.website || "-"}</div>
+            </div>
+            <div class="actie">
+              <input type="text" id="ww-${doc.id}" placeholder="Wachtwoord" />
+              <button class="goedkeur" onclick="goedkeurAanvraag('${doc.id}')">Goedkeuren</button>
+              <button class="weiger" onclick="weigerAanvraag('${doc.id}')">Weigeren</button>
+            </div>
+          </div>
         `;
       });
-      tbody.innerHTML = html;
+      container.innerHTML = html;
     }
+    laadAanvragen();
 
-    async function aanvaardParochie(id) {
-      const ww = document.getElementById("ww-" + id).value.trim();
-      if (!ww) {
-        alert("Geef een wachtwoord in voor de parochie.");
-        return;
-      }
+    // Goedkeuren
+    async function goedkeurAanvraag(id) {
+      const ref = db.collection("parochie_aanvragen").doc(id);
+      const snap = await ref.get();
+      if (!snap.exists) return alert("Aanvraag niet gevonden!");
+      const data = snap.data();
 
-      const docSnap = await db.collection("parochie_aanvragen").doc(id).get();
-      if (!docSnap.exists) return;
+      const wachtwoord = document.getElementById("ww-" + id).value.trim();
+      if (!wachtwoord) return alert("Geef een wachtwoord in!");
 
-      const data = docSnap.data();
+      // Verplaats naar parochies
       await db.collection("parochies").doc(id).set({
         naam: data.naam,
+        adres: data.adres,
+        postcode: data.postcode,
         gemeente: data.gemeente,
         provincie: data.provincie,
-        postcode: data.postcode,
         email: data.email,
         telefoon: data.telefoon,
         website: data.website,
         priesters: data.priesters,
-        wachtwoord: ww,
+        wachtwoord: wachtwoord,
         status: "actief",
-        aangemaakt: firebase.firestore.FieldValue.serverTimestamp()
+        datumAangemaakt: data.datumAangemaakt || firebase.firestore.FieldValue.serverTimestamp()
       });
 
-      await db.collection("parochie_aanvragen").doc(id).update({ status: "goedgekeurd" });
+      // Mail sturen
+      try {
+        await fetch("https://us-central1-orthodoxeweg.cloudfunctions.net/sendTestMail", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            to: data.email,
+            subject: "Uw parochie is goedgekeurd",
+            text: `Beste vader(s),
 
-      alert("Parochie goedgekeurd en toegevoegd!");
+Uw parochie-aanvraag werd goedgekeurd en toegevoegd aan Orthodoxeweg.
+
+Parochie: ${data.naam}
+Login: ${data.email}
+Wachtwoord: ${wachtwoord}
+
+U kan vanaf nu inloggen via de priesterknop op Orthodoxeweg.
+
+Met vriendelijke groeten,
+Orthodoxeweg`
+          })
+        });
+        alert("Parochie goedgekeurd en mail verzonden!");
+      } catch (e) {
+        alert("Parochie goedgekeurd, maar mail NIET verzonden!");
+      }
+
+      // Verwijder uit aanvragen
+      await ref.delete();
       laadAanvragen();
     }
 
-    async function weigerParochie(id) {
-      await db.collection("parochie_aanvragen").doc(id).update({ status: "geweigerd" });
-      document.getElementById("row-" + id).remove();
-      alert("Parochie geweigerd.");
+    // Weigeren
+    async function weigerAanvraag(id) {
+      await db.collection("parochie_aanvragen").doc(id).delete();
+      alert("Parochie-aanvraag geweigerd en verwijderd.");
+      laadAanvragen();
     }
 
-    window.addEventListener("DOMContentLoaded", laadAanvragen);
+    window.goedkeurAanvraag = goedkeurAanvraag;
+    window.weigerAanvraag = weigerAanvraag;
   </script>
 </body>
 </html>
