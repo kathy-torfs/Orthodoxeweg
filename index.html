@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
@@ -93,6 +93,11 @@
     .popup input, .popup select {
       display: block; margin: 12px auto; padding: 12px; width: 96%; font-size: 1rem;
       border-radius: 6px; border: 1px solid #bbb; box-sizing: border-box; max-width: 99vw;
+    }
+    /* EXTRA: textarea zelfde styling, niets verwijderd */
+    .popup textarea {
+      display: block; margin: 12px auto; padding: 12px; width: 96%; font-size: 1rem;
+      border-radius: 6px; border: 1px solid #bbb; box-sizing: border-box; max-width: 99vw; min-height: 84px;
     }
     .popup button {
       padding: 12px 30px; font-size: 1.05rem; background: var(--bruin-donker); color: var(--wit);
@@ -256,6 +261,27 @@
     <input type="password" id="priesterWachtwoord" placeholder="Wachtwoord" />
     <button onclick="priesterLogin()">Inloggen</button>
   </div>
+
+  <!-- ✨ NIEUWE PAROCHIE POPUP (TOEGEVOEGD, niets verwijderd) -->
+  <div id="nieuweParochiePopup" class="popup">
+    <button class="sluiten" onclick="closeAllPopups()">&times;</button>
+    <h2>Nieuwe Parochie Aanmaken</h2>
+    <form id="nieuweParochieForm">
+      <input type="text" id="npNaam" placeholder="Naam parochie" required />
+      <input type="text" id="npAdres" placeholder="Adres" required />
+      <input type="text" id="npPostcode" placeholder="Postcode" required />
+      <input type="text" id="npGemeente" placeholder="Gemeente" required />
+      <input type="text" id="npProvincie" placeholder="Provincie" required />
+      <input type="email" id="npEmail" placeholder="Email parochie" required />
+      <input type="text" id="npTelefoon" placeholder="Telefoon" />
+      <input type="url" id="npWebsite" placeholder="Website" />
+      <input type="text" id="npPriesters" placeholder="Priesters (komma gescheiden)" required />
+      <textarea id="npMotivatie" placeholder="Motivatie (optioneel)"></textarea>
+      <label><input type="checkbox" id="npGdpr" required> Ik ga akkoord met de verwerking van mijn gegevens</label>
+      <button type="submit">Verzenden</button>
+    </form>
+    <p id="npStatus"></p>
+  </div>
   <!-- ==== POPUPS: EINDE ==== -->
 
   <!-- ==== SCRIPTS: BEGIN ==== -->
@@ -291,6 +317,42 @@
             if (el) el.appendChild(optie);
           });
         });
+
+        /* ====== TOEGEVOEGD (niets verwijderd): 'Nieuwe parochie' + favoriet bovenaan ====== */
+        // 1) Priesterselect: "Nieuwe parochie aanmaken" als eerste optie
+        const priesterSel = document.getElementById("priesterParochie");
+        if (priesterSel) {
+          const newOpt = document.createElement("option");
+          newOpt.value = "__nieuwe__";
+          newOpt.textContent = "➕ Nieuwe parochie aanmaken";
+          priesterSel.insertBefore(newOpt, priesterSel.firstChild);
+
+          priesterSel.addEventListener("change", () => {
+            if (priesterSel.value === "__nieuwe__") {
+              closeAllPopups();
+              openPopup("nieuweParochiePopup");
+            } else {
+              localStorage.setItem("laatsteParochie", priesterSel.value);
+            }
+          });
+        }
+
+        // 2) Laatst gekozen parochie bovenaan bij login & priester
+        const last = localStorage.getItem("laatsteParochie");
+        ["loginParochie","priesterParochie"].forEach(id=>{
+          const el = document.getElementById(id);
+          if (!el || !last) return;
+          const found = el.querySelector(`option[value="${last}"]`);
+          if (found) {
+            // Bij priester komt het na de "nieuwe" optie
+            const insertBeforeNode = (id==="priesterParochie" && el.children.length>0) ? el.children[1] : el.firstChild;
+            el.insertBefore(found, insertBeforeNode || el.firstChild);
+          }
+          el.addEventListener("change", ()=>{
+            if (el.value !== "__nieuwe__") localStorage.setItem("laatsteParochie", el.value);
+          });
+        });
+        /* ====== EINDE TOEVOEGING ====== */
       });
     }
     window.addEventListener('DOMContentLoaded', laadParochies);
@@ -388,6 +450,8 @@
             localStorage.setItem("avatarURL", lidData.avatarURL || "https://cdn-icons-png.flaticon.com/512/4140/4140048.png");
             localStorage.setItem("ingelogdeVolwasseneNaam", naam);
             localStorage.setItem("rol", lidData.rol || "lid"); // catecheet of lid
+            // Favoriet onthouden
+            localStorage.setItem("laatsteParochie", parochieId);
             // ==== EINDE: Set alle lokale storage velden ====
 
             window.location.href = "volwassenmodus/startpagina.html";
@@ -413,6 +477,8 @@
             localStorage.setItem("modus", "priester");
             localStorage.setItem("ingelogdeParochie", parochieId);
             localStorage.setItem("ingelogdeParochieNaam", parochieNaam);
+            // Favoriet onthouden
+            localStorage.setItem("laatsteParochie", parochieId);
             window.location.href = "priestermodus/startpagina.html";
           } else alert("Onjuiste gegevens.");
         });
@@ -434,6 +500,36 @@
       window.location.href = "gastenmodus/startpagina.html";
     }
     // ==== LOGIN, PRIESTERLOGIN, POPUP FUNCTIES: EINDE ====
+
+    /* ==== TOEGEVOEGD: Nieuwe parochie aanvraag handler ==== */
+    document.getElementById("nieuweParochieForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const statusEl = document.getElementById("npStatus");
+      try {
+        const payload = {
+          naam: document.getElementById("npNaam").value,
+          adres: document.getElementById("npAdres").value,
+          postcode: document.getElementById("npPostcode").value,
+          gemeente: document.getElementById("npGemeente").value,
+          provincie: document.getElementById("npProvincie").value,
+          email: document.getElementById("npEmail").value,
+          telefoon: document.getElementById("npTelefoon").value,
+          website: document.getElementById("npWebsite").value,
+          priesters: document.getElementById("npPriesters").value.split(",").map(s=>s.trim()).filter(Boolean),
+          motivatie: document.getElementById("npMotivatie").value || "",
+          gdprAck: document.getElementById("npGdpr").checked,
+          status: "nieuw",
+          datumAangemaakt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        await db.collection("parochie_aanvragen").add(payload);
+        statusEl.textContent = "✅ Aanvraag ingediend. U krijgt bericht per e-mail.";
+        e.target.reset();
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = "❌ Er ging iets mis bij indienen.";
+      }
+    });
+    /* ==== EINDE TOEVOEGING ==== */
   </script>
   <!-- ==== SCRIPTS: EINDE ==== -->
 </body>
