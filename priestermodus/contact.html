@@ -134,95 +134,81 @@
       }
     }
 
-    // Berichten laden
-    async function laadBerichten(){
-      if(!eigenParochie) return;
+    // Ontvangen berichten (staan in eigen parochie)
+    async function laadOntvangen(){
+      const lijst=document.getElementById("ontvangenLijst");
+      lijst.innerHTML="<em>Laden...</em>";
       try {
-        // Ontvangen
-        const inboxSnap=await db.collection("parochies").doc(eigenParochie)
+        const snap=await db.collection("parochies").doc(eigenParochie)
           .collection("contact_parochies")
-          .where("ontvangerParochieId","==",eigenParochie)
           .orderBy("datum","desc").get();
-        toonBerichten(inboxSnap,"ontvangenLijst","Van","ontvanger");
-
-        // Verzonden
-        const sentSnap=await db.collection("parochies").doc(eigenParochie)
-          .collection("contact_parochies")
-          .where("verzenderParochieId","==",eigenParochie)
-          .orderBy("datum","desc").get();
-        toonBerichten(sentSnap,"verzondenLijst","Aan","verzender");
+        toonBerichten(snap,lijst,"Van");
       } catch(err){
-        console.error("Fout bij laden berichten:",err);
+        lijst.innerHTML="<em>Fout bij laden ontvangen: "+err.message+"</em>";
       }
     }
 
-    function toonBerichten(snap,elementId,label,rol){
-      const lijst=document.getElementById(elementId);
+    // Verzonden berichten (zoeken in ALLE parochies waar jij verzender bent)
+    async function laadVerzonden(){
+      const lijst=document.getElementById("verzondenLijst");
+      lijst.innerHTML="<em>Laden...</em>";
+      try {
+        const allParochies=await db.collection("parochies").get();
+        let berichten=[];
+        for(const doc of allParochies.docs){
+          const snap=await db.collection("parochies").doc(doc.id)
+            .collection("contact_parochies")
+            .where("verzenderParochieId","==",eigenParochie).get();
+          snap.forEach(b=>berichten.push({id:b.id,...b.data()}));
+        }
+        if(berichten.length===0){
+          lijst.innerHTML="<em>Geen verzonden berichten</em>";
+          return;
+        }
+        // sorteren op datum
+        berichten.sort((a,b)=>b.datum?.toDate()-a.datum?.toDate());
+        lijst.innerHTML="";
+        berichten.forEach(d=>{
+          const card=document.createElement("div"); card.className="bericht";
+          const datum=d.datum?.toDate?d.datum.toDate().toLocaleString():"";
+          card.innerHTML=`<h3>Aan: ${d.ontvangerParochieId}</h3><small>${datum}</small><p>${d.inhoud}</p>`;
+          lijst.appendChild(card);
+        });
+      } catch(err){
+        lijst.innerHTML="<em>Fout bij laden verzonden: "+err.message+"</em>";
+      }
+    }
+
+    function toonBerichten(snap,lijst,label){
       lijst.innerHTML="";
       if(snap.empty){ lijst.innerHTML="<em>Geen berichten</em>"; return; }
       snap.forEach(doc=>{
         const d=doc.data();
-        if((rol==="ontvanger" && d.verborgenVoorOntvanger) ||
-           (rol==="verzender" && d.verborgenVoorVerzender)) return;
-
         const card=document.createElement("div"); card.className="bericht";
         const datum=d.datum?.toDate?d.datum.toDate().toLocaleString():"";
-        const naam=(rol==="ontvanger"?d.verzenderParochieId:d.ontvangerParochieId)||"";
-        card.innerHTML=`<h3>${label}: ${naam}</h3><small>${datum}</small><p>${d.inhoud}</p>`;
-
-        const acties=document.createElement("div"); acties.className="actieknoppen";
-        const verwijderBtn=document.createElement("button");
-        verwijderBtn.className="btn"; verwijderBtn.textContent="🗑 Verwijder";
-        verwijderBtn.onclick=()=>verwijderBericht(doc.id,rol);
-        acties.appendChild(verwijderBtn);
-        card.appendChild(acties);
-
+        card.innerHTML=`<h3>${label}: ${d.verzenderParochieId}</h3><small>${datum}</small><p>${d.inhoud}</p>`;
         lijst.appendChild(card);
       });
     }
 
-    // Verwijderen
-    async function verwijderBericht(berichtId,rol){
-      const ref=db.collection("parochies").doc(eigenParochie)
-        .collection("contact_parochies").doc(berichtId);
-      try {
-        const snap=await ref.get();
-        if(!snap.exists) return;
-        const data=snap.data();
-        if(rol==="ontvanger"){
-          await ref.update({ verborgenVoorOntvanger:true });
-          if(data.verborgenVoorVerzender) await ref.delete();
-        } else {
-          await ref.update({ verborgenVoorVerzender:true });
-          if(data.verborgenVoorOntvanger) await ref.delete();
-        }
-        laadBerichten();
-      } catch(err){
-        console.error("Fout bij verwijderen:",err);
-        alert("Kon bericht niet verwijderen: "+err.message);
-      }
-    }
-
-    // Versturen
+    // Versturen (opslaan enkel in ontvanger-parochie)
     async function verstuurBericht(e){
       e.preventDefault();
       const naar=document.getElementById("naar").value;
       const inhoud=document.getElementById("inhoud").value.trim();
       if(!naar||!inhoud) return alert("Alles invullen!");
       try {
-        await db.collection("parochies").doc(eigenParochie)
+        await db.collection("parochies").doc(naar)
           .collection("contact_parochies")
           .add({
             verzenderParochieId:eigenParochie,
             ontvangerParochieId:naar,
             inhoud,
-            datum:firebase.firestore.Timestamp.now(),
-            verborgenVoorVerzender:false,
-            verborgenVoorOntvanger:false
+            datum:firebase.firestore.Timestamp.now()
           });
         alert("Bericht verstuurd!");
         document.getElementById("inhoud").value="";
-        laadBerichten();
+        laadVerzonden();
         toonTab({target:document.querySelectorAll(".tab-btn")[2]}, "verzonden");
       } catch(err){
         console.error("Fout bij opslaan:",err);
@@ -232,7 +218,8 @@
 
     // Init
     laadParochies();
-    laadBerichten();
+    laadOntvangen();
+    laadVerzonden();
   </script>
 </body>
 </html>
