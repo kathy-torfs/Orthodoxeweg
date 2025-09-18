@@ -25,6 +25,8 @@
     button:hover{background:#5e8e29}
     .delete{background:#e24343}
     .delete:hover{background:#b72828}
+    details.parochie-overzicht {margin:10px 0;padding:8px;border:1px solid #dab97a;border-radius:6px;background:#fff}
+    details.parochie-overzicht summary{cursor:pointer;font-weight:bold;color:#4e2710}
   </style>
 </head>
 <body>
@@ -61,6 +63,12 @@
       <div><button type="button" onclick="selecteerAlle()">Selecteer alle</button></div>
       <div id="parochieSelector" class="parochie-selector">⏳ Laden...</div>
 
+      <!-- Overzicht parochies waar deze les al bestaat -->
+      <details class="parochie-overzicht" id="parochieOverzicht" style="display:none;">
+        <summary>📌 Deze les staat momenteel in:</summary>
+        <ul id="parochieLijst"></ul>
+      </details>
+
       <div style="margin-top:10px;">
         <button type="submit">📌 Opslaan</button>
         <button type="button" class="delete" onclick="verwijderLes()">🗑 Verwijderen</button>
@@ -94,6 +102,8 @@
     const zichtbaarChk=document.getElementById("lesZichtbaar");
     const parochieSelector=document.getElementById("parochieSelector");
     const formTitel=document.getElementById("formTitel");
+    const parochieOverzicht=document.getElementById("parochieOverzicht");
+    const parochieLijst=document.getElementById("parochieLijst");
 
     // Tabs wisselen
     function wisselDoelgroep(d){
@@ -158,9 +168,18 @@
       inhoudInput.value=(d.inhoud||"").replace(/<br>/g,"\n");
       zichtbaarChk.checked=d.zichtbaar;
 
-      // Parochies terug aanvinken (nog niet perfect, we nemen alle)
+      // Parochies overzicht tonen
+      const parochiesMetLes=[];
+      for(const par of alleParochies){
+        const snap=await db.collection("parochies").doc(par.id).collection(coll).doc(id).get();
+        if(snap.exists) parochiesMetLes.push(par.naam||par.id);
+      }
+      parochieLijst.innerHTML=parochiesMetLes.map(p=>`<li>${p}</li>`).join("");
+      parochieOverzicht.style.display="block";
+
+      // Automatisch aanvinken
       parochieSelector.querySelectorAll("input[type=checkbox]").forEach(cb=>{
-        cb.checked=true;
+        cb.checked=parochiesMetLes.includes(cb.parentElement.textContent.trim());
       });
     }
 
@@ -184,7 +203,7 @@
       }
 
       alert("Les opgeslagen in "+geselecteerdeParochies.length+" parochie(s).");
-      form.reset();editId=null;formTitel.textContent="Nieuwe les toevoegen";
+      form.reset();editId=null;formTitel.textContent="Nieuwe les toevoegen";parochieOverzicht.style.display="none";
       laadLessen();
     });
 
@@ -198,13 +217,13 @@
         await db.collection("parochies").doc(pid).collection(coll).doc(docId).delete();
       }
       alert("Les verwijderd.");
-      form.reset();editId=null;formTitel.textContent="Nieuwe les toevoegen";
+      form.reset();editId=null;formTitel.textContent="Nieuwe les toevoegen";parochieOverzicht.style.display="none";
       laadLessen();
     }
 
     // Annuleren
     function annuleerBewerking(){
-      form.reset();editId=null;formTitel.textContent="Nieuwe les toevoegen";
+      form.reset();editId=null;formTitel.textContent="Nieuwe les toevoegen";parochieOverzicht.style.display="none";
     }
 
     // Init
