@@ -129,12 +129,18 @@
     const db = firebase.firestore();
 
     try {
-      const kinderenSnap = await db.collection("parochies")
+      // ✅ Zoek lid op loginKeuze (niet doc-id!)
+      const ledenSnap = await db.collection("parochies")
         .doc(parochieId)
         .collection("leden")
-        .doc(loginKeuze)
-        .collection("kinderen")
+        .where("loginKeuze", "==", loginKeuze)
+        .limit(1)
         .get();
+
+      if (ledenSnap.empty) return;
+
+      const lidDoc = ledenSnap.docs[0];
+      const kinderenSnap = await lidDoc.ref.collection("kinderen").get();
 
       let heeftToegang = false;
       kinderenSnap.forEach(doc => {
