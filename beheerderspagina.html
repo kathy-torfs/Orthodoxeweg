@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Beheerdersportaal</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5e9b8; margin: 0; }
+    header { background: #6d3a17; color: white; padding: 16px; text-align: center; }
+    nav { display: flex; justify-content: center; gap: 16px; background: #dab97a; padding: 10px; }
+    nav button { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; }
+    nav button.active { background: #4e2710; color: white; }
+    section { display: none; padding: 20px; }
+    section.active { display: block; }
+    .kaart {
+      background: #fff; border: 1px solid #dab97a; border-radius: 8px;
+      padding: 14px; margin: 12px auto; max-width: 600px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    .knoppen { margin-top: 10px; display: flex; gap: 10px; }
+    .knoppen button {
+      flex: 1; padding: 8px; border: none; border-radius: 6px; color: white;
+    }
+    .goed { background: #4caf50; }
+    .weig { background: #c62828; }
+    .opslaan { background: #1976d2; }
+  </style>
+</head>
+<body>
+  <header><h1>Beheerdersportaal</h1></header>
+  <nav>
+    <button onclick="toonSectie('priesters')">📜 Priesteraanvragen</button>
+    <button onclick="toonSectie('leden')">👤 Ledenaanvragen</button>
+    <button onclick="toonSectie('catechese')">📚 Catechese</button>
+  </nav>
+
+  <!-- Priesteraanvragen -->
+  <section id="priesters"><h2>Priesteraanvragen</h2><div id="priestersContainer"></div></section>
+
+  <!-- Ledenaanvragen -->
+  <section id="leden"><h2>Ledenaanvragen</h2><div id="ledenContainer"></div></section>
+
+  <!-- Catechese -->
+  <section id="catechese">
+    <h2>Catecheselessen beheren</h2>
+    <form id="lesForm">
+      <input type="text" id="lesTitel" placeholder="Titel" required><br>
+      <textarea id="lesTekst" placeholder="Inhoud van de les" rows="6" required></textarea><br>
+      <button type="submit" class="opslaan">Les opslaan</button>
+    </form>
+    <div id="lessenContainer"></div>
+  </section>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script>
+    // 🔥 Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:2e02833fa0d4d8903ceedb"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Navigatie
+    function toonSectie(id) {
+      document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
+      document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+      event.target.classList.add("active");
+    }
+    toonSectie("priesters"); // standaard eerste
+
+    // Priesteraanvragen ophalen
+    async function laadPriesters() {
+      const container = document.getElementById("priestersContainer");
+      container.innerHTML = "";
+      const snapshot = await db.collection("parochie_aanvragen").where("status","==","nieuw").get();
+      snapshot.forEach(doc=>{
+        const d = doc.data();
+        const kaart = document.createElement("div");
+        kaart.className="kaart";
+        kaart.innerHTML=`
+          <h3>${d.naam||"Onbekend"}</h3>
+          <p>Gemeente: ${d.gemeente||""}</p>
+          <p>Email: ${d.email||""}</p>
+          <div class="knoppen">
+            <button class="goed" onclick="aanvaardPriester('${doc.id}')">Aanvaarden</button>
+            <button class="weig" onclick="weigerPriester('${doc.id}')">Weigeren</button>
+          </div>
+        `;
+        container.appendChild(kaart);
+      });
+    }
+
+    async function aanvaardPriester(id) {
+      const wachtwoord = prompt("Geef wachtwoord voor deze parochie:");
+      if (!wachtwoord) return;
+      const snap = await db.collection("parochie_aanvragen").doc(id).get();
+      const d = snap.data();
+      await db.collection("parochies").add({
+        adres: d.adres||"", email: d.email||"", gemeente: d.gemeente||"",
+        naam: d.naam||"", postcode: d.postcode||"", priesters: d.priesters||[],
+        provincie: d.provincie||"", telefoon: d.telefoon||"",
+        website: d.website||"", wachtwoord: wachtwoord
+      });
+      await db.collection("parochie_aanvragen").doc(id).update({status:"goedgekeurd"});
+      alert("Parochie goedgekeurd.");
+      laadPriesters();
+    }
+
+    async function weigerPriester(id) {
+      await db.collection("parochie_aanvragen").doc(id).update({status:"geweigerd"});
+      alert("Parochie geweigerd.");
+      laadPriesters();
+    }
+
+    // Ledenaanvragen ophalen (alle parochies)
+    async function laadLeden() {
+      const container = document.getElementById("ledenContainer");
+      container.innerHTML="";
+      const parochies = await db.collection("parochies").get();
+      for (const parochieDoc of parochies.docs) {
+        const parochieNaam = parochieDoc.data().naam;
+        const regs = await parochieDoc.ref.collection("registraties").where("status","==","in afwachting").get();
+        regs.forEach(regDoc=>{
+          const d = regDoc.data();
+          const kaart=document.createElement("div");
+          kaart.className="kaart";
+          kaart.innerHTML=`
+            <h3>${d.voornaam} ${d.achternaam} (${parochieNaam})</h3>
+            <p>Email: ${d.email}</p>
+            <div class="knoppen">
+              <button class="goed" onclick="aanvaardLid('${parochieDoc.id}','${regDoc.id}', '${d.loginKeuze}')">Aanvaarden</button>
+              <button class="weig" onclick="weigerLid('${parochieDoc.id}','${regDoc.id}')">Weigeren</button>
+            </div>
+          `;
+          container.appendChild(kaart);
+        });
+      }
+    }
+
+    async function aanvaardLid(parochieId, regId, loginKeuze) {
+      const regRef = db.collection("parochies").doc(parochieId).collection("registraties").doc(regId);
+      const snap = await regRef.get();
+      const d = snap.data();
+      await db.collection("parochies").doc(parochieId).collection("leden").add({
+        ...d, wachtwoord: d.geboortedatum.split("-")[0] // voorbeeld: geboortejaar
+      });
+      await regRef.update({status:"goedgekeurd"});
+      alert("Lid goedgekeurd.");
+      laadLeden();
+    }
+
+    async function weigerLid(parochieId, regId) {
+      await db.collection("parochies").doc(parochieId).collection("registraties").doc(regId).update({status:"geweigerd"});
+      alert("Lid geweigerd.");
+      laadLeden();
+    }
+
+    // Catechese beheren
+    document.getElementById("lesForm").addEventListener("submit", async e=>{
+      e.preventDefault();
+      const titel=document.getElementById("lesTitel").value;
+      const tekst=document.getElementById("lesTekst").value;
+      await db.collection("catechese").add({titel, tekst, datum:new Date()});
+      alert("Les opgeslagen.");
+      document.getElementById("lesForm").reset();
+      laadLessen();
+    });
+
+    async function laadLessen() {
+      const container=document.getElementById("lessenContainer");
+      container.innerHTML="";
+      const snapshot=await db.collection("catechese").orderBy("datum","desc").get();
+      snapshot.forEach(doc=>{
+        const d=doc.data();
+        const kaart=document.createElement("div");
+        kaart.className="kaart";
+        kaart.innerHTML=`<h3>${d.titel}</h3><p>${d.tekst}</p>`;
+        container.appendChild(kaart);
+      });
+    }
+
+    // Init
+    laadPriesters();
+    laadLeden();
+    laadLessen();
+  </script>
+</body>
+</html>
