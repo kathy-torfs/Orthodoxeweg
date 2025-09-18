@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <title>Parochianen-aanvragen - Beheerder</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      background: #f8f5e9; 
+      margin: 0; 
+      padding: 0; 
+      color: #5b4320;
+    }
+
+    h1 { 
+      text-align: center; 
+      color: #5d4c2f; 
+      margin-top: 32px; 
+    }
+
+    .aanvragen-lijst {
+      max-width: 850px; 
+      margin: 30px auto 0 auto; 
+      background: #fffef9;
+      border-radius: 18px; 
+      box-shadow: 0 6px 32px #d7cbb142;
+      padding: 30px 20px 24px 20px;
+    }
+    .aanvraag {
+      border-bottom: 1.5px dashed #e5d3ad; 
+      padding: 16px 4px;
+      display: flex; 
+      flex-wrap: wrap; 
+      gap: 12px; 
+      align-items: center;
+      justify-content: space-between;
+    }
+    .aanvraag:last-child { border-bottom: none; }
+    .aanvraag-info { flex: 1 1 300px; }
+    .naam { font-weight: bold; font-size: 1.18em; }
+    .veld { color: #725721; margin: 2px 0; }
+    .actieknoppen {
+      display: flex; 
+      flex-direction: column; 
+      gap: 9px; 
+      min-width: 135px;
+    }
+    .goedkeur, .weiger {
+      padding: 8px 15px; 
+      border-radius: 7px; 
+      border: none;
+      font-size: 1em; 
+      font-weight: bold; 
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .goedkeur { background: #45a745; color: #fff; }
+    .goedkeur:hover { background: #358135; }
+    .weiger { background: #b42c25; color: #fff; }
+    .weiger:hover { background: #a32018; }
+    .geen-aanvragen {
+      color: #aa8e4a; 
+      text-align: center; 
+      margin-top: 42px; 
+      font-size: 1.15em;
+    }
+    @media (max-width: 800px) { 
+      .aanvragen-lijst { padding: 8vw 2vw; } 
+    }
+  </style>
+
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+  <script>
+    // ==== BEHEERDERTOEGANG ====
+    const modus = localStorage.getItem("modus");
+    const rol = JSON.parse(localStorage.getItem("rol") || "[]");
+    const email = localStorage.getItem("email");
+    const superUser = "kathy.torfs@telenet.be";
+
+    if ((modus !== "volwassene" || !rol.includes("beheerder")) && email !== superUser) {
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    }
+  </script>
+</head>
+<body>
+  <!-- Uniforme header -->
+  <div id="volwassen-header"></div>
+  <script src="common/layout.js" defer></script>
+
+  <!-- Registratieaanvragen -->
+  <h1>Parochianen-aanvragen</h1>
+  <div class="aanvragen-lijst" id="aanvragenLijst">
+    <div class="geen-aanvragen">Bezig met laden...</div>
+  </div>
+
+  <!-- Firebase + Aanvragen Script -->
+  <script>
+    // ==== FIREBASE INIT ====
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // ==== LADEN VAN ALLE PAROCHIE-AANVRAGEN ====
+    async function laadAanvragen() {
+      const container = document.getElementById("aanvragenLijst");
+      container.innerHTML = '<div class="geen-aanvragen">Bezig met laden...</div>';
+
+      const parochiesSnap = await db.collection("parochies").get();
+      let html = "";
+
+      for (const parochie of parochiesSnap.docs) {
+        const parochieData = parochie.data();
+        const parochieId = parochie.id;
+
+        const regSnap = await db.collection("parochies")
+          .doc(parochieId)
+          .collection("registraties")
+          .where("status", "==", "in afwachting")
+          .get();
+
+        regSnap.forEach(doc => {
+          const d = doc.data();
+          html += `
+            <div class="aanvraag" data-id="${doc.id}" data-parochie="${parochieId}">
+              <div class="aanvraag-info">
+                <span class="naam">${d.voornaam} ${d.achternaam}</span><br>
+                <span class="veld">Doopnaam: ${d.doopnaam}</span><br>
+                <span class="veld">E-mail: ${d.email}</span><br>
+                <span class="veld">Geboortedatum: ${d.geboortedatum}</span><br>
+                <span class="veld">Login: ${d.loginKeuze}</span><br>
+                <span class="veld">Parochie: ${parochieData.naam || parochieId}</span>
+              </div>
+              <div class="actieknoppen">
+                <button class="goedkeur" onclick="goedkeurAanvraag('${parochieId}','${doc.id}')">Goedkeuren</button>
+                <button class="weiger" onclick="weigerAanvraag('${parochieId}','${doc.id}')">Weigeren</button>
+              </div>
+            </div>
+          `;
+        });
+      }
+
+      if (!html) {
+        container.innerHTML = '<div class="geen-aanvragen">Geen aanvragen gevonden.</div>';
+      } else {
+        container.innerHTML = html;
+      }
+    }
+    laadAanvragen();
+
+    // ==== RANDOM WACHTWOORD ====
+    function genereerWachtwoord(lengte = 8) {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+      let pass = '';
+      for (let i = 0; i < lengte; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
+      return pass;
+    }
+
+    // ==== GOEDKEUREN ====
+    async function goedkeurAanvraag(parochieId, id) {
+      const regRef = db.collection("parochies").doc(parochieId).collection("registraties").doc(id);
+      const doc = await regRef.get();
+      if (!doc.exists) return alert("Registratie niet gevonden!");
+      const data = doc.data();
+
+      const wachtwoord = genereerWachtwoord();
+
+      await db.collection("parochies").doc(parochieId).collection("leden")
+        .doc(data.loginKeuze)
+        .set({
+          voornaam: data.voornaam,
+          achternaam: data.achternaam,
+          doopnaam: data.doopnaam,
+          email: data.email,
+          geboortedatum: data.geboortedatum,
+          loginKeuze: data.loginKeuze,
+          wachtwoord: wachtwoord,
+          status: "actief",
+          avatarURL: data.avatarURL || "https://cdn-icons-png.flaticon.com/512/4140/4140048.png",
+          verjaardagToevoegen: data.verjaardagToevoegen || false
+        });
+
+      // Mail sturen
+      try {
+        await fetch("https://us-central1-orthodoxeweg.cloudfunctions.net/sendTestMail", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            to: data.email,
+            subject: "Welkom bij Orthodoxeweg!",
+            text: `Beste ${data.voornaam},
+
+Uw registratie werd goedgekeurd.
+U kan inloggen met deze gegevens:
+
+Login: ${data.loginKeuze}
+Wachtwoord: ${wachtwoord}
+
+Gelieve bij eerste login uw wachtwoord aan te passen.
+
+Met vriendelijke groeten,
+Orthodoxeweg`
+          })
+        });
+        alert("Registratie goedgekeurd en mail verzonden!");
+      } catch (e) {
+        alert("Registratie goedgekeurd, maar mail NIET verzonden!");
+      }
+
+      await regRef.delete();
+      laadAanvragen();
+    }
+
+    // ==== WEIGEREN ====
+    async function weigerAanvraag(parochieId, id) {
+      const regRef = db.collection("parochies").doc(parochieId).collection("registraties").doc(id);
+      await regRef.delete();
+      alert("Registratie geweigerd en verwijderd.");
+      laadAanvragen();
+    }
+
+    window.goedkeurAanvraag = goedkeurAanvraag;
+    window.weigerAanvraag = weigerAanvraag;
+  </script>
+</body>
+</html>
