@@ -161,7 +161,9 @@
     if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "priester") {
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     }
-    const parochieNaam = localStorage.getItem("ingelogdeParochie");
+
+    // Gebruik docId direct
+    const parochieId = localStorage.getItem("ingelogdeParochie");
 
     // FIREBASE INIT
     const firebaseConfig = {
@@ -175,23 +177,11 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Haal correcte parochieId uit Firestore op basis van naam
-    let parochieIdPromise = db.collection("parochies")
-      .where("naam", "==", parochieNaam)
-      .limit(1)
-      .get()
-      .then(snap => snap.empty ? null : snap.docs[0].id);
-
+    // Laad alle post-its bij openen
     async function laadPostits() {
-      const parochieId = await parochieIdPromise;
       for (let i = 0; i < 9; i++) {
         const tekstInput = document.getElementById("tekst" + i);
         const feedback = document.getElementById("feedback" + i);
-        if (!parochieId) {
-          feedback.textContent = "Parochie niet gevonden.";
-          tekstInput.value = "";
-          continue;
-        }
         db.collection("parochies").doc(parochieId).collection("prikbord_priester")
           .doc("postit" + i)
           .get()
@@ -207,13 +197,13 @@
       }
     }
 
+    // Opslaan van een post-it
     async function opslaan(index) {
       const tekst = document.getElementById("tekst" + index).value.trim();
       const feedback = document.getElementById("feedback" + index);
       feedback.textContent = "";
-      const parochieId = await parochieIdPromise;
-      if (!parochieId) { feedback.textContent = "Parochie niet gevonden!"; return; }
       if (!tekst) { feedback.textContent = "Het tekstvak is leeg."; return; }
+
       db.collection("parochies").doc(parochieId).collection("prikbord_priester")
         .doc("postit" + index)
         .set({ tekst, tijd: firebase.firestore.Timestamp.now() })
@@ -221,11 +211,10 @@
         .catch(err => { feedback.textContent = "Fout bij opslaan: " + err; });
     }
 
+    // Verwijderen
     async function verwijderPostit(index) {
       const feedback = document.getElementById("feedback" + index);
       const tekstInput = document.getElementById("tekst" + index);
-      const parochieId = await parochieIdPromise;
-      if (!parochieId) { feedback.textContent = "Parochie niet gevonden!"; return; }
       db.collection("parochies").doc(parochieId).collection("prikbord_priester")
         .doc("postit" + index).delete()
         .then(() => { tekstInput.value = ""; feedback.textContent = "Verwijderd!"; setTimeout(() => { feedback.textContent = ""; }, 1200); })
