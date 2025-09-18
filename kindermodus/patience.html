@@ -18,6 +18,7 @@
       margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
       min-height:100vh; background:var(--pastel1); transition:background .6s;
     }
+
     #controls {
       box-sizing: border-box;
       background-color: #3B96E5;
@@ -35,6 +36,7 @@
     }
     #controls button:hover {
       background-color: rgba(0, 0, 0, 0.3);
+      border-color: rgba(0, 0, 0, 0.3);
     }
     #score {
       color: #fff;
@@ -43,52 +45,15 @@
     }
   </style>
 
-  <!-- Header + menubalk + beveiliging -->
+    <!-- Header + menubalk + beveiliging -->
   <script defer src="common/layout.js"></script>
-  <!-- Het spel -->
-  <script defer src="solitaire.js"></script>
 </head>
+
 <body>
   <!-- Hier komt automatisch de header en menubalk uit header.html -->
   <div id="kinder-header" data-header-src="common/header.html"></div>
-
-  <!DOCTYPE html>
-<html lang="nl">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Patience – Orthodoxe Kinderpagina</title>
-  <link rel="icon" href="images/kruis.png" />
-
-  <style>
-    /* Orthodoxeweg kleuren */
-    :root{
-      --primair:#7bb235; --donker:#67510C;
-      --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
-      --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
-      --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
-      --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
-    }
-    body{
-      margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
-      min-height:100vh; background:var(--pastel1); transition:background .6s;
-    }
-
-button {
-  color: #fff;
-  font-family: inherit;
-  font-weight: 500;
-  padding: 6px 12px;
-  font-size: 16px;
-  cursor: pointer;
-  background-color: transparent;
-  border: none;
-}
-button:hover {
-  background-color: rgba(0, 0, 0, 0.3);
-  border-color: rgba(0, 0, 0, 0.3);
-}
-
+  
+<style>
 #spelcontainer::after,
 .clearfix::after {
   clear: both;
@@ -97,9 +62,8 @@ button:hover {
 }
 
 #spelcontainer {
-    position: absolute;
-    left: 10;
-    top: 60;
+  position: relative;
+  margin: 60px auto 0 auto; /* 60px van boven, automatisch links/rechts centreren */
   height: 80vh;
   width: 770px;
   text-align: center;
@@ -327,7 +291,7 @@ button:hover {
 
 .card .rear {
   background-color: #fff;
-  background-image: url("images/solitair-back.png");
+  background-image: url("images/solitair_back.png");
   background-position: center center;
   background-repeat: no-repeat;
   background-size: 82% 88%;
@@ -908,26 +872,12 @@ button:hover {
 <body>
 
 <div id="fb-root"></div>
-<script>
-(function(d, s, id) {
-  var js, fjs = d.getElementsByTagName(s)[0];
-  if (d.getElementById(id)) return;
-  js = d.createElement(s); js.id = id;
-  js.src = 'https://connect.facebook.net/nl_NL/sdk.js#xfbml=1&version=v3.2';
-  fjs.parentNode.insertBefore(js, fjs);
-}(document, 'script', 'facebook-jssdk'));
-</script>
-
+  
 <div id="page-wrapper">
   <section style="padding:10px;height:720px;position:relative;">
-    <div id="controls">
-      <button type="button" data-action="undo">Ongedaan maken</button>
-      <button type="button" data-action="hint">Hint</button>
-      <button type="button" data-action="start">Herstart</button>
-      <div id="score">Score: 0</div>
-    </div>
     <div id="spelcontainer"></div>
   </section>
+</div>
 
 <script id="rendered-js">
 (function (global) {
@@ -2037,7 +1987,7 @@ button:hover {
           this.animationInterval +
           "ms;";
 
-        setTimeout(function () {
+               setTimeout(function () {
           card.el.style.transform = "";
         }, this.animationInterval);
       }
@@ -2051,54 +2001,10 @@ button:hover {
   global.Game = Game;
 })(this);
 
-var controls = document.getElementById("controls"),
-  score = document.getElementById("score"),
-  game = new Game("#spelcontainer");
-
+// Start het spel
+var game = new Game("#spelcontainer");
 game.start();
-
-game.on("start", function () {
-  score.textContent = "Score: " + this.score;
-});
-
-game.on("change", function () {
-  score.textContent = "Score: " + this.score;
-});
-
-controls.addEventListener(
-  "click",
-  function (e) {
-    var t = e.target;
-    if (t.nodeName === "BUTTON") {
-      var action = t.getAttribute("data-action");
-      game[action]();
-    }
-  },
-  false
-);
 </script>
-</body>
-</html>
-  <script>
-    // Zachte pastelachtergrond
-    (function(){
-      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)',
-               'var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)',
-               'var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)',
-               'var(--pastel15)','var(--pastel16)'];
-      document.body.style.background = p[Math.floor(Math.random()*p.length)];
-    })();
 
-    // Header + menubalk activeren
-    (function boot(){
-      if (!(window.KinderLayout)) return setTimeout(boot, 120);
-      const el = document.getElementById('kinder-header');
-      window.KinderLayout.mountHeader({
-        rootId: 'kinder-header',
-        headerSrc: el.dataset.headerSrc,
-        active: 'spelletjes'
-      });
-    })();
-  </script>
 </body>
 </html>
