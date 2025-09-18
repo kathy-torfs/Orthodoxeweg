@@ -114,20 +114,22 @@
       </form>
       <div class="feedback" id="feedback"></div>
     </div>
-    <div class="zoekertjes-lijst" id="zoekertjesLijst">
-      <!-- Zoekertjes verschijnen hier -->
-    </div>
+    <div class="zoekertjes-lijst" id="zoekertjesLijst"></div>
   </div>
   <script>
     // Toegangscontrole voor priestermodus
     if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "priester") {
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     }
-    const parochieNaam = localStorage.getItem("ingelogdeParochie");
-    document.getElementById("parochieNaam").textContent = parochieNaam || "...";
-    document.getElementById("parochieLabel").textContent = parochieNaam
-      ? `U bent ingelogd in de parochie van ${parochieNaam}`
+
+    // Parochie-ID rechtstreeks uit localStorage
+    const parochieId = localStorage.getItem("ingelogdeParochie");
+    document.getElementById("parochieNaam").textContent = parochieId || "...";
+    document.getElementById("parochieLabel").textContent = parochieId
+      ? `U bent ingelogd in de parochie van ${parochieId}`
       : "⚠️ Geen geldige parochie geselecteerd!";
+
+    // Uitloggen
     document.getElementById("uitlogKnop").onclick = function() {
       localStorage.clear();
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
@@ -142,30 +144,18 @@
       messagingSenderId: "408582263618",
       appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
     };
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Hulp: eigen userId + (optioneel) naam
+    // Hulp: eigen userId + naam
     const userId = localStorage.getItem("userId") || "onbekend";
     const voornaam = localStorage.getItem("voornaam") || "";
     const achternaam = localStorage.getItem("achternaam") || "";
 
-    // Parochie-ID ophalen uit naam
-    let parochieIdPromise = db.collection("parochies")
-      .where("naam", "==", parochieNaam)
-      .limit(1)
-      .get()
-      .then(snap => snap.empty ? null : snap.docs[0].id);
-
     // Zoekertjes laden
     async function laadZoekertjes() {
-      const parochieId = await parochieIdPromise;
       const lijst = document.getElementById("zoekertjesLijst");
       lijst.innerHTML = "<em>Zoekertjes worden geladen...</em>";
-      if (!parochieId) {
-        lijst.innerHTML = "<em>Parochie niet gevonden.</em>";
-        return;
-      }
       const nu = new Date();
       db.collection("parochies").doc(parochieId).collection("zoekertjes")
         .orderBy("datum", "desc")
@@ -186,8 +176,7 @@
               let vervaltTekst = "";
               if (d.vervalDatum && d.vervalDatum.toDate) {
                 const ver = d.vervalDatum.toDate();
-                const nuu = new Date();
-                const restMS = ver.getTime() - nuu.getTime();
+                const restMS = ver.getTime() - nu.getTime();
                 if (restMS > 0) {
                   const uren = Math.floor(restMS / (1000*60*60));
                   if (uren < 36) {
@@ -225,11 +214,6 @@
       feedback.textContent = "";
       if (tekst.length === 0) {
         feedback.textContent = "Het zoekertje is leeg.";
-        return;
-      }
-      const parochieId = await parochieIdPromise;
-      if (!parochieId) {
-        feedback.textContent = "Parochie niet gevonden.";
         return;
       }
       const nu = new Date();
