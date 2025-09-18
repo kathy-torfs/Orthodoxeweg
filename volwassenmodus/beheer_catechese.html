@@ -26,6 +26,7 @@
     .les-kaart h3{margin:0;color:#7a5f35}
     .les-kaart small{color:#8f7437}
     img.klein {max-height:3cm;border-radius:6px;margin:6px 0}
+    .parochie-selectie{margin:10px 0;padding:10px;border:1px solid #dab97a;border-radius:8px;background:#fffdf5}
   </style>
 </head>
 <body>
@@ -40,7 +41,7 @@
     <div class="tabs">
       <button id="tabKleuters" class="actief" onclick="wisselDoelgroep('kleuters')">👶 Kleuters</button>
       <button id="tabLagere" onclick="wisselDoelgroep('lagere')">📚 Lagere school</button>
-      <button id="tabVolwassenen" onclick="wisselDoelgroep('volwassenen')">👨‍👩‍👧‍👦 Volwassenen</button>
+      <button id="tabVolwassenen" onclick="wisselDoelgroep('volwassenen')">👩‍🦳 Volwassenen</button>
     </div>
 
     <!-- Index van lessen -->
@@ -49,6 +50,14 @@
     <!-- Nieuw / bewerken -->
     <form id="lesForm">
       <h2>Nieuwe les toevoegen / bewerken</h2>
+
+      <!-- Parochiekeuze -->
+      <div class="parochie-selectie">
+        <label><input type="radio" name="parochieOptie" value="alle" checked> Opslaan in alle parochies</label><br>
+        <label><input type="radio" name="parochieOptie" value="selectief"> Opslaan in geselecteerde parochies</label>
+        <div id="parochieCheckboxes" style="display:none;margin-top:10px;"></div>
+      </div>
+
       <label>Titel</label>
       <input type="text" id="lesTitel" required>
 
@@ -89,8 +98,6 @@
     const db = firebase.firestore();
     const storage = firebase.storage();
 
-    const parochieId = localStorage.getItem("ingelogdeParochie") || "hasselt-drie-hierarchen";
-
     let huidigDoelgroep = "kleuters";
     let editId = null;
     let origineel = null;
@@ -99,6 +106,7 @@
     const form = document.getElementById("lesForm");
     const platenContainer = document.getElementById("platenContainer");
     const quizContainer = document.getElementById("quizContainer");
+    const parochieCheckboxes = document.getElementById("parochieCheckboxes");
 
     // Tabs wisselen
     function wisselDoelgroep(d) {
@@ -108,6 +116,27 @@
       document.getElementById("tabVolwassenen").classList.toggle("actief", d==="volwassenen");
       laadLessen();
     }
+
+    // Parochiekeuze tonen/verbergen
+    document.querySelectorAll("input[name='parochieOptie']").forEach(radio=>{
+      radio.addEventListener("change",()=>{
+        parochieCheckboxes.style.display = (radio.value==="selectief" && radio.checked)?"block":"none";
+      });
+    });
+
+    // Vul parochielijst
+    async function laadParochies() {
+      const snap = await db.collection("parochies").get();
+      parochieCheckboxes.innerHTML="";
+      snap.forEach(doc=>{
+        const d = doc.data();
+        const label=document.createElement("label");
+        label.innerHTML=`<input type="checkbox" value="${doc.id}"> ${d.naam} (${d.gemeente})`;
+        parochieCheckboxes.appendChild(label);
+        parochieCheckboxes.appendChild(document.createElement("br"));
+      });
+    }
+    laadParochies();
 
     // ➕ Plaat
     function voegPlaatToe(p={}) {
@@ -172,43 +201,34 @@
         if(vraag && antwoorden.filter(a=>a).length===4) data.vragen.push({vraag,antwoorden,correct});
       });
 
-      if(huidigDoelgroep==="volwassenen"){
-        await db.collection("parochies").doc(parochieId).collection("priesterbrieven").doc(docId).set(data);
+      // Waar opslaan?
+      const optie=document.querySelector("input[name='parochieOptie']:checked").value;
+      let doelParochies=[];
+      if(optie==="alle"){
+        const snap=await db.collection("parochies").get();
+        doelParochies=snap.docs.map(d=>d.id);
       } else {
-        await db.collection("parochies").doc(parochieId).collection("catecheselessen").doc(docId).set(data);
+        doelParochies=[...parochieCheckboxes.querySelectorAll("input:checked")].map(cb=>cb.value);
       }
 
-      form.reset();platenContainer.innerHTML="";quizContainer.innerHTML="";editId=null;origineel=null;
+      for(let pid of doelParochies){
+        const coll=huidigDoelgroep==="volwassenen"?"priesterbrieven":"catecheselessen";
+        await db.collection("parochies").doc(pid).collection(coll).doc(docId).set(data);
+      }
+
+      form.reset();platenContainer.innerHTML="";quizContainer.innerHTML="";
+      alert("✅ Les opgeslagen in "+doelParochies.length+" parochie(s).");
       laadLessen();
     });
 
-    // Annuleren
-    function annuleerBewerking(){
-      if(!editId){
-        form.reset();
-        platenContainer.innerHTML="";
-        quizContainer.innerHTML="";
-      } else if(origineel){
-        const d=origineel;
-        form.lesTitel.value=d.titel;
-        form.lesInhoud.value=(d.inhoud||"").replace(/<br>/g,"\n");
-        form.lesZichtbaar.checked=d.zichtbaar;
-        platenContainer.innerHTML="";quizContainer.innerHTML="";
-        d.platen?.forEach(p=>voegPlaatToe(p));
-        d.vragen?.forEach(q=>voegVraagToe(q));
-      }
-    }
-
-    // Laden
+    // Lessen laden (alleen uit huidige sessie-parochie om te tonen)
     async function laadLessen(){
       overzicht.innerHTML="Laden…";
-      let snap;
-      if(huidigDoelgroep==="volwassenen"){
-        snap=await db.collection("parochies").doc(parochieId).collection("priesterbrieven").get();
-      } else {
-        snap=await db.collection("parochies").doc(parochieId).collection("catecheselessen")
-          .where("doelgroep","==",huidigDoelgroep).get();
-      }
+      const parochieId=localStorage.getItem("ingelogdeParochie");
+      if(!parochieId){overzicht.innerHTML="<p>Geen parochie geselecteerd.</p>";return;}
+      const coll=huidigDoelgroep==="volwassenen"?"priesterbrieven":"catecheselessen";
+      const snap=await db.collection("parochies").doc(parochieId).collection(coll)
+        .where("doelgroep","==",huidigDoelgroep).get();
       overzicht.innerHTML="";
       if(snap.empty){overzicht.innerHTML="<p>Geen lessen.</p>";return;}
       snap.forEach(doc=>{
@@ -216,47 +236,12 @@
         const kaart=document.createElement("div");
         kaart.className="les-kaart";
         kaart.innerHTML=`
-          <h3 onclick="bewerkLes('${doc.id}')">${d.titel}</h3>
+          <h3>${d.titel}</h3>
           <small>${d.zichtbaar?"✅":"🚫"} ${(d.inhoud||"").replace(/<br>/g," ").substring(0,50)}</small>
-          <div>
-            <button onclick="verwijderLes('${doc.id}')">🗑 Verwijderen</button>
-          </div>`;
+        `;
         overzicht.appendChild(kaart);
       });
     }
-
-    // Bewerken
-    async function bewerkLes(id){
-      let docRef;
-      if(huidigDoelgroep==="volwassenen"){
-        docRef=await db.collection("parochies").doc(parochieId).collection("priesterbrieven").doc(id).get();
-      } else {
-        docRef=await db.collection("parochies").doc(parochieId).collection("catecheselessen").doc(id).get();
-      }
-      if(!docRef.exists) return;
-      const d=docRef.data();
-      origineel = {id,...d};
-      form.lesTitel.value=d.titel;
-      form.lesInhoud.value=(d.inhoud||"").replace(/<br>/g,"\n");
-      form.lesZichtbaar.checked=d.zichtbaar;
-      platenContainer.innerHTML="";quizContainer.innerHTML="";
-      d.platen?.forEach(p=>voegPlaatToe(p));
-      d.vragen?.forEach(q=>voegVraagToe(q));
-      editId=id;
-      window.scrollTo({top:0,behavior:"smooth"});
-    }
-
-    // Verwijderen
-    async function verwijderLes(id){
-      if(!confirm("Weet je zeker dat je deze les wil verwijderen?")) return;
-      if(huidigDoelgroep==="volwassenen"){
-        await db.collection("parochies").doc(parochieId).collection("priesterbrieven").doc(id).delete();
-      } else {
-        await db.collection("parochies").doc(parochieId).collection("catecheselessen").doc(id).delete();
-      }
-      laadLessen();
-    }
-
     laadLessen();
   </script>
 </body>
