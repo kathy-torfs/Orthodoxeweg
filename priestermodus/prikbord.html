@@ -6,28 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { margin: 0; padding: 0; font-family: Arial, sans-serif; background: #d8ecf9; color: #5b4320; }
-    header { background-color: #e6d6b8; padding: 2rem 1rem 0.7rem 1rem; text-align: center; }
-    h1 { margin:0; font-size:2rem; color:#5d4c2f; }
-    #parochieLabel {
-      background: #fcf6e2; color: #7a5f35; padding: 10px 0 8px 0; text-align: center;
-      font-weight: bold; letter-spacing: 1px; font-size: 1.08em;
-      box-shadow: 0 2px 8px #cbb96d44; margin-bottom: 10px;
-    }
-    nav.menu {
-      background-color: #7a5f35; padding: 12px 20px;
-      display: flex; flex-wrap: wrap; gap: 14px; justify-content: center;
-    }
-    nav.menu a {
-      color: #f8f5e9; text-decoration: none; font-weight: bold; font-size: 16px;
-      padding: 6px 14px; border-radius: 8px; transition: background-color 0.3s;
-    }
-    nav.menu a:hover { background-color: #5e4724; }
-    .uitlog-link {
-      color: #fff; background: #9a2617; padding: 6px 16px; border-radius: 8px;
-      font-size: 1em; text-decoration: none; font-weight: bold;
-      margin-left: 14px; margin-right: 14px; transition: background 0.18s;
-      cursor: pointer; border: none; float: right;
-    }
+
     .formcontainer {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -46,7 +25,6 @@
       align-items: stretch;
       color: #222; font-weight: bold;
       min-width: 270px;
-      /* zorgt dat alles in de blok valt, geen overlopen */
       overflow: hidden;
     }
     .kleur1 { background: #fff980; border: 2px solid #ebd700; }
@@ -69,77 +47,38 @@
       font-size: 1.13em;
       min-height: 170px;
       resize: vertical;
-      box-shadow: none;
-      font-family: inherit;
-      /* Zorgen dat de muis niet verdwijnt tegen de rand */
       box-sizing: border-box;
-    }
-    .formblok textarea:focus {
-      outline: none;
-      background: transparent;
-      border: none;
+      font-family: inherit;
     }
     .formblok button {
       background: #7a5f35; color: #fff; font-weight: bold; padding: 10px 18px;
       border: none; border-radius: 8px; cursor: pointer; font-size: 1em;
-      margin-top: 0; margin-right: 8px;
+      margin-right: 8px;
     }
     .formblok button:hover { background: #b09765; }
     .postit-buttons {
-      display: flex;
-      flex-direction: row;
-      gap: 10px;
-      margin-top: 0;
-      align-items: center;
-      justify-content: flex-start;
+      display: flex; flex-direction: row; gap: 10px; align-items: center;
     }
     .delete-btn {
-      background: #b6322c;
-      color: #fff;
-      font-weight: bold;
-      padding: 10px 16px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 1.35em;
-      transition: background 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      background: #b6322c; color: #fff; font-weight: bold;
+      padding: 10px 16px; border: none; border-radius: 8px;
+      cursor: pointer; font-size: 1.2em; transition: background 0.2s;
     }
     .delete-btn:hover { background: #ef1616; }
-    .feedback { text-align:center; color: #9a2617; font-size: 1em; margin-bottom:8px;}
+    .feedback { text-align:center; color: #9a2617; font-size: 1em; margin-top:6px;}
     @media (max-width: 1050px) {
-      .formcontainer { grid-template-columns: repeat(2, 1fr);}
+      .formcontainer { grid-template-columns: repeat(2, 1fr); }
     }
     @media (max-width: 700px) {
-      .formcontainer { grid-template-columns: 1fr; gap: 18px;}
+      .formcontainer { grid-template-columns: 1fr; gap: 18px; }
     }
   </style>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <header>
-    <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
-    <h1 id="welkom-tekst">Prikbordbeheer – Priester</h1>
-    <div id="parochieLabel"></div>
-  </header>
-<nav class="menu">
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/startpagina.html" title="Startpagina">🏠</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/parochie.html">🛐 Mijn parochie</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/catechese/catechese.html">📖 Catechese</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/gebeden.html">🙏 Gebeden</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/psalmen/psalmen.html">📜 Psalmen</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/heiligen/heiligen.html">👼 Heiligen</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/bijbeldagboek.html">📔 Bijbeldagboek</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/verjaardagskalender.html">🎂 Verjaardagskalender</a>
-  <!-- Kerkje-rechts als profiel/bewerk parochie -->
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/layout.html" class="menu-kerk" title="Bewerk parochie">
-    <span style="font-size:2.1em; display:inline-block; vertical-align:middle;">⛪</span>
-  </a>
-</nav>
+  <!-- Priester header -->
+  <div id="priester-header"></div>
 
   <div class="formcontainer">
     <!-- 9 post-its -->
@@ -216,19 +155,13 @@
       <div class="feedback" id="feedback8"></div>
     </div>
   </div>
+
   <script>
     // Toegangscontrole
     if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "priester") {
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     }
     const parochieNaam = localStorage.getItem("ingelogdeParochie");
-    document.getElementById("parochieLabel").textContent = parochieNaam
-      ? `U bent ingelogd in de parochie van ${parochieNaam}`
-      : "⚠️ Geen geldige parochie geselecteerd!";
-    document.getElementById("uitlogKnop").onclick = function() {
-      localStorage.clear();
-      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
-    };
 
     // FIREBASE INIT
     const firebaseConfig = {
@@ -239,7 +172,7 @@
       messagingSenderId: "408582263618",
       appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
     };
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
     // Haal correcte parochieId uit Firestore op basis van naam
@@ -249,7 +182,6 @@
       .get()
       .then(snap => snap.empty ? null : snap.docs[0].id);
 
-    // Laad alle post-its bij openen
     async function laadPostits() {
       const parochieId = await parochieIdPromise;
       for (let i = 0; i < 9; i++) {
@@ -265,8 +197,7 @@
           .get()
           .then(doc => {
             if (doc.exists) {
-              const d = doc.data();
-              tekstInput.value = d.tekst || "";
+              tekstInput.value = doc.data().tekst || "";
               feedback.textContent = "";
             } else {
               tekstInput.value = "";
@@ -276,58 +207,37 @@
       }
     }
 
-    // Opslaan van een post-it
     async function opslaan(index) {
       const tekst = document.getElementById("tekst" + index).value.trim();
       const feedback = document.getElementById("feedback" + index);
       feedback.textContent = "";
       const parochieId = await parochieIdPromise;
-      if (!parochieId) {
-        feedback.textContent = "Parochie niet gevonden!";
-        return;
-      }
-      if (!tekst) {
-        feedback.textContent = "Het tekstvak is leeg.";
-        return;
-      }
+      if (!parochieId) { feedback.textContent = "Parochie niet gevonden!"; return; }
+      if (!tekst) { feedback.textContent = "Het tekstvak is leeg."; return; }
       db.collection("parochies").doc(parochieId).collection("prikbord_priester")
         .doc("postit" + index)
-        .set({
-          tekst: tekst,
-          tijd: firebase.firestore.Timestamp.now()
-        }).then(() => {
-          feedback.textContent = "Opgeslagen!";
-          setTimeout(() => { feedback.textContent = ""; }, 1800);
-        }).catch((error) => {
-          feedback.textContent = "Fout bij opslaan: " + error;
-        });
+        .set({ tekst, tijd: firebase.firestore.Timestamp.now() })
+        .then(() => { feedback.textContent = "Opgeslagen!"; setTimeout(() => { feedback.textContent = ""; }, 1800); })
+        .catch(err => { feedback.textContent = "Fout bij opslaan: " + err; });
     }
 
-    // Verwijder post-it
     async function verwijderPostit(index) {
       const feedback = document.getElementById("feedback" + index);
       const tekstInput = document.getElementById("tekst" + index);
       const parochieId = await parochieIdPromise;
-      if (!parochieId) {
-        feedback.textContent = "Parochie niet gevonden!";
-        return;
-      }
+      if (!parochieId) { feedback.textContent = "Parochie niet gevonden!"; return; }
       db.collection("parochies").doc(parochieId).collection("prikbord_priester")
-        .doc("postit" + index)
-        .delete()
-        .then(() => {
-          tekstInput.value = "";
-          feedback.textContent = "Verwijderd!";
-          setTimeout(() => { feedback.textContent = ""; }, 1200);
-        })
-        .catch((error) => {
-          feedback.textContent = "Fout bij verwijderen: " + error;
-        });
+        .doc("postit" + index).delete()
+        .then(() => { tekstInput.value = ""; feedback.textContent = "Verwijderd!"; setTimeout(() => { feedback.textContent = ""; }, 1200); })
+        .catch(err => { feedback.textContent = "Fout bij verwijderen: " + err; });
     }
 
     window.onload = laadPostits;
     window.opslaan = opslaan;
     window.verwijderPostit = verwijderPostit;
   </script>
+
+  <!-- Layout script voor header/menubalk -->
+  <script src="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/common/layout.js"></script>
 </body>
 </html>
