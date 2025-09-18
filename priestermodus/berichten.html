@@ -1,15 +1,243 @@
-<nav class="menu">
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/startpagina.html" title="Startpagina">🏠</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/parochie.html">🛐 Mijn parochie</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/catechese/catechese.html">📖 Catechese</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/gebeden.html">🙏 Gebeden</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/psalmen/psalmen.html">📜 Psalmen</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/heiligen/heiligen.html">👼 Heiligen</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/bijbeldagboek.html">📔 Bijbeldagboek</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/verjaardagskalender.html">🎂 Verjaardagskalender</a>
-  <!-- Kerkje-rechts als profiel/bewerk parochie -->
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/layout.html" class="menu-kerk" title="Bewerk parochie">
-    <span style="font-size:2.1em; display:inline-block; vertical-align:middle;">⛪</span>
-  </a>
-</nav>
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>📬 Berichten – Priestermodus</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
+
+  <style>
+    body {
+      margin:0; font-family:Arial, sans-serif;
+      background:#f5e9b8; color:#4e3a15;
+    }
+    main { max-width:900px; margin:20px auto; padding:0 2vw; }
+
+    h1 { color:#7a5f35; text-align:center; margin-bottom:20px; }
+
+    /* Tabs */
+    .tabs { display:flex; justify-content:center; gap:10px; margin-bottom:20px; flex-wrap:wrap; }
+    .tab-btn {
+      background:#fff3c4; border:2px solid #f0d77a;
+      border-radius:12px; padding:10px 16px; cursor:pointer;
+      font-weight:bold; transition:transform .2s;
+      display:flex; align-items:center; gap:6px;
+    }
+    .tab-btn:hover { transform:scale(1.08); }
+    .tab-btn.active { background:#ffe892; border-color:#f4c84b; }
+
+    /* Bericht-cards */
+    .briefjes { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px; }
+    .briefje {
+      background:#fffef9; border:2px solid #e5d3ad;
+      border-radius:12px; padding:14px;
+      box-shadow:0 6px 12px rgba(0,0,0,0.1);
+      transition:transform .2s;
+    }
+    .briefje:hover{ transform:scale(1.03); }
+    .briefje h3{ margin:0 0 6px; color:#7bb235; font-size:1.1em; }
+    .briefje small{ display:block; margin-bottom:6px; color:#6f5a28; font-size:.85em; }
+    .actieknoppen { margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; }
+    .btn {
+      background:#7bb235; color:#fff; border:none; border-radius:8px;
+      padding:6px 12px; font-weight:bold; cursor:pointer;
+      font-size:.9em;
+    }
+    .btn:hover{ background:#5e8e29; }
+
+    /* Nieuw bericht formulier */
+    .nieuw-form {
+      background:#fffdf5; border:2px dashed #e0c46c;
+      border-radius:14px; padding:18px; box-shadow:0 4px 10px rgba(0,0,0,.08);
+    }
+    label { display:block; margin:10px 0 4px; font-weight:bold; }
+    select, textarea {
+      width:100%; border-radius:8px; border:1.5px solid #dcbf60;
+      padding:8px; font-family:inherit; font-size:1em;
+    }
+    textarea { min-height:100px; resize:vertical; }
+  </style>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script defer src="common/layout.js"></script>
+</head>
+<body>
+  <!-- Header uit priestermodus -->
+  <div id="priester-header"></div>
+
+  <main>
+    <h1>📬 Mijn berichten (Priester)</h1>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="toonTab(event,'nieuw')">🖊 Nieuw</button>
+      <button class="tab-btn" onclick="toonTab(event,'ontvangen')">📮 Ontvangen</button>
+      <button class="tab-btn" onclick="toonTab(event,'verzonden')">✉️ Verzonden</button>
+    </div>
+
+    <!-- Nieuw bericht -->
+    <div id="nieuw" class="tab-content">
+      <form class="nieuw-form" onsubmit="verstuurBericht(event)">
+        <label for="naar">Aan:</label>
+        <select id="naar" required><option>Laden...</option></select>
+
+        <label for="inhoud">Bericht:</label>
+        <textarea id="inhoud" required></textarea>
+
+        <button class="btn" type="submit">📨 Verstuur</button>
+      </form>
+    </div>
+
+    <!-- Ontvangen -->
+    <div id="ontvangen" class="tab-content" style="display:none;">
+      <div id="ontvangenLijst" class="briefjes"></div>
+    </div>
+
+    <!-- Verzonden -->
+    <div id="verzonden" class="tab-content" style="display:none;">
+      <div id="verzondenLijst" class="briefjes"></div>
+    </div>
+  </main>
+
+  <script>
+    // ==== PRIESTERTOEGANG ====
+    if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "priester") {
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    }
+
+    if (!firebase.apps.length) {
+      firebase.initializeApp({
+        apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+        authDomain:"orthodoxeweg.firebaseapp.com",
+        projectId:"orthodoxeweg"
+      });
+    }
+    const db=firebase.firestore();
+
+    const parochieId=localStorage.getItem("ingelogdeParochie");
+    const priesterId=localStorage.getItem("loginKeuze") || "priester";
+    let priesterNaam="Priester";
+
+    // Tabs
+    function toonTab(ev,id){
+      document.querySelectorAll(".tab-content").forEach(div=>div.style.display="none");
+      document.getElementById(id).style.display="block";
+      document.querySelectorAll(".tab-btn").forEach(btn=>btn.classList.remove("active"));
+      ev.target.classList.add("active");
+    }
+
+    // Leden ophalen
+    async function laadLeden(){
+      const sel=document.getElementById("naar");
+      sel.innerHTML="";
+      const ledenSnap=await db.collection("parochies").doc(parochieId).collection("leden").get();
+      ledenSnap.forEach(ld=>{
+        const d=ld.data();
+        const optie=document.createElement("option");
+        optie.value=ld.id;
+        optie.textContent=(d.voornaam||"") + " " + (d.achternaam||"");
+        sel.appendChild(optie);
+      });
+    }
+
+    // Berichten laden
+    async function laadBerichten(){
+      // Ontvangen
+      const snapOntv=await db.collection("parochies").doc(parochieId)
+        .collection("berichten")
+        .where("ontvangerId","==",priesterId).get();
+      toonBerichten(snapOntv,"ontvangenLijst","Van",true);
+
+      // Verzonden
+      const snapVerz=await db.collection("parochies").doc(parochieId)
+        .collection("berichten")
+        .where("verzenderId","==",priesterId).get();
+      toonBerichten(snapVerz,"verzondenLijst","Aan",false);
+    }
+
+    function toonBerichten(snap,elementId,label,isOntvangen){
+      const lijst=document.getElementById(elementId);
+      lijst.innerHTML="";
+      if(snap.empty){ return; }
+      snap.forEach(doc=>{
+        const d=doc.data();
+        if(d.verborgenVoorPriester && isOntvangen) return;
+
+        const div=document.createElement("div"); div.className="briefje";
+        const naam = (label==="Van") ? (d.vanNaam||"Onbekend") : (d.naarNaam||"Lid");
+        const datum = d.datum?.toDate ? d.datum.toDate().toLocaleString() : "";
+        div.innerHTML=`<h3>${label}: ${naam}</h3><small>${datum}</small><p>${d.inhoud}</p>`;
+        const acties=document.createElement("div");
+        acties.className="actieknoppen";
+        if(isOntvangen){
+          const antwoordBtn=document.createElement("button");
+          antwoordBtn.className="btn"; antwoordBtn.textContent="↩️ Antwoorden";
+          antwoordBtn.onclick=()=>openAntwoord(d.verzenderId,naam,d.inhoud);
+          acties.appendChild(antwoordBtn);
+        }
+        const verwijderBtn=document.createElement("button");
+        verwijderBtn.className="btn"; verwijderBtn.textContent="🗑 Verwijder";
+        verwijderBtn.onclick=()=>verwijderBericht(doc.id);
+        acties.appendChild(verwijderBtn);
+        div.appendChild(acties);
+        lijst.appendChild(div);
+      });
+    }
+
+    function openAntwoord(lidId,lidNaam,origineel){
+      toonTab({target:document.querySelector(".tab-btn")},'nieuw');
+      const sel=document.getElementById("naar");
+      sel.value=lidId;
+      document.getElementById("inhoud").value=`> ${origineel}\n\n`;
+    }
+
+    async function verwijderBericht(berichtId){
+      const ref=db.collection("parochies").doc(parochieId).collection("berichten").doc(berichtId);
+      const snap=await ref.get();
+      if(!snap.exists) return;
+      const data=snap.data();
+      await ref.update({verborgenVoorPriester:true});
+
+      if(data.verborgenVoorLid){
+        await ref.delete();
+      }
+      laadBerichten();
+    }
+
+    // Versturen
+    async function verstuurBericht(e){
+      e.preventDefault();
+      const naarId=document.getElementById("naar").value;
+      const inhoud=document.getElementById("inhoud").value.trim();
+      if(!naarId||!inhoud) return alert("Vul alles in!");
+
+      // Lidnaam ophalen
+      let lidNaam="Lid";
+      const lidDoc=await db.collection("parochies").doc(parochieId).collection("leden").doc(naarId).get();
+      if(lidDoc.exists){ 
+        const ld=lidDoc.data();
+        lidNaam=(ld.voornaam||"") + " " + (ld.achternaam||""); 
+      }
+
+      await db.collection("parochies").doc(parochieId).collection("berichten").add({
+        ontvangerId:naarId,
+        naarNaam:lidNaam,
+        verzenderId:priesterId,
+        vanNaam:priesterNaam,
+        inhoud, datum:new Date(),
+        verborgenVoorPriester:false,
+        verborgenVoorLid:false
+      });
+
+      alert("📨 Bericht verstuurd!");
+      document.getElementById("inhoud").value="";
+      laadBerichten();
+      toonTab({target:document.querySelectorAll(".tab-btn")[2]}, "verzonden");
+    }
+
+    laadLeden();
+    laadBerichten();
+  </script>
+</body>
+</html>
