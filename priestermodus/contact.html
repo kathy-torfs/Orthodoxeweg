@@ -90,18 +90,22 @@
 
   <script>
     // ==== FIREBASE INIT ====
-    if (!firebase.apps.length) {
-      firebase.initializeApp({
-        apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
-        authDomain:"orthodoxeweg.firebaseapp.com",
-        projectId:"orthodoxeweg"
-      });
-    }
-    const db=firebase.firestore();
+    const firebaseConfig = {
+      apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain:"orthodoxeweg.firebaseapp.com",
+      projectId:"orthodoxeweg",
+      storageBucket:"orthodoxeweg.appspot.com",
+      messagingSenderId:"408582263618",
+      appId:"1:408582263618:web:0a20f4bf0704989d3ceedb"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
     // ==== CONTEXT ====
-    const eigenParochie=localStorage.getItem("ingelogdeParochie");
-    if(!eigenParochie){ alert("Geen parochie gevonden!"); }
+    const eigenParochie = localStorage.getItem("ingelogdeParochie");
+    if(!eigenParochie){
+      alert("⚠️ Geen parochie gevonden in sessie!");
+    }
 
     // Tabs
     function toonTab(ev,id){
@@ -115,26 +119,41 @@
     async function laadParochies(){
       const sel=document.getElementById("naar");
       sel.innerHTML="";
-      const snap=await db.collection("parochies").get();
-      snap.forEach(doc=>{
-        if(doc.id!==eigenParochie){
-          const optie=document.createElement("option");
-          optie.value=doc.id;
-          optie.textContent=doc.id;
-          sel.appendChild(optie);
-        }
-      });
+      try {
+        const snap=await db.collection("parochies").get();
+        snap.forEach(doc=>{
+          if(doc.id!==eigenParochie){
+            const optie=document.createElement("option");
+            optie.value=doc.id;
+            optie.textContent=doc.id;
+            sel.appendChild(optie);
+          }
+        });
+      } catch(err){
+        console.error("Fout bij ophalen parochies:",err);
+      }
     }
 
     // Berichten laden
     async function laadBerichten(){
-      const inboxSnap=await db.collection("contact_parochies")
-        .where("ontvangerParochieId","==",eigenParochie).get();
-      toonBerichten(inboxSnap,"ontvangenLijst","Van","ontvanger");
+      if(!eigenParochie) return;
+      try {
+        // Ontvangen
+        const inboxSnap=await db.collection("parochies").doc(eigenParochie)
+          .collection("contact_parochies")
+          .where("ontvangerParochieId","==",eigenParochie)
+          .orderBy("datum","desc").get();
+        toonBerichten(inboxSnap,"ontvangenLijst","Van","ontvanger");
 
-      const sentSnap=await db.collection("contact_parochies")
-        .where("verzenderParochieId","==",eigenParochie).get();
-      toonBerichten(sentSnap,"verzondenLijst","Aan","verzender");
+        // Verzonden
+        const sentSnap=await db.collection("parochies").doc(eigenParochie)
+          .collection("contact_parochies")
+          .where("verzenderParochieId","==",eigenParochie)
+          .orderBy("datum","desc").get();
+        toonBerichten(sentSnap,"verzondenLijst","Aan","verzender");
+      } catch(err){
+        console.error("Fout bij laden berichten:",err);
+      }
     }
 
     function toonBerichten(snap,elementId,label,rol){
@@ -164,18 +183,24 @@
 
     // Verwijderen
     async function verwijderBericht(berichtId,rol){
-      const ref=db.collection("contact_parochies").doc(berichtId);
-      const snap=await ref.get();
-      if(!snap.exists) return;
-      const data=snap.data();
-      if(rol==="ontvanger"){
-        await ref.update({ verborgenVoorOntvanger:true });
-        if(data.verborgenVoorVerzender) await ref.delete();
-      } else {
-        await ref.update({ verborgenVoorVerzender:true });
-        if(data.verborgenVoorOntvanger) await ref.delete();
+      const ref=db.collection("parochies").doc(eigenParochie)
+        .collection("contact_parochies").doc(berichtId);
+      try {
+        const snap=await ref.get();
+        if(!snap.exists) return;
+        const data=snap.data();
+        if(rol==="ontvanger"){
+          await ref.update({ verborgenVoorOntvanger:true });
+          if(data.verborgenVoorVerzender) await ref.delete();
+        } else {
+          await ref.update({ verborgenVoorVerzender:true });
+          if(data.verborgenVoorOntvanger) await ref.delete();
+        }
+        laadBerichten();
+      } catch(err){
+        console.error("Fout bij verwijderen:",err);
+        alert("Kon bericht niet verwijderen: "+err.message);
       }
-      laadBerichten();
     }
 
     // Versturen
@@ -184,20 +209,28 @@
       const naar=document.getElementById("naar").value;
       const inhoud=document.getElementById("inhoud").value.trim();
       if(!naar||!inhoud) return alert("Alles invullen!");
-      await db.collection("contact_parochies").add({
-        verzenderParochieId:eigenParochie,
-        ontvangerParochieId:naar,
-        inhoud,
-        datum:new Date(),
-        verborgenVoorVerzender:false,
-        verborgenVoorOntvanger:false
-      });
-      alert("Bericht verstuurd!");
-      document.getElementById("inhoud").value="";
-      laadBerichten();
-      toonTab({target:document.querySelectorAll(".tab-btn")[2]}, "verzonden");
+      try {
+        await db.collection("parochies").doc(eigenParochie)
+          .collection("contact_parochies")
+          .add({
+            verzenderParochieId:eigenParochie,
+            ontvangerParochieId:naar,
+            inhoud,
+            datum:firebase.firestore.Timestamp.now(),
+            verborgenVoorVerzender:false,
+            verborgenVoorOntvanger:false
+          });
+        alert("Bericht verstuurd!");
+        document.getElementById("inhoud").value="";
+        laadBerichten();
+        toonTab({target:document.querySelectorAll(".tab-btn")[2]}, "verzonden");
+      } catch(err){
+        console.error("Fout bij opslaan:",err);
+        alert("⚠️ Bericht NIET opgeslagen: "+err.message);
+      }
     }
 
+    // Init
     laadParochies();
     laadBerichten();
   </script>
