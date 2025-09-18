@@ -2,7 +2,7 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>Beheer Parochies - Orthodoxeweg</title>
+  <title>Beheer Parochie-aanvragen - Orthodoxeweg</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
@@ -20,7 +20,7 @@
     }
 
     .container {
-      max-width: 1000px;
+      max-width: 1100px;
       margin: 0 auto;
       padding: 0 2vw 60px 2vw;
     }
@@ -54,8 +54,8 @@
       border-radius: 6px;
       cursor: pointer;
     }
-    .bewerken { background: #7bb235; color: white; }
-    .verwijderen { background: #c0392b; color: white; }
+    .goedkeuren { background: #27ae60; color: white; }
+    .weigeren { background: #c0392b; color: white; }
   </style>
 
   <script>
@@ -75,16 +75,17 @@
   <div id="volwassen-header" data-header-src="common/header.html"></div>
   <script src="layout.js" defer></script>
 
-  <h1>📋 Parochies beheren</h1>
+  <h1>📩 Nieuwe Parochie-aanvragen</h1>
 
   <div class="container">
-    <table id="parochiesTabel">
+    <table id="aanvragenTabel">
       <thead>
         <tr>
           <th>Naam</th>
           <th>Gemeente</th>
           <th>Postcode</th>
           <th>Email</th>
+          <th>Status</th>
           <th>Acties</th>
         </tr>
       </thead>
@@ -109,45 +110,54 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    function laadParochies() {
-      const tbody = document.querySelector("#parochiesTabel tbody");
+    function laadAanvragen() {
+      const tbody = document.querySelector("#aanvragenTabel tbody");
       tbody.innerHTML = "";
 
-      db.collection("parochies").get().then(snapshot => {
-        snapshot.forEach(doc => {
-          const p = doc.data();
-          const tr = document.createElement("tr");
+      db.collection("parochie_aanvragen")
+        .orderBy("datumAangemaakt", "desc")
+        .get()
+        .then(snapshot => {
+          snapshot.forEach(doc => {
+            const p = doc.data();
+            const tr = document.createElement("tr");
 
-          tr.innerHTML = `
-            <td>${p.naam || "-"}</td>
-            <td>${p.gemeente || "-"}</td>
-            <td>${p.postcode || "-"}</td>
-            <td>${p.email || "-"}</td>
-            <td class="actieknoppen">
-              <button class="bewerken" onclick="bewerkenParochie('${doc.id}')">Bewerken</button>
-              <button class="verwijderen" onclick="verwijderenParochie('${doc.id}')">Verwijderen</button>
-            </td>
-          `;
+            tr.innerHTML = `
+              <td>${p.naam || "-"}</td>
+              <td>${p.gemeente || "-"}</td>
+              <td>${p.postcode || "-"}</td>
+              <td>${p.email || "-"}</td>
+              <td>${p.status || "nieuw"}</td>
+              <td class="actieknoppen">
+                <button class="goedkeuren" onclick="goedkeurenAanvraag('${doc.id}')">Goedkeuren</button>
+                <button class="weigeren" onclick="weigerenAanvraag('${doc.id}')">Weigeren</button>
+              </td>
+            `;
 
-          tbody.appendChild(tr);
+            tbody.appendChild(tr);
+          });
         });
+    }
+
+    function goedkeurenAanvraag(id) {
+      db.collection("parochie_aanvragen").doc(id).update({
+        status: "goedgekeurd"
+      }).then(() => {
+        alert("✅ Aanvraag goedgekeurd.");
+        laadAanvragen();
       });
     }
 
-    function bewerkenParochie(id) {
-      alert("✏️ Bewerken van parochie " + id + " (hier komt later een formulier).");
+    function weigerenAanvraag(id) {
+      db.collection("parochie_aanvragen").doc(id).update({
+        status: "geweigerd"
+      }).then(() => {
+        alert("❌ Aanvraag geweigerd.");
+        laadAanvragen();
+      });
     }
 
-    function verwijderenParochie(id) {
-      if (confirm("Weet je zeker dat je deze parochie wil verwijderen?")) {
-        db.collection("parochies").doc(id).delete().then(() => {
-          alert("Parochie verwijderd.");
-          laadParochies();
-        });
-      }
-    }
-
-    window.addEventListener("DOMContentLoaded", laadParochies);
+    window.addEventListener("DOMContentLoaded", laadAanvragen);
   </script>
 </body>
 </html>
