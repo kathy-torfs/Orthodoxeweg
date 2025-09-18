@@ -8,14 +8,14 @@
   <style>
     body { font-family: Arial, sans-serif; background: #f8f5e9; margin: 0; }
     h1 { text-align: center; color: #5d4c2f; margin-top: 32px; }
-    table { width: 90%; margin: 40px auto; background: #fffef9; border-radius: 18px; box-shadow: 0 6px 32px #d7cbb142; }
-    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #f0e4c8; }
+    table { width: 90%; margin: 40px auto; background: #fffef9; border-radius: 18px; box-shadow: 0 6px 32px #d7cbb142; border-collapse: collapse; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #f0e4c8; vertical-align: top; }
     th { background: #7bb235; color: #fff; }
-    select { font-size: 1em; }
     .opslaan { background: #45a745; color: #fff; border: none; border-radius: 5px; padding: 6px 12px; cursor: pointer;}
     .opslaan:hover { background: #358135; }
     .kindlijst { margin: 5px 0 15px 30px; font-size: 0.97em; color: #50402a;}
     .kindlabel { font-weight: bold; color: #88865a;}
+    label { display: block; margin-bottom: 4px; }
   </style>
 
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
@@ -35,7 +35,7 @@
       <tr>
         <th>Naam</th>
         <th>E-mail</th>
-        <th>Rol</th>
+        <th>Rol(len)</th>
         <th>Kinderen</th>
         <th>Actie</th>
       </tr>
@@ -80,6 +80,15 @@
             const d = doc.data();
             const lidId = doc.id;
 
+            // === Migratie: rol omzetten naar array als nodig ===
+            let rollen = d.rol;
+            if (typeof rollen === "string") {
+              rollen = [rollen];
+              db.collection("parochies").doc(parochieId).collection("leden").doc(lidId).update({
+                rol: rollen
+              });
+            }
+
             const kindPromise = db.collection("parochies").doc(parochieId)
               .collection("leden").doc(lidId).collection("kinderen").get()
               .then(kindSnap => {
@@ -100,10 +109,14 @@
                     <td>${d.voornaam} ${d.achternaam}</td>
                     <td>${d.email}</td>
                     <td>
-                      <select id="rol-${lidId}">
-                        <option value="parochiaan" ${d.rol === "parochiaan" ? "selected" : ""}>Parochiaan</option>
-                        <option value="catecheet" ${d.rol === "catecheet" ? "selected" : ""}>Catecheet</option>
-                      </select>
+                      <label>
+                        <input type="checkbox" id="rol-${lidId}-parochiaan" ${rollen && rollen.includes("parochiaan") ? "checked" : ""}>
+                        Parochiaan
+                      </label>
+                      <label>
+                        <input type="checkbox" id="rol-${lidId}-catecheet" ${rollen && rollen.includes("catecheet") ? "checked" : ""}>
+                        Catecheet
+                      </label>
                     </td>
                     <td>${kindList}</td>
                     <td><button class="opslaan" onclick="rolOpslaan('${lidId}')">Opslaan</button></td>
@@ -121,12 +134,16 @@
     laadLeden();
 
     async function rolOpslaan(id) {
-      const nieuweRol = document.getElementById("rol-" + id).value;
-      db.collection("parochies").doc(parochieId).collection("leden").doc(id)
-        .update({ rol: nieuweRol }).then(() => {
-          alert("Rol bijgewerkt!");
-          laadLeden();
-        });
+      const rollen = [];
+      if (document.getElementById(`rol-${id}-parochiaan`).checked) rollen.push("parochiaan");
+      if (document.getElementById(`rol-${id}-catecheet`).checked) rollen.push("catecheet");
+
+      if (rollen.length === 0) rollen.push("parochiaan"); // altijd minimaal parochiaan
+
+      await db.collection("parochies").doc(parochieId).collection("leden").doc(id)
+        .update({ rol: rollen });
+      alert("Rol bijgewerkt!");
+      laadLeden();
     }
   </script>
 </body>
