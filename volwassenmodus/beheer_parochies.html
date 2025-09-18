@@ -2,8 +2,9 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>Beheer Parochie-aanvragen - Orthodoxeweg</title>
+  <title>Beheer Parochies - Orthodoxeweg</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -16,54 +17,59 @@
     h1 {
       text-align: center;
       margin: 30px 0 20px;
-      color: #4e2710;
-    }
-
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 0 2vw 60px 2vw;
     }
 
     table {
-      width: 100%;
+      width: 95%;
+      margin: 0 auto 40px auto;
       border-collapse: collapse;
-      background: #fcf8ea;
-      box-shadow: 0 2px 14px #9c7c308f;
+      background: #fffdf6;
       border-radius: 12px;
       overflow: hidden;
+      box-shadow: 0 3px 12px #0002;
     }
+
     th, td {
-      padding: 14px;
+      padding: 12px;
       border-bottom: 1px solid #e2c475;
       text-align: left;
     }
+
     th {
-      background: #e2c475;
-      color: #fff;
+      background: #7bb235;
+      color: white;
     }
-    tr:hover {
+
+    tr:hover td {
       background: #f6ecd1;
     }
 
-    .actieknoppen button {
-      margin-right: 6px;
-      padding: 6px 14px;
-      font-size: 0.9em;
-      border: none;
+    select, button {
+      padding: 6px 10px;
+      font-size: 0.95em;
       border-radius: 6px;
+      border: 1px solid #c8a74f;
+    }
+
+    button {
+      background: #45a745;
+      color: white;
+      border: none;
       cursor: pointer;
     }
-    .goedkeuren { background: #27ae60; color: white; }
-    .weigeren { background: #c0392b; color: white; }
+
+    button:hover {
+      background: #358135;
+    }
   </style>
 
   <script>
-    // Bescherming: enkel beheerder of superuser
+    // Beheerdersbescherming
     const modus = localStorage.getItem("modus");
-    const rol = JSON.parse(localStorage.getItem("rol") || "[]");
+    let rol = [];
+    try { rol = JSON.parse(localStorage.getItem("rol") || "[]"); } catch(e) { rol = []; }
     const email = localStorage.getItem("email");
-    const superUser = "kathy.torfs@telenet.be";
+    const superUser = "kathy.torfs@telenet.be"; // jouw noodtoegang
 
     if ((modus !== "volwassene" || !rol.includes("beheerder")) && email !== superUser) {
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
@@ -72,33 +78,32 @@
 </head>
 <body>
   <!-- Uniforme header -->
-  <div id="volwassen-header" data-header-src="common/header.html"></div>
-  <script src="layout.js" defer></script>
+  <div id="volwassen-header"></div>
+  <script src="common/layout.js" defer></script>
 
-  <h1>📩 Nieuwe Parochie-aanvragen</h1>
+  <h1>Nieuwe parochie-aanvragen</h1>
 
-  <div class="container">
-    <table id="aanvragenTabel">
-      <thead>
-        <tr>
-          <th>Naam</th>
-          <th>Gemeente</th>
-          <th>Postcode</th>
-          <th>Email</th>
-          <th>Status</th>
-          <th>Acties</th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- dynamisch gevuld -->
-      </tbody>
-    </table>
-  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Naam</th>
+        <th>Gemeente</th>
+        <th>Email</th>
+        <th>Priesters</th>
+        <th>Status</th>
+        <th>Actie</th>
+      </tr>
+    </thead>
+    <tbody id="parochieAanvragenTabel">
+      <tr><td colspan="6">Bezig met laden...</td></tr>
+    </tbody>
+  </table>
 
-  <!-- Firebase -->
+  <!-- Firebase scripts -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script>
+    // FIREBASE INIT
     const firebaseConfig = {
       apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -110,51 +115,44 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    function laadAanvragen() {
-      const tbody = document.querySelector("#aanvragenTabel tbody");
-      tbody.innerHTML = "";
+    async function laadAanvragen() {
+      const tbody = document.getElementById("parochieAanvragenTabel");
+      tbody.innerHTML = "<tr><td colspan='6'>Bezig met laden...</td></tr>";
 
-      db.collection("parochie_aanvragen")
-        .orderBy("datumAangemaakt", "desc")
-        .get()
-        .then(snapshot => {
-          snapshot.forEach(doc => {
-            const p = doc.data();
-            const tr = document.createElement("tr");
+      const snap = await db.collection("parochie_aanvragen").get();
+      if (snap.empty) {
+        tbody.innerHTML = "<tr><td colspan='6'>Geen aanvragen gevonden.</td></tr>";
+        return;
+      }
 
-            tr.innerHTML = `
-              <td>${p.naam || "-"}</td>
-              <td>${p.gemeente || "-"}</td>
-              <td>${p.postcode || "-"}</td>
-              <td>${p.email || "-"}</td>
-              <td>${p.status || "nieuw"}</td>
-              <td class="actieknoppen">
-                <button class="goedkeuren" onclick="goedkeurenAanvraag('${doc.id}')">Goedkeuren</button>
-                <button class="weigeren" onclick="weigerenAanvraag('${doc.id}')">Weigeren</button>
-              </td>
-            `;
-
-            tbody.appendChild(tr);
-          });
-        });
+      let html = "";
+      snap.forEach(doc => {
+        const d = doc.data();
+        html += `
+          <tr>
+            <td>${d.naam || ""}</td>
+            <td>${d.gemeente || ""}</td>
+            <td>${d.email || ""}</td>
+            <td>${(d.priesters || []).join(", ")}</td>
+            <td>
+              <select id="status-${doc.id}">
+                <option value="nieuw" ${d.status === "nieuw" ? "selected" : ""}>Nieuw</option>
+                <option value="goedgekeurd" ${d.status === "goedgekeurd" ? "selected" : ""}>Goedgekeurd</option>
+                <option value="geweigerd" ${d.status === "geweigerd" ? "selected" : ""}>Geweigerd</option>
+              </select>
+            </td>
+            <td><button onclick="updateStatus('${doc.id}')">Opslaan</button></td>
+          </tr>
+        `;
+      });
+      tbody.innerHTML = html;
     }
 
-    function goedkeurenAanvraag(id) {
-      db.collection("parochie_aanvragen").doc(id).update({
-        status: "goedgekeurd"
-      }).then(() => {
-        alert("✅ Aanvraag goedgekeurd.");
-        laadAanvragen();
-      });
-    }
-
-    function weigerenAanvraag(id) {
-      db.collection("parochie_aanvragen").doc(id).update({
-        status: "geweigerd"
-      }).then(() => {
-        alert("❌ Aanvraag geweigerd.");
-        laadAanvragen();
-      });
+    async function updateStatus(id) {
+      const nieuweStatus = document.getElementById("status-" + id).value;
+      await db.collection("parochie_aanvragen").doc(id).update({ status: nieuweStatus });
+      alert("Status bijgewerkt naar: " + nieuweStatus);
+      laadAanvragen();
     }
 
     window.addEventListener("DOMContentLoaded", laadAanvragen);
