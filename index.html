@@ -94,7 +94,6 @@
       display: block; margin: 12px auto; padding: 12px; width: 96%; font-size: 1rem;
       border-radius: 6px; border: 1px solid #bbb; box-sizing: border-box; max-width: 99vw;
     }
-    /* EXTRA: textarea zelfde styling, niets verwijderd */
     .popup textarea {
       display: block; margin: 12px auto; padding: 12px; width: 96%; font-size: 1rem;
       border-radius: 6px; border: 1px solid #bbb; box-sizing: border-box; max-width: 99vw; min-height: 84px;
@@ -234,7 +233,6 @@
       <select id="parochieSelect" required></select>
       <input type="date" id="geboortedatum" placeholder="Geboortedatum" required />
       <input type="text" id="loginKeuze" placeholder="Kies uw loginnaam" required />
-      <!-- Toevoegen aan verjaardagskalender -->
       <label style="margin: 0.5em 0 0.7em 0; display: flex; align-items: center;">
         <input type="checkbox" id="verjaardagToevoegen" checked style="margin-right: 9px;">
         Voeg mij toe aan de verjaardagskalender
@@ -262,7 +260,7 @@
     <button onclick="priesterLogin()">Inloggen</button>
   </div>
 
-  <!-- ✨ NIEUWE PAROCHIE POPUP (TOEGEVOEGD, niets verwijderd) -->
+  <!-- ✨ NIEUWE PAROCHIE POPUP -->
   <div id="nieuweParochiePopup" class="popup">
     <button class="sluiten" onclick="closeAllPopups()">&times;</button>
     <h2>Nieuwe Parochie Aanmaken</h2>
@@ -288,7 +286,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script>
-    // ==== FIREBASE INIT: BEGIN ====
     const firebaseConfig = {
       apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -299,9 +296,7 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    // ==== FIREBASE INIT: EINDE ====
 
-    // ==== PAROCHIES LADEN: BEGIN ====
     function laadParochies() {
       db.collection("parochies").get().then(snapshot => {
         ["parochieSelect", "priesterParochie", "loginParochie"].forEach(id => {
@@ -318,8 +313,6 @@
           });
         });
 
-        /* ====== TOEGEVOEGD (niets verwijderd): 'Nieuwe parochie' + favoriet bovenaan ====== */
-        // 1) Priesterselect: "Nieuwe parochie aanmaken" als eerste optie
         const priesterSel = document.getElementById("priesterParochie");
         if (priesterSel) {
           const newOpt = document.createElement("option");
@@ -337,14 +330,12 @@
           });
         }
 
-        // 2) Laatst gekozen parochie bovenaan bij login & priester
         const last = localStorage.getItem("laatsteParochie");
         ["loginParochie","priesterParochie"].forEach(id=>{
           const el = document.getElementById(id);
           if (!el || !last) return;
           const found = el.querySelector(`option[value="${last}"]`);
           if (found) {
-            // Bij priester komt het na de "nieuwe" optie
             const insertBeforeNode = (id==="priesterParochie" && el.children.length>0) ? el.children[1] : el.firstChild;
             el.insertBefore(found, insertBeforeNode || el.firstChild);
           }
@@ -352,26 +343,10 @@
             if (el.value !== "__nieuwe__") localStorage.setItem("laatsteParochie", el.value);
           });
         });
-        /* ====== EINDE TOEVOEGING ====== */
       });
     }
     window.addEventListener('DOMContentLoaded', laadParochies);
-    // ==== PAROCHIES LADEN: EINDE ====
 
-    // ==== AVATAR-SELECTIE: BEGIN ====
-    const avatarImages = document.querySelectorAll('#avatarSelectie img');
-    const avatarURLInput = document.getElementById('avatarURL');
-    avatarImages.forEach(img => {
-      img.addEventListener('click', () => {
-        avatarImages.forEach(i => i.classList.remove('geselecteerd'));
-        img.classList.add('geselecteerd');
-        avatarURLInput.value = img.src;
-      });
-    });
-    if (avatarImages.length) avatarImages[0].classList.add('geselecteerd');
-    // ==== AVATAR-SELECTIE: EINDE ====
-
-    // ==== REGISTRATIE HANDLER: BEGIN ====
     document.getElementById("registratieForm").addEventListener("submit", function(e) {
       e.preventDefault();
       const parochieSelect = document.getElementById("parochieSelect");
@@ -388,7 +363,7 @@
         status: "in afwachting",
         avatarURL: document.getElementById("avatarURL").value,
         verjaardagToevoegen: document.getElementById("verjaardagToevoegen").checked,
-        rol: "lid" // standaard
+        rol: "lid"
       };
       const loginKeuze = data.loginKeuze;
 
@@ -413,9 +388,8 @@
             });
         });
     });
-    // ==== REGISTRATIE HANDLER: EINDE ====
 
-    // ==== LOGIN, PRIESTERLOGIN, POPUP FUNCTIES: BEGIN ====
+    // === LOGIN aangepast ===
     function login() {
       const parochieSelect = document.getElementById("loginParochie");
       const parochieId = parochieSelect.value;
@@ -442,17 +416,23 @@
               ? `${lidData.voornaam} ${lidData.achternaam}`
               : (lidData.doopnaam || loginKeuze);
 
-            // ==== BEGIN: Set alle lokale storage velden ====
             localStorage.setItem("modus", "volwassene");
             localStorage.setItem("ingelogdeParochie", parochieId);
             localStorage.setItem("ingelogdeParochieNaam", parochieNaam);
             localStorage.setItem("loginKeuze", loginKeuze);
             localStorage.setItem("avatarURL", lidData.avatarURL || "https://cdn-icons-png.flaticon.com/512/4140/4140048.png");
             localStorage.setItem("ingelogdeVolwasseneNaam", naam);
-            localStorage.setItem("rol", lidData.rol || "lid"); // catecheet of lid
-            // Favoriet onthouden
+
+            // ✅ rol als array opslaan
+            if (Array.isArray(lidData.rol)) {
+              localStorage.setItem("rol", JSON.stringify(lidData.rol));
+            } else if (lidData.rol) {
+              localStorage.setItem("rol", JSON.stringify([lidData.rol]));
+            } else {
+              localStorage.setItem("rol", JSON.stringify(["parochiaan"]));
+            }
+
             localStorage.setItem("laatsteParochie", parochieId);
-            // ==== EINDE: Set alle lokale storage velden ====
 
             window.location.href = "volwassenmodus/startpagina.html";
           } else {
@@ -464,6 +444,7 @@
         });
     }
 
+    // === Priesterlogin aangepast ===
     function priesterLogin() {
       const parochieSelect = document.getElementById("priesterParochie");
       const parochieId = parochieSelect.value;
@@ -477,7 +458,10 @@
             localStorage.setItem("modus", "priester");
             localStorage.setItem("ingelogdeParochie", parochieId);
             localStorage.setItem("ingelogdeParochieNaam", parochieNaam);
-            // Favoriet onthouden
+
+            // ✅ rol als array opslaan
+            localStorage.setItem("rol", JSON.stringify(["priester"]));
+
             localStorage.setItem("laatsteParochie", parochieId);
             window.location.href = "priestermodus/startpagina.html";
           } else alert("Onjuiste gegevens.");
@@ -499,9 +483,7 @@
       localStorage.setItem("modus", "gast");
       window.location.href = "gastenmodus/startpagina.html";
     }
-    // ==== LOGIN, PRIESTERLOGIN, POPUP FUNCTIES: EINDE ====
 
-    /* ==== TOEGEVOEGD: Nieuwe parochie aanvraag handler ==== */
     document.getElementById("nieuweParochieForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const statusEl = document.getElementById("npStatus");
@@ -529,7 +511,6 @@
         statusEl.textContent = "❌ Er ging iets mis bij indienen.";
       }
     });
-    /* ==== EINDE TOEVOEGING ==== */
   </script>
   <!-- ==== SCRIPTS: EINDE ==== -->
 </body>
