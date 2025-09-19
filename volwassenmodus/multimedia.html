@@ -2,55 +2,85 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>📺 Multimedia – Orthodoxeweg</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
+
   <style>
-    body { background:#f5e9b8; color:#6f4e1a; font-family:Arial,sans-serif; margin:0; padding:0; }
+    body { margin:0; font-family:Arial,sans-serif; background:#f5e9b8; color:#4e3a15; }
+    main { max-width:1000px; margin:24px auto; padding:0 16px; }
 
-    h1 { text-align:center; margin:20px 0; color:#4e2710; }
+    h1 { text-align:center; color:#7a5f35; margin-bottom:22px; }
 
-    .lijst { max-width:800px; margin:20px auto; background:#fffef9; border:2px solid #e2d1a5;
-             border-radius:12px; padding:20px; box-shadow:0 6px 18px rgba(0,0,0,0.12); }
-    .item { display:flex; justify-content:space-between; align-items:center; padding:12px;
-            border-bottom:1px solid #e2d1a5; }
-    .item:last-child { border-bottom:none; }
-    .item span.titel { font-weight:bold; color:#5b4320; }
-    .item button { font-size:1.6em; background:none; border:none; cursor:pointer; }
-    .item button:hover { transform:scale(1.2); }
+    /* Grid met tegels */
+    .grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+      gap:20px;
+    }
+    .tegel {
+      background:#fffef9;
+      border:2px solid #e0c46c;
+      border-radius:14px;
+      box-shadow:0 4px 10px rgba(0,0,0,0.08);
+      text-align:center;
+      padding:18px 12px;
+      cursor:pointer;
+      transition:transform 0.2s, box-shadow 0.2s;
+    }
+    .tegel:hover { transform:scale(1.05); box-shadow:0 6px 18px rgba(0,0,0,0.15); }
+    .tegel span.emoji { font-size:3.5em; display:block; margin-bottom:10px; }
+    .tegel-title { font-weight:bold; font-size:1.05em; color:#5b4320; }
 
-    /* Modaal */
-    .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-             background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index:1000; }
-    .modal-content { background:#fff; padding:20px; border-radius:12px; max-width:90%; max-height:80%;
-                     display:flex; flex-direction:column; align-items:center; }
-    .modal-content h2 { margin:0 0 12px; font-size:1.2em; color:#4e2710; }
-    .modal-content audio, .modal-content video { width:100%; max-height:70vh; }
-    .modal-content img { max-width:100%; max-height:70vh; border-radius:8px; }
-    .close-btn { margin-top:12px; padding:6px 14px; background:#9a2617; color:#fff; border:none;
-                 border-radius:6px; cursor:pointer; font-weight:bold; }
-    .close-btn:hover { background:#bd2e23; }
+    /* Popup */
+    .popup {
+      display:none; position:fixed; top:0; left:0; right:0; bottom:0;
+      background:rgba(0,0,0,0.75); z-index:1000;
+      justify-content:center; align-items:center;
+    }
+    .popup-content {
+      background:#fff; padding:20px; border-radius:12px;
+      max-width:90vw; max-height:85vh; overflow:auto;
+      text-align:center; position:relative;
+    }
+    .popup-content h2 { margin-top:0; font-size:1.3em; color:#7a5f35; }
+    .popup-content audio, .popup-content video {
+      width:100%; max-width:700px; margin-top:12px;
+    }
+    .popup-content img {
+      max-width:90vw; max-height:70vh; border-radius:8px;
+    }
+    .close-btn {
+      position:absolute; top:10px; right:10px;
+      background:#b91e1e; color:#fff;
+      border:none; border-radius:50%;
+      font-size:1.2em; font-weight:bold;
+      width:32px; height:32px; cursor:pointer;
+    }
+    .close-btn:hover { background:#8d1616; }
   </style>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
-  <script defer src="../common/layout.js"></script>
+  <script defer src="common/layout.js"></script>
 </head>
 <body>
   <!-- Header -->
-  <div id="volwassen-header" data-header-src="../common/header.html"></div>
+  <div id="volwassen-header" data-header-src="common/header.html"></div>
 
-  <h1>📺 Multimedia</h1>
-
-  <div class="lijst" id="mediaLijst">⏳ Laden...</div>
+  <main>
+    <h1>📺 Multimedia</h1>
+    <div id="mediaGrid" class="grid">⏳ Laden...</div>
+  </main>
 
   <!-- Popup -->
-  <div class="modal" id="mediaModal">
-    <div class="modal-content" id="modalContent">
-      <!-- Dynamische inhoud -->
-      <button class="close-btn" onclick="sluitModal()">❌ Sluiten</button>
+  <div id="popup" class="popup" onclick="sluitPopup(event)">
+    <div class="popup-content" onclick="event.stopPropagation()">
+      <button class="close-btn" onclick="sluitPopup()">✖</button>
+      <h2 id="popupTitle"></h2>
+      <div id="popupBody"></div>
     </div>
   </div>
 
@@ -58,66 +88,64 @@
     // Firebase init
     if (!firebase.apps.length) {
       firebase.initializeApp({
-        apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
-        authDomain: "orthodoxeweg.firebaseapp.com",
-        projectId: "orthodoxeweg",
-        storageBucket: "orthodoxeweg.appspot.com",
+        apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+        authDomain:"orthodoxeweg.firebaseapp.com",
+        projectId:"orthodoxeweg",
+        storageBucket:"orthodoxeweg.appspot.com",
+        messagingSenderId:"408582263618",
+        appId:"1:408582263618:web:0a20f4bf0704989d3ceedb"
       });
     }
-    const db = firebase.firestore();
+    const db=firebase.firestore();
+    const storage=firebase.storage();
 
     const parochieId = localStorage.getItem("ingelogdeParochie") || "hasselt-drie-hierarchen";
+    const grid = document.getElementById("mediaGrid");
 
-    const lijstEl = document.getElementById("mediaLijst");
-    const modal = document.getElementById("mediaModal");
-    const modalContent = document.getElementById("modalContent");
-
-    async function laadMedia() {
-      lijstEl.innerHTML = "⏳ Laden...";
+    // Media laden
+    async function laadMedia(){
+      grid.innerHTML = "⏳ Laden...";
       const snap = await db.collection("parochies").doc(parochieId).collection("uploads")
-        .orderBy("datum", "desc").get();
+        .orderBy("datum","desc").get();
 
-      if (snap.empty) {
-        lijstEl.innerHTML = "<p style='text-align:center;color:#7a5f35'>Geen multimedia gevonden.</p>";
+      if(snap.empty){
+        grid.innerHTML = "<p>Geen multimedia beschikbaar.</p>";
         return;
       }
-
-      lijstEl.innerHTML = "";
-      snap.forEach(doc => {
+      grid.innerHTML = "";
+      snap.forEach(doc=>{
         const d = doc.data();
-        const div = document.createElement("div");
-        div.className = "item";
-        div.innerHTML = `
-          <span class="titel">${d.titel || "Zonder titel"}</span>
-          <button title="Afspelen">📺</button>
-        `;
-        div.querySelector("button").onclick = () => openModal(d);
-        lijstEl.appendChild(div);
+        const tegel = document.createElement("div");
+        tegel.className = "tegel";
+        tegel.innerHTML = `<span class="emoji">📺</span><div class="tegel-title">${d.titel||"Onbekend"}</div>`;
+        tegel.onclick = ()=>openPopup(d);
+        grid.appendChild(tegel);
       });
     }
 
-    function openModal(data) {
-      let html = `<h2>${data.titel || "Multimedia"}</h2>`;
-      if (data.type && data.type.startsWith("audio")) {
-        html += `<audio src="${data.url}" controls autoplay></audio>`;
-      } else if (data.type && data.type.startsWith("video")) {
-        html += `<video src="${data.url}" controls autoplay></video>`;
-      } else if (data.type && data.type.startsWith("image")) {
-        html += `<img src="${data.url}" alt="${data.titel}">`;
+    // Popup openen
+    function openPopup(d){
+      document.getElementById("popupTitle").textContent = d.titel || "Media";
+      const body = document.getElementById("popupBody");
+      body.innerHTML = "";
+
+      const url = d.url || "";
+      if(url.match(/\.(mp3|wav|ogg)$/i)){
+        body.innerHTML = `<audio controls autoplay src="${url}"></audio>`;
+      } else if(url.match(/\.(mp4|webm)$/i)){
+        body.innerHTML = `<video controls autoplay src="${url}"></video>`;
+      } else if(url.match(/\.(jpg|jpeg|png|gif|webp)$/i)){
+        body.innerHTML = `<img src="${url}" alt="${d.titel||"afbeelding"}">`;
       } else {
-        html += `<p><a href="${data.url}" target="_blank">Open bestand</a></p>`;
+        body.innerHTML = `<p><a href="${url}" target="_blank">Open bestand</a></p>`;
       }
-      modalContent.innerHTML = html + '<button class="close-btn" onclick="sluitModal()">❌ Sluiten</button>';
-      modal.style.display = "flex";
+
+      document.getElementById("popup").style.display = "flex";
     }
 
-    function sluitModal() {
-      modal.style.display = "none";
-      modalContent.innerHTML = "";
-    }
-
-    window.onclick = function(e) {
-      if (e.target === modal) sluitModal();
+    function sluitPopup(){
+      document.getElementById("popup").style.display = "none";
+      document.getElementById("popupBody").innerHTML = "";
     }
 
     laadMedia();
