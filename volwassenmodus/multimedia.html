@@ -9,7 +9,6 @@
     body { background:#f5e9b8; font-family:Arial,sans-serif; margin:0; padding:0; color:#4e2710; }
     h1 { text-align:center; margin:20px 0; }
 
-    /* TV-scherm */
     .tv-scherm {
       background:#000;
       border:10px solid #333;
@@ -24,9 +23,9 @@
       align-items:center;
       justify-content:center;
     }
-    .tv-scherm iframe, 
-    .tv-scherm video, 
-    .tv-scherm audio, 
+    .tv-scherm iframe,
+    .tv-scherm video,
+    .tv-scherm audio,
     .tv-scherm img {
       width:100%;
       height:100%;
@@ -36,33 +35,32 @@
       background:#000;
     }
 
-    /* Afstandsbediening */
     .afstandsbediening {
       display:grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns:repeat(5,1fr);
+      grid-template-rows:repeat(3,1fr);
       gap:12px;
       max-width:600px;
       margin:0 auto 40px auto;
-      transform: rotate(-8deg); /* diagonale look */
+      transform:rotate(-6deg);
     }
     .knop {
       background:#fffde6;
       border:2px solid #dab97a;
       border-radius:6px;
-      height:90px;
+      text-align:center;
+      cursor:pointer;
       display:flex;
       align-items:center;
       justify-content:center;
-      text-align:center;
+      padding:10px;
       font-size:0.9em;
       font-weight:bold;
-      padding:6px;
-      cursor:pointer;
       transition:transform 0.2s, box-shadow 0.2s;
     }
     .knop:hover {
       transform:scale(1.07);
-      box-shadow:0 4px 14px rgba(0,0,0,0.25);
+      box-shadow:0 4px 14px rgba(0,0,0,0.2);
       background:#f6eec8;
     }
   </style>
@@ -80,14 +78,14 @@
 
   <!-- Grote TV -->
   <div id="tv-scherm" class="tv-scherm">
-    <p style="color:#fff;">Selecteer een media via de afstandsbediening</p>
+    <p style="color:#fff;">Selecteer een media uit de afstandsbediening</p>
   </div>
 
   <!-- Afstandsbediening -->
   <div id="afstandsbediening" class="afstandsbediening"></div>
 
   <script>
-    // === FIREBASE INIT ===
+    // Firebase init
     if (!firebase.apps.length) {
       firebase.initializeApp({
         apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
@@ -100,44 +98,55 @@
     }
     const db = firebase.firestore();
 
-    // === LOGIN CHECK ===
+    // Alleen ingelogde volwassenen
     const parochieId = localStorage.getItem("ingelogdeParochie");
-    if (!parochieId) {
+    const modus = localStorage.getItem("modus");
+    if (!parochieId || modus !== "volwassene") {
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     }
 
-    // === MEDIA LADEN ===
+    // Media laden
     async function laadMedia() {
       const lijst = document.getElementById("afstandsbediening");
-      lijst.innerHTML = "⏳ Laden...";
+      lijst.innerHTML = "";
 
       const snap = await db.collection("parochies").doc(parochieId).collection("uploads").get();
 
-      lijst.innerHTML = "";
       if (snap.empty) {
-        lijst.innerHTML = "<p style='grid-column:span 5; text-align:center;'>Geen media beschikbaar.</p>";
+        lijst.innerHTML = "<p style='text-align:center;'>Geen media beschikbaar.</p>";
         return;
       }
 
       snap.forEach(doc => {
         const d = doc.data();
+        const bron = d.url || d.link || "";
+        let type = d.type || "";
+
+        // Automatisch type bepalen indien fout
+        if (!["audio","video","youtube","image"].includes(type)) {
+          if (bron.match(/\.mp3($|\?)/)) type = "audio";
+          else if (bron.match(/\.mp4($|\?)/)) type = "video";
+          else if (bron.includes("youtube.com")) type = "youtube";
+          else if (bron.match(/\.(jpg|jpeg|png|gif)($|\?)/)) type = "image";
+        }
+
+        console.log("📡 Media geladen:", d.titel, type, bron);
+
         const knop = document.createElement("div");
         knop.className = "knop";
-        knop.innerHTML = d.titel || "Media";
-        knop.onclick = () => speelMedia(d.type, d.link, d.titel);
+        knop.textContent = d.titel || "Media";
+        knop.onclick = () => speelMedia(type, bron, d.titel);
         lijst.appendChild(knop);
       });
     }
 
-    // === MEDIA AFSPelen ===
+    // Afspelen in grote TV
     function speelMedia(type, bron, titel) {
       const scherm = document.getElementById("tv-scherm");
 
       if (type === "audio") {
-        // Fix: altijd .appspot.com gebruiken
-        const juisteLink = bron.replace(".firebasestorage.app", ".appspot.com");
         scherm.innerHTML = `<audio controls autoplay style="width:100%;">
-                              <source src="${juisteLink}" type="audio/mpeg">
+                              <source src="${bron}" type="audio/mpeg">
                               Je browser ondersteunt dit audio-bestand niet.
                             </audio>`;
       } 
@@ -149,13 +158,12 @@
       } 
       else if (type === "youtube") {
         const embedLink = bron.replace("watch?v=", "embed/");
-        scherm.innerHTML = `<iframe src="${embedLink}" 
-                              frameborder="0" allow="autoplay; encrypted-media" 
-                              allowfullscreen style="width:100%; height:460px;">
-                            </iframe>`;
+        scherm.innerHTML = `<iframe src="${embedLink}" frameborder="0" 
+                              allow="autoplay; encrypted-media" allowfullscreen 
+                              style="width:100%; height:460px;"></iframe>`;
       } 
       else if (type === "image") {
-        scherm.innerHTML = `<img src="${bron}" alt="${titel}" style="max-height:460px;">`;
+        scherm.innerHTML = `<img src="${bron}" alt="${titel}" style="max-height:460px; width:auto;">`;
       } 
       else {
         scherm.innerHTML = `<p style="color:#fff;">Onbekend type media</p>`;
