@@ -5,125 +5,86 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>🎵 Media – Priester</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
+
   <style>
-    body { margin:0; font-family:Arial,sans-serif; background:#f5e9b8; color:#6f4e1a; }
-    h1 { text-align:center; color:#4e2710; margin:20px 0; }
-    .container { max-width:900px; margin:20px auto; padding:0 20px; }
-
-    .blok { background:#fffef9; border:2px solid #e2d1a5; border-radius:12px;
-            padding:20px; margin-bottom:24px; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
-
-    label { display:block; font-weight:bold; margin:10px 0 4px; }
-    input[type=text], textarea, select {
-      width:100%; padding:8px; border:1px solid #dbc592; border-radius:8px;
-      background:#fffdf5; font-family:inherit; margin-bottom:8px;
-    }
-    textarea { min-height:80px; resize:vertical; }
-    input[type=file] { margin:8px 0; }
-
-    .btn { padding:8px 16px; border:none; border-radius:8px; cursor:pointer; font-weight:bold; }
-    .btn.save { background:#7bb235; color:#fff; }
-    .btn.save:hover { background:#5e8e29; }
-
-    .media-lijst { display:flex; flex-direction:column; gap:14px; }
-    .media-item { background:#fff; border:1px solid #dab97a; border-radius:8px;
-                  padding:12px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
-    .media-item h3 { margin:0 0 6px; color:#7a5f35; }
-    .media-item small { color:#8a6b29; }
-
-    progress { width:100%; margin-top:6px; }
+    body { font-family: Arial,sans-serif; background:#f5e9b8; color:#6f4e1a; margin:0; padding:0; }
+    h1 { text-align:center; margin:20px 0; }
+    .container { max-width:800px; margin:20px auto; background:#fffef9;
+      border:2px solid #dab97a; border-radius:12px; padding:20px; box-shadow:0 4px 12px #0002; }
+    label { font-weight:bold; margin-top:10px; display:block; }
+    input, textarea { width:100%; padding:8px; margin:6px 0; border:1px solid #ccc; border-radius:8px; }
+    textarea { resize:vertical; }
+    button { background:#7a5f35; color:#fff; border:none; padding:10px 18px; border-radius:8px; cursor:pointer; }
+    button:hover { background:#5d4726; }
+    .media-lijst { margin-top:30px; }
+    .media-item { border-bottom:1px solid #ddd; padding:10px 0; }
+    .media-item h3 { margin:0; color:#5d4726; }
+    .media-item small { color:#888; }
+    .media-item button { background:#c62828; margin-top:6px; }
+    .media-item button:hover { background:#a61c1c; }
+    audio, img { margin-top:10px; max-width:100%; border-radius:8px; }
   </style>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+  <script defer src="../common/layout.js"></script>
 </head>
 <body>
-  <!-- Uniforme header -->
-  <div id="priester-header"></div>
+  <div id="priester-header" data-header-src="../common/header.html"></div>
 
   <div class="container">
-    <h1>🎵 Media Upload – Priester</h1>
+    <h1>🎵 Media uploaden</h1>
 
-    <!-- Nieuw uploadformulier -->
-    <div class="blok">
-      <form id="mediaForm">
-        <label for="titel">Titel</label>
-        <input type="text" id="titel" required>
+    <form id="mediaForm">
+      <label for="titel">Titel</label>
+      <input type="text" id="titel" required>
 
-        <label for="omschrijving">Omschrijving</label>
-        <textarea id="omschrijving"></textarea>
+      <label for="omschrijving">Omschrijving</label>
+      <textarea id="omschrijving"></textarea>
 
-        <label>Media toevoegen</label>
-        <select id="typeSelect">
-          <option value="bestand">Bestand uploaden</option>
-          <option value="link">Externe link</option>
-        </select>
+      <label for="bestand">Bestand uploaden (mp3/afbeelding)</label>
+      <input type="file" id="bestand" accept="audio/*,image/*">
 
-        <div id="bestandVak">
-          <input type="file" id="bestandInput" accept="audio/*,video/*">
-        </div>
-        <div id="linkVak" style="display:none;">
-          <input type="text" id="linkInput" placeholder="https://youtube.com/... of https://...mp3">
-        </div>
+      <label for="link">Of externe link (YouTube, mp3, …)</label>
+      <input type="url" id="link" placeholder="https://...">
 
-        <button type="submit" class="btn save">Opslaan</button>
-        <div id="feedback" style="color:#b91e1e; margin-top:8px;"></div>
-        <div id="uploadProgress" style="display:none;">
-          <progress id="progressBar" value="0" max="100"></progress>
-          <span id="progressText">0%</span>
-        </div>
-      </form>
-    </div>
+      <button type="submit">📤 Opslaan</button>
+    </form>
 
-    <!-- Reeds opgeslagen media -->
-    <div class="blok">
-      <h2>📂 Reeds opgeslagen media</h2>
-      <div id="mediaLijst" class="media-lijst">⏳ Laden...</div>
+    <div id="status"></div>
+
+    <div class="media-lijst">
+      <h2>📚 Reeds opgeslagen media</h2>
+      <div id="mediaLijst">⏳ Laden...</div>
     </div>
   </div>
 
-  <!-- Layout script -->
-  <script src="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/common/layout.js"></script>
-
   <script>
-    // ==== FIREBASE INIT ====
-    const firebaseConfig = {
-      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
-      authDomain: "orthodoxeweg.firebaseapp.com",
-      projectId: "orthodoxeweg",
-      storageBucket: "orthodoxeweg.appspot.com",
-      messagingSenderId: "408582263618",
-      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
-    };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    // ===== FIREBASE INIT =====
+    if (!firebase.apps.length) {
+      firebase.initializeApp({
+        apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+        authDomain: "orthodoxeweg.firebaseapp.com",
+        projectId: "orthodoxeweg",
+        storageBucket: "orthodoxeweg.firebasestorage.app"
+      });
+    }
     const db = firebase.firestore();
     const storage = firebase.storage();
 
     const parochieId = localStorage.getItem("ingelogdeParochie");
 
-    // Wisselen tussen bestand/link
-    document.getElementById("typeSelect").onchange = e => {
-      document.getElementById("bestandVak").style.display = e.target.value==="bestand" ? "block":"none";
-      document.getElementById("linkVak").style.display = e.target.value==="link" ? "block":"none";
-    };
-
-    // Upload met voortgang
-    async function uploadBestand(file,pad){
-      return new Promise((resolve,reject)=>{
+    // ===== UPLOAD FUNCTIE =====
+    async function uploadBestand(file, pad) {
+      return new Promise((resolve, reject) => {
         const ref = storage.ref(pad);
         const task = ref.put(file);
-        document.getElementById("uploadProgress").style.display="block";
         task.on("state_changed",
-          snap=>{
-            const pct=Math.round((snap.bytesTransferred/snap.totalBytes)*100);
-            document.getElementById("progressBar").value=pct;
-            document.getElementById("progressText").innerText=pct+"%";
-          },
-          err=>reject(err),
-          async()=>{
-            document.getElementById("uploadProgress").style.display="none";
+          null,
+          err => reject(err),
+          async () => {
             const url = await task.snapshot.ref.getDownloadURL();
             resolve(url);
           }
@@ -131,72 +92,78 @@
       });
     }
 
-    // Opslaan
-    document.getElementById("mediaForm").onsubmit = async e => {
+    // ===== FORM SUBMIT =====
+    document.getElementById("mediaForm").onsubmit = async (e) => {
       e.preventDefault();
-      const titel=document.getElementById("titel").value.trim();
-      const omschrijving=document.getElementById("omschrijving").value.trim();
-      const type=document.getElementById("typeSelect").value;
-      const feedback=document.getElementById("feedback");
-      feedback.textContent="";
+      const titel = document.getElementById("titel").value.trim();
+      const omschrijving = document.getElementById("omschrijving").value.trim();
+      const bestand = document.getElementById("bestand").files[0];
+      const link = document.getElementById("link").value.trim();
+      const status = document.getElementById("status");
 
-      if(!titel) { feedback.textContent="Titel is verplicht"; return; }
+      if (!titel) { status.textContent = "⚠️ Titel is verplicht"; return; }
+      let url = "";
+      let type = "";
 
-      let url="";
-      if(type==="bestand"){
-        const file=document.getElementById("bestandInput").files[0];
-        if(!file){ feedback.textContent="Kies een bestand"; return; }
-        const pad=`uploads/${parochieId}/${Date.now()}_${file.name}`;
-        try {
-          url=await uploadBestand(file,pad);
-        } catch(err){
-          feedback.textContent="Fout bij upload: "+err;
+      try {
+        if (bestand) {
+          const pad = `uploads/${parochieId}/${Date.now()}_${bestand.name}`;
+          url = await uploadBestand(bestand, pad);
+          type = "bestand";
+        } else if (link) {
+          url = link;
+          type = "link";
+        } else {
+          status.textContent = "⚠️ Kies een bestand of vul een link in.";
           return;
         }
-      } else {
-        url=document.getElementById("linkInput").value.trim();
-        if(!url){ feedback.textContent="Geef een link op"; return; }
+
+        await db.collection("parochies").doc(parochieId).collection("uploads").add({
+          titel, omschrijving, url, type,
+          datum: new Date()
+        });
+
+        status.textContent = "✅ Media opgeslagen!";
+        document.getElementById("mediaForm").reset();
+        laadMedia();
+      } catch (err) {
+        status.textContent = "❌ Fout bij opslaan: " + err;
       }
-
-      await db.collection("parochies").doc(parochieId).collection("uploads").add({
-        titel, omschrijving, type, url,
-        aangemaaktOp:new Date()
-      });
-
-      feedback.style.color="#2a7a2a";
-      feedback.textContent="✅ Opgeslagen!";
-      document.getElementById("mediaForm").reset();
-      document.getElementById("linkVak").style.display="none";
-      laadMedia();
-      setTimeout(()=>{ feedback.textContent=""; feedback.style.color="#b91e1e"; },2000);
     };
 
-    // Media laden
-    async function laadMedia(){
-      const lijst=document.getElementById("mediaLijst");
-      lijst.innerHTML="⏳ Laden...";
-      const snap=await db.collection("parochies").doc(parochieId).collection("uploads")
-        .orderBy("aangemaaktOp","desc").get();
-      if(snap.empty){ lijst.innerHTML="<em>Geen media opgeslagen.</em>"; return; }
-      lijst.innerHTML="";
-      snap.forEach(doc=>{
-        const d=doc.data();
-        const div=document.createElement("div");
-        div.className="media-item";
-        div.innerHTML=`
+    // ===== MEDIA LADEN =====
+    async function laadMedia() {
+      const lijst = document.getElementById("mediaLijst");
+      lijst.innerHTML = "⏳ Laden...";
+      const snap = await db.collection("parochies").doc(parochieId).collection("uploads")
+        .orderBy("datum", "desc").get();
+      if (snap.empty) { lijst.innerHTML = "<em>Geen media gevonden.</em>"; return; }
+
+      lijst.innerHTML = "";
+      snap.forEach(doc => {
+        const d = doc.data();
+        const div = document.createElement("div");
+        div.className = "media-item";
+        div.innerHTML = `
           <h3>${d.titel}</h3>
-          <small>${d.omschrijving||""}</small><br>
-          ${d.type==="link"
-            ? `<a href="${d.url}" target="_blank">🔗 Open link</a>`
-            : (d.url.endsWith(".mp3")
-                ? `<audio controls src="${d.url}" style="width:100%;margin-top:6px"></audio>`
-                : `<video controls src="${d.url}" style="width:100%;max-height:240px;margin-top:6px"></video>`)}
+          <small>${d.omschrijving || ""}</small><br>
+          ${d.type === "bestand" && d.url.endsWith(".mp3") ? `<audio controls src="${d.url}"></audio>` : ""}
+          ${d.type === "bestand" && !d.url.endsWith(".mp3") ? `<img src="${d.url}">` : ""}
+          ${d.type === "link" ? `<a href="${d.url}" target="_blank">${d.url}</a>` : ""}
+          <br><button onclick="verwijderMedia('${doc.id}')">❌ Verwijderen</button>
         `;
         lijst.appendChild(div);
       });
     }
 
-    laadMedia();
+    // ===== VERWIJDEREN =====
+    async function verwijderMedia(id) {
+      if (!confirm("Weet u zeker dat u dit wilt verwijderen?")) return;
+      await db.collection("parochies").doc(parochieId).collection("uploads").doc(id).delete();
+      laadMedia();
+    }
+
+    document.addEventListener("DOMContentLoaded", laadMedia);
   </script>
 </body>
 </html>
