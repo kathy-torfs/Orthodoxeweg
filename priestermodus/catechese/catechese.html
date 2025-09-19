@@ -62,12 +62,12 @@
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <!-- Vaste layout -->
-  <script defer src="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/common/layout.js"></script>
+  <!-- Vaste layout (let op: ../common/) -->
+  <script defer src="../common/layout.js"></script>
 </head>
 <body>
   <!-- Header (statusbar + menu via layout.js) -->
-  <div id="priester-header" data-header-src=".../common/header.html"></div>
+  <div id="priester-header" data-header-src="../common/header.html"></div>
 
   <main>
     <h1>📖 Orthodoxe Catechese</h1>
@@ -106,7 +106,7 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
-    // Indeling hoofdstukken in delen (zoals gastenmodus)
+    // Indeling hoofdstukken in delen
     const indeling = {
       deel1: [1,2,3,4,5],
       deel2: [6,7,8,9,10],
@@ -115,7 +115,7 @@
       modules: [21,22,23,24]
     };
 
-    // Hoofdstukken ophalen en per deel in de juiste ul zetten
+    // Hoofdstukken ophalen
     db.collection("catechese_vw").get().then(snapshot => {
       let docs = snapshot.docs.map(doc => {
         let nr = parseInt(doc.id.replace(/[^\d]/g,''));
