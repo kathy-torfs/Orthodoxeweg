@@ -9,30 +9,28 @@
     body { background:#f5e9b8; font-family:Arial,sans-serif; margin:0; padding:0; color:#4e2710; }
     h1 { text-align:center; margin:20px 0; }
 
-    /* Groot TV-scherm */
+    /* TV-scherm */
     .tv-scherm {
       background:#000;
-      border:12px solid #333;
-      border-radius:16px;
+      border:10px solid #333;
+      border-radius:12px;
       box-shadow:0 6px 20px rgba(0,0,0,0.4);
-      width:85%;
-      max-width:900px;
+      width:80%;
+      max-width:800px;
       margin:20px auto 30px auto;
-      min-height:400px;
+      padding:10px;
+      min-height:300px;
       display:flex;
       align-items:center;
       justify-content:center;
-      color:#fff;
-      font-size:1.2em;
-      text-align:center;
     }
-    .tv-scherm iframe,
-    .tv-scherm video,
-    .tv-scherm audio,
+    .tv-scherm iframe, 
+    .tv-scherm video, 
+    .tv-scherm audio, 
     .tv-scherm img {
       width:100%;
       height:100%;
-      max-height:480px;
+      max-height:460px;
       border:none;
       border-radius:8px;
       background:#000;
@@ -41,37 +39,31 @@
     /* Afstandsbediening */
     .afstandsbediening {
       display:grid;
-      grid-template-columns:repeat(auto-fill, minmax(120px,1fr));
-      gap:16px;
-      max-width:900px;
+      grid-template-columns: repeat(5, 1fr);
+      gap:12px;
+      max-width:600px;
       margin:0 auto 40px auto;
-      background:#444;
-      padding:20px;
-      border-radius:20px;
-      box-shadow:0 4px 14px rgba(0,0,0,0.3);
+      transform: rotate(-8deg); /* diagonale look */
     }
     .knop {
       background:#fffde6;
       border:2px solid #dab97a;
-      border-radius:12px;
-      padding:12px;
+      border-radius:6px;
+      height:90px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
       text-align:center;
+      font-size:0.9em;
+      font-weight:bold;
+      padding:6px;
       cursor:pointer;
       transition:transform 0.2s, box-shadow 0.2s;
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      align-items:center;
-      height:110px;
     }
     .knop:hover {
       transform:scale(1.07);
-      box-shadow:0 4px 14px rgba(0,0,0,0.2);
+      box-shadow:0 4px 14px rgba(0,0,0,0.25);
       background:#f6eec8;
-    }
-    .knop span {
-      font-size:2.2em;
-      margin-bottom:6px;
     }
   </style>
 
@@ -88,14 +80,14 @@
 
   <!-- Grote TV -->
   <div id="tv-scherm" class="tv-scherm">
-    Selecteer een media uit de afstandsbediening
+    <p style="color:#fff;">Selecteer een media via de afstandsbediening</p>
   </div>
 
   <!-- Afstandsbediening -->
   <div id="afstandsbediening" class="afstandsbediening"></div>
 
   <script>
-    // Firebase init
+    // === FIREBASE INIT ===
     if (!firebase.apps.length) {
       firebase.initializeApp({
         apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
@@ -108,13 +100,13 @@
     }
     const db = firebase.firestore();
 
-    // Check login
+    // === LOGIN CHECK ===
     const parochieId = localStorage.getItem("ingelogdeParochie");
     if (!parochieId) {
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     }
 
-    // Media laden
+    // === MEDIA LADEN ===
     async function laadMedia() {
       const lijst = document.getElementById("afstandsbediening");
       lijst.innerHTML = "⏳ Laden...";
@@ -123,40 +115,50 @@
 
       lijst.innerHTML = "";
       if (snap.empty) {
-        lijst.innerHTML = "<p style='color:#fff;text-align:center;'>Geen media beschikbaar.</p>";
+        lijst.innerHTML = "<p style='grid-column:span 5; text-align:center;'>Geen media beschikbaar.</p>";
         return;
       }
 
       snap.forEach(doc => {
         const d = doc.data();
-        const div = document.createElement("div");
-        div.className = "knop";
-        let icoon = "📺";
-        if (d.type === "audio") icoon = "🎵";
-        if (d.type === "video") icoon = "🎬";
-        if (d.type === "youtube") icoon = "▶️";
-        if (d.type === "image") icoon = "🖼️";
-
-        div.innerHTML = `<span>${icoon}</span><small>${d.titel || 'Media'}</small>`;
-        div.onclick = () => speelMedia(d.type, d.link, d.titel);
-        lijst.appendChild(div);
+        const knop = document.createElement("div");
+        knop.className = "knop";
+        knop.innerHTML = d.titel || "Media";
+        knop.onclick = () => speelMedia(d.type, d.link, d.titel);
+        lijst.appendChild(knop);
       });
     }
 
-    // Afspelen in grote TV
+    // === MEDIA AFSPelen ===
     function speelMedia(type, bron, titel) {
       const scherm = document.getElementById("tv-scherm");
+
       if (type === "audio") {
-        scherm.innerHTML = `<audio controls autoplay><source src="${bron}" type="audio/mpeg"></audio>`;
-      } else if (type === "video") {
-        scherm.innerHTML = `<video controls autoplay><source src="${bron}" type="video/mp4"></video>`;
-      } else if (type === "youtube") {
-        const embed = bron.replace("watch?v=", "embed/");
-        scherm.innerHTML = `<iframe src="${embed}" frameborder="0" allowfullscreen></iframe>`;
-      } else if (type === "image") {
-        scherm.innerHTML = `<img src="${bron}" alt="${titel}">`;
-      } else {
-        scherm.innerHTML = `<p>Onbekend type media</p>`;
+        // Fix: altijd .appspot.com gebruiken
+        const juisteLink = bron.replace(".firebasestorage.app", ".appspot.com");
+        scherm.innerHTML = `<audio controls autoplay style="width:100%;">
+                              <source src="${juisteLink}" type="audio/mpeg">
+                              Je browser ondersteunt dit audio-bestand niet.
+                            </audio>`;
+      } 
+      else if (type === "video") {
+        scherm.innerHTML = `<video controls autoplay style="width:100%; max-height:460px;">
+                              <source src="${bron}" type="video/mp4">
+                              Je browser ondersteunt dit video-bestand niet.
+                            </video>`;
+      } 
+      else if (type === "youtube") {
+        const embedLink = bron.replace("watch?v=", "embed/");
+        scherm.innerHTML = `<iframe src="${embedLink}" 
+                              frameborder="0" allow="autoplay; encrypted-media" 
+                              allowfullscreen style="width:100%; height:460px;">
+                            </iframe>`;
+      } 
+      else if (type === "image") {
+        scherm.innerHTML = `<img src="${bron}" alt="${titel}" style="max-height:460px;">`;
+      } 
+      else {
+        scherm.innerHTML = `<p style="color:#fff;">Onbekend type media</p>`;
       }
     }
 
