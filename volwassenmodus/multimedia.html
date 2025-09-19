@@ -9,74 +9,97 @@
     body { background:#f5e9b8; font-family:Arial,sans-serif; margin:0; padding:0; color:#4e2710; }
     h1 { text-align:center; margin:20px 0; }
 
+    /* Grote TV */
+    .tv-container {
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      flex-direction:column;
+      margin:20px auto;
+    }
+    .tv-icoon {
+      font-size:8rem;
+      margin-bottom:10px;
+    }
     .tv-scherm {
       background:#000;
-      border:10px solid #333;
+      border:6px solid #333;
       border-radius:12px;
       box-shadow:0 6px 20px rgba(0,0,0,0.4);
       width:80%;
       max-width:800px;
-      margin:20px auto 30px auto;
-      padding:10px;
-      min-height:300px;
+      min-height:280px;
       display:flex;
       align-items:center;
       justify-content:center;
+      overflow:hidden;
     }
-    .tv-scherm iframe, 
-    .tv-scherm video, 
-    .tv-scherm audio, 
+    .tv-scherm iframe,
+    .tv-scherm video,
+    .tv-scherm audio,
     .tv-scherm img {
       width:100%;
       height:100%;
       max-height:460px;
       border:none;
-      border-radius:8px;
       background:#000;
     }
 
+    /* Afstandsbediening */
     .afstandsbediening {
+      background:#333;
+      border-radius:14px;
+      padding:20px;
+      max-width:900px;
+      margin:30px auto 40px auto;
       display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
-      gap:16px;
-      max-width:800px;
-      margin:0 auto 40px auto;
+      grid-template-columns:repeat(auto-fit, minmax(120px,1fr));
+      gap:14px;
+      box-shadow:0 4px 14px rgba(0,0,0,0.3);
     }
     .knop {
-      background:#fffde6;
-      border:2px solid #dab97a;
-      border-radius:10px;
-      padding:16px;
+      background:#555;
+      border:2px solid #888;
+      border-radius:8px;
+      color:#fff;
+      font-weight:bold;
       text-align:center;
+      padding:16px;
       cursor:pointer;
-      transition:transform 0.2s, box-shadow 0.2s;
+      transition:transform 0.2s, background 0.2s;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      min-height:90px;
+    }
+    .knop span.icoon {
+      font-size:2rem;
+      margin-bottom:6px;
     }
     .knop:hover {
-      transform:scale(1.07);
-      box-shadow:0 4px 14px rgba(0,0,0,0.2);
-      background:#f6eec8;
-    }
-    .knop span {
-      font-size:2.5em;
-      display:block;
-      margin-bottom:8px;
+      background:#777;
+      transform:scale(1.05);
     }
   </style>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script defer src="common/layout.js"></script>
+  <script defer src="../common/layout.js"></script>
 </head>
 <body>
   <!-- Header -->
-  <div id="volwassen-header" data-header-src="common/header.html"></div>
+  <div id="volwassen-header" data-header-src="../common/header.html"></div>
 
   <h1>📺 Multimedia</h1>
 
   <!-- Grote TV -->
-  <div id="tv-scherm" class="tv-scherm">
-    <p style="color:#fff;">Selecteer een media uit de afstandsbediening</p>
+  <div class="tv-container">
+    <div class="tv-icoon">📺</div>
+    <div id="tv-scherm" class="tv-scherm">
+      <p style="color:#fff;">📡 Selecteer een media met de afstandsbediening</p>
+    </div>
   </div>
 
   <!-- Afstandsbediening -->
@@ -107,25 +130,43 @@
 
       lijst.innerHTML = "";
       if (snap.empty) {
-        lijst.innerHTML = "<p style='text-align:center;'>Geen media beschikbaar.</p>";
+        lijst.innerHTML = "<p style='text-align:center; color:#fff;'>Geen media beschikbaar.</p>";
         return;
       }
 
       snap.forEach(doc => {
         const d = doc.data();
-        const div = document.createElement("div");
-        div.className = "knop";
-        div.innerHTML = `<span>📺</span>${d.titel || 'Media'}`;
-        div.onclick = () => speelMedia(d.type, d.link, d.titel);
-        lijst.appendChild(div);
+        let icoon = "📺";
+        if (d.type === "audio") icoon = "🎵";
+        else if (d.type === "video") icoon = "🎬";
+        else if (d.type === "youtube") icoon = "▶️";
+        else if (d.type === "image") icoon = "🖼️";
+
+        const knop = document.createElement("div");
+        knop.className = "knop";
+        knop.innerHTML = `<span class="icoon">${icoon}</span>${d.titel || 'Media'}`;
+        knop.onclick = () => speelMedia(d.type, d.link, d.titel);
+        lijst.appendChild(knop);
       });
     }
 
     // Afspelen in grote TV
     function speelMedia(type, bron, titel) {
       const scherm = document.getElementById("tv-scherm");
+
+      // Zet YouTube link om naar embed
+      if (type === "youtube" && bron.includes("youtu")) {
+        if (bron.includes("watch?v=")) {
+          const videoId = bron.split("watch?v=")[1].split("&")[0];
+          bron = "https://www.youtube.com/embed/" + videoId;
+        } else if (bron.includes("youtu.be/")) {
+          const videoId = bron.split("youtu.be/")[1].split("?")[0];
+          bron = "https://www.youtube.com/embed/" + videoId;
+        }
+      }
+
       if (type === "audio") {
-        scherm.innerHTML = `<audio controls autoplay><source src="${bron}" type="audio/mpeg"></audio>`;
+        scherm.innerHTML = `<audio controls autoplay style="width:100%;"><source src="${bron}" type="audio/mpeg"></audio>`;
       } else if (type === "video") {
         scherm.innerHTML = `<video controls autoplay><source src="${bron}" type="video/mp4"></video>`;
       } else if (type === "youtube") {
