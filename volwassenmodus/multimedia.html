@@ -41,7 +41,7 @@
       flex-direction:column;
       align-items:center;
       gap:20px;
-      max-width:500px;
+      width:250px;
       margin:0 auto 40px auto;
       padding:24px 24px 32px 24px;
       background:#333;
@@ -49,7 +49,6 @@
       box-shadow: inset 0 4px 10px rgba(255,255,255,0.08),
                   inset 0 -4px 10px rgba(0,0,0,0.5),
                   0 8px 20px rgba(0,0,0,0.35);
-      transform:rotate(-6deg);
     }
 
     .power-knop {
@@ -75,15 +74,16 @@
 
     .knoppen-grid {
       display:grid;
-      grid-template-columns:repeat(5,1fr);
-      grid-template-rows:repeat(3,1fr);
+      grid-template-columns:repeat(3,1fr);
+      grid-template-rows:repeat(5,1fr);
       gap:14px;
       width:100%;
     }
 
     .knop {
-      background:#f8f5e9;
-      border:2px solid #dab97a;
+      background:#666;
+      color:#fff;
+      border:2px solid #444;
       border-radius:8px;
       text-align:center;
       cursor:pointer;
@@ -91,15 +91,22 @@
       align-items:center;
       justify-content:center;
       padding:10px;
-      font-size:0.9em;
+      font-size:0.85em;
       font-weight:bold;
       transition:transform 0.15s, box-shadow 0.15s, background 0.15s;
       box-shadow:0 2px 6px rgba(0,0,0,0.25);
+      min-height:60px;
     }
-    .knop:hover {
+    .knop.leeg {
+      background:#444;
+      cursor:default;
+      color:#777;
+    }
+    .knop:hover:not(.leeg) {
       transform:scale(1.1);
       box-shadow:0 4px 12px rgba(0,0,0,0.3);
       background:#f6eec8;
+      color:#000;
     }
   </style>
 
@@ -126,7 +133,6 @@
   </div>
 
   <script>
-    // Firebase init
     if (!firebase.apps.length) {
       firebase.initializeApp({
         apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
@@ -139,71 +145,65 @@
     }
     const db = firebase.firestore();
 
-    // Alleen ingelogde volwassenen
     const parochieId = localStorage.getItem("ingelogdeParochie");
     const modus = localStorage.getItem("modus");
     if (!parochieId || modus !== "volwassene") {
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     }
 
-    // Media laden
     async function laadMedia() {
       const lijst = document.getElementById("afstandsbediening");
       lijst.innerHTML = "";
 
       const snap = await db.collection("parochies").doc(parochieId).collection("uploads").get();
+      const docs = snap.docs;
 
-      if (snap.empty) {
-        lijst.innerHTML = "<p style='text-align:center; color:white;'>Geen media beschikbaar.</p>";
-        return;
-      }
-
-      snap.forEach(doc => {
-        const d = doc.data();
-        const bron = d.url || d.link || "";
-        let type = d.type || "";
-
-        if (!["audio","video","youtube","image"].includes(type)) {
-          if (bron.match(/\.mp3($|\?)/)) type = "audio";
-          else if (bron.match(/\.mp4($|\?)/)) type = "video";
-          else if (bron.includes("youtube.com")) type = "youtube";
-          else if (bron.match(/\.(jpg|jpeg|png|gif)($|\?)/)) type = "image";
-        }
-
+      // 15 knoppen vullen
+      for (let i = 0; i < 15; i++) {
         const knop = document.createElement("div");
-        knop.className = "knop";
-        knop.textContent = d.titel || "Media";
-        knop.onclick = () => speelMedia(type, bron, d.titel);
+        if (i < docs.length) {
+          const d = docs[i].data();
+          const bron = d.url || d.link || "";
+          let type = d.type || "";
+
+          if (!["audio","video","youtube","image"].includes(type)) {
+            if (bron.match(/\.mp3($|\?)/)) type = "audio";
+            else if (bron.match(/\.mp4($|\?)/)) type = "video";
+            else if (bron.includes("youtube.com")) type = "youtube";
+            else if (bron.match(/\.(jpg|jpeg|png|gif)($|\?)/)) type = "image";
+          }
+
+          knop.className = "knop";
+          knop.textContent = d.titel || "Media";
+          knop.onclick = () => speelMedia(type, bron, d.titel);
+        } else {
+          knop.className = "knop leeg";
+          knop.textContent = "";
+        }
         lijst.appendChild(knop);
-      });
+      }
     }
 
-    // Afspelen in grote TV
     function speelMedia(type, bron, titel) {
       const scherm = document.getElementById("tv-scherm");
-
       if (type === "audio") {
         scherm.innerHTML = `<audio controls autoplay style="width:100%;">
                               <source src="${bron}" type="audio/mpeg">
                               Je browser ondersteunt dit audio-bestand niet.
                             </audio>`;
-      } 
-      else if (type === "video") {
+      } else if (type === "video") {
         scherm.innerHTML = `<video controls autoplay style="width:100%; max-height:460px;">
                               <source src="${bron}" type="video/mp4">
                               Je browser ondersteunt dit video-bestand niet.
                             </video>`;
-      } 
-      else if (type === "youtube") {
+      } else if (type === "youtube") {
         const embedLink = bron.replace("watch?v=", "embed/");
         scherm.innerHTML = `<iframe src="${embedLink}" frameborder="0" 
                               allow="autoplay; encrypted-media" allowfullscreen 
                               style="width:100%; height:460px;"></iframe>`;
-      } 
-      else if (type === "image") {
+      } else if (type === "image") {
         scherm.innerHTML = `<img src="${bron}" alt="${titel}" style="max-height:460px; width:auto;">`;
-      } 
-      else {
+      } else {
         scherm.innerHTML = `<p style="color:#fff;">Onbekend type media</p>`;
       }
     }
