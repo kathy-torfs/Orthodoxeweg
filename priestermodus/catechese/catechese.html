@@ -4,43 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Catechese – Priestermodus</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
     body {
       background-color: #f5e9b8;
       color: #6f4e1a;
       font-family: Arial, sans-serif;
       margin: 0; padding: 0;
-    }
-    .statusbar {
-      background: #7a5f35;
-      color: #fff;
-      padding: 10px 24px;
-      text-align: left;
-      font-size: 1.07em;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    nav.menu {
-      background-color: #7a5f35;
-      padding: 10px 15px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      justify-content: center;
-    }
-    nav.menu a {
-      color: #f5e9b8;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 16px;
-      padding: 6px 12px;
-      border-radius: 8px;
-      transition: background-color 0.3s;
-    }
-    nav.menu a:hover {
-      background-color: #5d4726;
-      text-decoration: underline;
     }
     main {
       max-width: 860px;
@@ -89,30 +59,15 @@
       box-shadow: 0 4px 16px #d98f5d26;
     }
   </style>
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <!-- Vaste layout -->
+  <script defer src="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/common/layout.js"></script>
 </head>
 <body>
-  <!-- STATUSBALK -->
-  <div class="statusbar">
-    <span>U bent ingelogd in: <span id="parochieNaam">...</span></span>
-  </div>
-
-  <nav class="menu">
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/startpagina.html" title="Startpagina">🏠</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/parochie.html">🛐 Mijn parochie</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/catechese/catechese.html">📖 Catechese</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/gebeden.html">🙏 Gebeden</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/psalmen/psalmen.html">📜 Psalmen</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/heiligen/heiligen.html">👼 Heiligen</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/bijbeldagboek.html">📔 Bijbeldagboek</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/verjaardagskalender.html">🎂 Verjaardagskalender</a>
-  <!-- Kerkje-rechts als profiel/bewerk parochie -->
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/layout.html" class="menu-kerk" title="Bewerk parochie">
-    <span style="font-size:2.1em; display:inline-block; vertical-align:middle;">⛪</span>
-  </a>
-</nav>
+  <!-- Header (statusbar + menu via layout.js) -->
+  <div id="priester-header" data-header-src="/common/header.html"></div>
 
   <main>
     <h1>📖 Orthodoxe Catechese</h1>
@@ -139,10 +94,6 @@
   </main>
 
   <script>
-    // Parochie uit localStorage
-    let parochieNaam = localStorage.getItem("ingelogdeParochie");
-    document.getElementById("parochieNaam").textContent = parochieNaam || "[niet ingelogd]";
-
     // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
@@ -173,10 +124,8 @@
         return [nr, titel];
       });
 
-      // Sorteer op nummer
       docs.sort((a,b) => a[0]-b[0]);
 
-      // Per deel vullen
       for (const deel in indeling) {
         let ul = document.getElementById(deel);
         ul.innerHTML = "";
