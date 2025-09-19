@@ -19,7 +19,7 @@
       margin-bottom:26px;
     }
     label { display:block; margin:10px 0 4px; font-weight:bold; }
-    input[type=text] {
+    input[type=text], input[type=file] {
       width:100%; padding:10px; border-radius:8px;
       border:1.5px solid #dcbf60; font-size:1em;
     }
@@ -46,6 +46,7 @@
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 </head>
 <body>
   <!-- Gedeelde header/layout -->
@@ -58,8 +59,11 @@
       <label for="titel">Titel:</label>
       <input type="text" id="titel" required />
 
-      <label for="link">Link (YouTube, Vimeo, MP3...):</label>
-      <input type="text" id="link" required placeholder="https://..." />
+      <label for="bestand">Upload mp3-bestand:</label>
+      <input type="file" id="bestand" accept="audio/mp3,audio/mpeg" />
+
+      <small style="display:block;margin:8px 0;">of voer een link in:</small>
+      <input type="text" id="link" placeholder="https://..." />
 
       <button type="submit">➕ Plaatsen</button>
     </form>
@@ -86,7 +90,9 @@
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    const storage = firebase.storage();
 
+    // Media laden
     async function laadMedia(){
       const lijst=document.getElementById("mediaLijst");
       lijst.innerHTML="<em>Laden...</em>";
@@ -107,19 +113,38 @@
       });
     }
 
+    // Media toevoegen
     async function voegMediaToe(e){
       e.preventDefault();
       const titel=document.getElementById("titel").value.trim();
-      const link=document.getElementById("link").value.trim();
-      if(!link){ alert("Voer een link in."); return; }
+      const bestand=document.getElementById("bestand").files[0];
+      const linkInput=document.getElementById("link").value.trim();
+      let finalLink="";
+
+      if(bestand){
+        // Upload bestand naar Firebase Storage
+        const storageRef = storage.ref(`uploads/${eigenParochie}/${Date.now()}_${bestand.name}`);
+        await storageRef.put(bestand);
+        finalLink = await storageRef.getDownloadURL();
+      } else if(linkInput){
+        finalLink = linkInput;
+      } else {
+        alert("Kies een mp3-bestand of geef een link in.");
+        return;
+      }
+
       await db.collection("parochies").doc(eigenParochie).collection("uploads").add({
-        titel, link, datum:firebase.firestore.Timestamp.now()
+        titel, link: finalLink, datum: firebase.firestore.Timestamp.now()
       });
+
+      // Reset form
       document.getElementById("titel").value="";
+      document.getElementById("bestand").value="";
       document.getElementById("link").value="";
       laadMedia();
     }
 
+    // Media verwijderen
     async function verwijderMedia(id){
       await db.collection("parochies").doc(eigenParochie).collection("uploads").doc(id).delete();
       laadMedia();
