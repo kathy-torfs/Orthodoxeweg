@@ -2,49 +2,36 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>🎵 Media – Priester</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
+  <title>🎵 Media – Priester</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
-    body {
-      margin:0; font-family: Arial, sans-serif;
-      background:#f5e9b8; color:#4e3a15;
-    }
-    main { max-width:900px; margin:30px auto; padding:0 2vw; }
+    body { margin:0; font-family:Arial,sans-serif; background:#f5e9b8; color:#6f4e1a; }
+    h1 { text-align:center; color:#4e2710; margin:20px 0; }
+    .container { max-width:900px; margin:20px auto; padding:0 20px; }
 
-    h1 { color:#7a5f35; text-align:center; margin-bottom:22px; }
+    .blok { background:#fffef9; border:2px solid #e2d1a5; border-radius:12px;
+            padding:20px; margin-bottom:24px; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
 
-    form {
-      background:#fffdf5; border:2px dashed #e0c46c;
-      border-radius:14px; padding:18px; box-shadow:0 4px 10px rgba(0,0,0,.08);
-      margin-bottom:28px;
+    label { display:block; font-weight:bold; margin:10px 0 4px; }
+    input[type=text], textarea, select {
+      width:100%; padding:8px; border:1px solid #dbc592; border-radius:8px;
+      background:#fffdf5; font-family:inherit; margin-bottom:8px;
     }
-    label { display:block; margin:10px 0 4px; font-weight:bold; }
-    input[type="text"], textarea, input[type="file"] {
-      width:100%; border-radius:8px; border:1.5px solid #dcbf60;
-      padding:8px; font-family:inherit; font-size:1em;
-    }
-    textarea { min-height:70px; resize:vertical; }
+    textarea { min-height:80px; resize:vertical; }
+    input[type=file] { margin:8px 0; }
 
-    button {
-      background:#7bb235; color:#fff; border:none; border-radius:8px;
-      padding:8px 16px; font-weight:bold; cursor:pointer; margin-top:10px;
-    }
-    button:hover { background:#5e8e29; }
+    .btn { padding:8px 16px; border:none; border-radius:8px; cursor:pointer; font-weight:bold; }
+    .btn.save { background:#7bb235; color:#fff; }
+    .btn.save:hover { background:#5e8e29; }
 
-    .media-lijst { display:flex; flex-direction:column; gap:18px; }
-    .media-item {
-      background:#fff9de; border:2px solid #eed989;
-      border-radius:14px; padding:14px;
-      box-shadow:0 2px 10px #0002;
-    }
-    .media-item h3 { margin:0 0 6px; color:#7bb235; font-size:1.1em; }
-    .media-item p { margin:0 0 8px; }
-    .verwijder-btn {
-      background:#b6322c; color:#fff; border:none; border-radius:6px;
-      padding:6px 12px; cursor:pointer; font-size:.9em;
-    }
-    .verwijder-btn:hover { background:#911f19; }
+    .media-lijst { display:flex; flex-direction:column; gap:14px; }
+    .media-item { background:#fff; border:1px solid #dab97a; border-radius:8px;
+                  padding:12px; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+    .media-item h3 { margin:0 0 6px; color:#7a5f35; }
+    .media-item small { color:#8a6b29; }
+
+    progress { width:100%; margin-top:6px; }
   </style>
 
   <!-- Firebase -->
@@ -53,42 +40,55 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 </head>
 <body>
-  <!-- Gedeelde header/layout -->
+  <!-- Uniforme header -->
   <div id="priester-header"></div>
 
-  <main>
-    <h1>🎵 Media beheren</h1>
+  <div class="container">
+    <h1>🎵 Media Upload – Priester</h1>
 
-    <form id="mediaForm">
-      <label for="titel">Titel:</label>
-      <input type="text" id="titel" required>
+    <!-- Nieuw uploadformulier -->
+    <div class="blok">
+      <form id="mediaForm">
+        <label for="titel">Titel</label>
+        <input type="text" id="titel" required>
 
-      <label for="omschrijving">Omschrijving:</label>
-      <textarea id="omschrijving"></textarea>
+        <label for="omschrijving">Omschrijving</label>
+        <textarea id="omschrijving"></textarea>
 
-      <label for="bestand">Upload MP3-bestand:</label>
-      <input type="file" id="bestand" accept="audio/mpeg">
+        <label>Media toevoegen</label>
+        <select id="typeSelect">
+          <option value="bestand">Bestand uploaden</option>
+          <option value="link">Externe link</option>
+        </select>
 
-      <label for="link">of voeg een YouTube-link toe:</label>
-      <input type="text" id="link" placeholder="https://youtube.com/...">
+        <div id="bestandVak">
+          <input type="file" id="bestandInput" accept="audio/*,video/*">
+        </div>
+        <div id="linkVak" style="display:none;">
+          <input type="text" id="linkInput" placeholder="https://youtube.com/... of https://...mp3">
+        </div>
 
-      <button type="submit">➕ Toevoegen</button>
-    </form>
+        <button type="submit" class="btn save">Opslaan</button>
+        <div id="feedback" style="color:#b91e1e; margin-top:8px;"></div>
+        <div id="uploadProgress" style="display:none;">
+          <progress id="progressBar" value="0" max="100"></progress>
+          <span id="progressText">0%</span>
+        </div>
+      </form>
+    </div>
 
-    <div class="media-lijst" id="mediaLijst"></div>
-  </main>
+    <!-- Reeds opgeslagen media -->
+    <div class="blok">
+      <h2>📂 Reeds opgeslagen media</h2>
+      <div id="mediaLijst" class="media-lijst">⏳ Laden...</div>
+    </div>
+  </div>
 
-  <!-- Layout.js laadt header.html -->
+  <!-- Layout script -->
   <script src="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/common/layout.js"></script>
 
   <script>
-    // Toegang: enkel priestermodus
-    if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "priester") {
-      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
-    }
-    const parochieId = localStorage.getItem("ingelogdeParochie");
-
-    // Firebase init
+    // ==== FIREBASE INIT ====
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -101,86 +101,99 @@
     const db = firebase.firestore();
     const storage = firebase.storage();
 
-    const lijst = document.getElementById("mediaLijst");
+    const parochieId = localStorage.getItem("ingelogdeParochie");
 
-    // Media laden
-    async function laadMedia(){
-      lijst.innerHTML = "<em>Media wordt geladen...</em>";
-      const snap = await db.collection("parochies").doc(parochieId).collection("uploads")
-        .orderBy("datum","desc").get();
-      if(snap.empty){
-        lijst.innerHTML = "<em>Nog geen media toegevoegd.</em>";
-        return;
-      }
-      lijst.innerHTML = "";
-      snap.forEach(doc=>{
-        const d = doc.data();
-        const div = document.createElement("div");
-        div.className="media-item";
-        div.innerHTML = `
-          <h3>${d.titel||"Zonder titel"}</h3>
-          <p>${d.omschrijving||""}</p>
-        `;
-        if(d.type==="mp3" && d.url){
-          const audio = document.createElement("audio");
-          audio.controls = true;
-          audio.src = d.url;
-          div.appendChild(audio);
-        } else if(d.type==="youtube" && d.url){
-          const iframe = document.createElement("iframe");
-          iframe.width="100%"; iframe.height="200";
-          iframe.src = d.url.replace("watch?v=","embed/");
-          iframe.allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
-          iframe.allowFullscreen = true;
-          div.appendChild(iframe);
-        } else if(d.url){
-          const a=document.createElement("a");
-          a.href=d.url; a.textContent="Open media"; a.target="_blank";
-          div.appendChild(a);
-        }
-        const btn=document.createElement("button");
-        btn.className="verwijder-btn"; btn.textContent="🗑 Verwijder";
-        btn.onclick=()=>verwijderMedia(doc.id,d);
-        div.appendChild(btn);
-        lijst.appendChild(div);
+    // Wisselen tussen bestand/link
+    document.getElementById("typeSelect").onchange = e => {
+      document.getElementById("bestandVak").style.display = e.target.value==="bestand" ? "block":"none";
+      document.getElementById("linkVak").style.display = e.target.value==="link" ? "block":"none";
+    };
+
+    // Upload met voortgang
+    async function uploadBestand(file,pad){
+      return new Promise((resolve,reject)=>{
+        const ref = storage.ref(pad);
+        const task = ref.put(file);
+        document.getElementById("uploadProgress").style.display="block";
+        task.on("state_changed",
+          snap=>{
+            const pct=Math.round((snap.bytesTransferred/snap.totalBytes)*100);
+            document.getElementById("progressBar").value=pct;
+            document.getElementById("progressText").innerText=pct+"%";
+          },
+          err=>reject(err),
+          async()=>{
+            document.getElementById("uploadProgress").style.display="none";
+            const url = await task.snapshot.ref.getDownloadURL();
+            resolve(url);
+          }
+        );
       });
     }
 
-    // Media toevoegen
-    document.getElementById("mediaForm").onsubmit=async e=>{
+    // Opslaan
+    document.getElementById("mediaForm").onsubmit = async e => {
       e.preventDefault();
       const titel=document.getElementById("titel").value.trim();
       const omschrijving=document.getElementById("omschrijving").value.trim();
-      const bestand=document.getElementById("bestand").files[0];
-      const link=document.getElementById("link").value.trim();
-      if(!titel){alert("Geef een titel op");return;}
-      let url=null, type=null;
+      const type=document.getElementById("typeSelect").value;
+      const feedback=document.getElementById("feedback");
+      feedback.textContent="";
 
-      if(bestand){
-        const opslagPad=`uploads/${parochieId}/${Date.now()}_${bestand.name}`;
-        const ref=storage.ref(opslagPad);
-        await ref.put(bestand);
-        url=await ref.getDownloadURL();
-        type="mp3";
-      } else if(link){
-        url=link; type="youtube";
+      if(!titel) { feedback.textContent="Titel is verplicht"; return; }
+
+      let url="";
+      if(type==="bestand"){
+        const file=document.getElementById("bestandInput").files[0];
+        if(!file){ feedback.textContent="Kies een bestand"; return; }
+        const pad=`uploads/${parochieId}/${Date.now()}_${file.name}`;
+        try {
+          url=await uploadBestand(file,pad);
+        } catch(err){
+          feedback.textContent="Fout bij upload: "+err;
+          return;
+        }
       } else {
-        alert("Upload een bestand of voeg een link toe.");
-        return;
+        url=document.getElementById("linkInput").value.trim();
+        if(!url){ feedback.textContent="Geef een link op"; return; }
       }
+
       await db.collection("parochies").doc(parochieId).collection("uploads").add({
-        titel,omschrijving,url,type,datum:new Date()
+        titel, omschrijving, type, url,
+        aangemaaktOp:new Date()
       });
-      e.target.reset();
+
+      feedback.style.color="#2a7a2a";
+      feedback.textContent="✅ Opgeslagen!";
+      document.getElementById("mediaForm").reset();
+      document.getElementById("linkVak").style.display="none";
       laadMedia();
+      setTimeout(()=>{ feedback.textContent=""; feedback.style.color="#b91e1e"; },2000);
     };
 
-    // Media verwijderen
-    async function verwijderMedia(id,data){
-      if(confirm("Weet u zeker dat u dit item wilt verwijderen?")){
-        await db.collection("parochies").doc(parochieId).collection("uploads").doc(id).delete();
-        laadMedia();
-      }
+    // Media laden
+    async function laadMedia(){
+      const lijst=document.getElementById("mediaLijst");
+      lijst.innerHTML="⏳ Laden...";
+      const snap=await db.collection("parochies").doc(parochieId).collection("uploads")
+        .orderBy("aangemaaktOp","desc").get();
+      if(snap.empty){ lijst.innerHTML="<em>Geen media opgeslagen.</em>"; return; }
+      lijst.innerHTML="";
+      snap.forEach(doc=>{
+        const d=doc.data();
+        const div=document.createElement("div");
+        div.className="media-item";
+        div.innerHTML=`
+          <h3>${d.titel}</h3>
+          <small>${d.omschrijving||""}</small><br>
+          ${d.type==="link"
+            ? `<a href="${d.url}" target="_blank">🔗 Open link</a>`
+            : (d.url.endsWith(".mp3")
+                ? `<audio controls src="${d.url}" style="width:100%;margin-top:6px"></audio>`
+                : `<video controls src="${d.url}" style="width:100%;max-height:240px;margin-top:6px"></video>`)}
+        `;
+        lijst.appendChild(div);
+      });
     }
 
     laadMedia();
