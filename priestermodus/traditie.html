@@ -3,122 +3,38 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Orthodoxeweg – Tradities (Priestermodus)</title>
+  <title>Priestermodus – Tradities</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
 
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f5e9b8;
-      color: #6f4e1a;
-      display: flex;
-      min-height: 100vh;
-    }
+    body { margin:0; font-family: Arial, sans-serif; background:#f5e9b8; color:#5b3a00; }
+    .container { display:flex; max-width:1300px; margin:20px auto; gap:20px; }
+    .index { width:280px; background:#fffdf6; border:1px solid #dbc592; border-radius:10px; padding:12px; box-shadow:0 2px 8px rgba(0,0,0,.1); }
+    .index h3 { margin-top:0; font-size:1.2em; color:#7a5f35; }
+    .index ul { list-style:none; padding:0; margin:0; }
+    .index li { margin:6px 0; }
+    .index a { color:#5b3a00; text-decoration:none; font-weight:bold; }
+    .index a:hover { text-decoration:underline; }
 
-    /* Sidebar */
-    .sidebar {
-      width: 260px;
-      background: #7a5f35;
-      color: #fff;
-      padding: 20px;
-      box-shadow: 4px 0 10px rgba(0,0,0,0.2);
-      overflow-y: auto;
-    }
-    .sidebar h2 {
-      font-size: 1.2em;
-      margin-top: 0;
-      color: #fff6e5;
-    }
-    .traditie-list {
-      list-style: none;
-      padding: 0;
-      margin: 16px 0 0;
-    }
-    .traditie-list li {
-      padding: 8px 10px;
-      margin-bottom: 6px;
-      background: #8d6e46;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .traditie-list li:hover {
-      background: #a7865c;
-    }
-    .traditie-list li.active {
-      background: #dec992;
-      color: #3a280d;
-      font-weight: bold;
-    }
+    .content { flex:1; background:#fffef8; border:1px solid #dbc592; border-radius:10px; padding:18px; box-shadow:0 2px 8px rgba(0,0,0,.1); }
+    h1 { font-size:1.5em; color:#7a5f35; margin-top:0; }
+    .sub { margin-top:4px; font-size:.95em; color:#7a5f35; opacity:.85; }
 
-    /* Main content */
-    .content {
-      flex: 1;
-      padding: 24px;
-      overflow-y: auto;
-    }
-    .content h1 {
-      margin-top: 0;
-      color: #4e2710;
-      font-size: 1.6em;
-      text-align: center;
-    }
+    .bar { display:flex; gap:10px; flex-wrap:wrap; margin:12px 0 18px; }
+    .tab { border:1px solid #ead9b4; background:#fff; padding:8px 14px; border-radius:999px; cursor:pointer; }
+    .tab.active { background:#7bb235; color:#fff; border-color:#7bb235; }
 
-    .bar {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin: 12px 0 18px;
-    }
-    .tab {
-      border: 1px solid #dec992;
-      background: #fff8eb;
-      padding: 10px 14px;
-      border-radius: 999px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    .tab.active {
-      background: #7bb235;
-      color: #fff;
-      border-color: #7bb235;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-    }
-    .card {
-      background: #fffdf6;
-      border: 1px solid #dec992;
-      border-radius: 12px;
-      padding: 16px;
-      margin: 12px 0;
-      box-shadow: 0 6px 18px rgba(0,0,0,.08);
-    }
-    .hidden {
-      display: none;
-    }
+    .card { background:#ffffff; border:1px solid #ead9b4; border-radius:12px; padding:14px; margin-bottom:16px; }
+    .card h2 { margin-top:0; color:#67510C; }
 
-    /* Buttons */
-    .buttons {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin-top: 12px;
-    }
-    .btn {
-      background: #7bb235;
-      color: #fff;
-      border: 0;
-      border-radius: 8px;
-      padding: 10px 14px;
-      cursor: pointer;
-    }
-    .btn.ghost {
-      background: #fff;
-      color: #67510C;
-      border: 1px solid #dec992;
-    }
+    textarea, input { width:100%; margin:6px 0; padding:8px; border:1px solid #cbb994; border-radius:6px; font-family:inherit; font-size:1em; }
+    textarea { min-height:80px; resize:vertical; }
+
+    .save-row { text-align:right; margin-top:12px; }
+    .btn { background:#7bb235; color:#fff; border:none; border-radius:8px; padding:10px 16px; cursor:pointer; }
+    .btn:hover { background:#5f8c29; }
+    .btn.secondary { background:#b09765; }
+    .hidden { display:none; }
   </style>
 
   <!-- Firebase -->
@@ -137,54 +53,68 @@
     const db = firebase.firestore();
   </script>
 
-  <!-- Layout -->
+  <!-- Layout (vaste header + CSS) -->
   <script defer src="../common/layout.js"></script>
 </head>
 <body>
-  <!-- Header -->
+  <!-- Vaste header -->
   <div id="priester-header" data-header-src="../common/header.html"></div>
 
-  <!-- Sidebar + Content -->
-  <div class="sidebar">
-    <h2>Tradities</h2>
-    <ul class="traditie-list" id="traditieList">
-      <li data-id="begin-kerkelijk-jaar" class="active">Begin kerkelijk jaar</li>
-      <li data-id="einde-vasten">Einde van de Vasten</li>
-      <li data-id="lichtmis">Lichtmis</li>
-    </ul>
-    <div class="buttons">
-      <button class="btn" id="btnNew">+ Nieuwe traditie</button>
-    </div>
-  </div>
-
-  <div class="content">
-    <h1 id="traditieTitle">Begin kerkelijk jaar</h1>
-    <div class="bar" role="tablist">
-      <button class="tab active" data-target="#avond">Avond</button>
-      <button class="tab" data-target="#ochtend">Ochtend</button>
-      <button class="tab" data-target="#uitleg">Betekenis</button>
-      <button class="tab" data-target="#gebeden">Gebeden</button>
+  <div class="container">
+    <!-- Index -->
+    <div class="index">
+      <h3>📜 Tradities</h3>
+      <ul id="traditieIndex"></ul>
+      <div class="save-row">
+        <button class="btn secondary" id="newTraditie">+ Nieuwe traditie</button>
+      </div>
     </div>
 
-    <section id="avond" class="card">
-      <h2>Avond-ritus</h2>
-      <p>Voorbeeldtekst voor de avondviering…</p>
-    </section>
+    <!-- Content -->
+    <div class="content">
+      <h1><input id="traditieTitel" value="Icoon van de Moeder Gods – 31 aug / 1 sep (Indictie)" /></h1>
+      <p class="sub"><input id="traditieSub" value="Opening van het kerkelijk jaar (Indictie). Korte rite voor thuis of parochie." /></p>
 
-    <section id="ochtend" class="card hidden">
-      <h2>Ochtend-ritus</h2>
-      <p>Voorbeeldtekst voor de ochtendviering…</p>
-    </section>
+      <div class="bar">
+        <button class="tab active" data-target="#avond">Avond</button>
+        <button class="tab" data-target="#ochtend">Ochtend</button>
+        <button class="tab" data-target="#uitleg">Betekenis</button>
+        <button class="tab" data-target="#gebeden">Alle gebeden</button>
+      </div>
 
-    <section id="uitleg" class="card hidden">
-      <h2>Betekenis</h2>
-      <p>Korte uitleg over deze traditie…</p>
-    </section>
+      <!-- Avond -->
+      <section id="avond" class="card">
+        <h2>Avond (31 augustus)</h2>
+        <textarea id="avondTekst">Heer Jezus Christus, Zoon van God, om de gebeden van Uw alreine Moeder, zegen ons huis en dit einde van het kerkelijk jaar. Amen.</textarea>
+      </section>
 
-    <section id="gebeden" class="card hidden">
-      <h2>Alle gebeden</h2>
-      <p>Hier kunnen alle gebedsteksten bij elkaar staan…</p>
-    </section>
+      <!-- Ochtend -->
+      <section id="ochtend" class="card hidden">
+        <h2>Ochtend (1 september)</h2>
+        <textarea id="ochtendTekst">O Schepper van heel de schepping, Gij die tijden en jaren hebt vastgesteld, zegen het begin van dit kerkelijk jaar. Schenk Uw volk overvloed van genade, vrede en vergeving, om de voorbede van de Moeder Gods. Amen.</textarea>
+      </section>
+
+      <!-- Uitleg -->
+      <section id="uitleg" class="card hidden">
+        <h2>Betekenis</h2>
+        <textarea id="uitlegTekst">In de Orthodoxe Kerk begint het kerkelijk jaar op 1 september (Indictie). Op de avond ervoor plaatsen gelovigen het icoon buiten als dank voor het voorbije jaar. Op 1 september wordt het icoon binnengehaald als teken dat we het nieuwe jaar toevertrouwen aan de Moeder Gods.</textarea>
+      </section>
+
+      <!-- Gebeden -->
+      <section id="gebeden" class="card hidden">
+        <h2>Alle gebeden</h2>
+        <textarea id="gebedenTekst">Inleidend gebed – Heer Jezus Christus, Zoon van God... 
+Onder Uw bescherming nemen wij onze toevlucht... 
+Dankgebed – Moeder Gods, Theotokos, wij danken U... 
+Heer, ontferm U (1 sep)... 
+Troparion van de Indictie...
+Slotformule – Christus, ware God, verhoore ons...</textarea>
+      </section>
+
+      <div class="save-row">
+        <button class="btn" id="saveBtn">Opslaan in Firestore</button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -194,27 +124,48 @@
       t.addEventListener('click',()=>{
         tabs.forEach(x=>x.classList.remove('active'));
         t.classList.add('active');
-        document.querySelectorAll('.content section').forEach(s=>s.classList.add('hidden'));
-        const target=document.querySelector(t.dataset.target);
+        document.querySelectorAll('.content > section').forEach(s=>s.classList.add('hidden'));
+        const target = document.querySelector(t.dataset.target);
         if(target) target.classList.remove('hidden');
       });
     });
 
-    // Sidebar click
-    const list=document.getElementById('traditieList');
-    const title=document.getElementById('traditieTitle');
-    list.querySelectorAll('li').forEach(item=>{
-      item.addEventListener('click',()=>{
-        list.querySelectorAll('li').forEach(li=>li.classList.remove('active'));
-        item.classList.add('active');
-        title.textContent=item.textContent;
-      });
-    });
+    // Opslaan in Firestore
+    document.getElementById("saveBtn").onclick = async () => {
+      const docId = "indictie_1sep";
+      await db.collection("tradities").doc(docId).set({
+        titel: document.getElementById("traditieTitel").value,
+        subtitel: document.getElementById("traditieSub").value,
+        avond: document.getElementById("avondTekst").value,
+        ochtend: document.getElementById("ochtendTekst").value,
+        uitleg: document.getElementById("uitlegTekst").value,
+        gebeden: document.getElementById("gebedenTekst").value
+      }, {merge:true});
+      alert("Traditie opgeslagen!");
+      loadIndex();
+    };
 
-    // Nieuwe traditie knop
-    document.getElementById('btnNew').addEventListener('click',()=>{
-      alert("Formulier voor nieuwe traditie komt hier.");
-    });
+    // Index laden
+    async function loadIndex() {
+      const ul = document.getElementById("traditieIndex");
+      ul.innerHTML = "";
+      const snap = await db.collection("tradities").get();
+      snap.forEach(doc=>{
+        const li=document.createElement("li");
+        li.innerHTML = `<a href="#">${doc.data().titel}</a>`;
+        ul.appendChild(li);
+      });
+    }
+    loadIndex();
+
+    document.getElementById("newTraditie").onclick = () => {
+      document.getElementById("traditieTitel").value = "Nieuwe traditie";
+      document.getElementById("traditieSub").value = "";
+      document.getElementById("avondTekst").value = "";
+      document.getElementById("ochtendTekst").value = "";
+      document.getElementById("uitlegTekst").value = "";
+      document.getElementById("gebedenTekst").value = "";
+    };
   </script>
 </body>
 </html>
