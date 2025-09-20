@@ -12,33 +12,6 @@
       margin: 0;
       text-align: center;
     }
-    header {
-      background-color: #5e3907;
-      color: white;
-      padding: 20px;
-    }
-    nav.menu {
-      background-color: #fff1cd;
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 10px;
-      padding: 15px;
-      border-bottom: 2px solid #c4a85d;
-    }
-    nav.menu a {
-      text-decoration: none;
-      background-color: #ffeeba;
-      padding: 10px 16px;
-      border-radius: 8px;
-      color: #5e3907;
-      font-weight: bold;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-      transition: 0.3s;
-    }
-    nav.menu a:hover {
-      background-color: #ffeda2;
-    }
     main {
       max-width: 700px;
       margin: 40px auto 0 auto;
@@ -70,21 +43,6 @@
       cursor: pointer;
     }
     .terug:hover { background: #ffeda2; }
-    .pdf-link {
-      display: block;
-      margin: 35px auto 0 auto;
-      width: fit-content;
-      padding: 12px 24px;
-      background: #deb757;
-      color: #fff;
-      font-weight: bold;
-      border-radius: 8px;
-      text-decoration: none;
-      font-size: 1.11em;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.10);
-      transition: background 0.2s;
-    }
-    .pdf-link:hover { background: #c49d3c; }
     .foutmelding {
       background: #fff4e1;
       border-radius: 12px;
@@ -109,40 +67,20 @@
       min-height: 30px;
     }
   </style>
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script defer src="../common/layout.js"></script>
 </head>
 <body>
-
-  <header>
-    <h1>Gebed – detail</h1>
-  </header>
-
-<nav class="menu">
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/startpagina.html" title="Startpagina">🏠</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/parochie.html">🛐 Mijn parochie</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/catechese/catechese.html">📖 Catechese</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/gebeden.html">🙏 Gebeden</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/psalmen/psalmen.html">📜 Psalmen</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/heiligen/heiligen.html">👼 Heiligen</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/bijbeldagboek.html">📔 Bijbeldagboek</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/verjaardagskalender.html">🎂 Verjaardagskalender</a>
-  <!-- Kerkje-rechts als profiel/bewerk parochie -->
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/layout.html" class="menu-kerk" title="Bewerk parochie">
-    <span style="font-size:2.1em; display:inline-block; vertical-align:middle;">⛪</span>
-  </a>
-</nav>
+  <!-- VASTE HEADER -->
+  <div id="volwassen-header" data-header-src="../common/header.html"></div>
 
   <main>
     <a class="terug" href="gebeden.html">← Terug naar alle gebeden</a>
     <div id="content"></div>
-    <a class="pdf-link" href="https://orthodoxekerkhasselt.com/wp-content/uploads/2024/11/liturgische-teksten-het-klein-orthodox-gebedenboekje-v7.5-nld.pdf" target="_blank">
-      📖 Volledig Gebedenboekje (PDF)
-    </a>
   </main>
 
-  <!-- FIREBASE -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script>
     // Firebase config
     const firebaseConfig = {
@@ -153,7 +91,7 @@
       messagingSenderId: "408582263618",
       appId: "1:408582263618:web:2e02833fa0d4d8903ceedb"
     };
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
     // Haal gebed-ID uit de URL
@@ -162,14 +100,11 @@
       return params.get('id');
     }
 
-    // Slim ophalen uit gebeden_vw OF gebeden
     function laadGebed() {
       const gebedId = getGebedId();
       const contentDiv = document.getElementById('content');
       if (!gebedId) {
-        contentDiv.innerHTML = `
-          <div class="foutmelding">Er is geen geldig gebeds-ID opgegeven.</div>
-        `;
+        contentDiv.innerHTML = `<div class="foutmelding">Er is geen geldig gebeds-ID opgegeven.</div>`;
         return;
       }
       // Eerst zoeken in 'gebeden_vw'
@@ -182,9 +117,7 @@
             if (doc2.exists) {
               toonGebed(doc2.data(), gebedId);
             } else {
-              contentDiv.innerHTML = `
-                <div class="foutmelding">Gebed niet gevonden.<br>Controleer of de link correct is.</div>
-              `;
+              contentDiv.innerHTML = `<div class="foutmelding">Gebed niet gevonden.<br>Controleer of de link correct is.</div>`;
             }
           }).catch(fout);
         }
@@ -196,10 +129,7 @@
         let html = tekst;
         if (!html) html = "<i>Geen tekst gevonden voor dit gebed.</i>";
         else if (!html.startsWith('<')) html = tekst.replace(/\n/g, "<br>");
-        contentDiv.innerHTML = `
-          <h2>${titel}</h2>
-          <div class="gebed-tekst">${html}</div>
-        `;
+        contentDiv.innerHTML = `<h2>${titel}</h2><div class="gebed-tekst">${html}</div>`;
       }
       function fout(err) {
         contentDiv.innerHTML = `<div class="foutmelding">Fout bij ophalen gebed.<br>${err.message}</div>`;
@@ -207,7 +137,7 @@
       }
     }
 
-    laadGebed();
+    document.addEventListener("DOMContentLoaded", laadGebed);
   </script>
 </body>
 </html>
