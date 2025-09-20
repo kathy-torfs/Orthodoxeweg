@@ -3,11 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Icoon van de Moeder Gods – 31 aug / 1 sep (Indictie)</title>
+  <title>Tradities – Priestermodus</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
 
-  <!-- Priester layout (laadt statusbar + menu + kruisje) -->
+  <!-- Priester layout -->
   <script defer src="common/layout.js"></script>
+
+  <!-- FIREBASE -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:2e02833fa0d4d8903ceedb"
+    };
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const db = firebase.firestore();
+  </script>
 
   <style>
     :root{
@@ -15,241 +31,89 @@
       --card:#ffffff; --line:#ead9b4;
     }
     *{box-sizing:border-box}
-    html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.5}
-    header{background:linear-gradient(135deg,var(--soft),#fff);border-bottom:1px solid var(--line);padding:20px}
-    header .title{display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap}
-    header img.icon{width:28px;height:28px}
-    h1{margin:0;font-size:1.5rem;color:var(--accent);letter-spacing:.3px}
-    .sub{opacity:.9;font-size:.95rem;margin-top:6px;text-align:center}
-    main{max-width:900px;margin:20px auto;padding:0 14px 40px}
-    .bar{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:12px 0 18px}
-    .tab{border:1px solid var(--line);background:var(--card);padding:10px 14px;border-radius:999px;cursor:pointer}
-    .tab.active{background:var(--brand);color:#fff;border-color:var(--brand);box-shadow:0 2px 10px rgba(0,0,0,.07)}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 16px;margin:12px 0;box-shadow:0 6px 18px rgba(0,0,0,.05)}
-    h2{font-size:1.2rem;margin:0 0 8px;color:var(--accent)}
-    h3{font-size:1.05rem;margin:12px 0 8px;color:var(--accent)}
-    .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:6px}
-    .step{border:1px dashed var(--line);border-radius:12px;padding:12px}
-    .step b{color:var(--accent)}
-    details{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff}
-    summary{cursor:pointer;font-weight:600;color:var(--accent)}
-    .tip{background:#f9f2dc;border-left:4px solid var(--brand);padding:10px 12px;border-radius:8px;margin:8px 0}
-    .mini{font-size:.92rem}
-    .center{text-align:center}
-    .imgwrap{display:flex;justify-content:center;margin:8px 0 4px}
-    .imgwrap img{max-width:160px;border-radius:10px;border:1px solid var(--line)}
-    .small{font-size:.9rem;opacity:.9}
-    .hr{height:1px;background:var(--line);margin:14px 0;border:0}
-    .buttons{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:6px}
-    .btn{background:var(--brand);color:#fff;border:0;border-radius:10px;padding:10px 14px;cursor:pointer}
-    .btn.ghost{background:#fff;color:var(--accent);border:1px solid var(--line)}
-    .hidden{display:none}
-    @media print{
-      .bar,.buttons{display:none}
-      header{border-bottom:0}
-      main{padding:0}
-      .card{box-shadow:none;border-color:#ddd}
-    }
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.5}
+    main{display:flex;max-width:1200px;margin:20px auto;padding:0 14px 40px;gap:20px}
+    /* Links: index */
+    #traditie-index{flex:1;max-width:280px}
+    #traditie-index h2{font-size:1.2rem;color:var(--accent);margin-bottom:10px}
+    #traditie-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
+    #traditie-list li{background:var(--card);border:1px solid var(--line);border-radius:8px;
+      padding:8px 10px;cursor:pointer;transition:.2s}
+    #traditie-list li:hover{background:#fdf7e5}
+    #traditie-list li.active{background:var(--brand);color:#fff}
+    /* Rechts: detail */
+    #traditie-detail{flex:3}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;
+      padding:16px;margin:12px 0;box-shadow:0 6px 18px rgba(0,0,0,.05)}
+    h1{margin:0;font-size:1.5rem;color:var(--accent)}
   </style>
 </head>
 <body>
 
-  <!-- Priester-header (statusbar + menu) -->
+  <!-- Priester-header -->
   <div id="priester-header" data-header-src="common/header.html"></div>
 
-  <!-- Je originele inhoud begint hier -->
-  <header>
-    <div class="title">
-      <img class="icon" alt="Kruis" src="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
-      <h1>Icoon van de Moeder Gods – 31 aug buiten • 1 sep binnen</h1>
-    </div>
-    <p class="sub">Opening van het kerkelijk jaar (Indictie). Korte rite voor thuis of parochie.</p>
-  </header>
-
   <main>
-    <div class="bar" role="tablist">
-      <button class="tab active" data-target="#avond">Vanavond 31 augustus</button>
-      <button class="tab" data-target="#ochtend">Morgen 1 september</button>
-      <button class="tab" data-target="#uitleg">Betekenis</button>
-      <button class="tab" data-target="#gebeden">Alle gebeden (overzicht)</button>
-    </div>
+    <!-- INDEX -->
+    <aside id="traditie-index">
+      <h2>Tradities</h2>
+      <ul id="traditie-list">
+        <li>Laden...</li>
+      </ul>
+    </aside>
 
-    <!-- AVOND 31 AUG -->
-    <section id="avond" class="card">
-      <h2>Rite — Avond van 31 augustus (icoon <em>buiten</em> plaatsen)</h2>
-      <div class="imgwrap">
-        <img alt="Icoon van de Moeder Gods" src="https://kathy-torfs.github.io/Orthodoxeweg/images/moeder_gods.jpg">
-      </div>
-      <div class="tip mini">
-        Zet een klein tafeltje aan de deur/inkom met kaarsje en bloemen. Plaats het icoon in een eenvoudige procesie naar buiten. Iedereen maakt eerbiedig het kruisteken.
-      </div>
-
-      <div class="steps">
-        <div class="step">
-          <b>1) Aanvang</b><br>
-          <span class="small">Gaan staan. Kruisteken. Eén kaars aansteken voor het icoon.</span>
-          <details class="mini" style="margin-top:6px">
-            <summary>Inleidend gebed</summary>
-            <p>Heer Jezus Christus, Zoon van God, om de gebeden van Uw alreine Moeder, zegen ons huis en dit einde van het kerkelijk jaar. Amen.</p>
-          </details>
-        </div>
-        <div class="step">
-          <b>2) Korte hymne tot de Moeder Gods</b><br>
-          <details class="mini">
-            <summary>Onder Uw bescherming</summary>
-            <p>Onder Uw bescherming nemen wij onze toevlucht, heilige Moeder Gods; veracht onze gebeden niet in onze noden, maar verlos ons altijd van alle gevaren, Gij, enige reine en gezegende.</p>
-          </details>
-        </div>
-        <div class="step">
-          <b>3) Dank voor het voorbije jaar</b><br>
-          <details class="mini">
-            <summary>Kort dankgebed</summary>
-            <p>Moeder Gods, Theotokos, wij danken U voor Uw zorg in dit voorbije jaar. Bewaar ons gezin in vrede en geloof. Amen.</p>
-          </details>
-        </div>
-        <div class="step">
-          <b>4) Het icoon buiten plaatsen</b><br>
-          <span class="small">Draag het icoon plechtig naar buiten en plaats het op de voorbereide plek.</span>
-          <details class="mini">
-            <summary>Acclamatie (drie maal)</summary>
-            <p>Heilige Moeder Gods, omhul ons onder Uw mantel. (×3)</p>
-          </details>
-        </div>
-        <div class="step">
-          <b>5) Slot</b><br>
-          <details class="mini">
-            <summary>Zegengebedje</summary>
-            <p>Door de gebeden van Uw alreine Moeder, Heer, zegen dit huis en allen die hier wonen. Schenk ons een stille nacht en een gezegende nieuwe start. Amen.</p>
-          </details>
-        </div>
-      </div>
-
-      <div class="buttons">
-        <button class="btn" onclick="window.print()">Print</button>
-        <a class="btn ghost" href="#gebeden">Alle tekst openen</a>
-      </div>
-    </section>
-
-    <!-- OCHTEND 1 SEP -->
-    <section id="ochtend" class="card hidden">
-      <h2>Rite — 1 september (icoon <em>binnen</em> halen, begin kerkelijk jaar)</h2>
-      <div class="tip mini">
-        Vorm een korte processie naar het icoon. Iemand draagt het icoon; de anderen volgen met kaarsje. Bij binnenkomst zet men het icoon op de ereplaats/icoonhoek.
-      </div>
-
-      <div class="steps">
-        <div class="step">
-          <b>1) Aanroeping</b><br>
-          <details class="mini">
-            <summary>Heer, ontferm U</summary>
-            <p>Heer, ontferm U. Heer, ontferm U. Heer, ontferm U.</p>
-          </details>
-        </div>
-        <div class="step">
-          <b>2) Troparion van de Indictie</b><br>
-          <details class="mini">
-            <summary>Vrije vertaling (toon 2)</summary>
-            <p>O Schepper van heel de schepping, Gij die tijden en jaren hebt vastgesteld, zegen het begin van dit kerkelijk jaar. Schenk Uw volk overvloed van genade, vrede en vergeving, om de voorbede van de Moeder Gods. Amen.</p>
-          </details>
-        </div>
-        <div class="step">
-          <b>3) Gebed bij het binnendragen</b><br>
-          <details class="mini">
-            <summary>Kort gebed tot de Theotokos</summary>
-            <p>Heilige Moeder Gods, wij brengen U in ons huis binnen als teken van vertrouwen. Spreid Uw bescherming over ons dit jaar: leer ons bidden, bewaren in liefde, en doen wat Christus behaagt. Amen.</p>
-          </details>
-        </div>
-        <div class="step">
-          <b>4) Theotokos-hymne</b><br>
-          <details class="mini">
-            <summary>Theotokos, Maagd, verheug U</summary>
-            <p>Moeder Gods, Maagd, verheug U, Maria vol van genade; de Heer is met U. Gezegend zijt Gij onder de vrouwen, en gezegend is de vrucht van Uw schoot, omdat Gij de Verlosser van onze zielen hebt gebaard.</p>
-          </details>
-        </div>
-        <div class="step">
-          <b>5) Zegen & kussen van het icoon</b><br>
-          <details class="mini">
-            <summary>Slotformule</summary>
-            <p>Christus, ware God, verhoore ons om de voorbede van Uw alreine Moeder. Zegen dit begin van het jaar en leid ons op de weg van vrede. Amen.</p>
-          </details>
-        </div>
-      </div>
-
-      <div class="buttons">
-        <button class="btn" onclick="window.print()">Print</button>
-        <a class="btn ghost" href="#gebeden">Alle tekst openen</a>
-      </div>
-    </section>
-
-    <!-- UITLEG -->
-    <section id="uitleg" class="card hidden">
-      <h2>Korte betekenis</h2>
-      <p class="mini">
-        In de Orthodoxe Kerk begint het kerkelijk jaar op <b>1 september (Indictie)</b>. 
-        Op de avond ervoor (<b>31 augustus</b>) plaatsen gelovigen het icoon van de Moeder Gods <em>buiten</em> als dank voor het voorbije jaar.
-        Op <b>1 september</b> wordt het icoon <em>binnengehaald</em> als teken dat we het nieuwe jaar toevertrouwen aan haar bescherming en voorspraak in Christus.
-      </p>
-      <div class="hr"></div>
-      <p class="small">Deze huisrite is eenvoudig, kort en gezinsvriendelijk; een priesterlijke zegen is mooi maar niet vereist om dit vroom gebruik thuis te doen.</p>
-    </section>
-
-    <!-- GEBEDEN OVERZICHT -->
-    <section id="gebeden" class="card hidden">
-      <h2>Alle gebeden (snel openen)</h2>
-      <details open>
-        <summary>Inleidend gebed (31 aug)</summary>
-        <p>Heer Jezus Christus, Zoon van God, om de gebeden van Uw alreine Moeder, zegen ons huis en dit einde van het kerkelijk jaar. Amen.</p>
-      </details>
-      <details open>
-        <summary>Onder Uw bescherming</summary>
-        <p>Onder Uw bescherming nemen wij onze toevlucht, heilige Moeder Gods; veracht onze gebeden niet in onze noden, maar verlos ons altijd van alle gevaren, Gij, enige reine en gezegende.</p>
-      </details>
-      <details open>
-        <summary>Dankgebed (31 aug)</summary>
-        <p>Moeder Gods, Theotokos, wij danken U voor Uw zorg in dit voorbije jaar. Bewaar ons gezin in vrede en geloof. Amen.</p>
-      </details>
-      <details open>
-        <summary>Acclamatie (×3)</summary>
-        <p>Heilige Moeder Gods, omhul ons onder Uw mantel. (×3)</p>
-      </details>
-      <details open>
-        <summary>Heer, ontferm U (1 sep)</summary>
-        <p>Heer, ontferm U. Heer, ontferm U. Heer, ontferm U.</p>
-      </details>
-      <details open>
-        <summary>Troparion van de Indictie (vrije vertaling)</summary>
-        <p>O Schepper van heel de schepping, Gij die tijden en jaren hebt vastgesteld, zegen het begin van dit kerkelijk jaar. Schenk Uw volk overvloed van genade, vrede en vergeving, om de voorbede van de Moeder Gods. Amen.</p>
-      </details>
-      <details open>
-        <summary>Gebed bij het binnendragen</summary>
-        <p>Heilige Moeder Gods, wij brengen U in ons huis binnen als teken van vertrouwen. Spreid Uw bescherming over ons dit jaar: leer ons bidden, bewaren in liefde, en doen wat Christus behaagt. Amen.</p>
-      </details>
-      <details open>
-        <summary>Theotokos-hymne</summary>
-        <p>Moeder Gods, Maagd, verheug U, Maria vol van genade; de Heer is met U. Gezegend zijt Gij onder de vrouwen, en gezegend is de vrucht van Uw schoot, omdat Gij de Verlosser van onze zielen hebt gebaard.</p>
-      </details>
-      <details open>
-        <summary>Slotformule</summary>
-        <p>Christus, ware God, verhoore ons om de voorbede van Uw alreine Moeder. Zegen dit begin van het jaar en leid ons op de weg van vrede. Amen.</p>
-      </details>
-      <div class="buttons">
-        <button class="btn" onclick="window.print()">Print</button>
+    <!-- DETAIL -->
+    <section id="traditie-detail">
+      <h1>Kies een traditie</h1>
+      <div id="traditie-content" class="card">
+        <p style="opacity:.8">Selecteer links een titel om de inhoud te bekijken.</p>
       </div>
     </section>
   </main>
 
   <script>
-    const tabs = document.querySelectorAll('.tab');
-    tabs.forEach(t=>{
-      t.addEventListener('click',()=>{
-        tabs.forEach(x=>x.classList.remove('active'));
-        t.classList.add('active');
-        document.querySelectorAll('main > section').forEach(s=>s.classList.add('hidden'));
-        const target = document.querySelector(t.dataset.target);
-        if(target) target.classList.remove('hidden');
-        target?.scrollIntoView({behavior:'smooth', block:'start'});
-      });
-    });
+    const parochieId = localStorage.getItem("ingelogdeParochie"); // opgehaald uit login
+    const list = document.getElementById("traditie-list");
+    const content = document.getElementById("traditie-content");
+
+    async function laadIndex() {
+      list.innerHTML = "<li>Laden...</li>";
+      try {
+        const snap = await db.collection("parochies")
+          .doc(parochieId)
+          .collection("tradities")
+          .get();
+
+        if(snap.empty){
+          list.innerHTML = "<li>Geen tradities</li>";
+          return;
+        }
+        list.innerHTML = "";
+        snap.forEach(doc=>{
+          const li = document.createElement("li");
+          li.textContent = doc.data().titel || "(zonder titel)";
+          li.addEventListener("click",()=>toonTraditie(doc.id, li));
+          list.appendChild(li);
+        });
+      } catch(e){ console.error(e); }
+    }
+
+    async function toonTraditie(docId, liEl) {
+      document.querySelectorAll("#traditie-list li").forEach(li=>li.classList.remove("active"));
+      liEl.classList.add("active");
+
+      const ref = db.collection("parochies").doc(parochieId).collection("tradities").doc(docId);
+      const snap = await ref.get();
+      if(snap.exists){
+        const data = snap.data();
+        content.innerHTML = data.html || "<p>Geen inhoud beschikbaar.</p>";
+      } else {
+        content.innerHTML = "<p>Niet gevonden.</p>";
+      }
+    }
+
+    laadIndex();
   </script>
 </body>
 </html>
