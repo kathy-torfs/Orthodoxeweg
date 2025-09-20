@@ -2,38 +2,107 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Tradities beheren – Priestermodus</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Priestermodus – Tradities</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
-    body {margin:0;font-family:Arial,sans-serif;background:#f5e9b8;color:#5b3a00;}
-    .container {display:flex; height:100vh;}
-    .sidebar {
-      width:280px; background:#fffbe7; border-right:2px solid #d9c38f;
-      padding:12px; overflow-y:auto;
-    }
-    .sidebar h2 {margin-top:0;color:#7a5f35;}
-    .traditie-item {padding:8px; margin:4px 0; cursor:pointer; border-radius:6px;}
-    .traditie-item:hover {background:#f1e5c8;}
-    .traditie-item.active {background:#d9c38f;color:white;}
-
-    .editor {flex:1; padding:20px; overflow-y:auto;}
-    .editor h2 {margin-top:0;color:#7a5f35;}
-    label {display:block; margin-top:10px; font-weight:bold;}
-    input,textarea {width:100%;padding:8px;border:1px solid #d9c38f;border-radius:6px;margin-top:4px;}
-    textarea {min-height:80px;}
-    .btnrow {margin-top:14px; display:flex; gap:10px;}
-    button {
-      padding:8px 14px; border:none; border-radius:6px; cursor:pointer;
-      font-weight:bold; background:#7a5f35; color:white;
-    }
-    button.secondary {background:#b09765;}
-    button.danger {background:#a33;}
+    body {margin:0;font-family:Arial,sans-serif;background:#fff6e5;color:#5b3a00}
+    .layout{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
+    .sidebar{background:#fdf9ef;border-right:1px solid #d9c38f;padding:14px;overflow-y:auto}
+    .sidebar h2{font-size:1.1em;margin:0 0 10px;color:#67510C}
+    .traditie-item{padding:8px 10px;cursor:pointer;border-radius:6px}
+    .traditie-item:hover{background:#efe6cf}
+    .traditie-item.active{background:#7bb235;color:#fff}
+    .btn{background:#7bb235;color:#fff;border:none;padding:8px 12px;border-radius:6px;cursor:pointer}
+    .btn.danger{background:#b33}
+    .btn.secondary{background:#b09765}
+    .content{padding:20px;overflow-y:auto}
+    .tabs{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+    .tab{padding:8px 12px;border:1px solid #d9c38f;border-radius:999px;cursor:pointer;background:#fff}
+    .tab.active{background:#7bb235;color:#fff;border-color:#7bb235}
+    section{display:none}
+    section.active{display:block}
+    .card{background:#fff;border:1px solid #ead9b4;border-radius:12px;padding:14px;margin-bottom:16px}
+    label{font-weight:bold;color:#67510C;display:block;margin:10px 0 4px}
+    input[type=text], textarea{width:100%;border:1px solid #d9c38f;border-radius:6px;padding:8px;font-family:inherit}
+    textarea{min-height:120px;resize:vertical}
+    .buttons{display:flex;gap:10px;margin-top:16px}
   </style>
+
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+  <!-- Layout -->
+  <script defer src="../common/layout.js"></script>
+</head>
+<body>
+  <!-- Header -->
+  <div id="priester-header" data-header-src="../common/header.html"></div>
+
+  <div class="layout">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <h2>Tradities</h2>
+      <div id="traditieList"></div>
+      <button class="btn" onclick="nieuwTraditie()">+ Nieuwe traditie</button>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+      <div class="tabs">
+        <div class="tab active" data-tab="avond">Avond</div>
+        <div class="tab" data-tab="ochtend">Ochtend</div>
+        <div class="tab" data-tab="uitleg">Uitleg</div>
+        <div class="tab" data-tab="gebeden">Gebeden</div>
+      </div>
+
+      <!-- Avond -->
+      <section id="avond" class="active">
+        <div class="card">
+          <label>Titel avond</label>
+          <input type="text" id="titelAvond">
+          <label>Tekst avond</label>
+          <textarea id="tekstAvond"></textarea>
+        </div>
+      </section>
+
+      <!-- Ochtend -->
+      <section id="ochtend">
+        <div class="card">
+          <label>Titel ochtend</label>
+          <input type="text" id="titelOchtend">
+          <label>Tekst ochtend</label>
+          <textarea id="tekstOchtend"></textarea>
+        </div>
+      </section>
+
+      <!-- Uitleg -->
+      <section id="uitleg">
+        <div class="card">
+          <label>Korte uitleg</label>
+          <textarea id="uitlegTekst"></textarea>
+        </div>
+      </section>
+
+      <!-- Gebeden -->
+      <section id="gebeden">
+        <div class="card">
+          <label>Gebeden (overzicht)</label>
+          <textarea id="gebedenTekst"></textarea>
+        </div>
+      </section>
+
+      <div class="buttons">
+        <button class="btn" onclick="saveTraditie()">Bewaren</button>
+        <button class="btn secondary" onclick="resetForm()">Annuleren</button>
+        <button class="btn danger" onclick="deleteTraditie()">Verwijderen</button>
+      </div>
+    </div>
+  </div>
+
   <script>
+    // Firebase init
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -44,116 +113,89 @@
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-  </script>
-</head>
-<body>
-  <div class="container">
-    <!-- Sidebar -->
-    <div class="sidebar">
-      <h2>Tradities</h2>
-      <div id="traditieList"></div>
-      <button onclick="nieuwTraditie()">+ Nieuwe traditie</button>
-    </div>
 
-    <!-- Editor -->
-    <div class="editor">
-      <h2 id="editorTitle">Geen traditie geselecteerd</h2>
-      <form id="traditieForm" style="display:none;">
-        <label>Titel</label>
-        <input type="text" id="titel">
+    let currentId = null;
 
-        <label>Datum (YYYY-MM-DD)</label>
-        <input type="date" id="datum">
-
-        <label>Uitleg / Intro</label>
-        <textarea id="uitleg"></textarea>
-
-        <label>Stappen (JSON)</label>
-        <textarea id="stappen" placeholder='[{"titel":"Aanvang","tekst":"..."}]'></textarea>
-
-        <label>Gebeden (JSON)</label>
-        <textarea id="gebeden" placeholder='[{"titel":"Inleidend gebed","tekst":"..."}]'></textarea>
-
-        <div class="btnrow">
-          <button type="button" onclick="bewaarTraditie()">Bewaren</button>
-          <button type="button" class="secondary" onclick="annuleer()">Annuleren</button>
-          <button type="button" class="danger" onclick="verwijderTraditie()">Verwijderen</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-<script>
-  let huidigeId = null;
-
-  async function laadTradities() {
-    const snap = await db.collection("tradities").orderBy("datum","asc").get();
-    const list = document.getElementById("traditieList");
-    list.innerHTML = "";
-    snap.forEach(doc => {
-      const d = doc.data();
-      const div = document.createElement("div");
-      div.textContent = d.titel || "(zonder titel)";
-      div.className = "traditie-item";
-      div.onclick = ()=>selecteerTraditie(doc.id, d);
-      list.appendChild(div);
+    // Tabs wisselen
+    document.querySelectorAll('.tab').forEach(tab=>{
+      tab.addEventListener('click',()=>{
+        document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+        document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.tab).classList.add('active');
+      });
     });
-  }
 
-  function selecteerTraditie(id, data) {
-    huidigeId = id;
-    document.getElementById("editorTitle").textContent = "Traditie bewerken";
-    document.getElementById("traditieForm").style.display = "block";
-    document.getElementById("titel").value = data.titel||"";
-    document.getElementById("datum").value = data.datum||"";
-    document.getElementById("uitleg").value = data.uitleg||"";
-    document.getElementById("stappen").value = JSON.stringify(data.stappen||[], null,2);
-    document.getElementById("gebeden").value = JSON.stringify(data.gebeden||[], null,2);
-  }
-
-  function nieuwTraditie() {
-    huidigeId = null;
-    document.getElementById("editorTitle").textContent = "Nieuwe traditie";
-    document.getElementById("traditieForm").style.display = "block";
-    document.getElementById("titel").value = "";
-    document.getElementById("datum").value = "";
-    document.getElementById("uitleg").value = "";
-    document.getElementById("stappen").value = "[]";
-    document.getElementById("gebeden").value = "[]";
-  }
-
-  async function bewaarTraditie() {
-    const data = {
-      titel: document.getElementById("titel").value.trim(),
-      datum: document.getElementById("datum").value,
-      uitleg: document.getElementById("uitleg").value.trim(),
-      stappen: JSON.parse(document.getElementById("stappen").value || "[]"),
-      gebeden: JSON.parse(document.getElementById("gebeden").value || "[]")
-    };
-    if (huidigeId) {
-      await db.collection("tradities").doc(huidigeId).set(data,{merge:true});
-    } else {
-      await db.collection("tradities").add(data);
+    // Tradities laden
+    async function loadTradities(){
+      const list = document.getElementById("traditieList");
+      list.innerHTML="";
+      const snap = await db.collection("tradities").orderBy("titelAvond").get();
+      snap.forEach(doc=>{
+        const div=document.createElement("div");
+        div.textContent=doc.data().titelAvond || "Naamloos";
+        div.className="traditie-item"+(doc.id===currentId?" active":"");
+        div.onclick=()=>openTraditie(doc.id,doc.data());
+        list.appendChild(div);
+      });
     }
-    laadTradities();
-    annuleer();
-  }
 
-  async function verwijderTraditie() {
-    if (huidigeId && confirm("Zeker weten?")) {
-      await db.collection("tradities").doc(huidigeId).delete();
-      laadTradities();
-      annuleer();
+    function nieuwTraditie(){
+      currentId=null;
+      document.getElementById("titelAvond").value="";
+      document.getElementById("tekstAvond").value="";
+      document.getElementById("titelOchtend").value="";
+      document.getElementById("tekstOchtend").value="";
+      document.getElementById("uitlegTekst").value="";
+      document.getElementById("gebedenTekst").value="";
+      document.querySelectorAll(".traditie-item").forEach(e=>e.classList.remove("active"));
     }
-  }
 
-  function annuleer() {
-    huidigeId = null;
-    document.getElementById("editorTitle").textContent = "Geen traditie geselecteerd";
-    document.getElementById("traditieForm").style.display = "none";
-  }
+    function openTraditie(id,data){
+      currentId=id;
+      document.getElementById("titelAvond").value=data.titelAvond||"";
+      document.getElementById("tekstAvond").value=data.tekstAvond||"";
+      document.getElementById("titelOchtend").value=data.titelOchtend||"";
+      document.getElementById("tekstOchtend").value=data.tekstOchtend||"";
+      document.getElementById("uitlegTekst").value=data.uitleg||"";
+      document.getElementById("gebedenTekst").value=data.gebeden||"";
+      loadTradities();
+    }
 
-  laadTradities();
-</script>
+    async function saveTraditie(){
+      const data={
+        titelAvond: document.getElementById("titelAvond").value,
+        tekstAvond: document.getElementById("tekstAvond").value,
+        titelOchtend: document.getElementById("titelOchtend").value,
+        tekstOchtend: document.getElementById("tekstOchtend").value,
+        uitleg: document.getElementById("uitlegTekst").value,
+        gebeden: document.getElementById("gebedenTekst").value
+      };
+      if(currentId){
+        await db.collection("tradities").doc(currentId).set(data,{merge:true});
+      }else{
+        const ref=await db.collection("tradities").add(data);
+        currentId=ref.id;
+      }
+      loadTradities();
+      alert("Traditie opgeslagen!");
+    }
+
+    async function deleteTraditie(){
+      if(!currentId){alert("Geen traditie geselecteerd.");return;}
+      if(confirm("Weet je zeker dat je deze traditie wilt verwijderen?")){
+        await db.collection("tradities").doc(currentId).delete();
+        nieuwTraditie();
+        loadTradities();
+      }
+    }
+
+    function resetForm(){
+      if(currentId) openTraditie(currentId,{});
+      else nieuwTraditie();
+    }
+
+    window.addEventListener("load",loadTradities);
+  </script>
 </body>
 </html>
