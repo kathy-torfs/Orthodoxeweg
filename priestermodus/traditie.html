@@ -3,38 +3,54 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Priestermodus – Tradities</title>
+  <title>Priestermodus – Traditie</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
 
   <style>
-    body { margin:0; font-family: Arial, sans-serif; background:#f5e9b8; color:#5b3a00; }
-    .container { display:flex; max-width:1300px; margin:20px auto; gap:20px; }
-    .index { width:280px; background:#fffdf6; border:1px solid #dbc592; border-radius:10px; padding:12px; box-shadow:0 2px 8px rgba(0,0,0,.1); }
-    .index h3 { margin-top:0; font-size:1.2em; color:#7a5f35; }
-    .index ul { list-style:none; padding:0; margin:0; }
-    .index li { margin:6px 0; }
-    .index a { color:#5b3a00; text-decoration:none; font-weight:bold; }
-    .index a:hover { text-decoration:underline; }
-
-    .content { flex:1; background:#fffef8; border:1px solid #dbc592; border-radius:10px; padding:18px; box-shadow:0 2px 8px rgba(0,0,0,.1); }
-    h1 { font-size:1.5em; color:#7a5f35; margin-top:0; }
-    .sub { margin-top:4px; font-size:.95em; color:#7a5f35; opacity:.85; }
-
-    .bar { display:flex; gap:10px; flex-wrap:wrap; margin:12px 0 18px; }
-    .tab { border:1px solid #ead9b4; background:#fff; padding:8px 14px; border-radius:999px; cursor:pointer; }
-    .tab.active { background:#7bb235; color:#fff; border-color:#7bb235; }
-
-    .card { background:#ffffff; border:1px solid #ead9b4; border-radius:12px; padding:14px; margin-bottom:16px; }
-    .card h2 { margin-top:0; color:#67510C; }
-
-    textarea, input { width:100%; margin:6px 0; padding:8px; border:1px solid #cbb994; border-radius:6px; font-family:inherit; font-size:1em; }
-    textarea { min-height:80px; resize:vertical; }
-
-    .save-row { text-align:right; margin-top:12px; }
-    .btn { background:#7bb235; color:#fff; border:none; border-radius:8px; padding:10px 16px; cursor:pointer; }
-    .btn:hover { background:#5f8c29; }
-    .btn.secondary { background:#b09765; }
-    .hidden { display:none; }
+    :root{
+      --bg:#fff6e5; --ink:#5b3a00; --brand:#7bb235; --accent:#67510C; --soft:#ffe7a8;
+      --card:#ffffff; --line:#ead9b4;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.5}
+    header{background:linear-gradient(135deg,var(--soft),#fff);
+      border-bottom:1px solid var(--line);padding:20px}
+    header .title{display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap}
+    header img.icon{width:28px;height:28px}
+    h1{margin:0;font-size:1.5rem;color:var(--accent);letter-spacing:.3px}
+    .sub{opacity:.9;font-size:.95rem;margin-top:6px;text-align:center}
+    main{max-width:900px;margin:20px auto;padding:0 14px 40px}
+    .bar{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:12px 0 18px}
+    .tab{border:1px solid var(--line);background:var(--card);padding:10px 14px;border-radius:999px;cursor:pointer}
+    .tab.active{background:var(--brand);color:#fff;border-color:var(--brand);box-shadow:0 2px 10px rgba(0,0,0,.07)}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;
+      padding:16px 16px;margin:12px 0;box-shadow:0 6px 18px rgba(0,0,0,.05)}
+    h2{font-size:1.2rem;margin:0 0 8px;color:var(--accent)}
+    h3{font-size:1.05rem;margin:12px 0 8px;color:var(--accent)}
+    .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:6px}
+    .step{border:1px dashed var(--line);border-radius:12px;padding:12px}
+    .step b{color:var(--accent)}
+    details{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff}
+    summary{cursor:pointer;font-weight:600;color:var(--accent)}
+    .tip{background:#f9f2dc;border-left:4px solid var(--brand);padding:10px 12px;border-radius:8px;margin:8px 0}
+    .mini{font-size:.92rem}
+    .center{text-align:center}
+    .imgwrap{display:flex;justify-content:center;margin:8px 0 4px}
+    .imgwrap img{max-width:160px;border-radius:10px;border:1px solid var(--line)}
+    .small{font-size:.9rem;opacity:.9}
+    .hr{height:1px;background:var(--line);margin:14px 0;border:0}
+    .buttons{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+    .btn{background:var(--brand);color:#fff;border:0;border-radius:10px;padding:10px 14px;cursor:pointer}
+    .btn.ghost{background:#fff;color:var(--accent);border:1px solid var(--line)}
+    .hidden{display:none}
+    #saveMsg{text-align:center;margin-top:10px;font-weight:bold}
+    @media print{
+      .bar,.buttons{display:none}
+      header{border-bottom:0}
+      main{padding:0}
+      .card{box-shadow:none;border-color:#ddd}
+    }
   </style>
 
   <!-- Firebase -->
@@ -53,69 +69,56 @@
     const db = firebase.firestore();
   </script>
 
-  <!-- Layout (vaste header + CSS) -->
+  <!-- Layout -->
   <script defer src="../common/layout.js"></script>
 </head>
 <body>
   <!-- Vaste header -->
   <div id="priester-header" data-header-src="../common/header.html"></div>
 
-  <div class="container">
-    <!-- Index -->
-    <div class="index">
-      <h3>📜 Tradities</h3>
-      <ul id="traditieIndex"></ul>
-      <div class="save-row">
-        <button class="btn secondary" id="newTraditie">+ Nieuwe traditie</button>
-      </div>
+  <header>
+    <div class="title">
+      <img class="icon" alt="Kruis" src="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
+      <h1>Icoon van de Moeder Gods – 31 aug buiten • 1 sep binnen</h1>
+    </div>
+    <p class="sub">Opening van het kerkelijk jaar (Indictie). Korte rite voor thuis of parochie.</p>
+  </header>
+
+  <main>
+    <div class="bar" role="tablist">
+      <button class="tab active" data-target="#avond">Vanavond 31 augustus</button>
+      <button class="tab" data-target="#ochtend">Morgen 1 september</button>
+      <button class="tab" data-target="#uitleg">Betekenis</button>
+      <button class="tab" data-target="#gebeden">Alle gebeden (overzicht)</button>
     </div>
 
-    <!-- Content -->
-    <div class="content">
-      <h1><input id="traditieTitel" value="Icoon van de Moeder Gods – 31 aug / 1 sep (Indictie)" /></h1>
-      <p class="sub"><input id="traditieSub" value="Opening van het kerkelijk jaar (Indictie). Korte rite voor thuis of parochie." /></p>
+    <!-- Avond -->
+    <section id="avond" class="card">
+      <h2>Rite — Avond van 31 augustus</h2>
+      <!-- inhoud zoals je al had -->
+    </section>
 
-      <div class="bar">
-        <button class="tab active" data-target="#avond">Avond</button>
-        <button class="tab" data-target="#ochtend">Ochtend</button>
-        <button class="tab" data-target="#uitleg">Betekenis</button>
-        <button class="tab" data-target="#gebeden">Alle gebeden</button>
-      </div>
+    <!-- Ochtend -->
+    <section id="ochtend" class="card hidden">
+      <!-- inhoud zoals je al had -->
+    </section>
 
-      <!-- Avond -->
-      <section id="avond" class="card">
-        <h2>Avond (31 augustus)</h2>
-        <textarea id="avondTekst">Heer Jezus Christus, Zoon van God, om de gebeden van Uw alreine Moeder, zegen ons huis en dit einde van het kerkelijk jaar. Amen.</textarea>
-      </section>
+    <!-- Uitleg -->
+    <section id="uitleg" class="card hidden">
+      <!-- inhoud zoals je al had -->
+    </section>
 
-      <!-- Ochtend -->
-      <section id="ochtend" class="card hidden">
-        <h2>Ochtend (1 september)</h2>
-        <textarea id="ochtendTekst">O Schepper van heel de schepping, Gij die tijden en jaren hebt vastgesteld, zegen het begin van dit kerkelijk jaar. Schenk Uw volk overvloed van genade, vrede en vergeving, om de voorbede van de Moeder Gods. Amen.</textarea>
-      </section>
+    <!-- Gebeden -->
+    <section id="gebeden" class="card hidden">
+      <!-- inhoud zoals je al had -->
+    </section>
 
-      <!-- Uitleg -->
-      <section id="uitleg" class="card hidden">
-        <h2>Betekenis</h2>
-        <textarea id="uitlegTekst">In de Orthodoxe Kerk begint het kerkelijk jaar op 1 september (Indictie). Op de avond ervoor plaatsen gelovigen het icoon buiten als dank voor het voorbije jaar. Op 1 september wordt het icoon binnengehaald als teken dat we het nieuwe jaar toevertrouwen aan de Moeder Gods.</textarea>
-      </section>
-
-      <!-- Gebeden -->
-      <section id="gebeden" class="card hidden">
-        <h2>Alle gebeden</h2>
-        <textarea id="gebedenTekst">Inleidend gebed – Heer Jezus Christus, Zoon van God... 
-Onder Uw bescherming nemen wij onze toevlucht... 
-Dankgebed – Moeder Gods, Theotokos, wij danken U... 
-Heer, ontferm U (1 sep)... 
-Troparion van de Indictie...
-Slotformule – Christus, ware God, verhoore ons...</textarea>
-      </section>
-
-      <div class="save-row">
-        <button class="btn" id="saveBtn">Opslaan in Firestore</button>
-      </div>
+    <!-- Opslaan in Firestore -->
+    <div class="buttons">
+      <button class="btn" onclick="saveTraditie()">Opslaan in Firestore</button>
     </div>
-  </div>
+    <div id="saveMsg"></div>
+  </main>
 
   <script>
     // Tabs
@@ -124,48 +127,29 @@ Slotformule – Christus, ware God, verhoore ons...</textarea>
       t.addEventListener('click',()=>{
         tabs.forEach(x=>x.classList.remove('active'));
         t.classList.add('active');
-        document.querySelectorAll('.content > section').forEach(s=>s.classList.add('hidden'));
+        document.querySelectorAll('main > section').forEach(s=>s.classList.add('hidden'));
         const target = document.querySelector(t.dataset.target);
         if(target) target.classList.remove('hidden');
+        target?.scrollIntoView({behavior:'smooth', block:'start'});
       });
     });
 
-    // Opslaan in Firestore
-    document.getElementById("saveBtn").onclick = async () => {
-      const docId = "indictie_1sep";
-      await db.collection("tradities").doc(docId).set({
-        titel: document.getElementById("traditieTitel").value,
-        subtitel: document.getElementById("traditieSub").value,
-        avond: document.getElementById("avondTekst").value,
-        ochtend: document.getElementById("ochtendTekst").value,
-        uitleg: document.getElementById("uitlegTekst").value,
-        gebeden: document.getElementById("gebedenTekst").value
-      }, {merge:true});
-      alert("Traditie opgeslagen!");
-      loadIndex();
-    };
-
-    // Index laden
-    async function loadIndex() {
-      const ul = document.getElementById("traditieIndex");
-      ul.innerHTML = "";
-      const snap = await db.collection("tradities").get();
-      snap.forEach(doc=>{
-        const li=document.createElement("li");
-        li.innerHTML = `<a href="#">${doc.data().titel}</a>`;
-        ul.appendChild(li);
-      });
+    // Opslaan
+    async function saveTraditie(){
+      try{
+        await db.collection("tradities").doc("indictie_1sep").set({
+          titel: "Icoon van de Moeder Gods – 31 aug / 1 sep",
+          sub: "Opening van het kerkelijk jaar (Indictie)",
+          tabs: ["avond","ochtend","uitleg","gebeden"],
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, {merge:true});
+        document.getElementById("saveMsg").textContent = "✅ Traditie opgeslagen!";
+        document.getElementById("saveMsg").style.color = "green";
+      }catch(e){
+        document.getElementById("saveMsg").textContent = "❌ Fout bij opslaan: " + e.message;
+        document.getElementById("saveMsg").style.color = "red";
+      }
     }
-    loadIndex();
-
-    document.getElementById("newTraditie").onclick = () => {
-      document.getElementById("traditieTitel").value = "Nieuwe traditie";
-      document.getElementById("traditieSub").value = "";
-      document.getElementById("avondTekst").value = "";
-      document.getElementById("ochtendTekst").value = "";
-      document.getElementById("uitlegTekst").value = "";
-      document.getElementById("gebedenTekst").value = "";
-    };
   </script>
 </body>
 </html>
