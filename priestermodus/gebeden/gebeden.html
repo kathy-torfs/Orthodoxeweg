@@ -12,60 +12,6 @@
       margin: 0;
       text-align: center;
     }
-    .statusbar {
-      background: #5e3907;
-      color: #fff;
-      padding: 8px 26px;
-      text-align: left;
-      font-size: 1.08em;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .uitlog-link {
-      color: #fff;
-      background: #9a2617;
-      padding: 6px 16px;
-      border-radius: 8px;
-      font-size: 1em;
-      text-decoration: none;
-      font-weight: bold;
-      margin-left: 20px;
-      transition: background 0.18s;
-      cursor: pointer;
-      border: none;
-      outline: none;
-    }
-    .uitlog-link:hover {
-      background: #bd2e23;
-    }
-    header {
-      background-color: #5e3907;
-      color: white;
-      padding: 20px;
-    }
-    nav.menu {
-      background-color: #fff1cd;
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 10px;
-      padding: 15px;
-      border-bottom: 2px solid #c4a85d;
-    }
-    nav.menu a {
-      text-decoration: none;
-      background-color: #ffeeba;
-      padding: 10px 16px;
-      border-radius: 8px;
-      color: #5e3907;
-      font-weight: bold;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-      transition: 0.3s;
-    }
-    nav.menu a:hover {
-      background-color: #ffeda2;
-    }
     main {
       max-width: 800px;
       margin: 40px auto;
@@ -127,9 +73,7 @@
       transition: background 0.2s;
       border-radius: 11px 11px 0 0;
     }
-    .accordion-button:hover {
-      background: #ffe28d;
-    }
+    .accordion-button:hover { background: #ffe28d; }
     .accordion-content {
       display: none;
       background: #fffde8;
@@ -170,88 +114,41 @@
       box-shadow: 0 4px 16px #d98f5d26;
     }
   </style>
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <!-- Vaste layout (../common/) -->
+  <script defer src="../common/layout.js"></script>
 </head>
 <body>
-  <!-- STATUSBALK BOVENAAN -->
-  <div class="statusbar">
-    <span id="statusinfo">
-      U bent ingelogd in: <span id="parochieNaam">...</span>
-    </span>
-    <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
-  </div>
-
-  <header>
-    <h1>Kies een Gebed</h1>
-  </header>
-
- <nav class="menu">
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/startpagina.html" title="Startpagina">🏠</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/parochie.html">🛐 Mijn parochie</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/catechese/catechese.html">📖 Catechese</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/gebeden.html">🙏 Gebeden</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/psalmen/psalmen.html">📜 Psalmen</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/heiligen/heiligen.html">👼 Heiligen</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/bijbeldagboek.html">📔 Bijbeldagboek</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/verjaardagskalender.html">🎂 Verjaardagskalender</a>
-  <!-- Kerkje-rechts als profiel/bewerk parochie -->
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/layout.html" class="menu-kerk" title="Bewerk parochie">
-    <span style="font-size:2.1em; display:inline-block; vertical-align:middle;">⛪</span>
-  </a>
-</nav>
-
-  <div id="parochieLabel" style="background:#f8f0d4;color:#7a5f35;padding:10px 0 8px 0;text-align:center;font-weight:bold;letter-spacing:1px;font-size:1.07em;box-shadow:0 2px 8px #cbb96d44;"></div>
+  <!-- Header -->
+  <div id="priester-header" data-header-src="../common/header.html"></div>
 
   <main>
+    <h1>Kies een Gebed</h1>
+
     <!-- Hoofdknoppen -->
     <a class="hoofdknoop" id="ochtendKnop">🌅 Ochtendgebed</a>
     <a class="hoofdknoop" id="avondKnop">🌙 Avondgebed</a>
     <a class="hoofdknoop" id="tafelKnop">🍽️ Tafelgebeden</a>
     <a class="hoofdknoop" id="geloofKnop">✝ Geloofsbelijdenis</a>
+
     <a class="pdf-link" href="https://orthodoxekerkhasselt.com/wp-content/uploads/2024/11/liturgische-teksten-het-klein-orthodox-gebedenboekje-v7.5-nld.pdf" target="_blank">
       📖 Volledig Gebedenboekje (PDF)
     </a>
-    <!-- Accordion voor andere gebeden -->
+
+    <!-- Accordion -->
     <div class="accordion" id="accordion">
       <button class="accordion-button" onclick="toggleAccordion()">▼ Andere gebeden weergeven</button>
       <div class="accordion-content" id="accordion-content">
         <div>Laden...</div>
       </div>
     </div>
+
+    <div id="parochieLabel" style="background:#f8f0d4;color:#7a5f35;padding:10px;text-align:center;font-weight:bold;letter-spacing:1px;font-size:1.07em;box-shadow:0 2px 8px #cbb96d44;"></div>
   </main>
 
-  <!-- FIREBASE -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script>
-    // Parochienaam ophalen uit localStorage (uit login-systeem)
-    let parochieNaam = localStorage.getItem("ingelogdeParochie");
-
-    // Vul statusbalk & label
-    if (parochieNaam) {
-      document.getElementById("parochieNaam").textContent = parochieNaam;
-      document.getElementById("parochieLabel").textContent = "U bent ingelogd in: " + parochieNaam;
-    } else {
-      document.getElementById("parochieLabel").textContent = "Fout: niet ingelogd. U wordt doorgestuurd naar de loginpagina...";
-      document.getElementById("parochieLabel").classList.add("fout");
-      setTimeout(function() {
-        window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/uitloggen.html";
-      }, 2000);
-    }
-
-    // Uitloggen: wis alleen login-info en ga terug naar index
-    document.getElementById("uitlogKnop").onclick = function() {
-      localStorage.removeItem("ingelogdeParochie");
-      localStorage.removeItem("ingelogdeParochieId");
-      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
-    };
-
-    // Accordion
-    function toggleAccordion() {
-      const content = document.getElementById('accordion-content');
-      content.style.display = (content.style.display === "block") ? "none" : "block";
-    }
-
     // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
@@ -264,9 +161,21 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
-    // Koppeling: hoofdknoppen linken naar de juiste gebed-id
+    // Parochie check
+    let parochieNaam = localStorage.getItem("ingelogdeParochie");
+    if (parochieNaam) {
+      document.getElementById("parochieLabel").textContent = "U bent ingelogd in: " + parochieNaam;
+    } else {
+      document.getElementById("parochieLabel").textContent = "Fout: niet ingelogd. U wordt doorgestuurd...";
+      document.getElementById("parochieLabel").classList.add("fout");
+      setTimeout(() => {
+        window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/uitloggen.html";
+      }, 2000);
+    }
+
+    // Hoofdknoppen
     function setHoofdKnop(knopId, gebedId) {
-      document.getElementById(knopId).onclick = function() {
+      document.getElementById(knopId).onclick = () => {
         window.location.href = "gebed.html?id=" + encodeURIComponent(gebedId);
       };
     }
@@ -275,20 +184,24 @@
     setHoofdKnop("tafelKnop", "tafelgebeden");
     setHoofdKnop("geloofKnop", "geloofsbelijdenis");
 
-    // Dynamisch groeperen OP BASIS VAN ID
+    // Accordion
+    function toggleAccordion() {
+      const content = document.getElementById("accordion-content");
+      content.style.display = (content.style.display === "block") ? "none" : "block";
+    }
+
+    // Gebeden laden
     function laadGebeden() {
       const container = document.getElementById("accordion-content");
       container.innerHTML = "<div>Laden...</div>";
 
       db.collection("gebeden").get().then(snapshot => {
         container.innerHTML = "";
-
         if (snapshot.empty) {
           container.innerHTML = "<div>Geen overige gebeden gevonden.</div>";
           return;
         }
 
-        // Indeling: gebruik ID's!
         const groepen = {
           "Maaltijdgebeden": [
             "Na het avondmaal","Na het middagmaal","Na het ontbijt",
@@ -313,16 +226,12 @@
           "Andere": []
         };
 
-        // Map: id -> doc (toon titel voor gebruiker)
         const docsById = {};
         snapshot.docs.forEach(doc => {
           docsById[doc.id.trim()] = { id: doc.id, titel: doc.data().titel || doc.id };
         });
 
-        // Al geplaatst?
         const reedsToegewezen = new Set();
-
-        // Per groep tonen
         for (const [groep, lijst] of Object.entries(groepen)) {
           let toegevoegd = false;
           lijst.forEach(id => {
@@ -337,7 +246,7 @@
             }
           });
         }
-        // Alle overige onder 'Andere'
+
         let andereToegevoegd = false;
         snapshot.docs.forEach(doc => {
           const id = doc.id.trim();
@@ -352,9 +261,8 @@
             container.innerHTML += `<a href="gebed.html?id=${encodeURIComponent(doc.id)}">${doc.data().titel || doc.id}</a>`;
           }
         });
-
       }).catch(err => {
-        document.getElementById("accordion-content").innerHTML = "<div>Fout bij laden van gebeden.</div>";
+        container.innerHTML = "<div>Fout bij laden van gebeden.</div>";
         console.error(err);
       });
     }
