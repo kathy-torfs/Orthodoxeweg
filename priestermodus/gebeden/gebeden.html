@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Gebeden – Priestermodus</title>
+
   <style>
     body {
       font-family: Georgia, serif;
@@ -34,21 +35,7 @@
       cursor: pointer;
     }
     .hoofdknoop:hover { background: #ffeda2; }
-    .pdf-link {
-      display: block;
-      margin: 24px auto 0 auto;
-      width: fit-content;
-      padding: 12px 26px;
-      background: #deb757;
-      color: #fff;
-      font-weight: bold;
-      border-radius: 8px;
-      text-decoration: none;
-      font-size: 1.13em;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.12);
-      transition: background 0.2s;
-    }
-    .pdf-link:hover { background: #c49d3c; }
+
     .accordion {
       width: 65%;
       margin: 32px auto 0 auto;
@@ -102,26 +89,17 @@
       background: #ffeda2;
       font-weight: bold;
     }
-    #parochieLabel.fout {
-      color: #fff;
-      background: #b42c25;
-      border-radius: 8px;
-      padding: 12px;
-      margin: 20px auto 0 auto;
-      max-width: 400px;
-      font-size: 1.13em;
-      text-align: center;
-      box-shadow: 0 4px 16px #d98f5d26;
-    }
   </style>
+
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <!-- Vaste layout (../common/) -->
+
+  <!-- Uniforme header/layout (pad 1 map omhoog t.o.v. /gebeden/) -->
   <script defer src="../common/layout.js"></script>
 </head>
 <body>
-  <!-- Header -->
+  <!-- Vaste priester-header wordt door layout.js ingevuld -->
   <div id="priester-header" data-header-src="../common/header.html"></div>
 
   <main>
@@ -133,8 +111,6 @@
     <a class="hoofdknoop" id="tafelKnop">🍽️ Tafelgebeden</a>
     <a class="hoofdknoop" id="geloofKnop">✝ Geloofsbelijdenis</a>
 
-   
-
     <!-- Accordion -->
     <div class="accordion" id="accordion">
       <button class="accordion-button" onclick="toggleAccordion()">▼ Andere gebeden weergeven</button>
@@ -142,12 +118,17 @@
         <div>Laden...</div>
       </div>
     </div>
-
-    <div id="parochieLabel" style="background:#f8f0d4;color:#7a5f35;padding:10px;text-align:center;font-weight:bold;letter-spacing:1px;font-size:1.07em;box-shadow:0 2px 8px #cbb96d44;"></div>
   </main>
 
   <script>
-    // Firebase config
+    // Toegangscontrole: enkel priester met parochie
+    const modus = localStorage.getItem("modus");
+    const parochieNaam = localStorage.getItem("ingelogdeParochie");
+    if (!parochieNaam || modus !== "priester") {
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    }
+
+    // Firebase init
     const firebaseConfig = {
       apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
       authDomain: "orthodoxeweg.firebaseapp.com",
@@ -159,21 +140,10 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const db = firebase.firestore();
 
-    // Parochie check
-    let parochieNaam = localStorage.getItem("ingelogdeParochie");
-    if (parochieNaam) {
-      document.getElementById("parochieLabel").textContent = "U bent ingelogd in: " + parochieNaam;
-    } else {
-      document.getElementById("parochieLabel").textContent = "Fout: niet ingelogd. U wordt doorgestuurd...";
-      document.getElementById("parochieLabel").classList.add("fout");
-      setTimeout(() => {
-        window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/uitloggen.html";
-      }, 2000);
-    }
-
-    // Hoofdknoppen
+    // Hoofdknoppen navigatie
     function setHoofdKnop(knopId, gebedId) {
-      document.getElementById(knopId).onclick = () => {
+      document.getElementById(knopId).onclick = function() {
+        // gebed.html zit in dezelfde map (/priestermodus/gebeden/)
         window.location.href = "gebed.html?id=" + encodeURIComponent(gebedId);
       };
     }
@@ -182,24 +152,26 @@
     setHoofdKnop("tafelKnop", "tafelgebeden");
     setHoofdKnop("geloofKnop", "geloofsbelijdenis");
 
-    // Accordion
+    // Accordion toggle
     function toggleAccordion() {
-      const content = document.getElementById("accordion-content");
+      const content = document.getElementById('accordion-content');
       content.style.display = (content.style.display === "block") ? "none" : "block";
     }
 
-    // Gebeden laden
+    // Overige gebeden laden
     function laadGebeden() {
       const container = document.getElementById("accordion-content");
       container.innerHTML = "<div>Laden...</div>";
 
       db.collection("gebeden").get().then(snapshot => {
         container.innerHTML = "";
+
         if (snapshot.empty) {
           container.innerHTML = "<div>Geen overige gebeden gevonden.</div>";
           return;
         }
 
+        // Indeling o.b.v. ID
         const groepen = {
           "Maaltijdgebeden": [
             "Na het avondmaal","Na het middagmaal","Na het ontbijt",
@@ -230,6 +202,8 @@
         });
 
         const reedsToegewezen = new Set();
+
+        // Geordende groepen
         for (const [groep, lijst] of Object.entries(groepen)) {
           let toegevoegd = false;
           lijst.forEach(id => {
@@ -245,13 +219,12 @@
           });
         }
 
+        // Rest onder "Andere"
         let andereToegevoegd = false;
         snapshot.docs.forEach(doc => {
           const id = doc.id.trim();
-          if (
-            !reedsToegewezen.has(id) &&
-            !["ochtendgebed","avondgebed","tafelgebeden","geloofsbelijdenis"].includes(id.toLowerCase())
-          ) {
+          if (!reedsToegewezen.has(id) &&
+              !["ochtendgebed","avondgebed","tafelgebeden","geloofsbelijdenis"].includes(id.toLowerCase())) {
             if (!andereToegevoegd) {
               container.innerHTML += `<div class="accordion-section">Andere</div>`;
               andereToegevoegd = true;
@@ -259,13 +232,14 @@
             container.innerHTML += `<a href="gebed.html?id=${encodeURIComponent(doc.id)}">${doc.data().titel || doc.id}</a>`;
           }
         });
+
       }).catch(err => {
-        container.innerHTML = "<div>Fout bij laden van gebeden.</div>";
+        document.getElementById("accordion-content").innerHTML = "<div>Fout bij laden van gebeden.</div>";
         console.error(err);
       });
     }
 
-    laadGebeden();
+    document.addEventListener("DOMContentLoaded", laadGebeden);
   </script>
 </body>
 </html>
