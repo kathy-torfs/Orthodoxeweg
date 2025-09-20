@@ -3,75 +3,41 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Gebeden – Priestermodus</title>
+  <title>✝ Geloofsbelijdenis – Priestermodus</title>
   <style>
     body {
       font-family: Georgia, serif;
       background-color: #fffdf6;
       color: #3e2f1c;
       margin: 0;
-      text-align: center;
-    }
-    .statusbar {
-      background: #5e3907;
-      color: #fff;
-      padding: 8px 26px;
-      text-align: left;
-      font-size: 1.08em;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .uitlog-link {
-      color: #fff;
-      background: #9a2617;
-      padding: 6px 16px;
-      border-radius: 8px;
-      font-size: 1em;
-      text-decoration: none;
-      font-weight: bold;
-      margin-left: 20px;
-      transition: background 0.18s;
-      cursor: pointer;
-      border: none;
-      outline: none;
-    }
-    .uitlog-link:hover {
-      background: #bd2e23;
-    }
-    nav.menu {
-      background-color: #fff1cd;
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 10px;
-      padding: 15px;
-      border-bottom: 2px solid #c4a85d;
-    }
-    nav.menu a {
-      text-decoration: none;
-      background-color: #ffeeba;
-      padding: 10px 16px;
-      border-radius: 8px;
-      color: #5e3907;
-      font-weight: bold;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-      transition: 0.3s;
-    }
-    nav.menu a:hover {
-      background-color: #ffeda2;
     }
     main {
       max-width: 700px;
       margin: 40px auto;
       padding: 20px;
-      text-align: left;
+      text-align: center;
       background: #fffde8;
       border-radius: 14px;
       box-shadow: 0 2px 18px #cab88933;
     }
-    h1, h2 {
+    h2 {
       text-align: center;
+      margin-bottom: 20px;
+    }
+    blockquote {
+      background: #fffcf2;
+      border-left: 6px solid #c4a85d;
+      margin: 0 auto;
+      padding: 20px;
+      text-align: left;
+      font-size: 1.08em;
+      line-height: 1.7;
+      color: #422a16;
+      border-radius: 10px;
+      box-shadow: inset 0 1px 4px #e2d3a377;
+    }
+    blockquote p {
+      margin: 0 0 10px 0;
     }
     .error {
       color: #fff;
@@ -84,106 +50,62 @@
       text-align: center;
       box-shadow: 0 4px 16px #d98f5d26;
     }
-    #parochieLabel {
-      background:#f8f0d4;
-      color:#7a5f35;
-      padding:10px 0 8px 0;
-      text-align:center;
-      font-weight:bold;
-      letter-spacing:1px;
-      font-size:1.07em;
-      box-shadow:0 2px 8px #cbb96d44;
-    }
-    #parochieLabel.fout {
-      color: #fff;
-      background: #b42c25;
-      border-radius: 8px;
-      padding: 12px;
-      margin: 20px auto 0 auto;
-      max-width: 400px;
-      font-size: 1.13em;
-      text-align: center;
-      box-shadow: 0 4px 16px #d98f5d26;
-    }
-    @media (max-width: 900px) {
-      main { max-width: 98vw; }
-    }
   </style>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <!-- Layout en header -->
+  <script defer src="../common/layout.js"></script>
 </head>
 <body>
-  <!-- STATUSBALK BOVENAAN -->
-  <div class="statusbar">
-    <span id="statusinfo">
-      U bent ingelogd in: <span id="parochieNaam">...</span>
-    </span>
-    <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
-  </div>
-<nav class="menu">
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/startpagina.html" title="Startpagina">🏠</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/parochie.html">🛐 Mijn parochie</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/catechese/catechese.html">📖 Catechese</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/gebeden.html">🙏 Gebeden</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/psalmen/psalmen.html">📜 Psalmen</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/heiligen/heiligen.html">👼 Heiligen</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/bijbeldagboek.html">📔 Bijbeldagboek</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/verjaardagskalender.html">🎂 Verjaardagskalender</a>
-  <!-- Kerkje-rechts als profiel/bewerk parochie -->
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/layout.html" class="menu-kerk" title="Bewerk parochie">
-    <span style="font-size:2.1em; display:inline-block; vertical-align:middle;">⛪</span>
-  </a>
-</nav>
-
-  <div id="parochieLabel"></div>
-  <div id="error" class="error" style="display:none;"></div>
+  <!-- Vaste header -->
+  <div id="volwassen-header" data-header-src="../common/header.html"></div>
 
   <main>
     <h2>De Geloofsbelijdenis</h2>
-    <p>† Ik geloof in één God, de almachtige Vader,</p>
-    <p>Schepper van hemel en aarde, van al wat zichtbaar en onzichtbaar is.</p>
-    <p>En in één Heer, Jezus Christus, eniggeboren Zoon van God,</p>
-    <p>voor alle tijden geboren uit de Vader.</p>
-    <p>Licht uit licht, ware God uit de ware God,</p>
-    <p>geboren, niet geschapen, één in wezen met de Vader,</p>
-    <p>en door Wie alles geschapen is.</p>
-    <p>Hij is voor ons, mensen, en omwille van ons heil uit de hemel neergedaald</p>
-    <p>en heeft het vlees aangenomen door de Heilige Geest uit de Maagd Maria</p>
-    <p>en is mens geworden.</p>
-    <p>Hij werd voor ons gekruisigd,</p>
-    <p>Hij heeft geleden onder Pontius Pilatus en is begraven.</p>
-    <p>Hij is verrezen op de derde dag, volgens de Schriften.</p>
-    <p>Hij is opgevaren ten hemel, en zit aan de rechterhand van de Vader.</p>
-    <p>Hij zal wederkomen in heerlijkheid om te oordelen levenden en doden,</p>
-    <p>en aan Zijn rijk komt geen einde.</p>
-    <p>En in de Heilige Geest, Die Heer is en het leven geeft,</p>
-    <p>Die voortkomt uit de Vader,</p>
-    <p>Die met de Vader en de Zoon tezamen wordt aanbeden en verheerlijkt,</p>
-    <p>Die gesproken heeft door de Profeten.</p>
-    <p>In de éne, heilige, katholieke en apostolische Kerk.</p>
-    <p>Ik belijd één doopsel tot vergeving van de zonden.</p>
-    <p>Ik verwacht de opstanding van de doden</p>
-    <p>en het leven van het komend Rijk. Amen.</p>
+    <blockquote>
+      <p>† Ik geloof in één God, de almachtige Vader,</p>
+      <p>Schepper van hemel en aarde, van al wat zichtbaar en onzichtbaar is.</p>
+      <p>En in één Heer, Jezus Christus, eniggeboren Zoon van God,</p>
+      <p>voor alle tijden geboren uit de Vader.</p>
+      <p>Licht uit licht, ware God uit de ware God,</p>
+      <p>geboren, niet geschapen, één in wezen met de Vader,</p>
+      <p>en door Wie alles geschapen is.</p>
+      <p>Hij is voor ons, mensen, en omwille van ons heil uit de hemel neergedaald</p>
+      <p>en heeft het vlees aangenomen door de Heilige Geest uit de Maagd Maria</p>
+      <p>en is mens geworden.</p>
+      <p>Hij werd voor ons gekruisigd,</p>
+      <p>Hij heeft geleden onder Pontius Pilatus en is begraven.</p>
+      <p>Hij is verrezen op de derde dag, volgens de Schriften.</p>
+      <p>Hij is opgevaren ten hemel, en zit aan de rechterhand van de Vader.</p>
+      <p>Hij zal wederkomen in heerlijkheid om te oordelen levenden en doden,</p>
+      <p>en aan Zijn rijk komt geen einde.</p>
+      <p>En in de Heilige Geest, Die Heer is en het leven geeft,</p>
+      <p>Die voortkomt uit de Vader,</p>
+      <p>Die met de Vader en de Zoon tezamen wordt aanbeden en verheerlijkt,</p>
+      <p>Die gesproken heeft door de Profeten.</p>
+      <p>In de éne, heilige, katholieke en apostolische Kerk.</p>
+      <p>Ik belijd één doopsel tot vergeving van de zonden.</p>
+      <p>Ik verwacht de opstanding van de doden</p>
+      <p>en het leven van het komend Rijk. Amen.</p>
+    </blockquote>
   </main>
+
+  <div id="error" class="error" style="display:none;"></div>
+
   <script>
-    // Parochie ophalen uit localStorage (en tonen, of foutmelding)
+    // Parochie ophalen uit localStorage
     let parochieNaam = localStorage.getItem("ingelogdeParochie");
-    if (parochieNaam) {
-      document.getElementById("parochieNaam").textContent = parochieNaam;
-      document.getElementById("parochieLabel").textContent = "U bent ingelogd in: " + parochieNaam;
-    } else {
-      document.getElementById("parochieLabel").textContent = "Fout: niet ingelogd. U wordt doorgestuurd naar de loginpagina...";
-      document.getElementById("parochieLabel").classList.add("fout");
-      setTimeout(function() {
-        window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/uitloggen.html";
+    if (!parochieNaam) {
+      document.getElementById("error").textContent =
+        "Fout: niet ingelogd. U wordt doorgestuurd naar de loginpagina...";
+      document.getElementById("error").style.display = "block";
+      setTimeout(function () {
+        window.location.href =
+          "https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/uitloggen.html";
       }, 2000);
     }
-
-    // Uitloggen knop
-    document.getElementById("uitlogKnop").onclick = function() {
-      localStorage.removeItem("ingelogdeParochie");
-      localStorage.removeItem("ingelogdeParochieId");
-      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
-    };
   </script>
 </body>
 </html>
