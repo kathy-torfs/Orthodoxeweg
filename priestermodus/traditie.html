@@ -4,8 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Orthodoxeweg – Traditie (Priestermodus)</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
 
-  <!-- FIREBASE (globaal) -->
+  <!-- FIREBASE -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <script>
@@ -20,10 +21,9 @@
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    console.log("Firebase geladen in priestermodus");
   </script>
 
-  <!-- Layout script (laadt priester-header en css) -->
+  <!-- Priester layout -->
   <script src="common/layout.js" defer></script>
 </head>
 <body>
@@ -31,8 +31,35 @@
   <!-- HEADER komt uit priestermodus/common/header.html -->
   <div id="priester-header"></div>
 
-  <!-- TRADITIE-INHOUD (wordt uit root/traditie.html geladen) -->
+  <!-- Standaard traditie-inhoud uit root/traditie.html -->
   <div id="priester-traditie"></div>
+
+  <!-- Extra sectie voor priester -->
+  <section style="max-width:900px;margin:30px auto;padding:18px;background:#fffbe7;
+    border:1.5px solid #decaa1;border-radius:12px;">
+    <h2>Traditie toevoegen</h2>
+    <form id="traditieForm" style="display:grid;gap:12px;">
+      <label>
+        Datum:
+        <input type="date" id="traditieDatum" required />
+      </label>
+      <label>
+        Titel:
+        <input type="text" id="traditieTitel" required />
+      </label>
+      <label>
+        Tekst:
+        <textarea id="traditieTekst" rows="4" required></textarea>
+      </label>
+      <button type="submit" style="background:#7a5f35;color:#fff;padding:10px;
+        border:none;border-radius:8px;cursor:pointer;">➕ Toevoegen</button>
+    </form>
+  </section>
+
+  <section style="max-width:900px;margin:30px auto;">
+    <h2>Overzicht tradities</h2>
+    <div id="traditieLijst"></div>
+  </section>
 
   <script>
     async function loadTraditie() {
@@ -43,30 +70,75 @@
           const container = document.getElementById("priester-traditie");
           container.innerHTML = html;
 
-          // Scripts uit traditie.html opnieuw uitvoeren
+          // scripts uitvoeren
           container.querySelectorAll("script").forEach(oldScript => {
             const newScript = document.createElement("script");
-            if (oldScript.src) {
-              newScript.src = oldScript.src;
-            } else {
-              newScript.textContent = oldScript.textContent;
-            }
+            if (oldScript.src) newScript.src = oldScript.src;
+            else newScript.textContent = oldScript.textContent;
             document.body.appendChild(newScript);
           });
-
-          console.log("traditie.html ingeladen en scripts uitgevoerd (priester)");
         } else {
           document.getElementById("priester-traditie").innerHTML =
             "<p style='text-align:center;color:#a33;margin-top:40px;'>Kon traditie.html niet laden.</p>";
         }
       } catch(e) {
-        console.error("Fout bij laden traditie.html:", e);
         document.getElementById("priester-traditie").innerHTML =
           "<p style='text-align:center;color:#a33;margin-top:40px;'>Fout bij laden traditie.html.</p>";
       }
     }
 
+    // Firestore collectie
+    const coll = db.collection("tradities");
+
+    // Opslaan
+    document.getElementById("traditieForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const datum = document.getElementById("traditieDatum").value;
+      const titel = document.getElementById("traditieTitel").value.trim();
+      const tekst = document.getElementById("traditieTekst").value.trim();
+      if (!datum || !titel || !tekst) return;
+
+      try {
+        await coll.doc(datum).set({ titel, tekst });
+        alert("Traditie opgeslagen!");
+        e.target.reset();
+        laadTradities();
+      } catch (err) {
+        console.error("Fout bij opslaan:", err);
+        alert("Kon traditie niet opslaan.");
+      }
+    });
+
+    // Laden
+    async function laadTradities() {
+      const lijst = document.getElementById("traditieLijst");
+      lijst.innerHTML = "<p>Laden...</p>";
+
+      try {
+        const snap = await coll.orderBy(firebase.firestore.FieldPath.documentId(),"asc").get();
+        if (snap.empty) {
+          lijst.innerHTML = "<p>Geen tradities toegevoegd.</p>";
+          return;
+        }
+        let html = "<ul style='list-style:none;padding:0;'>";
+        snap.forEach(doc => {
+          const d = doc.id;
+          const data = doc.data();
+          html += `<li style="margin:10px 0;padding:12px;border:1px solid #decaa1;
+                     border-radius:8px;background:#fffef6;">
+                    <b>${d}</b> – <span>${data.titel}</span>
+                    <div style="margin-top:6px;color:#444;">${data.tekst}</div>
+                  </li>`;
+        });
+        html += "</ul>";
+        lijst.innerHTML = html;
+      } catch (err) {
+        lijst.innerHTML = "<p>Fout bij laden van tradities.</p>";
+      }
+    }
+
     loadTraditie();
+    laadTradities();
   </script>
 
 </body>
