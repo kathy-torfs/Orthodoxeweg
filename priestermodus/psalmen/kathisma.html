@@ -1,314 +1,231 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Orthodoxeweg – Kathisma</title>
-<style>
-  body {
-    background-color: #f5e9b8;
-    color: #51400b;
-    font-family: Arial, serif;
-    margin: 0; padding: 0;
-  }
-  .statusbar {
-    background: #7a5f35;
-    color: #fff;
-    padding: 10px 24px;
-    font-size: 1.07em;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .uitlog-link {
-    color: #fff;
-    background: #9a2617;
-    padding: 6px 16px;
-    border-radius: 8px;
-    font-size: 1em;
-    text-decoration: none;
-    font-weight: bold;
-    margin-left: 20px;
-    cursor: pointer;
-    border: none;
-    outline: none;
-    transition: background 0.18s;
-  }
-  .uitlog-link:hover { background: #bd2e23; }
-  nav.menu {
-    background-color: #7a5f35;
-    padding: 10px 15px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    justify-content: center;
-  }
-  nav.menu a {
-    color: #f5e9b8;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 16px;
-    padding: 6px 12px;
-    border-radius: 8px;
-    transition: background-color 0.3s;
-  }
-  nav.menu a:hover {
-    background-color: #5d4726;
-    text-decoration: underline;
-  }
-  main {
-    max-width: 860px;
-    margin: 34px auto 60px auto;
-    padding: 0 15px;
-  }
-  h1 {
-    text-align: center;
-    font-size: 2em;
-    font-weight: bold;
-    margin-bottom: 18px;
-    color: #674f23;
-    letter-spacing: 1px;
-    text-shadow: 0 2px 8px #fff8;
-  }
-  .psalm-blok {
-    background: #fffdf6;
-    border: 1.4px solid #dec992;
-    border-radius: 10px;
-    margin: 18px 0 24px 0;
-    padding: 22px 22px 16px 22px;
-    box-shadow: 0 2px 16px #e3ce956c;
-  }
-  .psalm-blok h2 {
-    font-size: 1.13em;
-    color: #8b6d29;
-    margin-top: 0; margin-bottom: 10px;
-    font-weight: bold;
-    text-decoration: underline;
-  }
-  .psalm-tekst {
-    font-size: 1.05em;
-    line-height: 1.48;
-    white-space: pre-line;
-    margin: 0;
-    color: #4d3d18;
-    font-family: 'Georgia', serif;
-  }
-  .strofe {
-    margin: 8px 0 18px 0;
-    padding: 10px 18px;
-    background: #f6ebc8;
-    border-radius: 7px;
-    box-shadow: 0 2px 6px #e6d39d4c inset;
-  }
-  .strofe-titel {
-    font-weight: bold;
-    color: #9e7c32;
-    margin-bottom: 4px;
-  }
-  .kathismakop {
-    text-align: center;
-    font-size: 1.22em;
-    margin-bottom: 12px;
-    color: #7a5f35;
-    letter-spacing: 1px;
-    font-weight: bold;
-    text-shadow: 0 1px 6px #fff6;
-  }
-  /* Navigatie */
-  .navi-blok {
-    max-width: 860px;
-    margin: 34px auto 34px auto;
-    display: flex;
-    justify-content: center;
-    gap: 22px;
-  }
-  .navi-blok button, .navi-blok a {
-    background-color: #7a5f35;
-    color: #f5e9b8;
-    padding: 11px 22px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: bold;
-    font-size: 16px;
-    box-shadow: 0 4px 4px rgb(0 0 0 / 0.15);
-    border: none;
-    cursor: pointer;
-    min-width: 120px;
-    text-align: center;
-    transition: background 0.2s;
-  }
-  .navi-blok button:disabled { opacity: 0.5; cursor: default;}
-  .navi-blok button:hover, .navi-blok a:hover { background-color: #5d4726; }
-  .error {
-    color: #fff;
-    background: #b42c25;
-    border-radius: 8px;
-    padding: 14px;
-    margin: 40px auto 0 auto;
-    max-width: 400px;
-    font-size: 1.13em;
-    text-align: center;
-    box-shadow: 0 4px 16px #d98f5d26;
-  }
-</style>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Orthodoxeweg – Kathisma</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
+  <style>
+    body {
+      background-color: #f5e9b8;
+      color: #51400b;
+      font-family: Arial, serif;
+      margin: 0; padding: 0;
+    }
+    main {
+      max-width: 860px;
+      margin: 34px auto 60px auto;
+      padding: 0 15px;
+    }
+    h1 {
+      text-align: center;
+      font-size: 2em;
+      font-weight: bold;
+      margin-bottom: 18px;
+      color: #674f23;
+      letter-spacing: 1px;
+      text-shadow: 0 2px 8px #fff8;
+    }
+    .psalm-blok {
+      background: #fffdf6;
+      border: 1.4px solid #dec992;
+      border-radius: 10px;
+      margin: 18px 0 24px 0;
+      padding: 22px 22px 16px 22px;
+      box-shadow: 0 2px 16px #e3ce956c;
+    }
+    .psalm-blok h2 {
+      font-size: 1.13em;
+      color: #8b6d29;
+      margin-top: 0; margin-bottom: 10px;
+      font-weight: bold;
+      text-decoration: underline;
+    }
+    .psalm-tekst {
+      font-size: 1.05em;
+      line-height: 1.48;
+      white-space: pre-line;
+      margin: 0;
+      color: #4d3d18;
+      font-family: 'Georgia', serif;
+    }
+    .strofe {
+      margin: 8px 0 18px 0;
+      padding: 10px 18px;
+      background: #f6ebc8;
+      border-radius: 7px;
+      box-shadow: 0 2px 6px #e6d39d4c inset;
+    }
+    .strofe-titel {
+      font-weight: bold;
+      color: #9e7c32;
+      margin-bottom: 4px;
+    }
+    .kathismakop {
+      text-align: center;
+      font-size: 1.22em;
+      margin-bottom: 12px;
+      color: #7a5f35;
+      letter-spacing: 1px;
+      font-weight: bold;
+      text-shadow: 0 1px 6px #fff6;
+    }
+    .navi-blok {
+      max-width: 860px;
+      margin: 34px auto 34px auto;
+      display: flex;
+      justify-content: center;
+      gap: 22px;
+    }
+    .navi-blok button, .navi-blok a {
+      background-color: #7a5f35;
+      color: #f5e9b8;
+      padding: 11px 22px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 16px;
+      box-shadow: 0 4px 4px rgb(0 0 0 / 0.15);
+      border: none;
+      cursor: pointer;
+      min-width: 120px;
+      text-align: center;
+      transition: background 0.2s;
+    }
+    .navi-blok button:disabled { opacity: 0.5; cursor: default; }
+    .navi-blok button:hover, .navi-blok a:hover { background-color: #5d4726; }
+    .error {
+      color: #fff;
+      background: #b42c25;
+      border-radius: 8px;
+      padding: 14px;
+      margin: 40px auto 0 auto;
+      max-width: 400px;
+      font-size: 1.13em;
+      text-align: center;
+      box-shadow: 0 4px 16px #d98f5d26;
+    }
+  </style>
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <!-- Vaste header/layout -->
+  <script defer src="../common/layout.js"></script>
 </head>
 <body>
-<!-- PRIETERSTATUSBALK -->
-<div class="statusbar">
-  <span>U bent ingelogd in: <span id="parochieNaam">...</span></span>
-  <button class="uitlog-link" id="uitlogKnop">🚪 Uitloggen</button>
-</div>
-<!-- MENUBALK -->
-  <nav class="menu">
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/startpagina.html" title="Startpagina">🏠</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/parochie.html">🛐 Mijn parochie</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/catechese/catechese.html">📖 Catechese</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/gebeden.html">🙏 Gebeden</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/psalmen/psalmen.html">📜 Psalmen</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/heiligen/heiligen.html">👼 Heiligen</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/bijbeldagboek.html">📔 Bijbeldagboek</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/verjaardagskalender.html">🎂 Verjaardagskalender</a>
-  <!-- Kerkje-rechts als profiel/bewerk parochie -->
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/layout.html" class="menu-kerk" title="Bewerk parochie">
-    <span style="font-size:2.1em; display:inline-block; vertical-align:middle;">⛪</span>
-  </a>
-</nav>
-<main>
-  <div class="kathismakop" id="kathismakop"></div>
-  <h1 id="hoofdtitel">Laden...</h1>
-  <div id="psalmenBlokken"></div>
-  <div id="error" class="error" style="display:none;"></div>
-</main>
-<div class="navi-blok">
-  <button id="vorigeBtn">&lt; Vorige</button>
-  <a href="psalmen.html">Hoofdmenu</a>
-  <button id="volgendeBtn">Volgende &gt;</button>
-</div>
-<script>
-  // Priesterbalk
-  let parochieNaam = localStorage.getItem("ingelogdeParochie");
-  document.getElementById("parochieNaam").textContent = parochieNaam ? parochieNaam : "–";
-  document.getElementById("uitlogKnop").onclick = function() {
-    localStorage.removeItem("ingelogdeParochie");
-    window.location.href = "../index.html";
-  };
 
-  // Params
-  function getQueryParam(param) {
-    let url = new URL(window.location.href);
-    return url.searchParams.get(param);
-  }
-  const minKathisma = 1, maxKathisma = 20;
+  <!-- Vaste priester-header -->
+  <div id="priester-header" data-header-src="../common/header.html"></div>
 
-  function setNavigatie(nr) {
-    const vorigeBtn = document.getElementById("vorigeBtn");
-    const volgendeBtn = document.getElementById("volgendeBtn");
-    vorigeBtn.disabled = (nr <= minKathisma);
-    volgendeBtn.disabled = (nr >= maxKathisma);
+  <main>
+    <div class="kathismakop" id="kathismakop"></div>
+    <h1 id="hoofdtitel">Laden...</h1>
+    <div id="psalmenBlokken"></div>
+    <div id="error" class="error" style="display:none;"></div>
+  </main>
 
-    vorigeBtn.onclick = () => {
-      if (nr > minKathisma) window.location.href = `kathisma.html?nr=${nr-1}`;
+  <div class="navi-blok">
+    <button id="vorigeBtn">&lt; Vorige</button>
+    <a href="psalmen.html">Hoofdmenu</a>
+    <button id="volgendeBtn">Volgende &gt;</button>
+  </div>
+
+  <script>
+    const minKathisma = 1, maxKathisma = 20;
+
+    function getQueryParam(param) {
+      let url = new URL(window.location.href);
+      return url.searchParams.get(param);
+    }
+
+    function setNavigatie(nr) {
+      const vorigeBtn = document.getElementById("vorigeBtn");
+      const volgendeBtn = document.getElementById("volgendeBtn");
+      vorigeBtn.disabled = (nr <= minKathisma);
+      volgendeBtn.disabled = (nr >= maxKathisma);
+
+      vorigeBtn.onclick = () => {
+        if (nr > minKathisma) window.location.href = `kathisma.html?nr=${nr-1}`;
+      };
+      volgendeBtn.onclick = () => {
+        if (nr < maxKathisma) window.location.href = `kathisma.html?nr=${nr+1}`;
+      };
+    }
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:2e02833fa0d4d8903ceedb"
     };
-    volgendeBtn.onclick = () => {
-      if (nr < maxKathisma) window.location.href = `kathisma.html?nr=${nr+1}`;
-    };
-  }
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    const db = firebase.firestore();
 
-  // FIREBASE
-  const firebaseConfig = {
-    apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
-    authDomain: "orthodoxeweg.firebaseapp.com",
-    projectId: "orthodoxeweg",
-    storageBucket: "orthodoxeweg.appspot.com",
-    messagingSenderId: "408582263618",
-    appId: "1:408582263618:web:2e02833fa0d4d8903ceedb"
-  };
-  if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-  const db = firebase.firestore();
-
-  async function laadKathisma() {
-    const nr = parseInt(getQueryParam("nr"), 10);
-    if (isNaN(nr) || nr < minKathisma || nr > maxKathisma) {
-      document.getElementById("error").textContent = "Ongeldig kathismanummer.";
-      document.getElementById("error").style.display = "";
-      document.querySelector("main").style.display = "none";
-      document.querySelector(".navi-blok").style.display = "none";
-      return;
-    }
-    setNavigatie(nr);
-
-    // Info-balk bovenaan
-    document.getElementById("kathismakop").textContent = `Kathisma ${nr} – Psalmen ${getPsalmRange(nr)}`;
-    document.getElementById("hoofdtitel").textContent = "";
-
-    // Ophalen uit Firestore
-    let docId = "kathisma_" + nr;
-    let doc;
-    try {
-      doc = await db.collection("kathismata_xxl").doc(docId).get();
-    } catch(e) {
-      document.getElementById("error").textContent = "Fout bij het ophalen van de kathisma.";
-      document.getElementById("error").style.display = "";
-      document.getElementById("psalmenBlokken").style.display = "none";
-      document.querySelector(".navi-blok").style.display = "none";
-      return;
-    }
-    if(!doc.exists) {
-      document.getElementById("error").textContent = "Deze kathisma bestaat niet.";
-      document.getElementById("error").style.display = "";
-      document.getElementById("psalmenBlokken").style.display = "none";
-      document.querySelector(".navi-blok").style.display = "none";
-      return;
-    }
-    const data = doc.data();
-    let blok = "";
-    if(Array.isArray(data.psalmen)) {
-      for(let psalm of data.psalmen) {
-        // Normaal: gewoon psalm
-        if(psalm.psalm === "Psalm 118" && Array.isArray(psalm.strofen)) {
-          // Speciaal: Psalm 118 als array van strofen!
-          blok += `<div class="psalm-blok"><h2>${psalm.psalm}</h2>`;
-          psalm.strofen.forEach((strofe, idx) => {
-            let titel = strofe.titel ? `<div class="strofe-titel">${strofe.titel}</div>` : "";
-            blok += `<div class="strofe">${titel}<div class="psalm-tekst">${strofe.tekst ? formatPsalm(strofe.tekst) : formatPsalm(strofe)}</div></div>`;
-          });
-          blok += `</div>`;
-        } else {
-          blok += `
-            <div class="psalm-blok">
-              <h2>${psalm.psalm || ''}</h2>
-              <div class="psalm-tekst">${formatPsalm(psalm.tekst || psalm)}</div>
-            </div>
-          `;
-        }
+    async function laadKathisma() {
+      const nr = parseInt(getQueryParam("nr"), 10);
+      if (isNaN(nr) || nr < minKathisma || nr > maxKathisma) {
+        document.getElementById("error").textContent = "Ongeldig kathismanummer.";
+        document.getElementById("error").style.display = "";
+        document.querySelector("main").style.display = "none";
+        document.querySelector(".navi-blok").style.display = "none";
+        return;
       }
-    } else {
-      blok = "<div class='error'>Geen psalmen gevonden voor deze kathisma.</div>";
+      setNavigatie(nr);
+
+      document.getElementById("kathismakop").textContent = `Kathisma ${nr} – Psalmen ${getPsalmRange(nr)}`;
+      document.getElementById("hoofdtitel").textContent = "";
+
+      try {
+        let doc = await db.collection("kathismata_xxl").doc("kathisma_" + nr).get();
+        if (!doc.exists) throw new Error("Niet gevonden.");
+        const data = doc.data();
+        let blok = "";
+        if (Array.isArray(data.psalmen)) {
+          for (let psalm of data.psalmen) {
+            if (psalm.psalm === "Psalm 118" && Array.isArray(psalm.strofen)) {
+              blok += `<div class="psalm-blok"><h2>${psalm.psalm}</h2>`;
+              psalm.strofen.forEach(strofe => {
+                let titel = strofe.titel ? `<div class="strofe-titel">${strofe.titel}</div>` : "";
+                blok += `<div class="strofe">${titel}<div class="psalm-tekst">${strofe.tekst ? formatPsalm(strofe.tekst) : formatPsalm(strofe)}</div></div>`;
+              });
+              blok += `</div>`;
+            } else {
+              blok += `
+                <div class="psalm-blok">
+                  <h2>${psalm.psalm || ''}</h2>
+                  <div class="psalm-tekst">${formatPsalm(psalm.tekst || psalm)}</div>
+                </div>
+              `;
+            }
+          }
+        } else {
+          blok = "<div class='error'>Geen psalmen gevonden voor deze kathisma.</div>";
+        }
+        document.getElementById("psalmenBlokken").innerHTML = blok;
+      } catch(e) {
+        document.getElementById("error").textContent = "Fout bij het ophalen van de kathisma.";
+        document.getElementById("error").style.display = "";
+        document.getElementById("psalmenBlokken").style.display = "none";
+        document.querySelector(".navi-blok").style.display = "none";
+      }
     }
-    document.getElementById("psalmenBlokken").innerHTML = blok;
-  }
 
-  // Layout helpers
-  function formatPsalm(tekst) {
-    // Nieuwe regels, puntjes etc. netjes
-    if (!tekst) return "";
-    return tekst
-      .replace(/\r\n|\r|\n/g, "<br>")
-      .replace(/(^|\s)- /g, "<br>– ");
-  }
+    function formatPsalm(tekst) {
+      if (!tekst) return "";
+      return tekst.replace(/\r\n|\r|\n/g, "<br>").replace(/(^|\s)- /g, "<br>– ");
+    }
 
-  function getPsalmRange(nr) {
-    const r = [
-      "1–8","9–16","17–23","24–31","32–36","37–45","46–54","55–63","64–69","70–76",
-      "77–83","84–90","91–97","98–104","105–108","109–117","118","119–133","134–142","143–150"
-    ];
-    return r[nr-1];
-  }
+    function getPsalmRange(nr) {
+      const r = [
+        "1–8","9–16","17–23","24–31","32–36","37–45","46–54","55–63","64–69","70–76",
+        "77–83","84–90","91–97","98–104","105–108","109–117","118","119–133","134–142","143–150"
+      ];
+      return r[nr-1];
+    }
 
-  laadKathisma();
-</script>
+    laadKathisma();
+  </script>
 </body>
 </html>
