@@ -4,57 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Orthodoxeweg – Psalmen (Priestermodus)</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
     body {
       background-color: #f5e9b8;
       color: #6f4e1a;
       font-family: Arial, sans-serif;
       margin: 0; padding: 0;
-    }
-    .statusbar {
-      background: #7a5f35;
-      color: #fff;
-      padding: 10px 24px;
-      font-size: 1.07em;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .uitlog-link, #uitlogKnop {
-      color: #fff;
-      background: #bd2e23;
-      padding: 6px 18px;
-      border-radius: 8px;
-      font-size: 1em;
-      text-decoration: none;
-      font-weight: bold;
-      margin-left: 30px;
-      cursor: pointer;
-      border: none;
-      outline: none;
-      transition: background 0.18s;
-    }
-    .uitlog-link:hover, #uitlogKnop:hover { background: #b92a1f; }
-    nav.menu {
-      background-color: #7a5f35;
-      padding: 10px 15px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      justify-content: center;
-    }
-    nav.menu a {
-      color: #f5e9b8;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 16px;
-      padding: 6px 12px;
-      border-radius: 8px;
-      transition: background-color 0.3s;
-    }
-    nav.menu a:hover {
-      background-color: #5d4726;
-      text-decoration: underline;
     }
     main {
       max-width: 860px;
@@ -71,7 +27,7 @@
     .psalm-intro {
       background: #fffbe8;
       border-radius: 16px;
-      padding: 24px 24px 20px 24px;
+      padding: 24px;
       margin-bottom: 36px;
       box-shadow: 0 2px 10px #dac79e44;
       font-size: 19px;
@@ -104,90 +60,34 @@
       background-color: #5d4726;
       box-shadow: 0 2px 12px #dac79e77;
     }
-    footer {
-      max-width: 860px;
-      margin: 30px auto 40px auto;
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-    }
-    footer a {
-      background-color: #7a5f35;
-      color: #f5e9b8;
-      padding: 10px 20px;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: bold;
-      font-size: 16px;
-      box-shadow: 0 4px 4px rgb(0 0 0 / 0.25);
-    }
-    footer a:hover {
-      background-color: #5d4726;
-    }
   </style>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <!-- Vaste layout -->
+  <script defer src="../common/layout.js"></script>
 </head>
 <body>
+  <!-- Header (statusbar + menu via layout.js) -->
+  <div id="priester-header" data-header-src="../common/header.html"></div>
 
-<!-- STATUSBALK EN UITLOGGEN -->
-<div class="statusbar">
-  <span id="welkom-tekst"></span>
-  <button id="uitlogKnop">🚪 Uitloggen</button>
-</div>
-
-<nav class="menu">
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/startpagina.html" title="Startpagina">🏠</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/parochie.html">🛐 Mijn parochie</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/catechese/catechese.html">📖 Catechese</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/gebeden.html">🙏 Gebeden</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/gebeden/geloofsbelijdenis.html">✝ Geloofsbelijdenis</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/psalmen/psalmen.html">📜 Psalmen</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/heiligen/heiligen.html">👼 Heiligen</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/bijbeldagboek.html">📔 Bijbeldagboek</a>
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/verjaardagskalender.html">🎂 Verjaardagskalender</a>
-  <!-- Kerkje-rechts als profiel/bewerk parochie -->
-  <a href="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/layout.html" class="menu-kerk" title="Bewerk parochie">
-    <span style="font-size:2.1em; display:inline-block; vertical-align:middle;">⛪</span>
-  </a>
-</nav>
-
-<main>
-  <h1>Psalmen</h1>
-  <div class="psalm-intro">
-    <p>
-      De psalmen zijn het gebedenboek van de Kerk en het hart van elke orthodoxe liturgie. Eeuwenlang hebben gelovigen troost, berouw, hoop en lof in deze gezongen gebeden gevonden.<br><br>
-      <b>Kies hieronder welke vertaling je wilt raadplegen:</b>
-    </p>
-  </div>
-  <div class="psalm-knoppen">
-    <a class="psalm-knop" href="kathismata.html">
-      Vlaams Orthodoxe psalmenboek<br><small>Vertaald door Orthodoxe Weg</small>
-    </a>
-    <a class="psalm-knop" href="kathismatadh.html">
-      Psalmenboek Den Haag<br><small>Officiële Nederlandse vertaling</small>
-    </a>
-  </div>
-</main>
-
-<script>
-// BEGROETING + PAROCHIE
-const welkomTekst = document.getElementById("welkom-tekst");
-const uur = new Date().getHours();
-let moment = "goeiedag";
-if (uur >= 5 && uur <= 10) moment = "goeiemorgend";
-else if (uur >= 11 && uur <= 13) moment = "goeiemiddag";
-else if (uur >= 17 && uur <= 22) moment = "goeienavond";
-else if (uur > 22 || uur < 5) moment = "goedenacht";
-
-const parochie = localStorage.getItem("ingelogdeParochie") || "(onbekend)";
-welkomTekst.textContent = `${moment} vader, ik wens u een gezegende dag. U bent ingelogd in: ${parochie}`;
-
-// UITLOGKNOP
-document.getElementById("uitlogKnop").onclick = () => {
-  localStorage.removeItem("modus");
-  localStorage.removeItem("ingelogdeParochie");
-  window.location.href = "https://orthodoxeweg.be/index.html";
-};
-</script>
-
+  <main>
+    <h1>Psalmen</h1>
+    <div class="psalm-intro">
+      <p>
+        De psalmen zijn het gebedenboek van de Kerk en het hart van elke orthodoxe liturgie. Eeuwenlang hebben gelovigen troost, berouw, hoop en lof in deze gezongen gebeden gevonden.<br><br>
+        <b>Kies hieronder welke vertaling je wilt raadplegen:</b>
+      </p>
+    </div>
+    <div class="psalm-knoppen">
+      <a class="psalm-knop" href="kathismata.html">
+        Vlaams Orthodoxe psalmenboek<br><small>Vertaald door Orthodoxe Weg</small>
+      </a>
+      <a class="psalm-knop" href="kathismatadh.html">
+        Psalmenboek Den Haag<br><small>Officiële Nederlandse vertaling</small>
+      </a>
+    </div>
+  </main>
 </body>
 </html>
