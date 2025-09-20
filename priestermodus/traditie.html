@@ -3,12 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Orthodoxeweg – Traditie (Priestermodus)</title>
+  <title>Tradities beheren – Priestermodus</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
+  <style>
+    body {margin:0;font-family:Arial,sans-serif;background:#f5e9b8;color:#5b3a00;}
+    .container {display:flex; height:100vh;}
+    .sidebar {
+      width:280px; background:#fffbe7; border-right:2px solid #d9c38f;
+      padding:12px; overflow-y:auto;
+    }
+    .sidebar h2 {margin-top:0;color:#7a5f35;}
+    .traditie-item {padding:8px; margin:4px 0; cursor:pointer; border-radius:6px;}
+    .traditie-item:hover {background:#f1e5c8;}
+    .traditie-item.active {background:#d9c38f;color:white;}
 
-  <!-- FIREBASE -->
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+    .editor {flex:1; padding:20px; overflow-y:auto;}
+    .editor h2 {margin-top:0;color:#7a5f35;}
+    label {display:block; margin-top:10px; font-weight:bold;}
+    input,textarea {width:100%;padding:8px;border:1px solid #d9c38f;border-radius:6px;margin-top:4px;}
+    textarea {min-height:80px;}
+    .btnrow {margin-top:14px; display:flex; gap:10px;}
+    button {
+      padding:8px 14px; border:none; border-radius:6px; cursor:pointer;
+      font-weight:bold; background:#7a5f35; color:white;
+    }
+    button.secondary {background:#b09765;}
+    button.danger {background:#a33;}
+  </style>
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
@@ -16,130 +40,120 @@
       projectId: "orthodoxeweg",
       storageBucket: "orthodoxeweg.appspot.com",
       messagingSenderId: "408582263618",
-      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb",
-      measurementId: "G-C942F2NYQV"
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
   </script>
-
-  <!-- Priester layout -->
-  <script src="common/layout.js" defer></script>
 </head>
 <body>
+  <div class="container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <h2>Tradities</h2>
+      <div id="traditieList"></div>
+      <button onclick="nieuwTraditie()">+ Nieuwe traditie</button>
+    </div>
 
-  <!-- HEADER komt uit priestermodus/common/header.html -->
-  <div id="priester-header"></div>
+    <!-- Editor -->
+    <div class="editor">
+      <h2 id="editorTitle">Geen traditie geselecteerd</h2>
+      <form id="traditieForm" style="display:none;">
+        <label>Titel</label>
+        <input type="text" id="titel">
 
-  <!-- Standaard traditie-inhoud uit root/traditie.html -->
-  <div id="priester-traditie"></div>
+        <label>Datum (YYYY-MM-DD)</label>
+        <input type="date" id="datum">
 
-  <!-- Extra sectie voor priester -->
-  <section style="max-width:900px;margin:30px auto;padding:18px;background:#fffbe7;
-    border:1.5px solid #decaa1;border-radius:12px;">
-    <h2>Traditie toevoegen</h2>
-    <form id="traditieForm" style="display:grid;gap:12px;">
-      <label>
-        Datum:
-        <input type="date" id="traditieDatum" required />
-      </label>
-      <label>
-        Titel:
-        <input type="text" id="traditieTitel" required />
-      </label>
-      <label>
-        Tekst:
-        <textarea id="traditieTekst" rows="4" required></textarea>
-      </label>
-      <button type="submit" style="background:#7a5f35;color:#fff;padding:10px;
-        border:none;border-radius:8px;cursor:pointer;">➕ Toevoegen</button>
-    </form>
-  </section>
+        <label>Uitleg / Intro</label>
+        <textarea id="uitleg"></textarea>
 
-  <section style="max-width:900px;margin:30px auto;">
-    <h2>Overzicht tradities</h2>
-    <div id="traditieLijst"></div>
-  </section>
+        <label>Stappen (JSON)</label>
+        <textarea id="stappen" placeholder='[{"titel":"Aanvang","tekst":"..."}]'></textarea>
 
-  <script>
-    async function loadTraditie() {
-      try {
-        const resp = await fetch("/traditie.html", {cache:"no-cache"});
-        if (resp.ok) {
-          const html = await resp.text();
-          const container = document.getElementById("priester-traditie");
-          container.innerHTML = html;
+        <label>Gebeden (JSON)</label>
+        <textarea id="gebeden" placeholder='[{"titel":"Inleidend gebed","tekst":"..."}]'></textarea>
 
-          // scripts uitvoeren
-          container.querySelectorAll("script").forEach(oldScript => {
-            const newScript = document.createElement("script");
-            if (oldScript.src) newScript.src = oldScript.src;
-            else newScript.textContent = oldScript.textContent;
-            document.body.appendChild(newScript);
-          });
-        } else {
-          document.getElementById("priester-traditie").innerHTML =
-            "<p style='text-align:center;color:#a33;margin-top:40px;'>Kon traditie.html niet laden.</p>";
-        }
-      } catch(e) {
-        document.getElementById("priester-traditie").innerHTML =
-          "<p style='text-align:center;color:#a33;margin-top:40px;'>Fout bij laden traditie.html.</p>";
-      }
-    }
+        <div class="btnrow">
+          <button type="button" onclick="bewaarTraditie()">Bewaren</button>
+          <button type="button" class="secondary" onclick="annuleer()">Annuleren</button>
+          <button type="button" class="danger" onclick="verwijderTraditie()">Verwijderen</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-    // Firestore collectie
-    const coll = db.collection("tradities");
+<script>
+  let huidigeId = null;
 
-    // Opslaan
-    document.getElementById("traditieForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const datum = document.getElementById("traditieDatum").value;
-      const titel = document.getElementById("traditieTitel").value.trim();
-      const tekst = document.getElementById("traditieTekst").value.trim();
-      if (!datum || !titel || !tekst) return;
-
-      try {
-        await coll.doc(datum).set({ titel, tekst });
-        alert("Traditie opgeslagen!");
-        e.target.reset();
-        laadTradities();
-      } catch (err) {
-        console.error("Fout bij opslaan:", err);
-        alert("Kon traditie niet opslaan.");
-      }
+  async function laadTradities() {
+    const snap = await db.collection("tradities").orderBy("datum","asc").get();
+    const list = document.getElementById("traditieList");
+    list.innerHTML = "";
+    snap.forEach(doc => {
+      const d = doc.data();
+      const div = document.createElement("div");
+      div.textContent = d.titel || "(zonder titel)";
+      div.className = "traditie-item";
+      div.onclick = ()=>selecteerTraditie(doc.id, d);
+      list.appendChild(div);
     });
+  }
 
-    // Laden
-    async function laadTradities() {
-      const lijst = document.getElementById("traditieLijst");
-      lijst.innerHTML = "<p>Laden...</p>";
+  function selecteerTraditie(id, data) {
+    huidigeId = id;
+    document.getElementById("editorTitle").textContent = "Traditie bewerken";
+    document.getElementById("traditieForm").style.display = "block";
+    document.getElementById("titel").value = data.titel||"";
+    document.getElementById("datum").value = data.datum||"";
+    document.getElementById("uitleg").value = data.uitleg||"";
+    document.getElementById("stappen").value = JSON.stringify(data.stappen||[], null,2);
+    document.getElementById("gebeden").value = JSON.stringify(data.gebeden||[], null,2);
+  }
 
-      try {
-        const snap = await coll.orderBy(firebase.firestore.FieldPath.documentId(),"asc").get();
-        if (snap.empty) {
-          lijst.innerHTML = "<p>Geen tradities toegevoegd.</p>";
-          return;
-        }
-        let html = "<ul style='list-style:none;padding:0;'>";
-        snap.forEach(doc => {
-          const d = doc.id;
-          const data = doc.data();
-          html += `<li style="margin:10px 0;padding:12px;border:1px solid #decaa1;
-                     border-radius:8px;background:#fffef6;">
-                    <b>${d}</b> – <span>${data.titel}</span>
-                    <div style="margin-top:6px;color:#444;">${data.tekst}</div>
-                  </li>`;
-        });
-        html += "</ul>";
-        lijst.innerHTML = html;
-      } catch (err) {
-        lijst.innerHTML = "<p>Fout bij laden van tradities.</p>";
-      }
+  function nieuwTraditie() {
+    huidigeId = null;
+    document.getElementById("editorTitle").textContent = "Nieuwe traditie";
+    document.getElementById("traditieForm").style.display = "block";
+    document.getElementById("titel").value = "";
+    document.getElementById("datum").value = "";
+    document.getElementById("uitleg").value = "";
+    document.getElementById("stappen").value = "[]";
+    document.getElementById("gebeden").value = "[]";
+  }
+
+  async function bewaarTraditie() {
+    const data = {
+      titel: document.getElementById("titel").value.trim(),
+      datum: document.getElementById("datum").value,
+      uitleg: document.getElementById("uitleg").value.trim(),
+      stappen: JSON.parse(document.getElementById("stappen").value || "[]"),
+      gebeden: JSON.parse(document.getElementById("gebeden").value || "[]")
+    };
+    if (huidigeId) {
+      await db.collection("tradities").doc(huidigeId).set(data,{merge:true});
+    } else {
+      await db.collection("tradities").add(data);
     }
-
-    loadTraditie();
     laadTradities();
-  </script>
+    annuleer();
+  }
 
+  async function verwijderTraditie() {
+    if (huidigeId && confirm("Zeker weten?")) {
+      await db.collection("tradities").doc(huidigeId).delete();
+      laadTradities();
+      annuleer();
+    }
+  }
+
+  function annuleer() {
+    huidigeId = null;
+    document.getElementById("editorTitle").textContent = "Geen traditie geselecteerd";
+    document.getElementById("traditieForm").style.display = "none";
+  }
+
+  laadTradities();
+</script>
 </body>
 </html>
