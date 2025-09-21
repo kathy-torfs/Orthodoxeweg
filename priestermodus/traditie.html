@@ -35,15 +35,15 @@
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.5}
     main{display:flex;max-width:1200px;margin:20px auto;padding:0 14px 40px;gap:20px}
     /* Links: index */
-    #traditie-index{flex:1;max-width:280px}
-    #traditie-index h2{font-size:1.2rem;color:var(--accent);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+    #traditie-index{flex:1;max-width:300px}
+    #traditie-index h2{font-size:1.1rem;color:var(--accent);margin:12px 0;display:flex;justify-content:space-between;align-items:center}
     #traditie-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
     #traditie-list li{background:var(--card);border:1px solid var(--line);border-radius:8px;
-      padding:8px 10px;cursor:pointer;transition:.2s}
+      padding:6px 10px;cursor:pointer;transition:.2s}
     #traditie-list li:hover{background:#fdf7e5}
     #traditie-list li.active{background:var(--brand);color:#fff}
-    button#addTraditie{background:var(--brand);color:#fff;border:0;border-radius:6px;
-      padding:4px 8px;cursor:pointer;font-size:.9rem}
+    button.small{background:var(--brand);color:#fff;border:0;border-radius:6px;
+      padding:3px 6px;cursor:pointer;font-size:.8rem}
     /* Rechts: detail */
     #traditie-detail{flex:3;display:flex;flex-direction:column;gap:10px}
     .card{background:var(--card);border:1px solid var(--line);border-radius:16px;
@@ -62,13 +62,11 @@
   <main>
     <!-- INDEX -->
     <aside id="traditie-index">
-      <h2>
-        Tradities
-        <button id="addTraditie">+ Toevoegen</button>
-      </h2>
-      <ul id="traditie-list">
-        <li>Laden...</li>
-      </ul>
+      <h2>Algemene tradities</h2>
+      <ul id="algemeen-list"><li>Laden...</li></ul>
+
+      <h2>Eigen tradities <button id="addTraditie" class="small">+ Toevoegen</button></h2>
+      <ul id="eigen-list"><li>Laden...</li></ul>
     </aside>
 
     <!-- DETAIL -->
@@ -83,56 +81,78 @@
 
   <script>
     const parochieId = localStorage.getItem("ingelogdeParochie");
-    const list = document.getElementById("traditie-list");
+    const algemeenList = document.getElementById("algemeen-list");
+    const eigenList = document.getElementById("eigen-list");
     const editor = document.getElementById("traditie-editor");
     const title = document.getElementById("traditie-title");
     const saveBtn = document.getElementById("saveBtn");
     const addBtn = document.getElementById("addTraditie");
 
     let huidigeId = null;
+    let huidigeType = null; // "algemeen" of "eigen"
 
-    async function laadIndex() {
-      list.innerHTML = "<li>Laden...</li>";
+    async function laadAlgemene() {
+      algemeenList.innerHTML = "<li>Laden...</li>";
       try {
-        const snap = await db.collection("parochies")
-          .doc(parochieId)
-          .collection("tradities")
-          .get();
-
-        if(snap.empty){
-          list.innerHTML = "<li>Geen tradities</li>";
-          return;
-        }
-        list.innerHTML = "";
+        const snap = await db.collection("tradities").get();
+        if (snap.empty) { algemeenList.innerHTML = "<li>Geen tradities</li>"; return; }
+        algemeenList.innerHTML = "";
         snap.forEach(doc=>{
           const li = document.createElement("li");
-          li.textContent = doc.data().titel || "(zonder titel)";
-          li.addEventListener("click",()=>toonTraditie(doc.id, li));
-          list.appendChild(li);
+          li.textContent = doc.id;
+          li.addEventListener("click",()=>toonAlgemeen(doc.id, li));
+          algemeenList.appendChild(li);
         });
       } catch(e){ console.error(e); }
     }
 
-    async function toonTraditie(docId, liEl) {
-      document.querySelectorAll("#traditie-list li").forEach(li=>li.classList.remove("active"));
-      liEl.classList.add("active");
+    async function laadEigen() {
+      eigenList.innerHTML = "<li>Laden...</li>";
+      try {
+        const snap = await db.collection("parochies").doc(parochieId).collection("tradities").get();
+        if (snap.empty) { eigenList.innerHTML = "<li>Geen tradities</li>"; return; }
+        eigenList.innerHTML = "";
+        snap.forEach(doc=>{
+          const li = document.createElement("li");
+          li.textContent = doc.data().titel || "(zonder titel)";
+          li.addEventListener("click",()=>toonEigen(doc.id, li));
+          eigenList.appendChild(li);
+        });
+      } catch(e){ console.error(e); }
+    }
 
-      const ref = db.collection("parochies").doc(parochieId).collection("tradities").doc(docId);
-      const snap = await ref.get();
+    async function toonAlgemeen(docId, liEl) {
+      document.querySelectorAll("#traditie-index li").forEach(li=>li.classList.remove("active"));
+      liEl.classList.add("active");
+      huidigeId = docId; huidigeType = "algemeen";
+
+      const snap = await db.collection("tradities").doc(docId).get();
       if(snap.exists){
         const data = snap.data();
-        huidigeId = docId;
+        title.textContent = data.type || docId;
+        editor.value = JSON.stringify(data, null, 2); // tonen als JSON
+        editor.disabled = true;
+        saveBtn.style.display = "none";
+      }
+    }
+
+    async function toonEigen(docId, liEl) {
+      document.querySelectorAll("#traditie-index li").forEach(li=>li.classList.remove("active"));
+      liEl.classList.add("active");
+      huidigeId = docId; huidigeType = "eigen";
+
+      const snap = await db.collection("parochies").doc(parochieId).collection("tradities").doc(docId).get();
+      if(snap.exists){
+        const data = snap.data();
         title.textContent = data.titel || "(zonder titel)";
         editor.value = data.html || "";
-      } else {
-        title.textContent = "Niet gevonden";
-        editor.value = "";
-        huidigeId = null;
+        editor.disabled = false;
+        saveBtn.style.display = "inline-block";
       }
     }
 
     saveBtn.addEventListener("click", async ()=>{
-      if(!huidigeId){ alert("Geen traditie geselecteerd."); return; }
+      if(huidigeType !== "eigen"){ alert("Alleen eigen tradities kan je opslaan."); return; }
       try {
         await db.collection("parochies").doc(parochieId).collection("tradities").doc(huidigeId)
           .update({ html: editor.value });
@@ -145,10 +165,11 @@
       if(!titel) return;
       const ref = db.collection("parochies").doc(parochieId).collection("tradities").doc();
       await ref.set({ titel, html:"" });
-      laadIndex();
+      laadEigen();
     });
 
-    laadIndex();
+    laadAlgemene();
+    laadEigen();
   </script>
 </body>
 </html>
