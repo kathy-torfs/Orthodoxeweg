@@ -27,7 +27,8 @@
 
   <style>
     :root{
-      --bg:#fff6e5; --ink:#5b3a00; --brand:#7bb235; --accent:#67510C; --soft:#ffe7a8;
+      --bg:#fff6e5; --ink:#5b3a00; --brand:#7bb235;
+      --accent:#67510C; --soft:#ffe7a8;
       --card:#ffffff; --line:#ead9b4;
     }
     *{box-sizing:border-box}
@@ -35,23 +36,20 @@
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.5}
     main{display:flex;max-width:1200px;margin:20px auto;padding:0 14px 40px;gap:20px}
     /* Links: index */
-    #traditie-index{flex:1;max-width:300px}
-    #traditie-index h2{font-size:1.1rem;color:var(--accent);margin:12px 0;display:flex;justify-content:space-between;align-items:center}
-    #traditie-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
-    #traditie-list li{background:var(--card);border:1px solid var(--line);border-radius:8px;
-      padding:6px 10px;cursor:pointer;transition:.2s}
-    #traditie-list li:hover{background:#fdf7e5}
-    #traditie-list li.active{background:var(--brand);color:#fff}
-    button.small{background:var(--brand);color:#fff;border:0;border-radius:6px;
-      padding:3px 6px;cursor:pointer;font-size:.8rem}
+    #traditie-index{flex:1;max-width:280px}
+    #traditie-index h2{font-size:1.2rem;color:var(--accent);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+    #traditie-index button{background:var(--brand);color:#fff;border:0;border-radius:6px;padding:4px 8px;cursor:pointer}
+    details{border:1px solid var(--line);border-radius:8px;margin-bottom:8px;background:var(--card)}
+    summary{cursor:pointer;padding:8px 10px;font-weight:600;color:var(--accent)}
+    ul{list-style:none;padding:0;margin:0}
+    ul li{padding:6px 10px;cursor:pointer;border-top:1px solid var(--line);transition:.2s}
+    ul li:hover{background:#fdf7e5}
+    ul li.active{background:var(--brand);color:#fff}
     /* Rechts: detail */
-    #traditie-detail{flex:3;display:flex;flex-direction:column;gap:10px}
+    #traditie-detail{flex:3}
     .card{background:var(--card);border:1px solid var(--line);border-radius:16px;
-      padding:16px;margin:0;box-shadow:0 6px 18px rgba(0,0,0,.05)}
+      padding:16px;margin:12px 0;box-shadow:0 6px 18px rgba(0,0,0,.05)}
     h1{margin:0;font-size:1.5rem;color:var(--accent)}
-    textarea{width:100%;min-height:300px;padding:10px;border:1px solid var(--line);
-      border-radius:8px;font-family:inherit;font-size:1rem}
-    #saveBtn{background:var(--brand);color:#fff;border:0;border-radius:6px;padding:10px;cursor:pointer;align-self:flex-end}
   </style>
 </head>
 <body>
@@ -62,114 +60,85 @@
   <main>
     <!-- INDEX -->
     <aside id="traditie-index">
-      <h2>Algemene tradities</h2>
-      <ul id="algemeen-list"><li>Laden...</li></ul>
-
-      <h2>Eigen tradities <button id="addTraditie" class="small">+ Toevoegen</button></h2>
-      <ul id="eigen-list"><li>Laden...</li></ul>
+      <h2>
+        Tradities
+        <button onclick="nieuweTraditie()">+</button>
+      </h2>
+      <details open>
+        <summary>Sacramenten</summary>
+        <ul id="sacramenten-list"><li>Laden...</li></ul>
+      </details>
+      <details>
+        <summary>Kerkelijke feesten</summary>
+        <ul id="feesten-list"><li>Laden...</li></ul>
+      </details>
+      <details>
+        <summary>Heiligen</summary>
+        <ul id="heiligen-list"><li>Laden...</li></ul>
+      </details>
+      <details>
+        <summary>Eigen tradities</summary>
+        <ul id="eigen-list"><li>Laden...</li></ul>
+      </details>
     </aside>
 
     <!-- DETAIL -->
     <section id="traditie-detail">
-      <h1 id="traditie-title">Kies een traditie</h1>
-      <div class="card">
-        <textarea id="traditie-editor" placeholder="Selecteer of voeg een traditie toe..."></textarea>
-        <button id="saveBtn">Opslaan</button>
+      <h1>Kies een traditie</h1>
+      <div id="traditie-content" class="card">
+        <p style="opacity:.8">Selecteer links een titel om de inhoud te bekijken.</p>
       </div>
     </section>
   </main>
 
   <script>
-    const parochieId = localStorage.getItem("ingelogdeParochie");
-    const algemeenList = document.getElementById("algemeen-list");
-    const eigenList = document.getElementById("eigen-list");
-    const editor = document.getElementById("traditie-editor");
-    const title = document.getElementById("traditie-title");
-    const saveBtn = document.getElementById("saveBtn");
-    const addBtn = document.getElementById("addTraditie");
+    const parochieId = localStorage.getItem("ingelogdeParochie"); 
+    const content = document.getElementById("traditie-content");
 
-    let huidigeId = null;
-    let huidigeType = null; // "algemeen" of "eigen"
-
-    async function laadAlgemene() {
-      algemeenList.innerHTML = "<li>Laden...</li>";
+    async function laadLijst(type, ulId, path) {
+      const ul = document.getElementById(ulId);
+      ul.innerHTML = "<li>Laden...</li>";
       try {
-        const snap = await db.collection("tradities").get();
-        if (snap.empty) { algemeenList.innerHTML = "<li>Geen tradities</li>"; return; }
-        algemeenList.innerHTML = "";
-        snap.forEach(doc=>{
-          const li = document.createElement("li");
-          li.textContent = doc.id;
-          li.addEventListener("click",()=>toonAlgemeen(doc.id, li));
-          algemeenList.appendChild(li);
-        });
-      } catch(e){ console.error(e); }
-    }
-
-    async function laadEigen() {
-      eigenList.innerHTML = "<li>Laden...</li>";
-      try {
-        const snap = await db.collection("parochies").doc(parochieId).collection("tradities").get();
-        if (snap.empty) { eigenList.innerHTML = "<li>Geen tradities</li>"; return; }
-        eigenList.innerHTML = "";
+        const snap = await db.collection(path).get();
+        if(snap.empty){
+          ul.innerHTML = "<li>Geen tradities</li>";
+          return;
+        }
+        ul.innerHTML = "";
         snap.forEach(doc=>{
           const li = document.createElement("li");
           li.textContent = doc.data().titel || "(zonder titel)";
-          li.addEventListener("click",()=>toonEigen(doc.id, li));
-          eigenList.appendChild(li);
+          li.addEventListener("click",()=>toonTraditie(path, doc.id, li));
+          ul.appendChild(li);
         });
-      } catch(e){ console.error(e); }
+      } catch(e){ console.error(e); ul.innerHTML="<li>Fout bij laden</li>"; }
     }
 
-    async function toonAlgemeen(docId, liEl) {
-      document.querySelectorAll("#traditie-index li").forEach(li=>li.classList.remove("active"));
+    async function toonTraditie(path, docId, liEl) {
+      document.querySelectorAll("ul li").forEach(li=>li.classList.remove("active"));
       liEl.classList.add("active");
-      huidigeId = docId; huidigeType = "algemeen";
 
-      const snap = await db.collection("tradities").doc(docId).get();
+      const ref = db.collection(path).doc(docId);
+      const snap = await ref.get();
       if(snap.exists){
         const data = snap.data();
-        title.textContent = data.type || docId;
-        editor.value = JSON.stringify(data, null, 2); // tonen als JSON
-        editor.disabled = true;
-        saveBtn.style.display = "none";
+        content.innerHTML = data.html || "<p>Geen inhoud beschikbaar.</p>";
+      } else {
+        content.innerHTML = "<p>Niet gevonden.</p>";
       }
     }
 
-    async function toonEigen(docId, liEl) {
-      document.querySelectorAll("#traditie-index li").forEach(li=>li.classList.remove("active"));
-      liEl.classList.add("active");
-      huidigeId = docId; huidigeType = "eigen";
-
-      const snap = await db.collection("parochies").doc(parochieId).collection("tradities").doc(docId).get();
-      if(snap.exists){
-        const data = snap.data();
-        title.textContent = data.titel || "(zonder titel)";
-        editor.value = data.html || "";
-        editor.disabled = false;
-        saveBtn.style.display = "inline-block";
-      }
+    function nieuweTraditie(){
+      alert("Hier kan je logica toevoegen om een nieuwe traditie aan te maken.");
     }
 
-    saveBtn.addEventListener("click", async ()=>{
-      if(huidigeType !== "eigen"){ alert("Alleen eigen tradities kan je opslaan."); return; }
-      try {
-        await db.collection("parochies").doc(parochieId).collection("tradities").doc(huidigeId)
-          .update({ html: editor.value });
-        alert("Traditie opgeslagen!");
-      } catch(e){ console.error(e); alert("Fout bij opslaan."); }
-    });
-
-    addBtn.addEventListener("click", async ()=>{
-      const titel = prompt("Geef een titel voor de nieuwe traditie:");
-      if(!titel) return;
-      const ref = db.collection("parochies").doc(parochieId).collection("tradities").doc();
-      await ref.set({ titel, html:"" });
-      laadEigen();
-    });
-
-    laadAlgemene();
-    laadEigen();
+    // Laden
+    laadLijst("sacramenten","sacramenten-list","tradities/sacramenten");
+    laadLijst("feesten","feesten-list","tradities/kerkelijke_feesten");
+    laadLijst("heiligen","heiligen-list","tradities/heiligen");
+    if(parochieId){
+      laadLijst("eigen","eigen-list",`parochies/${parochieId}/tradities`);
+    }
   </script>
 </body>
 </html>
