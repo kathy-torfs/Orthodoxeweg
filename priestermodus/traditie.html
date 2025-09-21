@@ -21,145 +21,143 @@
       messagingSenderId: "408582263618",
       appId: "1:408582263618:web:2e02833fa0d4d8903ceedb"
     };
-    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
   </script>
 
   <style>
-    :root{
-      --bg:#fff6e5; --ink:#5b3a00; --brand:#7bb235; --accent:#67510C; --soft:#ffe7a8;
+    :root {
+      --bg:#fff6e5; --ink:#5b3a00; --brand:#7bb235; --accent:#67510C;
       --card:#ffffff; --line:#ead9b4;
     }
-    *{box-sizing:border-box}
-    html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.5}
-    main{display:flex;max-width:1200px;margin:20px auto;padding:0 14px 40px;gap:20px}
-    /* Links */
-    #traditie-index{flex:1;max-width:300px}
-    #traditie-index h2{font-size:1.2rem;color:var(--accent);margin-bottom:10px}
-    #traditie-index ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
-    #traditie-index li{background:var(--card);border:1px solid var(--line);border-radius:8px;
-      padding:8px 10px;cursor:pointer;transition:.2s}
-    #traditie-index li:hover{background:#fdf7e5}
-    #traditie-index li.active{background:var(--brand);color:#fff}
-    button.add{margin:8px 0;padding:6px 10px;border:1px solid var(--line);border-radius:6px;
-      cursor:pointer;background:var(--brand);color:#fff}
-    /* Rechts */
-    #traditie-detail{flex:3}
-    .tabs{display:flex;gap:8px;margin-bottom:10px}
-    .tabs button{padding:6px 12px;border:1px solid var(--line);border-radius:6px;
-      cursor:pointer;background:#fff}
-    .tabs button.active{background:var(--brand);color:#fff}
-    .tab-content{display:none}
-    .tab-content.active{display:block}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;
-      padding:16px;margin:12px 0;box-shadow:0 6px 18px rgba(0,0,0,.05)}
+    body {margin:0; background:var(--bg); color:var(--ink); font-family:Arial,sans-serif;}
+    main {display:flex; max-width:1200px; margin:20px auto; padding:0 14px 40px; gap:20px}
+    #traditie-index {flex:1; max-width:280px}
+    #traditie-index h2 {font-size:1.2rem; color:var(--accent); margin-bottom:10px}
+    #traditie-list {list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:6px}
+    #traditie-list li {background:var(--card); border:1px solid var(--line); border-radius:8px;
+      padding:8px 10px; cursor:pointer; transition:.2s}
+    #traditie-list li:hover {background:#fdf7e5}
+    #traditie-list li.active {background:var(--brand); color:#fff}
+    #traditie-detail {flex:3}
+    .card {background:var(--card); border:1px solid var(--line); border-radius:16px;
+      padding:16px; margin:12px 0; box-shadow:0 6px 18px rgba(0,0,0,.05)}
+    h1,h2 {margin:0 0 10px; color:var(--accent)}
+    .tabs {display:flex; gap:10px; margin:10px 0}
+    .tabs button {flex:1; padding:8px; border:1px solid var(--line); border-radius:8px; cursor:pointer}
+    .tabs button.active {background:var(--brand); color:#fff}
+    .tab-content {margin-top:10px}
+    textarea {width:100%; min-height:140px; border:1px solid var(--line); border-radius:6px; padding:8px; font-family:inherit}
+    .btn-save {background:var(--brand); color:#fff; border:0; border-radius:8px; padding:10px 14px; cursor:pointer; margin-top:12px}
   </style>
 </head>
 <body>
+
   <div id="priester-header" data-header-src="common/header.html"></div>
 
   <main>
     <!-- INDEX -->
     <aside id="traditie-index">
-      <h2>Algemene tradities</h2>
-      <ul id="sacramenten-list"></ul>
-      <ul id="feesten-list"></ul>
-      <ul id="heiligen-list"></ul>
-      <h2>Eigen tradities</h2>
-      <button class="add" onclick="nieuweTraditie()">+ Nieuwe traditie</button>
-      <ul id="eigen-list"></ul>
+      <h2>Tradities</h2>
+      <ul id="traditie-list"><li>Laden...</li></ul>
+      <button onclick="nieuweTraditie()" style="margin-top:10px; width:100%">+ Nieuwe traditie</button>
     </aside>
 
     <!-- DETAIL -->
     <section id="traditie-detail">
       <h1>Kies een traditie</h1>
-      <div class="tabs hidden">
-        <button data-tab="voorbereiding">Voorbereiding</button>
-        <button data-tab="tijdens">Tijdens</button>
-        <button data-tab="na">Na</button>
+      <div id="traditie-content" class="card">
+        <p style="opacity:.8">Selecteer links een titel om de inhoud te bekijken.</p>
       </div>
-      <div id="voorbereiding" class="tab-content card"></div>
-      <div id="tijdens" class="tab-content card"></div>
-      <div id="na" class="tab-content card"></div>
     </section>
   </main>
 
   <script>
-    const parochieId = localStorage.getItem("ingelogdeParochie") || "demoParochie";
+    const parochieId = localStorage.getItem("ingelogdeParochie") || "demo";
 
-    async function laadLijst(ulId, path) {
-      const ul = document.getElementById(ulId);
-      ul.innerHTML = "<li>Laden...</li>";
-      try {
-        const snap = await db.collection(path).get();
-        ul.innerHTML = "";
-        snap.forEach(doc=>{
-          const li = document.createElement("li");
-          li.textContent = doc.data().titel || doc.id;
-          li.onclick = ()=>toonTraditie(path, doc.id, li);
-          ul.appendChild(li);
-        });
-      } catch(e){ console.error(e); ul.innerHTML="<li>Fout bij laden</li>"; }
-    }
+    const list = document.getElementById("traditie-list");
+    const content = document.getElementById("traditie-content");
 
-    async function toonTraditie(path, docId, li) {
-      document.querySelectorAll("#traditie-index li").forEach(el=>el.classList.remove("active"));
-      if(li) li.classList.add("active");
+    async function laadIndex() {
+      list.innerHTML = "<li>Laden...</li>";
+      const map = {};
 
-      const snap = await db.collection(path).doc(docId).get();
-      if(!snap.exists){ return; }
-      const data = snap.data();
+      // Algemene tradities
+      const algemeneSnap = await db.collection("tradities").get();
+      for (const doc of algemeneSnap.docs) {
+        map[doc.id] = { ...doc.data(), bron:"algemeen", id:doc.id };
+      }
 
-      document.querySelector("#traditie-detail h1").textContent = data.titel || docId;
-      document.querySelector(".tabs").classList.remove("hidden");
+      // Parochie-tradities
+      const paroSnap = await db.collection("parochies").doc(parochieId).collection("tradities").get();
+      for (const doc of paroSnap.docs) {
+        map[doc.id] = { ...doc.data(), bron:"parochie", id:doc.id };
+      }
 
-      ["voorbereiding","tijdens","na"].forEach(k=>{
-        document.getElementById(k).innerHTML =
-          data[k] ? "<ul>"+data[k].map(t=>"<li>"+t+"</li>").join("")+"</ul>" : "<p>-</p>";
-      });
-
-      switchTab("voorbereiding");
-    }
-
-    function switchTab(tab){
-      document.querySelectorAll(".tabs button").forEach(btn=>{
-        btn.classList.toggle("active", btn.dataset.tab===tab);
-      });
-      document.querySelectorAll(".tab-content").forEach(div=>{
-        div.classList.toggle("active", div.id===tab);
+      // Index vullen
+      list.innerHTML = "";
+      Object.values(map).forEach(data=>{
+        const li = document.createElement("li");
+        li.textContent = data.titel || data.id;
+        li.addEventListener("click",()=>toonTraditie(data,li));
+        list.appendChild(li);
       });
     }
-    document.querySelectorAll(".tabs button").forEach(btn=>{
-      btn.addEventListener("click",()=>switchTab(btn.dataset.tab));
-    });
 
-    async function nieuweTraditie(){
-      const type = prompt("Type traditie (sacrament, feest, heilige, ander):");
-      const titel = prompt("Titel:");
-      const datum = prompt("Datum (optioneel):");
+    function toonTraditie(data, liEl){
+      document.querySelectorAll("#traditie-list li").forEach(li=>li.classList.remove("active"));
+      liEl.classList.add("active");
+
+      content.innerHTML = `
+        <h2>${data.titel || "(zonder titel)"}</h2>
+        <div class="tabs">
+          <button class="tab active" onclick="switchTab(this,'voor')">Voorbereiding</button>
+          <button class="tab" onclick="switchTab(this,'tijdens')">Tijdens</button>
+          <button class="tab" onclick="switchTab(this,'na')">Na</button>
+        </div>
+        <div id="tab-voor" class="tab-content">
+          <textarea id="field-voor">${(data.voorbereiding||[]).join("\n")}</textarea>
+        </div>
+        <div id="tab-tijdens" class="tab-content" style="display:none">
+          <textarea id="field-tijdens">${(data.tijdens||[]).join("\n")}</textarea>
+        </div>
+        <div id="tab-na" class="tab-content" style="display:none">
+          <textarea id="field-na">${(data.na||[]).join("\n")}</textarea>
+        </div>
+        <button class="btn-save" onclick='opslaanInParochie("${data.id}")'>Opslaan in eigen parochie</button>
+      `;
+    }
+
+    function switchTab(btn, id){
+      document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      document.querySelectorAll(".tab-content").forEach(div=>div.style.display="none");
+      document.getElementById("tab-"+id).style.display="block";
+    }
+
+    async function opslaanInParochie(id){
+      const titel = document.querySelector("#traditie-detail h2").textContent;
+      const voorbereiding = document.getElementById("field-voor").value.split("\n").filter(x=>x.trim());
+      const tijdens = document.getElementById("field-tijdens").value.split("\n").filter(x=>x.trim());
+      const na = document.getElementById("field-na").value.split("\n").filter(x=>x.trim());
+
+      const data = {id,titel,voorbereiding,tijdens,na,bron:"parochie"};
+
+      await db.collection("parochies").doc(parochieId).collection("tradities").doc(id).set(data);
+      alert("Opgeslagen in eigen parochie!");
+      laadIndex();
+    }
+
+    function nieuweTraditie(){
+      const titel = prompt("Titel van de nieuwe traditie?");
       if(!titel) return;
-
-      const voorbereidingen = prompt("Voorbereiding (komma gescheiden):","").split(",").map(t=>t.trim()).filter(Boolean);
-      const tijdens = prompt("Tijdens (komma gescheiden):","").split(",").map(t=>t.trim()).filter(Boolean);
-      const na = prompt("Na (komma gescheiden):","").split(",").map(t=>t.trim()).filter(Boolean);
-
-      await db.collection("parochies").doc(parochieId).collection("tradities").add({
-        type, titel, datum,
-        voorbereiding: voorbereidingen,
-        tijdens: tijdens,
-        na: na,
-        aangemaakt: new Date()
-      });
-      alert("Toegevoegd!");
-      laadLijst("eigen-list",`parochies/${parochieId}/tradities`);
+      const id = titel.toLowerCase().replace(/\s+/g,"_");
+      const nieuw = {id,titel,voorbereiding:[],tijdens:[],na:[],bron:"parochie"};
+      db.collection("parochies").doc(parochieId).collection("tradities").doc(id).set(nieuw);
+      laadIndex();
     }
 
-    // Init laden
-    laadLijst("sacramenten-list","tradities/sacramenten/sacramenten");
-    laadLijst("feesten-list","tradities/kerkelijke_feesten/kerkelijke_feesten");
-    laadLijst("heiligen-list","tradities/heiligen/heiligen");
-    laadLijst("eigen-list",`parochies/${parochieId}/tradities`);
+    laadIndex();
   </script>
 </body>
 </html>
