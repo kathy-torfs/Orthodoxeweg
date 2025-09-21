@@ -9,7 +9,7 @@
   <!-- Priester layout -->
   <script defer src="common/layout.js"></script>
 
-  <!-- FIREBASE -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script>
@@ -26,138 +26,310 @@
   </script>
 
   <style>
-    :root {
+    :root{
       --bg:#fff6e5; --ink:#5b3a00; --brand:#7bb235; --accent:#67510C;
-      --card:#ffffff; --line:#ead9b4;
+      --card:#ffffff; --line:#ead9b4; --muted:#8d7a57;
     }
-    body {margin:0; background:var(--bg); color:var(--ink); font-family:Arial,sans-serif;}
-    main {display:flex; max-width:1200px; margin:20px auto; padding:0 14px 40px; gap:20px}
-    #traditie-index {flex:1; max-width:280px}
-    #traditie-index h2 {font-size:1.2rem; color:var(--accent); margin-bottom:10px}
-    #traditie-list {list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:6px}
-    #traditie-list li {background:var(--card); border:1px solid var(--line); border-radius:8px;
-      padding:8px 10px; cursor:pointer; transition:.2s}
-    #traditie-list li:hover {background:#fdf7e5}
-    #traditie-list li.active {background:var(--brand); color:#fff}
-    #traditie-detail {flex:3}
-    .card {background:var(--card); border:1px solid var(--line); border-radius:16px;
-      padding:16px; margin:12px 0; box-shadow:0 6px 18px rgba(0,0,0,.05)}
-    h1,h2 {margin:0 0 10px; color:var(--accent)}
-    .tabs {display:flex; gap:10px; margin:10px 0}
-    .tabs button {flex:1; padding:8px; border:1px solid var(--line); border-radius:8px; cursor:pointer}
-    .tabs button.active {background:var(--brand); color:#fff}
-    .tab-content {margin-top:10px}
-    textarea {width:100%; min-height:140px; border:1px solid var(--line); border-radius:6px; padding:8px; font-family:inherit}
-    .btn-save {background:var(--brand); color:#fff; border:0; border-radius:8px; padding:10px 14px; cursor:pointer; margin-top:12px}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    main{display:flex;max-width:1200px;margin:20px auto;padding:0 14px 40px;gap:20px}
+
+    /* Index */
+    aside{flex:1;max-width:320px}
+    .rowhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+    .title{font-size:1.2rem;color:var(--accent);font-weight:700}
+    .btn-add{background:#ddd;border:1px solid #c8bb9a;border-radius:8px;padding:8px 10px;cursor:pointer}
+    .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
+    details.group{border:1px solid var(--line);border-radius:8px;margin:8px 0;background:#fff}
+    details.group>summary{list-style:none;cursor:pointer;padding:8px 10px;font-weight:600;color:#31560b}
+    details.group[open]>summary{background:#f3f8ea;border-bottom:1px solid var(--line);border-radius:8px 8px 0 0}
+    ul.items{margin:0;padding:8px;list-style:none;display:flex;flex-direction:column;gap:6px}
+    .item{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:#fff;cursor:pointer}
+    .item:hover{background:#fffaf0}
+    .item.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+    .muted{color:var(--muted);font-size:.92em}
+
+    /* Detail */
+    section#detail{flex:3}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0;box-shadow:0 6px 18px rgba(0,0,0,.05)}
+    h1{margin:0 0 6px;color:var(--accent)}
+    .badge{display:inline-block;background:#e8f4d9;border:1px solid #cfe0ad;color:#325602;border-radius:999px;padding:4px 8px;font-size:.85em;margin-left:6px}
+    .tabs{display:flex;gap:8px;margin:10px 0}
+    .tabs button{flex:1;border:1px solid var(--line);border-radius:8px;padding:8px;cursor:pointer;background:#fff}
+    .tabs button.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+    .tab-pane{display:none}
+    .tab-pane.active{display:block}
+    textarea{width:100%;min-height:150px;border:1px solid var(--line);border-radius:8px;padding:10px;font-family:inherit}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .btn{background:var(--brand);color:#fff;border:0;border-radius:10px;padding:10px 14px;cursor:pointer}
+    .btn.ghost{background:#fff;color:#333;border:1px solid var(--line)}
+    .info{font-size:.9em;color:var(--muted)}
   </style>
 </head>
 <body>
 
+  <!-- Priester-header -->
   <div id="priester-header" data-header-src="common/header.html"></div>
 
   <main>
     <!-- INDEX -->
-    <aside id="traditie-index">
-      <h2>Tradities</h2>
-      <ul id="traditie-list"><li>Laden...</li></ul>
-      <button onclick="nieuweTraditie()" style="margin-top:10px; width:100%">+ Nieuwe traditie</button>
+    <aside>
+      <div class="rowhead">
+        <div class="title">Tradities</div>
+        <button class="btn-add" id="btnNew">+ Nieuwe traditie</button>
+      </div>
+
+      <div class="panel">
+        <div class="muted">Algemeen</div>
+        <div id="listAlgemeen"></div>
+        <div class="muted" style="margin-top:10px">Mijn parochie</div>
+        <ul id="listParochie" class="items"></ul>
+      </div>
     </aside>
 
     <!-- DETAIL -->
-    <section id="traditie-detail">
+    <section id="detail">
       <h1>Kies een traditie</h1>
-      <div id="traditie-content" class="card">
-        <p style="opacity:.8">Selecteer links een titel om de inhoud te bekijken.</p>
+      <div id="detailCard" class="card">
+        <p class="info">Kies links een item. Voor categorieën (Heiligen, Kerkelijke feesten, Sacramenten) klapt het menu open en klik je het concrete item (bv. “Verkondiging” of “Heilige Demetrios”).</p>
       </div>
     </section>
   </main>
 
   <script>
+    // ------- helpers & state -------
     const parochieId = localStorage.getItem("ingelogdeParochie") || "demo";
+    const listAlgemeen = document.getElementById("listAlgemeen");
+    const listParochie = document.getElementById("listParochie");
+    const detailCard  = document.getElementById("detailCard");
 
-    const list = document.getElementById("traditie-list");
-    const content = document.getElementById("traditie-content");
+    // huidige selectie
+    let current = { cat:null, itemId:null, single:false, source:"algemeen", titel:null };
 
-    async function laadIndex() {
-      list.innerHTML = "<li>Laden...</li>";
-      const map = {};
+    // toon arrays netjes in textarea en terug
+    const arrToText = (a)=> (Array.isArray(a)?a:[]).join("\n");
+    const textToArr = (t)=> String(t||"").split("\n").map(s=>s.trim()).filter(Boolean);
 
-      // Algemene tradities
-      const algemeneSnap = await db.collection("tradities").get();
-      for (const doc of algemeneSnap.docs) {
-        map[doc.id] = { ...doc.data(), bron:"algemeen", id:doc.id };
+    // ------- index laden -------
+    async function loadIndex(){
+      // Algemeen: categoriedocs
+      const catSnap = await db.collection("tradities").get();
+      listAlgemeen.innerHTML = '';
+      const catIds = catSnap.docs.map(d=>d.id);
+
+      for (const catId of catIds){
+        // probeer subcollectie met dezelfde naam
+        const subSnap = await db.collection("tradities").doc(catId).collection(catId).get();
+        if (!subSnap.empty){
+          // categorie met subitems
+          const det = document.createElement("details");
+          det.className = "group";
+          const sum = document.createElement("summary");
+          sum.textContent = catId.replace(/_/g," ");
+          det.appendChild(sum);
+
+          const ul = document.createElement("ul");
+          ul.className = "items";
+
+          subSnap.docs
+            .sort((a,b)=> (a.id > b.id ? 1 : -1))
+            .forEach(doc=>{
+              const li = document.createElement("li");
+              li.className = "item";
+              li.textContent = (doc.data().naam || doc.data().titel || doc.id).replace(/_/g," ");
+              li.onclick = ()=> openItem({cat:catId, itemId:doc.id, single:false, source:"algemeen", titel: li.textContent, liEl: li});
+              ul.appendChild(li);
+            });
+
+          det.appendChild(ul);
+          listAlgemeen.appendChild(det);
+        } else {
+          // single doc (bv. zondagsliturgie)
+          const li = document.createElement("div");
+          li.className = "item";
+          li.textContent = catId.replace(/_/g," ");
+          li.onclick = ()=> openItem({cat:catId, itemId:null, single:true, source:"algemeen", titel: li.textContent, liEl: li});
+          listAlgemeen.appendChild(li);
+        }
       }
 
-      // Parochie-tradities
-      const paroSnap = await db.collection("parochies").doc(parochieId).collection("tradities").get();
-      for (const doc of paroSnap.docs) {
-        map[doc.id] = { ...doc.data(), bron:"parochie", id:doc.id };
+      // Parochie: toon eigen (single docs) + eigen subitems (we tonen alle leafs)
+      listParochie.innerHTML = '';
+      for (const catId of catIds){
+        // single override?
+        const ownSingle = await db.collection("parochies").doc(parochieId).collection("tradities").doc(catId).get();
+        if (ownSingle.exists){
+          const li = document.createElement("li");
+          li.className = "item";
+          li.textContent = (ownSingle.data().titel || catId).replace(/_/g," ") + " (parochie)";
+          li.onclick = ()=> openItem({cat:catId, itemId:null, single:true, source:"parochie", titel: li.textContent, liEl:li});
+          listParochie.appendChild(li);
+        }
+        // subitems overrides
+        const ownSub = await db.collection("parochies").doc(parochieId).collection("tradities").doc(catId).collection(catId).get().catch(()=>null);
+        if (ownSub && !ownSub.empty){
+          ownSub.docs.forEach(doc=>{
+            const li = document.createElement("li");
+            li.className = "item";
+            li.textContent = ((doc.data().titel||doc.data().naam||doc.id)+" (parochie)").replace(/_/g," ");
+            li.onclick = ()=> openItem({cat:catId, itemId:doc.id, single:false, source:"parochie", titel: li.textContent, liEl:li});
+            listParochie.appendChild(li);
+          });
+        }
+      }
+    }
+
+    // ------- item laden (met parochie override) -------
+    async function openItem(sel){
+      // active markering reset
+      document.querySelectorAll(".item").forEach(el=>el.classList.remove("active"));
+      sel.liEl && sel.liEl.classList.add("active");
+
+      current = sel; // store
+
+      // 1) probeer parochie-document (override)
+      let docRef, docSnap;
+      if (sel.single){
+        docRef = db.collection("parochies").doc(parochieId).collection("tradities").doc(sel.cat);
+        docSnap = await docRef.get();
+        if (!docSnap.exists && sel.source==="algemeen"){
+          // fallback algemeen single
+          docRef = db.collection("tradities").doc(sel.cat);
+          docSnap = await docRef.get();
+        }
+      } else {
+        // subitem
+        // eerst parochie
+        docRef = db.collection("parochies").doc(parochieId).collection("tradities").doc(sel.cat).collection(sel.cat).doc(sel.itemId);
+        docSnap = await docRef.get();
+        if (!docSnap.exists && sel.source==="algemeen"){
+          // fallback algemeen
+          docRef = db.collection("tradities").doc(sel.cat).collection(sel.cat).doc(sel.itemId);
+          docSnap = await docRef.get();
+        }
       }
 
-      // Index vullen
-      list.innerHTML = "";
-      Object.values(map).forEach(data=>{
-        const li = document.createElement("li");
-        li.textContent = data.titel || data.id;
-        li.addEventListener("click",()=>toonTraditie(data,li));
-        list.appendChild(li);
+      if (!docSnap || !docSnap.exists){
+        renderEditor({
+          titel: sel.titel || "(zonder titel)",
+          voorbereiding: [], tijdens: [], na: [],
+          note: "Geen inhoud gevonden. Je kan rechts invullen en opslaan in eigen parochie."
+        });
+        return;
+      }
+
+      const d = docSnap.data() || {};
+      // de velden kunnen anders heten bij algemene sets (naam), we mappen naar titel
+      const titel = d.titel || d.naam || sel.titel || (sel.itemId || sel.cat).replace(/_/g," ");
+      renderEditor({
+        titel,
+        voorbereiding: d.voorbereiding || [],
+        tijdens: d.tijdens || [],
+        na: d.na || [],
+        origin: (docRef.path.startsWith("parochies/") ? "parochie" : "algemeen")
       });
     }
 
-    function toonTraditie(data, liEl){
-      document.querySelectorAll("#traditie-list li").forEach(li=>li.classList.remove("active"));
-      liEl.classList.add("active");
+    function renderEditor({titel, voorbereiding, tijdens, na, origin, note}){
+      const originBadge = origin ? `<span class="badge">${origin==="parochie"?"Parochieversie":"Algemene bron"}</span>` : "";
+      const noteHtml = note ? `<p class="info">${note}</p>` : "";
 
-      content.innerHTML = `
-        <h2>${data.titel || "(zonder titel)"}</h2>
+      detailCard.innerHTML = `
+        <h1>${titel}${originBadge}</h1>
+        ${noteHtml}
         <div class="tabs">
-          <button class="tab active" onclick="switchTab(this,'voor')">Voorbereiding</button>
-          <button class="tab" onclick="switchTab(this,'tijdens')">Tijdens</button>
-          <button class="tab" onclick="switchTab(this,'na')">Na</button>
+          <button class="tabBtn active" data-tab="voor">Voorbereiding</button>
+          <button class="tabBtn" data-tab="tijdens">Tijdens</button>
+          <button class="tabBtn" data-tab="na">Na</button>
         </div>
-        <div id="tab-voor" class="tab-content">
-          <textarea id="field-voor">${(data.voorbereiding||[]).join("\n")}</textarea>
+
+        <div id="pane-voor" class="tab-pane active">
+          <textarea id="txt-voor">${arrToText(voorbereiding)}</textarea>
         </div>
-        <div id="tab-tijdens" class="tab-content" style="display:none">
-          <textarea id="field-tijdens">${(data.tijdens||[]).join("\n")}</textarea>
+        <div id="pane-tijdens" class="tab-pane">
+          <textarea id="txt-tijdens">${arrToText(tijdens)}</textarea>
         </div>
-        <div id="tab-na" class="tab-content" style="display:none">
-          <textarea id="field-na">${(data.na||[]).join("\n")}</textarea>
+        <div id="pane-na" class="tab-pane">
+          <textarea id="txt-na">${arrToText(na)}</textarea>
         </div>
-        <button class="btn-save" onclick='opslaanInParochie("${data.id}")'>Opslaan in eigen parochie</button>
+
+        <div class="actions">
+          <button class="btn" id="btnSave">Opslaan in eigen parochie</button>
+          <button class="btn ghost" id="btnPrint">Print</button>
+        </div>
       `;
+
+      // tab click
+      detailCard.querySelectorAll(".tabBtn").forEach(b=>{
+        b.onclick = ()=>{
+          detailCard.querySelectorAll(".tabBtn").forEach(x=>x.classList.remove("active"));
+          b.classList.add("active");
+          const key = b.dataset.tab;
+          detailCard.querySelectorAll(".tab-pane").forEach(p=>p.classList.remove("active"));
+          detailCard.querySelector("#pane-"+key).classList.add("active");
+        };
+      });
+
+      // save
+      detailCard.querySelector("#btnSave").onclick = saveToParochie;
+      detailCard.querySelector("#btnPrint").onclick = ()=>window.print();
     }
 
-    function switchTab(btn, id){
-      document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
-      btn.classList.add("active");
-      document.querySelectorAll(".tab-content").forEach(div=>div.style.display="none");
-      document.getElementById("tab-"+id).style.display="block";
+    async function saveToParochie(){
+      if (!current || !current.cat){
+        alert("Geen item geselecteerd.");
+        return;
+      }
+      const titel = document.querySelector("#detail h1").childNodes[0].nodeValue.trim();
+      const voorbereiding = textToArr(document.getElementById("txt-voor").value);
+      const tijdens       = textToArr(document.getElementById("txt-tijdens").value);
+      const na            = textToArr(document.getElementById("txt-na").value);
+
+      // doelref in parochiestructuur
+      let ref;
+      if (current.single){
+        ref = db.collection("parochies").doc(parochieId).collection("tradities").doc(current.cat);
+      } else {
+        ref = db.collection("parochies").doc(parochieId).collection("tradities").doc(current.cat).collection(current.cat).doc(current.itemId);
+      }
+
+      await ref.set({ titel, voorbereiding, tijdens, na }, { merge:true });
+      alert("Opgeslagen in eigen parochie.");
+      // index herladen zodat “(parochie)” in de lijst verschijnt indien nieuw
+      await loadIndex();
     }
 
-    async function opslaanInParochie(id){
-      const titel = document.querySelector("#traditie-detail h2").textContent;
-      const voorbereiding = document.getElementById("field-voor").value.split("\n").filter(x=>x.trim());
-      const tijdens = document.getElementById("field-tijdens").value.split("\n").filter(x=>x.trim());
-      const na = document.getElementById("field-na").value.split("\n").filter(x=>x.trim());
+    // nieuwe parochietraditie
+    document.getElementById("btnNew").onclick = async ()=>{
+      const cat = prompt("Categorie? (heiligen / kerkelijke_feesten / sacramenten / zondagsliturgie)").trim();
+      if (!cat) return;
+      const lowCat = cat.toLowerCase().replace(/\s+/g,"_");
 
-      const data = {id,titel,voorbereiding,tijdens,na,bron:"parochie"};
+      // subitem of single?
+      let itemId = null;
+      if (lowCat === "heiligen" || lowCat === "kerkelijke_feesten" || lowCat === "sacramenten"){
+        const titel = prompt("Titel / naam van het item (bv. Heilige X of Verkondiging)").trim();
+        if (!titel) return;
+        itemId = titel.toLowerCase().replace(/\s+/g,"_");
+        // maak leeg item
+        await db.collection("parochies").doc(parochieId).collection("tradities").doc(lowCat)
+          .collection(lowCat).doc(itemId).set({ titel, voorbereiding:[], tijdens:[], na:[] });
+        // open meteen
+        await loadIndex();
+        // zoek en open
+        openItem({cat:lowCat, itemId, single:false, source:"parochie", titel});
+      } else {
+        const titel = prompt("Titel (bv. Zondagsliturgie)").trim();
+        if (!titel) return;
+        await db.collection("parochies").doc(parochieId).collection("tradities").doc(lowCat)
+          .set({ titel, voorbereiding:[], tijdens:[], na:[] }, {merge:true});
+        await loadIndex();
+        openItem({cat:lowCat, itemId:null, single:true, source:"parochie", titel});
+      }
+    };
 
-      await db.collection("parochies").doc(parochieId).collection("tradities").doc(id).set(data);
-      alert("Opgeslagen in eigen parochie!");
-      laadIndex();
-    }
-
-    function nieuweTraditie(){
-      const titel = prompt("Titel van de nieuwe traditie?");
-      if(!titel) return;
-      const id = titel.toLowerCase().replace(/\s+/g,"_");
-      const nieuw = {id,titel,voorbereiding:[],tijdens:[],na:[],bron:"parochie"};
-      db.collection("parochies").doc(parochieId).collection("tradities").doc(id).set(nieuw);
-      laadIndex();
-    }
-
-    laadIndex();
+    // start
+    loadIndex();
   </script>
 </body>
 </html>
