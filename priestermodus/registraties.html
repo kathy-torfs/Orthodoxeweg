@@ -168,6 +168,7 @@
 
       const wachtwoord = genereerWachtwoord();
 
+      // Lid meteen toevoegen
       await db.collection("parochies").doc(parochieId).collection("leden")
         .doc(data.loginKeuze)
         .set({
@@ -183,6 +184,11 @@
           verjaardagToevoegen: data.verjaardagToevoegen === undefined ? false : data.verjaardagToevoegen
         });
 
+      // Direct verwijderen uit "registraties" → UI is meteen leeg
+      await regRef.delete();
+      laadAanvragen();
+
+      // Mail versturen in achtergrond
       let mailOk = false;
       let mailError = "";
 
@@ -220,14 +226,11 @@ Orthodoxeweg.be`
         mailError = e.message;
       }
 
-      await regRef.delete();
-
       if (mailOk) {
         alert("✅ Registratie goedgekeurd, toegevoegd aan ledenlijst én mail verzonden!");
       } else {
         alert("⚠️ Registratie goedgekeurd, toegevoegd aan ledenlijst, MAAR mail is NIET verzonden!\n\nFout: " + mailError);
       }
-      laadAanvragen();
     }
 
     // ==== WEIGEREN ====
