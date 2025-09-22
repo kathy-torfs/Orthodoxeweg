@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
@@ -34,24 +34,22 @@
     body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
     main{display:flex;max-width:1200px;margin:20px auto;padding:0 14px 40px;gap:20px}
 
-    /* Index */
     aside{flex:1;max-width:320px}
     .rowhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
     .title{font-size:1.2rem;color:var(--accent);font-weight:700}
     .btn-add{background:#ddd;border:1px solid #c8bb9a;border-radius:8px;padding:8px 10px;cursor:pointer}
     .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
     details.group{border:1px solid var(--line);border-radius:8px;margin:8px 0;background:#fff}
-    details.group>summary{list-style:none;cursor:pointer;padding:8px 10px;font-weight:600;color:#31560b}
-    details.group[open]>summary{background:#f3f8ea;border-bottom:1px solid var(--line);border-radius:8px 8px 0 0}
-    ul.items{margin:0;padding:8px;list-style:none;display:flex;flex-direction:column;gap:6px}
+    details.group>summary{cursor:pointer;padding:8px 10px;font-weight:600;color:#31560b}
+    details.group[open]>summary{background:#f3f8ea}
+    ul.items{list-style:none;margin:0;padding:8px;display:flex;flex-direction:column;gap:6px}
     .item{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:#fff;cursor:pointer}
     .item:hover{background:#fffaf0}
     .item.active{background:var(--brand);color:#fff;border-color:var(--brand)}
     .muted{color:var(--muted);font-size:.92em}
 
-    /* Detail */
     section#detail{flex:3}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0;box-shadow:0 6px 18px rgba(0,0,0,.05)}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0}
     .headerline{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
     h1{margin:0;color:var(--accent);flex:1}
     .badge{display:inline-block;background:#e8f4d9;border:1px solid #cfe0ad;color:#325602;border-radius:999px;padding:4px 8px;font-size:.85em}
@@ -60,7 +58,8 @@
     .tabs button.active{background:var(--brand);color:#fff;border-color:var(--brand)}
     .tab-pane{display:none}
     .tab-pane.active{display:block}
-    textarea{width:100%;min-height:150px;border:1px solid var(--line);border-radius:8px;padding:10px;font-family:inherit}
+    textarea,input{width:100%;border:1px solid var(--line);border-radius:8px;padding:10px;font-family:inherit}
+    textarea{min-height:150px}
     .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
     .btn{background:var(--brand);color:#fff;border:0;border-radius:10px;padding:10px 14px;cursor:pointer}
     .btn.ghost{background:#fff;color:#333;border:1px solid var(--line)}
@@ -124,7 +123,8 @@
         parSnap.forEach(doc=>{
           const li=document.createElement("li");
           li.className="item";
-          li.textContent=(doc.data().titel||doc.id)+" (parochie)";
+          const d=doc.data();
+          li.textContent=(d.titel||doc.id)+(d.datum?` – ${d.datum}`:"")+" (parochie)";
           li.onclick=()=>openItem(cat,doc.id,"parochie",li);
           ul.appendChild(li);
         });
@@ -145,12 +145,13 @@
       const snap=await ref.get();
 
       if (!snap.exists){
-        renderEditor({titel:"(Leeg)",cat:catId,voorbereiding:[],tijdens:[],na:[],origin:source});
+        renderEditor({titel:"(Leeg)",cat:catId,datum:"",voorbereiding:[],tijdens:[],na:[],origin:source});
         return;
       }
       const d=snap.data();
       renderEditor({
         titel:d.titel||docId,
+        datum:d.datum||"",
         cat:d.type||catId,
         voorbereiding:d.voorbereiding||[],
         tijdens:d.tijdens||[],
@@ -159,7 +160,7 @@
       });
     }
 
-    function renderEditor({titel,cat,voorbereiding,tijdens,na,origin}){
+    function renderEditor({titel,datum,cat,voorbereiding,tijdens,na,origin}){
       const catSelectHtml = `
         <select id="editCat" ${origin==="algemeen"?"disabled":""}>
           <option value="heiligen" ${cat==="heiligen"?"selected":""}>Heiligen</option>
@@ -173,6 +174,10 @@
           <h1 contenteditable="true" id="editTitel">${titel}</h1>
           ${catSelectHtml}
           <span class="badge">${origin==="parochie"?"Parochie":"Algemeen"}</span>
+        </div>
+        <div>
+          <label for="editDatum">📅 Datum:</label>
+          <input type="text" id="editDatum" value="${datum}" placeholder="bv. 6 december, 25 maart, ...">
         </div>
         <div class="tabs">
           <button class="tabBtn active" data-tab="voor">Voorbereiding</button>
@@ -204,13 +209,14 @@
       if (!current) return;
       const titel=document.getElementById("editTitel").innerText.trim();
       const cat=document.getElementById("editCat").value;
+      const datum=document.getElementById("editDatum").value.trim();
       const voorbereiding=textToArr(document.getElementById("txt-voor").value);
       const tijdens=textToArr(document.getElementById("txt-tijdens").value);
       const na=textToArr(document.getElementById("txt-na").value);
       let docId=current.docId || titel.toLowerCase().replace(/\s+/g,"_");
 
       await db.collection("parochies").doc(parochieId).collection("tradities").doc(docId)
-        .set({titel,voorbereiding,tijdens,na,type:cat},{merge:true});
+        .set({titel,datum,voorbereiding,tijdens,na,type:cat},{merge:true});
       alert("Opgeslagen in parochie");
       loadIndex();
     }
@@ -226,7 +232,7 @@
 
     document.getElementById("btnNew").onclick=()=>{
       current={catId:"heiligen",docId:null,source:"parochie"};
-      renderEditor({titel:"Nieuwe traditie",cat:"heiligen",voorbereiding:[],tijdens:[],na:[],origin:"parochie"});
+      renderEditor({titel:"Nieuwe traditie",datum:"",cat:"heiligen",voorbereiding:[],tijdens:[],na:[],origin:"parochie"});
     };
 
     loadIndex();
