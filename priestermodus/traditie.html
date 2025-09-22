@@ -34,18 +34,22 @@
     body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
     main{display:flex;max-width:1200px;margin:20px auto;padding:0 14px 40px;gap:20px}
 
+    /* Index */
     aside{flex:1;max-width:320px}
     .rowhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
     .title{font-size:1.2rem;color:var(--accent);font-weight:700}
     .btn-add{background:#ddd;border:1px solid #c8bb9a;border-radius:8px;padding:8px 10px;cursor:pointer}
     .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
-    .group-title{font-weight:600;color:#31560b;margin:8px 0 4px}
-    ul.items{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+    details.group{border:1px solid var(--line);border-radius:8px;margin:8px 0;background:#fff}
+    details.group>summary{list-style:none;cursor:pointer;padding:8px 10px;font-weight:600;color:#31560b}
+    details.group[open]>summary{background:#f3f8ea;border-bottom:1px solid var(--line);border-radius:8px 8px 0 0}
+    ul.items{margin:0;padding:8px;list-style:none;display:flex;flex-direction:column;gap:6px}
     .item{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:#fff;cursor:pointer}
     .item:hover{background:#fffaf0}
     .item.active{background:var(--brand);color:#fff;border-color:var(--brand)}
     .muted{color:var(--muted);font-size:.92em}
 
+    /* Detail */
     section#detail{flex:3}
     .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0;box-shadow:0 6px 18px rgba(0,0,0,.05)}
     h1{margin:0 0 6px;color:var(--accent)}
@@ -60,160 +64,135 @@
     .btn{background:var(--brand);color:#fff;border:0;border-radius:10px;padding:10px 14px;cursor:pointer}
     .btn.ghost{background:#fff;color:#333;border:1px solid var(--line)}
     .info{font-size:.9em;color:var(--muted)}
+    #titelInput, #catSelect{width:100%; padding:8px; margin-bottom:10px; border:1px solid #ccc; border-radius:6px}
   </style>
 </head>
 <body>
+
+  <!-- Priester-header -->
   <div id="priester-header" data-header-src="common/header.html"></div>
 
   <main>
+    <!-- INDEX -->
     <aside>
       <div class="rowhead">
         <div class="title">Tradities</div>
         <button class="btn-add" id="btnNew">+ Nieuwe traditie</button>
       </div>
-      <div class="panel" id="listAlgemeen"></div>
+
+      <div class="panel">
+        <div class="muted">Algemeen</div>
+        <div id="listAlgemeen"></div>
+        <div class="muted" style="margin-top:10px">Mijn parochie</div>
+        <ul id="listParochie" class="items"></ul>
+      </div>
     </aside>
 
+    <!-- DETAIL -->
     <section id="detail">
       <h1>Kies een traditie</h1>
       <div id="detailCard" class="card">
-        <p class="info">Klik links een traditie. Zowel de algemene als de parochieversies verschijnen samen.</p>
+        <p class="info">Kies links een item of klik “Nieuwe traditie”.</p>
       </div>
     </section>
   </main>
 
   <script>
-    const parochieId = localStorage.getItem("ingelogdeParochie") || "hasselt-drie-hierarchen";
+    const parochieId = localStorage.getItem("ingelogdeParochie") || "demo";
     const listAlgemeen = document.getElementById("listAlgemeen");
+    const listParochie = document.getElementById("listParochie");
     const detailCard  = document.getElementById("detailCard");
 
-    let current = { cat:null, itemId:null, single:false, titel:null };
+    let current = { cat:null, itemId:null, single:false, source:"algemeen", titel:null };
 
     const arrToText = (a)=> (Array.isArray(a)?a:[]).join("\n");
     const textToArr = (t)=> String(t||"").split("\n").map(s=>s.trim()).filter(Boolean);
 
-    async function loadIndex(){
-      listAlgemeen.innerHTML = "";
-      const catSnap = await db.collection("tradities").get();
+    // Nieuwe lege traditie starten
+    document.getElementById("btnNew").onclick = () => {
+      current = { cat:null, itemId:null, single:false, source:"parochie", titel:"" };
+      renderEditor({
+        titel:"",
+        voorbereiding:[],
+        tijdens:[],
+        na:[],
+        origin:"parochie",
+        note:"Nieuwe traditie – vul titel, categorie en inhoud in."
+      });
+    };
 
-      for (const catDoc of catSnap.docs){
-        const catId = catDoc.id;
-        const catDiv = document.createElement("div");
-        const catTitle = document.createElement("div");
-        catTitle.className = "group-title";
-        catTitle.textContent = catId.replace(/_/g," ");
-        catDiv.appendChild(catTitle);
+    function renderEditor({titel, voorbereiding, tijdens, na, origin, note}){
+      const originBadge = origin ? `<span class="badge">${origin==="parochie"?"Parochieversie":"Algemene bron"}</span>` : "";
+      const noteHtml = note ? `<p class="info">${note}</p>` : "";
 
-        const ul = document.createElement("ul");
-        ul.className = "items";
-
-        if (catId === "zondagsliturgie"){
-          // enkel één document
-          addItem(ul, {cat:catId, itemId:null, single:true, titel:"Zondagsliturgie"});
-        } else {
-          // algemene items
-          const subSnap = await db.collection("tradities").doc(catId).collection(catId).get();
-          subSnap.forEach(doc=>{
-            addItem(ul, {cat:catId, itemId:doc.id, single:false, titel: doc.data().naam || doc.data().titel || doc.id});
-          });
-          // parochieversies
-          const ownSub = await db.collection("parochies").doc(parochieId).collection("tradities").doc(catId).collection(catId).get().catch(()=>null);
-          if (ownSub && !ownSub.empty){
-            ownSub.forEach(doc=>{
-              addItem(ul, {cat:catId, itemId:doc.id, single:false, titel:(doc.data().titel||doc.id)+" (parochie)"});
-            });
-          }
-        }
-        catDiv.appendChild(ul);
-        listAlgemeen.appendChild(catDiv);
-      }
-    }
-
-    function addItem(ul, sel){
-      const li = document.createElement("li");
-      li.className = "item";
-      li.textContent = sel.titel.replace(/_/g," ");
-      li.onclick = ()=>openItem({...sel, liEl:li});
-      ul.appendChild(li);
-    }
-
-    async function openItem(sel){
-      document.querySelectorAll(".item").forEach(el=>el.classList.remove("active"));
-      sel.liEl.classList.add("active");
-      current = sel;
-
-      let docRef, docSnap;
-      if (sel.single){
-        docRef = db.collection("parochies").doc(parochieId).collection("tradities").doc(sel.cat);
-        docSnap = await docRef.get();
-        if (!docSnap.exists){
-          docRef = db.collection("tradities").doc(sel.cat);
-          docSnap = await docRef.get();
-        }
-      } else {
-        docRef = db.collection("parochies").doc(parochieId).collection("tradities").doc(sel.cat).collection(sel.cat).doc(sel.itemId);
-        docSnap = await docRef.get();
-        if (!docSnap.exists){
-          docRef = db.collection("tradities").doc(sel.cat).collection(sel.cat).doc(sel.itemId);
-          docSnap = await docRef.get();
-        }
-      }
-
-      if (!docSnap.exists){
-        renderEditor({titel: sel.titel, voorbereiding:[], tijdens:[], na:[], origin:"onbekend"});
-        return;
-      }
-      const d = docSnap.data();
-      const titel = d.titel || d.naam || sel.titel;
-      renderEditor({titel, voorbereiding:d.voorbereiding||[], tijdens:d.tijdens||[], na:d.na||[], origin:docRef.path.includes("parochies/")?"parochie":"algemeen"});
-    }
-
-    function renderEditor({titel, voorbereiding, tijdens, na, origin}){
-      const originBadge = `<span class="badge">${origin==="parochie"?"Parochieversie":"Algemeen"}</span>`;
       detailCard.innerHTML = `
-        <h1>${titel} ${originBadge}</h1>
+        ${noteHtml}
+        <input id="titelInput" type="text" placeholder="Titel van de traditie" value="${titel||""}" />
+        <select id="catSelect">
+          <option value="">-- Kies categorie --</option>
+          <option value="heiligen">Heiligen</option>
+          <option value="kerkelijke_feesten">Kerkelijke feesten</option>
+          <option value="sacramenten">Sacramenten</option>
+          <option value="zondagsliturgie">Zondagsliturgie</option>
+        </select>
+
         <div class="tabs">
           <button class="tabBtn active" data-tab="voor">Voorbereiding</button>
           <button class="tabBtn" data-tab="tijdens">Tijdens</button>
           <button class="tabBtn" data-tab="na">Na</button>
         </div>
-        <div id="pane-voor" class="tab-pane active"><textarea id="txt-voor">${arrToText(voorbereiding)}</textarea></div>
-        <div id="pane-tijdens" class="tab-pane"><textarea id="txt-tijdens">${arrToText(tijdens)}</textarea></div>
-        <div id="pane-na" class="tab-pane"><textarea id="txt-na">${arrToText(na)}</textarea></div>
+
+        <div id="pane-voor" class="tab-pane active">
+          <textarea id="txt-voor">${arrToText(voorbereiding)}</textarea>
+        </div>
+        <div id="pane-tijdens" class="tab-pane">
+          <textarea id="txt-tijdens">${arrToText(tijdens)}</textarea>
+        </div>
+        <div id="pane-na" class="tab-pane">
+          <textarea id="txt-na">${arrToText(na)}</textarea>
+        </div>
+
         <div class="actions">
           <button class="btn" id="btnSave">Opslaan in eigen parochie</button>
+          <button class="btn ghost" id="btnPrint">Print</button>
         </div>
       `;
+
       detailCard.querySelectorAll(".tabBtn").forEach(b=>{
         b.onclick = ()=>{
           detailCard.querySelectorAll(".tabBtn").forEach(x=>x.classList.remove("active"));
           b.classList.add("active");
+          const key = b.dataset.tab;
           detailCard.querySelectorAll(".tab-pane").forEach(p=>p.classList.remove("active"));
-          detailCard.querySelector("#pane-"+b.dataset.tab).classList.add("active");
+          detailCard.querySelector("#pane-"+key).classList.add("active");
         };
       });
+
       detailCard.querySelector("#btnSave").onclick = saveToParochie;
+      detailCard.querySelector("#btnPrint").onclick = ()=>window.print();
     }
 
     async function saveToParochie(){
-      if (!current.cat) return;
-      const titel = document.querySelector("#detail h1").childNodes[0].nodeValue.trim();
+      const titel = document.getElementById("titelInput").value.trim();
+      const cat   = document.getElementById("catSelect").value;
+      if (!titel || !cat){ alert("Geef titel en categorie in."); return; }
+
       const voorbereiding = textToArr(document.getElementById("txt-voor").value);
-      const tijdens = textToArr(document.getElementById("txt-tijdens").value);
-      const na = textToArr(document.getElementById("txt-na").value);
+      const tijdens       = textToArr(document.getElementById("txt-tijdens").value);
+      const na            = textToArr(document.getElementById("txt-na").value);
 
+      const itemId = current.itemId || titel.toLowerCase().replace(/\s+/g,"_");
       let ref;
-      if (current.single){
-        ref = db.collection("parochies").doc(parochieId).collection("tradities").doc(current.cat);
+      if (cat==="heiligen"||cat==="kerkelijke_feesten"||cat==="sacramenten"){
+        ref = db.collection("parochies").doc(parochieId).collection("tradities").doc(cat).collection(cat).doc(itemId);
       } else {
-        ref = db.collection("parochies").doc(parochieId).collection("tradities").doc(current.cat).collection(current.cat).doc(current.itemId);
+        ref = db.collection("parochies").doc(parochieId).collection("tradities").doc(cat);
       }
-      await ref.set({titel, voorbereiding, tijdens, na}, {merge:true});
-      alert("Opgeslagen!");
-      loadIndex();
-    }
 
-    loadIndex();
+      await ref.set({ titel, voorbereiding, tijdens, na }, { merge:true });
+      alert("Opgeslagen in eigen parochie.");
+      // eventueel index herladen
+    }
   </script>
 </body>
 </html>
