@@ -46,7 +46,7 @@
     section#detail{flex:3}
     .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0}
     h1{margin:0 0 6px;color:var(--accent)}
-    .badge{display:inline-block;background:#e8f4d9;border:1px solid #cfe0ad;color:#325602;border-radius:999px;padding:4px 8px;font-size:.85em}
+    .badge{display:inline-block;background:#e8f4d9;border:1px solid #cfe0ad;color:#325602;border-radius:999px;padding:4px 8px;font-size:.85em;margin-left:6px}
     .tabs{display:flex;gap:8px;margin:10px 0}
     .tabs button{flex:1;border:1px solid var(--line);border-radius:8px;padding:8px;cursor:pointer;background:#fff}
     .tabs button.active{background:var(--brand);color:#fff;border-color:var(--brand)}
@@ -64,7 +64,10 @@
     <!-- Index -->
     <aside>
       <div class="title">Tradities</div>
-      <div id="list"></div>
+      <div class="muted">Algemeen</div>
+      <div id="listAlgemeen"></div>
+      <div class="muted" style="margin-top:10px">Mijn parochie</div>
+      <div id="listParochie"></div>
     </aside>
 
     <!-- Detail -->
@@ -77,14 +80,19 @@
   </main>
 
   <script>
-    const list = document.getElementById("list");
+    const parochieId = localStorage.getItem("ingelogdeParochie") || "demo";
+    const listAlgemeen = document.getElementById("listAlgemeen");
+    const listParochie = document.getElementById("listParochie");
     const detailCard = document.getElementById("detailCard");
+
     let current=null;
 
     async function loadIndex(){
       const cats=["heiligen","kerkelijke_feesten","sacramenten","zondagsliturgie"];
-      list.innerHTML="";
+      listAlgemeen.innerHTML=""; listParochie.innerHTML="";
+
       for(const cat of cats){
+        // ---------- Algemeen ----------
         const det=document.createElement("details");
         det.className="group";
         det.innerHTML=`<summary>${cat.replace(/_/g," ")}</summary>`;
@@ -94,28 +102,50 @@
           const li=document.createElement("li");
           li.className="item";
           li.textContent=doc.data().titel||doc.id;
-          li.onclick=()=>openItem(cat,doc.id,li);
+          li.onclick=()=>openItem(cat,doc.id,"algemeen",li);
           ul.appendChild(li);
         });
         det.appendChild(ul);
-        list.appendChild(det);
+        listAlgemeen.appendChild(det);
+
+        // ---------- Parochie ----------
+        const parSnap=await db.collection("parochies").doc(parochieId).collection("tradities").where("type","==",cat).get().catch(()=>null);
+        if(parSnap && !parSnap.empty){
+          const detP=document.createElement("details");
+          detP.className="group";
+          detP.innerHTML=`<summary>${cat.replace(/_/g," ")} (parochie)</summary>`;
+          const ulP=document.createElement("ul"); ulP.className="items";
+          parSnap.forEach(doc=>{
+            const li=document.createElement("li");
+            li.className="item";
+            li.textContent=(doc.data().titel||doc.id)+" (parochie)";
+            li.onclick=()=>openItem(cat,doc.id,"parochie",li);
+            ulP.appendChild(li);
+          });
+          detP.appendChild(ulP);
+          listParochie.appendChild(detP);
+        }
       }
     }
 
-    async function openItem(cat,docId,liEl){
+    async function openItem(cat,docId,source,liEl){
       document.querySelectorAll(".item").forEach(el=>el.classList.remove("active"));
       liEl.classList.add("active");
-      current={cat,docId};
-      const ref=db.collection("tradities").doc(docId);
+      current={cat,docId,source};
+      let ref;
+      if(source==="parochie"){
+        ref=db.collection("parochies").doc(parochieId).collection("tradities").doc(docId);
+      } else {
+        ref=db.collection("tradities").doc(docId);
+      }
       const snap=await ref.get();
       if(!snap.exists){ detailCard.innerHTML="<p>Geen inhoud gevonden.</p>"; return; }
-      const d=snap.data();
-      renderDetail(d);
+      renderDetail(snap.data(),source);
     }
 
-    function renderDetail(d){
+    function renderDetail(d,source){
       detailCard.innerHTML=`
-        <h1>${d.titel||""} <span class="badge">Algemeen</span></h1>
+        <h1>${d.titel||""} <span class="badge">${source==="parochie"?"Parochie":"Algemeen"}</span></h1>
         <div class="tabs">
           <button class="tabBtn active" data-tab="voor">Voorbereiding</button>
           <button class="tabBtn" data-tab="tijdens">Tijdens</button>
