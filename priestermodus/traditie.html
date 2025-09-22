@@ -63,7 +63,9 @@
     .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
     .btn{background:var(--brand);color:#fff;border:0;border-radius:10px;padding:10px 14px;cursor:pointer}
     .btn.ghost{background:#fff;color:#333;border:1px solid var(--line)}
+    .btn.danger{background:#d9534f;color:#fff;border:0;border-radius:10px;padding:10px 14px;cursor:pointer}
     .info{font-size:.9em;color:var(--muted)}
+    select{margin-right:8px;padding:6px;border:1px solid var(--line);border-radius:6px}
   </style>
 </head>
 <body>
@@ -76,7 +78,15 @@
     <aside>
       <div class="rowhead">
         <div class="title">Tradities</div>
-        <button class="btn-add" id="btnNew">+ Nieuwe traditie</button>
+        <div>
+          <select id="catSelect">
+            <option value="heiligen">Heiligen</option>
+            <option value="kerkelijke_feesten">Kerkelijke feesten</option>
+            <option value="sacramenten">Sacramenten</option>
+            <option value="zondagsliturgie">Zondagsliturgie</option>
+          </select>
+          <button class="btn-add" id="btnNew">+ Nieuwe traditie</button>
+        </div>
       </div>
 
       <div class="panel" id="list"></div>
@@ -176,6 +186,7 @@
         <div id="pane-na" class="tab-pane"><textarea id="txt-na">${arrToText(na)}</textarea></div>
         <div class="actions">
           <button class="btn" id="btnSave">Opslaan in parochie</button>
+          <button class="btn danger" id="btnDelete">Verwijderen</button>
           <button class="btn ghost" onclick="window.print()">Print</button>
         </div>
       `;
@@ -188,6 +199,7 @@
         };
       });
       document.getElementById("btnSave").onclick=saveToParochie;
+      document.getElementById("btnDelete").onclick=deleteFromParochie;
     }
 
     async function saveToParochie(){
@@ -197,7 +209,6 @@
       const tijdens=textToArr(document.getElementById("txt-tijdens").value);
       const na=textToArr(document.getElementById("txt-na").value);
 
-      // als nieuwe → genereer id
       let docId=current.docId;
       if (!docId){
         docId=titel.toLowerCase().replace(/\s+/g,"_");
@@ -210,9 +221,19 @@
       loadIndex();
     }
 
+    async function deleteFromParochie(){
+      if (!current || current.source!=="parochie"){ alert("Alleen parochieversies kunnen verwijderd worden."); return; }
+      if (!confirm("Weet u zeker dat u deze traditie wilt verwijderen?")) return;
+      await db.collection("parochies").doc(parochieId).collection("tradities").doc(current.docId).delete();
+      alert("Traditie verwijderd");
+      detailCard.innerHTML="<p class='info'>Kies links een traditie of maak een nieuwe.</p>";
+      loadIndex();
+    }
+
     // Nieuwe traditie
     document.getElementById("btnNew").onclick=()=>{
-      current={catId:"heiligen",docId:null,source:"parochie"}; // default cat bv. heiligen
+      const cat=document.getElementById("catSelect").value;
+      current={catId:cat,docId:null,source:"parochie"};
       renderEditor({titel:"Nieuwe traditie",voorbereiding:[],tijdens:[],na:[],origin:"parochie"});
     };
 
