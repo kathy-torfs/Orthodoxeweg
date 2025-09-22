@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Orthodoxeweg – Traditie </title>
-<link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
-  
-  <!-- FIREBASE (globaal) -->
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Orthodoxeweg – Traditie</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
@@ -21,54 +21,127 @@
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    console.log("Firebase geladen in volwassenmodus");
   </script>
 
-  <!-- Layout script (laadt volwassen-header en css) -->
+  <!-- Layout -->
   <script src="common/layout.js" defer></script>
+
+  <style>
+    :root{
+      --bg:#fff6e5; --ink:#5b3a00; --brand:#7bb235; --accent:#67510C;
+      --card:#ffffff; --line:#ead9b4; --muted:#8d7a57;
+    }
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    main{display:flex;max-width:1200px;margin:20px auto;padding:0 14px 40px;gap:20px}
+
+    aside{flex:1;max-width:320px}
+    details.group{border:1px solid var(--line);border-radius:8px;margin:8px 0;background:#fff}
+    details.group>summary{cursor:pointer;padding:8px 10px;font-weight:600;color:#31560b}
+    details.group[open]>summary{background:#f3f8ea}
+    ul.items{list-style:none;margin:0;padding:8px;display:flex;flex-direction:column;gap:6px}
+    .item{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:#fff;cursor:pointer}
+    .item:hover{background:#fffaf0}
+    .item.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+
+    section#detail{flex:3}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0}
+    h1{margin:0 0 6px;color:var(--accent)}
+    .badge{display:inline-block;background:#e8f4d9;border:1px solid #cfe0ad;color:#325602;border-radius:999px;padding:4px 8px;font-size:.85em}
+    .tabs{display:flex;gap:8px;margin:10px 0}
+    .tabs button{flex:1;border:1px solid var(--line);border-radius:8px;padding:8px;cursor:pointer;background:#fff}
+    .tabs button.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+    .tab-pane{display:none}
+    .tab-pane.active{display:block}
+    ul.detail-list{padding-left:18px}
+  </style>
 </head>
 <body>
 
-  <!-- HEADER komt uit volwassen/common/header.html -->
+  <!-- Header -->
   <div id="volwassen-header"></div>
 
-  <!-- TRADITIE-INHOUD (wordt uit root/traditie.html geladen) -->
-  <div id="volwassen-traditie"></div>
+  <main>
+    <!-- Index -->
+    <aside>
+      <div class="title">Tradities</div>
+      <div id="list"></div>
+    </aside>
+
+    <!-- Detail -->
+    <section id="detail">
+      <h1>Kies een traditie</h1>
+      <div id="detailCard" class="card">
+        <p class="muted">Klik links een traditie om de inhoud te bekijken.</p>
+      </div>
+    </section>
+  </main>
 
   <script>
-    async function loadTraditie() {
-      try {
-        const resp = await fetch("/traditie.html", {cache:"no-cache"});
-        if (resp.ok) {
-          const html = await resp.text();
-          const container = document.getElementById("volwassen-traditie");
-          container.innerHTML = html;
+    const list = document.getElementById("list");
+    const detailCard = document.getElementById("detailCard");
+    let current=null;
 
-          // Scripts uit traditie.html opnieuw uitvoeren
-          container.querySelectorAll("script").forEach(oldScript => {
-            const newScript = document.createElement("script");
-            if (oldScript.src) {
-              newScript.src = oldScript.src;
-            } else {
-              newScript.textContent = oldScript.textContent;
-            }
-            document.body.appendChild(newScript);
-          });
-
-          console.log("traditie.html ingeladen en scripts uitgevoerd (volwassen)");
-        } else {
-          document.getElementById("volwassen-traditie").innerHTML =
-            "<p style='text-align:center;color:#a33;margin-top:40px;'>Kon traditie.html niet laden.</p>";
-        }
-      } catch(e) {
-        console.error("Fout bij laden traditie.html:", e);
-        document.getElementById("volwassen-traditie").innerHTML =
-          "<p style='text-align:center;color:#a33;margin-top:40px;'>Fout bij laden traditie.html.</p>";
+    async function loadIndex(){
+      const cats=["heiligen","kerkelijke_feesten","sacramenten","zondagsliturgie"];
+      list.innerHTML="";
+      for(const cat of cats){
+        const det=document.createElement("details");
+        det.className="group";
+        det.innerHTML=`<summary>${cat.replace(/_/g," ")}</summary>`;
+        const ul=document.createElement("ul"); ul.className="items";
+        const snap=await db.collection("tradities").where("type","==",cat).get();
+        snap.forEach(doc=>{
+          const li=document.createElement("li");
+          li.className="item";
+          li.textContent=doc.data().titel||doc.id;
+          li.onclick=()=>openItem(cat,doc.id,li);
+          ul.appendChild(li);
+        });
+        det.appendChild(ul);
+        list.appendChild(det);
       }
     }
 
-    loadTraditie();
-  </script>
+    async function openItem(cat,docId,liEl){
+      document.querySelectorAll(".item").forEach(el=>el.classList.remove("active"));
+      liEl.classList.add("active");
+      current={cat,docId};
+      const ref=db.collection("tradities").doc(docId);
+      const snap=await ref.get();
+      if(!snap.exists){ detailCard.innerHTML="<p>Geen inhoud gevonden.</p>"; return; }
+      const d=snap.data();
+      renderDetail(d);
+    }
 
+    function renderDetail(d){
+      detailCard.innerHTML=`
+        <h1>${d.titel||""} <span class="badge">Algemeen</span></h1>
+        <div class="tabs">
+          <button class="tabBtn active" data-tab="voor">Voorbereiding</button>
+          <button class="tabBtn" data-tab="tijdens">Tijdens</button>
+          <button class="tabBtn" data-tab="na">Na</button>
+        </div>
+        <div id="pane-voor" class="tab-pane active">
+          <ul class="detail-list">${(d.voorbereiding||[]).map(t=>`<li>${t}</li>`).join("")}</ul>
+        </div>
+        <div id="pane-tijdens" class="tab-pane">
+          <ul class="detail-list">${(d.tijdens||[]).map(t=>`<li>${t}</li>`).join("")}</ul>
+        </div>
+        <div id="pane-na" class="tab-pane">
+          <ul class="detail-list">${(d.na||[]).map(t=>`<li>${t}</li>`).join("")}</ul>
+        </div>
+      `;
+      detailCard.querySelectorAll(".tabBtn").forEach(b=>{
+        b.onclick=()=>{
+          detailCard.querySelectorAll(".tabBtn").forEach(x=>x.classList.remove("active"));
+          b.classList.add("active");
+          detailCard.querySelectorAll(".tab-pane").forEach(p=>p.classList.remove("active"));
+          detailCard.querySelector("#pane-"+b.dataset.tab).classList.add("active");
+        };
+      });
+    }
+
+    loadIndex();
+  </script>
 </body>
 </html>
