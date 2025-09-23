@@ -204,6 +204,7 @@
 
   <!-- ==== POPUPS: BEGIN ==== -->
   <div id="overlay" onclick="closeAllPopups()"></div>
+
   <div id="loginPopup" class="popup">
     <button class="sluiten" onclick="closeAllPopups()">&times;</button>
     <h2>Inloggen</h2>
@@ -233,6 +234,8 @@
       <select id="parochieSelect" required></select>
       <input type="date" id="geboortedatum" placeholder="Geboortedatum" required />
       <input type="text" id="loginKeuze" placeholder="Kies uw loginnaam" required />
+      <!-- ✨ Toegevoegd veld voor wachtwoord (gebruikers kiest zelf) -->
+      <input type="password" id="wachtwoordKeuze" placeholder="Kies uw wachtwoord" required />
       <label style="margin: 0.5em 0 0.7em 0; display: flex; align-items: center;">
         <input type="checkbox" id="verjaardagToevoegen" checked style="margin-right: 9px;">
         Voeg mij toe aan de verjaardagskalender
@@ -347,11 +350,14 @@
     }
     window.addEventListener('DOMContentLoaded', laadParochies);
 
+    // Registratie: direct naar leden (gebruiker kiest eigen wachtwoord)
     document.getElementById("registratieForm").addEventListener("submit", function(e) {
       e.preventDefault();
+
       const parochieSelect = document.getElementById("parochieSelect");
       const parochieId = parochieSelect.value;
-      const parochieNaam = parochieSelect.selectedOptions[0].getAttribute("data-naam");
+      const parochieNaam = parochieSelect.selectedOptions[0] ? parochieSelect.selectedOptions[0].getAttribute("data-naam") : "";
+
       const data = {
         voornaam: document.getElementById("voornaam").value,
         achternaam: document.getElementById("achternaam").value,
@@ -360,13 +366,17 @@
         parochie: parochieNaam,
         geboortedatum: document.getElementById("geboortedatum").value,
         loginKeuze: document.getElementById("loginKeuze").value,
-        status: "in afwachting",
+        wachtwoord: document.getElementById("wachtwoordKeuze").value, // zelfgekozen wachtwoord
+        status: "actief", // meteen actief
         avatarURL: document.getElementById("avatarURL").value,
         verjaardagToevoegen: document.getElementById("verjaardagToevoegen").checked,
-        rol: "lid"
+        rol: "lid",
+        datumAangemeld: firebase.firestore.FieldValue.serverTimestamp()
       };
+
       const loginKeuze = data.loginKeuze;
 
+      // Controleer of login al bestaat in registraties of leden
       db.collection("parochies").doc(parochieId).collection("registraties")
         .where("loginKeuze", "==", loginKeuze)
         .get().then(snapshot => {
@@ -381,10 +391,22 @@
                 alert("Deze loginnaam is al in gebruik voor deze parochie.");
                 return;
               }
-              db.collection("parochies").doc(parochieId).collection("registraties").add(data).then(() => {
-                closeAllPopups();
-                alert("Registratie verzonden. Je ontvangt een e-mail na goedkeuring.");
-              });
+
+              // Schrijf direct naar leden collectie (document id = loginKeuze)
+              db.collection("parochies").doc(parochieId).collection("leden")
+                .doc(loginKeuze)
+                .set(data)
+                .then(() => {
+                  closeAllPopups();
+                  alert("✅ Registratie voltooid! U kan meteen inloggen met uw gekozen login en wachtwoord.");
+                  // optioneel: onthoud laatste parochie
+                  localStorage.setItem("laatsteParochie", parochieId);
+                })
+                .catch(err => {
+                  console.error("Fout bij opslag:", err);
+                  alert("❌ Er ging iets mis bij de registratie. Probeer opnieuw.");
+                });
+
             });
         });
     });
@@ -393,7 +415,7 @@
     function login() {
       const parochieSelect = document.getElementById("loginParochie");
       const parochieId = parochieSelect.value;
-      const parochieNaam = parochieSelect.selectedOptions[0].getAttribute("data-naam");
+      const parochieNaam = parochieSelect.selectedOptions[0] ? parochieSelect.selectedOptions[0].getAttribute("data-naam") : "";
       const loginKeuze = document.getElementById("loginNaam").value.trim();
       const wachtwoord = document.getElementById("loginWachtwoord").value;
 
@@ -423,7 +445,6 @@
             localStorage.setItem("avatarURL", lidData.avatarURL || "https://cdn-icons-png.flaticon.com/512/4140/4140048.png");
             localStorage.setItem("ingelogdeVolwasseneNaam", naam);
 
-            // ✅ rol als array opslaan
             if (Array.isArray(lidData.rol)) {
               localStorage.setItem("rol", JSON.stringify(lidData.rol));
             } else if (lidData.rol) {
@@ -448,7 +469,7 @@
     function priesterLogin() {
       const parochieSelect = document.getElementById("priesterParochie");
       const parochieId = parochieSelect.value;
-      const parochieNaam = parochieSelect.selectedOptions[0].getAttribute("data-naam");
+      const parochieNaam = parochieSelect.selectedOptions[0] ? parochieSelect.selectedOptions[0].getAttribute("data-naam") : "";
       const ww = document.getElementById("priesterWachtwoord").value;
       db.collection("parochies")
         .doc(parochieId)
@@ -458,10 +479,7 @@
             localStorage.setItem("modus", "priester");
             localStorage.setItem("ingelogdeParochie", parochieId);
             localStorage.setItem("ingelogdeParochieNaam", parochieNaam);
-
-            // ✅ rol als array opslaan
             localStorage.setItem("rol", JSON.stringify(["priester"]));
-
             localStorage.setItem("laatsteParochie", parochieId);
             window.location.href = "priestermodus/startpagina.html";
           } else alert("Onjuiste gegevens.");
@@ -511,10 +529,6 @@
         statusEl.textContent = "❌ Er ging iets mis bij indienen.";
       }
     });
-
-    /* 👉 enige toevoeging zodat onclick werkt in alle omgevingen */
-    window.openPopup = openPopup;
-    window.closeAllPopups = closeAllPopups;
   </script>
   <!-- ==== SCRIPTS: EINDE ==== -->
 </body>
