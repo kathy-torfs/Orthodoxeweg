@@ -183,9 +183,13 @@
           verjaardagToevoegen: data.verjaardagToevoegen === undefined ? false : data.verjaardagToevoegen
         });
 
+      console.log("Mailfunctie wordt aangeroepen voor:", data.email);
+
       let mailOk = false;
+      let mailError = "";
+
       try {
-        const response = await fetch("https://us-central1-orthodoxeweg.cloudfunctions.net/sendTestMail", {
+        const response = await fetch("https://sendtestmail-hkwti6o53q-uc.a.run.app", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -205,17 +209,21 @@ Met vriendelijke groeten,
 Orthodoxeweg`
           })
         });
-        mailOk = response.ok;
+
+        const result = await response.json().catch(() => ({}));
+        mailOk = response.ok && result.success;
+        mailError = result.error || (!response.ok ? "Onbekende fout in response" : "");
       } catch (e) {
         mailOk = false;
+        mailError = e.message;
       }
 
       await regRef.delete();
 
       if (mailOk) {
-        alert("Registratie goedgekeurd, toegevoegd aan ledenlijst én mail verzonden!");
+        alert("✅ Registratie goedgekeurd, toegevoegd aan ledenlijst én mail verzonden!");
       } else {
-        alert("Registratie goedgekeurd, toegevoegd aan ledenlijst, MAAR mail is NIET verzonden!");
+        alert("⚠️ Registratie goedgekeurd, toegevoegd aan ledenlijst, MAAR mail is NIET verzonden!\n\nFout: " + mailError);
       }
       laadAanvragen();
     }
