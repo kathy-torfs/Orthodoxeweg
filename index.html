@@ -204,7 +204,6 @@
 
   <!-- ==== POPUPS: BEGIN ==== -->
   <div id="overlay" onclick="closeAllPopups()"></div>
-
   <div id="loginPopup" class="popup">
     <button class="sluiten" onclick="closeAllPopups()">&times;</button>
     <h2>Inloggen</h2>
@@ -227,14 +226,13 @@
       <input type="text" id="achternaam" placeholder="Achternaam" required />
       <input type="text" id="doopnaam" placeholder="Doopnaam" required />
       <input type="email" id="email" placeholder="E-mail" required 
-        style="text-transform: lowercase;" autocomplete="username"
+        style="text-transform: lowercase;"
+        autocomplete="username"
         oninput="this.value=this.value.toLowerCase()">
       <small style="color:#a86a1a;">Tip: Gebruik enkel kleine letters (geen hoofdletters) voor je e-mailadres.</small>
       <select id="parochieSelect" required></select>
       <input type="date" id="geboortedatum" placeholder="Geboortedatum" required />
       <input type="text" id="loginKeuze" placeholder="Kies uw loginnaam" required />
-      <!-- ✨ NIEUW: wachtwoord dat de gebruiker zelf kiest -->
-      <input type="password" id="wachtwoord" placeholder="Kies uw wachtwoord" required />
       <label style="margin: 0.5em 0 0.7em 0; display: flex; align-items: center;">
         <input type="checkbox" id="verjaardagToevoegen" checked style="margin-right: 9px;">
         Voeg mij toe aan de verjaardagskalender
@@ -308,7 +306,7 @@
             const data = doc.data();
             const optie = document.createElement("option");
             optie.value = doc.id;
-            optie.textContent = ${"`"}${"${data.naam}"} — ${"${data.gemeente}"} (${"${data.postcode}"})${"`"};
+            optie.textContent = `${data.naam} — ${data.gemeente} (${data.postcode})`;
             optie.setAttribute("data-naam", data.naam);
             optie.setAttribute("data-id", doc.id);
             if (el) el.appendChild(optie);
@@ -349,13 +347,11 @@
     }
     window.addEventListener('DOMContentLoaded', laadParochies);
 
-    // === REGISTRATIE -> DIRECT NAAR LEDEN (met gekozen wachtwoord) ===
     document.getElementById("registratieForm").addEventListener("submit", function(e) {
       e.preventDefault();
       const parochieSelect = document.getElementById("parochieSelect");
       const parochieId = parochieSelect.value;
       const parochieNaam = parochieSelect.selectedOptions[0].getAttribute("data-naam");
-
       const data = {
         voornaam: document.getElementById("voornaam").value,
         achternaam: document.getElementById("achternaam").value,
@@ -364,39 +360,31 @@
         parochie: parochieNaam,
         geboortedatum: document.getElementById("geboortedatum").value,
         loginKeuze: document.getElementById("loginKeuze").value,
-        wachtwoord: document.getElementById("wachtwoord").value, // ✨ nieuw
-        status: "actief",
+        status: "in afwachting",
         avatarURL: document.getElementById("avatarURL").value,
         verjaardagToevoegen: document.getElementById("verjaardagToevoegen").checked,
         rol: "lid"
       };
       const loginKeuze = data.loginKeuze;
 
-      // Uniekheidscheck (login) binnen parochie
-      db.collection("parochies").doc(parochieId).collection("leden")
+      db.collection("parochies").doc(parochieId).collection("registraties")
         .where("loginKeuze", "==", loginKeuze)
-        .get().then(snapshotLeden => {
-          if (!snapshotLeden.empty) {
+        .get().then(snapshot => {
+          if (!snapshot.empty) {
             alert("Deze loginnaam is al in gebruik voor deze parochie.");
             return;
           }
-          // (optioneel) ook nog oude wachtrij checken, voor de zekerheid
-          db.collection("parochies").doc(parochieId).collection("registraties")
+          db.collection("parochies").doc(parochieId).collection("leden")
             .where("loginKeuze", "==", loginKeuze)
-            .get().then(snapshotReg => {
-              if (!snapshotReg.empty) {
-                alert("Deze loginnaam is nog in afwachting. Kies een andere loginnaam.");
+            .get().then(snapshot2 => {
+              if (!snapshot2.empty) {
+                alert("Deze loginnaam is al in gebruik voor deze parochie.");
                 return;
               }
-              // Meteen naar leden
-              db.collection("parochies").doc(parochieId).collection("leden")
-                .doc(loginKeuze).set(data).then(() => {
-                  closeAllPopups();
-                  alert("✅ Uw account is aangemaakt!\n\nU kan nu inloggen in parochie " + parochieNaam +
-                        " met gebruikersnaam '" + loginKeuze + "' en uw gekozen wachtwoord.");
-                }).catch(err => {
-                  alert("Er ging iets mis bij het aanmaken: " + err.message);
-                });
+              db.collection("parochies").doc(parochieId).collection("registraties").add(data).then(() => {
+                closeAllPopups();
+                alert("Registratie verzonden. Je ontvangt een e-mail na goedkeuring.");
+              });
             });
         });
     });
@@ -523,6 +511,10 @@
         statusEl.textContent = "❌ Er ging iets mis bij indienen.";
       }
     });
+
+    /* 👉 enige toevoeging zodat onclick werkt in alle omgevingen */
+    window.openPopup = openPopup;
+    window.closeAllPopups = closeAllPopups;
   </script>
   <!-- ==== SCRIPTS: EINDE ==== -->
 </body>
