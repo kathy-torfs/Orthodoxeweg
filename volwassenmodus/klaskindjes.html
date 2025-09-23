@@ -43,27 +43,41 @@
         projectId:"orthodoxeweg",
       });
     }
-    const db=firebase.firestore();
-    const parochieId=sessionStorage.getItem("dagboek_parochieId");
+    const db = firebase.firestore();
+    const parochieId = sessionStorage.getItem("dagboek_parochieId");
 
     async function laadKinderen(){
-      const container=document.getElementById("kinderen");
-      container.innerHTML="Laden…";
-      try{
-        const ledenSnap=await db.collection("parochies").doc(parochieId).collection("leden").get();
-        container.innerHTML="";
-        for(const lidDoc of ledenSnap.docs){
-          const kindSnap=await lidDoc.ref.collection("kinderen").get();
-          kindSnap.forEach(kindDoc=>{
-            const k=kindDoc.data();
-            const naam=(k.voornaam||"Naamloos")+(k.achternaam?" "+k.achternaam:"");
-            const foto=k.avatarURL||"https://kathy-torfs.github.io/Orthodoxeweg/images/sterretje.png";
-            const wachtwoord=k.wachtwoord||"";
-            const punten=k.punten||0;
+      const container = document.getElementById("kinderen");
+      container.innerHTML = "Laden…";
+      console.log("Gebruik parochieId:", parochieId);
 
-            const kaart=document.createElement("div");
-            kaart.className="kind-kaart";
-            kaart.innerHTML=`
+      if(!parochieId){
+        container.innerHTML = "⚠️ Geen parochieId gevonden in sessionStorage.";
+        return;
+      }
+
+      try{
+        const ledenSnap = await db.collection("parochies").doc(parochieId).collection("leden").get();
+        console.log("Aantal leden:", ledenSnap.size);
+        container.innerHTML = "";
+
+        for(const lidDoc of ledenSnap.docs){
+          console.log("Lid:", lidDoc.id, lidDoc.data());
+          const kindSnap = await lidDoc.ref.collection("kinderen").get();
+          console.log("Aantal kinderen bij", lidDoc.id, "=", kindSnap.size);
+
+          kindSnap.forEach(kindDoc=>{
+            const k = kindDoc.data();
+            console.log("Kind:", kindDoc.id, k);
+
+            const naam = (k.voornaam||"Naamloos") + (k.achternaam?" "+k.achternaam:"");
+            const foto = k.avatarURL || "https://kathy-torfs.github.io/Orthodoxeweg/images/sterretje.png";
+            const wachtwoord = k.wachtwoord || "";
+            const punten = k.punten || 0;
+
+            const kaart = document.createElement("div");
+            kaart.className = "kind-kaart";
+            kaart.innerHTML = `
               <img src="${foto}" alt="avatar">
               <div class="kind-naam">${naam}</div>
               <div class="punten">⭐ ${punten} punten</div>
@@ -75,20 +89,23 @@
             container.appendChild(kaart);
           });
         }
+        if(container.innerHTML === ""){
+          container.innerHTML = "ℹ️ Geen kindjes gevonden.";
+        }
       }catch(e){
-        console.error(e);
-        container.innerHTML="❌ Fout bij laden van de kindjes.";
+        console.error("Fout bij ophalen kinderen:", e);
+        container.innerHTML = "❌ Fout bij laden van de kindjes.";
       }
     }
 
     function toggleVisibility(inputId){
-      const input=document.getElementById(inputId);
-      input.type=input.type==="password"?"text":"password";
+      const input = document.getElementById(inputId);
+      input.type = input.type === "password" ? "text" : "password";
     }
 
     async function bewaarWachtwoord(lidId,kindId){
-      const input=document.getElementById(`code-${lidId}-${kindId}`);
-      const code=input.value.trim();
+      const input = document.getElementById(`code-${lidId}-${kindId}`);
+      const code = input.value.trim();
       if(!code){alert("Geef een code in!");return;}
       try{
         await db.collection("parochies").doc(parochieId).collection("leden").doc(lidId)
