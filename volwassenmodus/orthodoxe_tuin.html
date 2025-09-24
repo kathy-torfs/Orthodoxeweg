@@ -31,7 +31,7 @@
       messagingSenderId: "408582263618",
       appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
     };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig); // Firebase enkel 1x initialiseren
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
     let map;
@@ -43,22 +43,26 @@
         center: { lat: 50.85, lng: 4.35 }, // startpositie: Brussel
         zoom: 8,                           // startzoom
         mapTypeId: "roadmap",              // type kaart: wegenkaart
+        zoomControl: true,                 // ✅ zoomknoppen aanzetten
+        zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_BOTTOM }, // positie rechtsonder
+        streetViewControl: false,          // geen streetview
+        mapTypeControl: false,             // geen kaart/satelliet wissel
+        fullscreenControl: false,          // geen fullscreenknop
         styles: [                          // aangepaste stijlen
-          { featureType: "all", elementType: "labels", stylers: [{ visibility: "off" }] }, // labels uit
-          { featureType: "road", stylers: [{ visibility: "off" }] },                       // wegen uit
-          { featureType: "poi", stylers: [{ visibility: "off" }] },                        // points of interest uit
-          { featureType: "transit", stylers: [{ visibility: "off" }] },                    // openbaar vervoer uit
-          { featureType: "administrative", stylers: [{ visibility: "off" }] },             // gemeentegrenzen uit
-          { featureType: "landscape", elementType: "geometry", stylers: [{ color: "#f0fff0" }] }, // land groen
-          { featureType: "water", elementType: "geometry", stylers: [{ color: "#9fd3f6" }] }     // water blauw
+          { featureType: "all", elementType: "labels", stylers: [{ visibility: "off" }] },
+          { featureType: "road", stylers: [{ visibility: "off" }] },
+          { featureType: "poi", stylers: [{ visibility: "off" }] },
+          { featureType: "transit", stylers: [{ visibility: "off" }] },
+          { featureType: "administrative", stylers: [{ visibility: "off" }] },
+          { featureType: "landscape", elementType: "geometry", stylers: [{ color: "#f0fff0" }] },
+          { featureType: "water", elementType: "geometry", stylers: [{ color: "#9fd3f6" }] }
         ]
       });
 
-      infoWindow = new google.maps.InfoWindow(); // popup venster klaarzetten
+      infoWindow = new google.maps.InfoWindow();
 
-      // === Provinciegrenzen van België laden uit geojson ===
+      // === Provinciegrenzen van België laden ===
       map.data.loadGeoJson("provincesprovincies-belgium.geojson", {}, function(features) {
-        // stijl instellen voor elke provincie
         features.forEach(f => {
           map.data.overrideStyle(f, {
             fillColor: "#6cc96c",
@@ -68,7 +72,6 @@
           });
         });
 
-        // kaart automatisch inzoomen zodat België helemaal zichtbaar is
         const bounds = new google.maps.LatLngBounds();
         features.forEach(f => f.getGeometry().forEachLatLng(latlng => bounds.extend(latlng)));
         map.fitBounds(bounds);
@@ -88,7 +91,7 @@
         });
         new google.maps.Polygon({
           map,
-          paths: [outerBounds, ...belgieCoords], // buitenrand + België als gat
+          paths: [outerBounds, ...belgieCoords],
           strokeColor: "#99cc99",
           strokeWeight: 1,
           fillColor: "#eaf6ea",
@@ -96,27 +99,23 @@
           clickable: false
         });
 
-        // === Na het tekenen van de kaart: parochies laden ===
+        // === Na tekenen: parochies laden ===
         laadParochies();
       });
     }
 
-    // === Parochies ophalen uit Firestore ===
+    // === Parochies ophalen ===
     async function laadParochies() {
       const snap = await db.collection("parochies").get();
       snap.forEach(async paroDoc => {
         const parochie = paroDoc.data();
         if (parochie.adres) {
           const adres = encodeURIComponent(parochie.adres + ", België");
-
-          // Google Maps Geocoding API oproepen om adres om te zetten naar coördinaten
           fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${adres}&key=AIzaSyB41mcK4sxdDX2LcAnnflE4lvNmwiZjKLg`)
             .then(res => res.json())
             .then(data => {
               if (data.results && data.results[0]) {
                 const locatie = data.results[0].geometry.location;
-
-                // marker voor kerk plaatsen
                 const marker = new google.maps.Marker({
                   position: locatie,
                   map,
@@ -127,7 +126,6 @@
                   title: parochie.naam
                 });
 
-                // popup bij klikken op marker
                 marker.addListener("click", () => {
                   infoWindow.setContent(
                     `<b>${parochie.naam}</b><br>📍 ${parochie.adres}`
@@ -137,28 +135,23 @@
               }
             });
 
-          // ook leden van deze parochie laden
           laadLeden(paroDoc.id);
         }
       });
     }
 
-    // === Leden ophalen uit Firestore ===
+    // === Leden ophalen ===
     async function laadLeden(parochieId) {
       const ledenSnap = await db.collection("parochies").doc(parochieId).collection("leden").get();
       ledenSnap.forEach(lidDoc => {
         const lid = lidDoc.data();
         if (lid.gemeente && lid.postcode && lid.bloemen) {
           const adres = encodeURIComponent(lid.postcode + " " + lid.gemeente + ", België");
-
-          // Geocoding API oproepen voor de woonplaats van het lid
           fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${adres}&key=AIzaSyB41mcK4sxdDX2LcAnnflE4lvNmwiZjKLg`)
             .then(res => res.json())
             .then(data => {
               if (data.results && data.results[0]) {
                 const locatie = data.results[0].geometry.location;
-
-                // marker voor lid plaatsen (bloem als label)
                 const marker = new google.maps.Marker({
                   position: locatie,
                   map,
@@ -169,7 +162,6 @@
                   title: lid.voornaam || "Onbekend"
                 });
 
-                // popup bij klikken op bloem
                 marker.addListener("click", () => {
                   infoWindow.setContent(
                     `<b>${lid.voornaam || "Onbekend"}</b><br>🌸 ${lid.bloemen}`
