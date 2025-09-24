@@ -44,36 +44,25 @@
       });
     }
     const db = firebase.firestore();
-    const parochieId = sessionStorage.getItem("dagboek_parochieId");
+
+    // ✅ ParochieId komt nu uit localStorage (zoals de nieuwe header doet)
+    const parochieId = localStorage.getItem("ingelogdeParochie") 
+                    || localStorage.getItem("ingelogdeParochieId");
 
     async function laadKinderen(){
       const container = document.getElementById("kinderen");
       container.innerHTML = "Laden…";
-      console.log("Gebruik parochieId:", parochieId);
-
-      if(!parochieId){
-        container.innerHTML = "⚠️ Geen parochieId gevonden in sessionStorage.";
-        return;
-      }
-
       try{
         const ledenSnap = await db.collection("parochies").doc(parochieId).collection("leden").get();
-        console.log("Aantal leden:", ledenSnap.size);
         container.innerHTML = "";
-
         for(const lidDoc of ledenSnap.docs){
-          console.log("Lid:", lidDoc.id, lidDoc.data());
           const kindSnap = await lidDoc.ref.collection("kinderen").get();
-          console.log("Aantal kinderen bij", lidDoc.id, "=", kindSnap.size);
-
           kindSnap.forEach(kindDoc=>{
             const k = kindDoc.data();
-            console.log("Kind:", kindDoc.id, k);
-
-            const naam = (k.voornaam||"Naamloos") + (k.achternaam?" "+k.achternaam:"");
-            const foto = k.avatarURL || "https://kathy-torfs.github.io/Orthodoxeweg/images/sterretje.png";
-            const wachtwoord = k.wachtwoord || "";
-            const punten = k.punten || 0;
+            const naam = (k.voornaam||"Naamloos")+(k.achternaam?" "+k.achternaam:"");
+            const foto = k.avatarURL||"https://kathy-torfs.github.io/Orthodoxeweg/images/sterretje.png";
+            const wachtwoord = k.wachtwoord||"";
+            const punten = k.punten||0;
 
             const kaart = document.createElement("div");
             kaart.className = "kind-kaart";
@@ -89,11 +78,8 @@
             container.appendChild(kaart);
           });
         }
-        if(container.innerHTML === ""){
-          container.innerHTML = "ℹ️ Geen kindjes gevonden.";
-        }
       }catch(e){
-        console.error("Fout bij ophalen kinderen:", e);
+        console.error(e);
         container.innerHTML = "❌ Fout bij laden van de kindjes.";
       }
     }
