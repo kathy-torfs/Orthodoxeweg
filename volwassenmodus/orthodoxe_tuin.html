@@ -46,7 +46,7 @@
 
       infoWindow = new google.maps.InfoWindow();
 
-      // === Alleen België tonen ===
+      // === Alleen België zichtbaar ===
       fetch("provincesprovincies-belgium.geojson")
         .then(res => res.json())
         .then(geojson => {
@@ -68,7 +68,7 @@
             }
           });
 
-          // Groot buitenvlak
+          // Groot buitenvlak (hele wereld)
           const outerWorld = [
             { lat: 85,  lng: -180 },
             { lat: 85,  lng:  180 },
@@ -76,19 +76,17 @@
             { lat: -85, lng: -180 }
           ];
 
-          const bg = getComputedStyle(document.body).backgroundColor || "#e6f5e1";
-
+          // Alles buiten België = gevuld, België = gat
           new google.maps.Polygon({
             map,
             paths: [outerWorld, ...belgiumRings],
-            strokeColor: "#000000",
-            strokeWeight: 1,
-            fillColor: bg,
+            strokeWeight: 0,
+            fillColor: "#e6f5e1", // buiten België afdekken
             fillOpacity: 1,
             clickable: false
           });
 
-          // Zoom naar België
+          // Zoom netjes naar België
           const bounds = new google.maps.LatLngBounds();
           belgiumRings.forEach(r => r.forEach(ll => bounds.extend(ll)));
           map.fitBounds(bounds);
