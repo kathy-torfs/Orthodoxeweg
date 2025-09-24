@@ -39,18 +39,28 @@
 
     function initMap() {
       map = new google.maps.Map(document.getElementById("map"), {
-        center: { lat: 50.85, lng: 4.35 },
+        center: { lat: 50.85, lng: 4.35 }, 
         zoom: 8,
         mapTypeId: "roadmap",
         zoomControl: true,
+        zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_BOTTOM },
         streetViewControl: false,
         mapTypeControl: false,
-        fullscreenControl: false
+        fullscreenControl: false,
+        styles: [
+          { featureType: "all", elementType: "labels", stylers: [{ visibility: "off" }] },
+          { featureType: "road", stylers: [{ visibility: "off" }] },
+          { featureType: "poi", stylers: [{ visibility: "off" }] },   // ✅ geen standaard pins
+          { featureType: "transit", stylers: [{ visibility: "off" }] },
+          { featureType: "administrative", stylers: [{ visibility: "off" }] },
+          { featureType: "landscape", elementType: "geometry", stylers: [{ color: "#f0fff0" }] },
+          { featureType: "water", elementType: "geometry", stylers: [{ color: "#9fd3f6" }] }
+        ]
       });
 
       infoWindow = new google.maps.InfoWindow();
 
-      // Laad provincies van België
+      // === Provincies van België tekenen ===
       map.data.loadGeoJson("provincesprovincies-belgium.geojson", {}, function(features) {
         features.forEach(f => {
           map.data.overrideStyle(f, {
@@ -65,6 +75,30 @@
         features.forEach(f => f.getGeometry().forEachLatLng(latlng => bounds.extend(latlng)));
         map.fitBounds(bounds);
 
+        // lichte achtergrond rondom België
+        const outerBounds = [
+          { lat: 60, lng: -10 },
+          { lat: 60, lng: 15 },
+          { lat: 45, lng: 15 },
+          { lat: 45, lng: -10 }
+        ];
+        const belgieCoords = [];
+        features.forEach(f => {
+          const path = [];
+          f.getGeometry().forEachLatLng(latlng => path.push({lat: latlng.lat(), lng: latlng.lng()}));
+          belgieCoords.push(path);
+        });
+        new google.maps.Polygon({
+          map,
+          paths: [outerBounds, ...belgieCoords],
+          strokeColor: "#99cc99",
+          strokeWeight: 1,
+          fillColor: "#eaf6ea",
+          fillOpacity: 1,
+          clickable: false
+        });
+
+        // daarna parochies laden
         laadParochies();
       });
     }
@@ -81,21 +115,21 @@
             .then(data => {
               if (data.results && data.results[0]) {
                 const locatie = data.results[0].geometry.location;
-
-                // ✅ ⛪ kerk als label
-                new google.maps.Marker({
+                const marker = new google.maps.Marker({
                   position: locatie,
                   map,
                   label: {
-                    text: "⛪",
+                    text: "⛪",   // ✅ vervangt kerk-icoon door emoji
                     fontSize: "20px"
                   },
                   title: parochie.naam
-                }).addListener("click", () => {
+                });
+
+                marker.addListener("click", () => {
                   infoWindow.setContent(
                     `<b>${parochie.naam}</b><br>📍 ${parochie.adres}`
                   );
-                  infoWindow.open(map);
+                  infoWindow.open(map, marker);
                 });
               }
             });
@@ -117,21 +151,22 @@
             .then(data => {
               if (data.results && data.results[0]) {
                 const locatie = data.results[0].geometry.location;
-
-                // ✅ Bloem als label
-                new google.maps.Marker({
+                const marker = new google.maps.Marker({
                   position: locatie,
                   map,
                   label: {
-                    text: lid.bloemen,
+                    text: lid.bloemen, // ✅ bloem zichtbaar in tuin
                     fontSize: "16px"
                   },
-                  title: `${lid.voornaam || "Onbekend"} – ${lid.gemeente || ""}`
-                }).addListener("click", () => {
+                  title: lid.voornaam || "Onbekend"
+                });
+
+                marker.addListener("click", () => {
                   infoWindow.setContent(
-                    `<b>${lid.voornaam || "Onbekend"}</b><br>🏡 ${lid.gemeente || ""}`
+                    `<b>${lid.voornaam || "Onbekend"}</b><br>
+                     🏠 ${lid.gemeente}`
                   );
-                  infoWindow.open(map);
+                  infoWindow.open(map, marker);
                 });
               }
             });
