@@ -35,33 +35,31 @@
     const db = firebase.firestore();
 
     let map;
-    let infoWindow;
+    let infoWindow; // popup venster
 
     function initMap() {
       map = new google.maps.Map(document.getElementById("map"), {
         center: { lat: 50.85, lng: 4.35 },
         zoom: 8,
         mapTypeId: "roadmap",
-        zoomControl: true,
         styles: [
+          // Verberg wegen, POI’s en openbaar vervoer
           { featureType: "road", stylers: [{ visibility: "off" }] },
           { featureType: "poi", stylers: [{ visibility: "off" }] },
           { featureType: "transit", stylers: [{ visibility: "off" }] },
+          // Toon administratieve labels (plaatsnamen)
+          { featureType: "administrative", elementType: "labels", stylers: [{ visibility: "on" }] },
+          { featureType: "administrative.locality", elementType: "labels.text.fill", stylers: [{ color: "#333333" }] },
+          { featureType: "administrative.sublocality", elementType: "labels.text.fill", stylers: [{ color: "#555555" }] },
+          // Kleuren landschap en water
           { featureType: "landscape", elementType: "geometry", stylers: [{ color: "#f0fff0" }] },
-          { featureType: "water", elementType: "geometry", stylers: [{ color: "#9fd3f6" }] },
-          { featureType: "administrative", elementType: "geometry", stylers: [{ visibility: "off" }] },
-          { featureType: "administrative.locality", elementType: "labels.text.fill",
-            stylers: [{ visibility: "on" }, { color: "#333333" }] },
-          { featureType: "administrative.locality", elementType: "labels.text.stroke",
-            stylers: [{ visibility: "off" }] },
-          { featureType: "administrative.neighborhood", elementType: "labels.text.fill",
-            stylers: [{ visibility: "on" }, { color: "#555555" }] }
+          { featureType: "water", elementType: "geometry", stylers: [{ color: "#9fd3f6" }] }
         ]
       });
 
       infoWindow = new google.maps.InfoWindow();
 
-      // Provincies van België laden
+      // Laad provincies van België
       map.data.loadGeoJson("provincesprovincies-belgium.geojson", {}, function(features) {
         features.forEach(f => {
           map.data.overrideStyle(f, {
@@ -76,6 +74,30 @@
         features.forEach(f => f.getGeometry().forEachLatLng(latlng => bounds.extend(latlng)));
         map.fitBounds(bounds);
 
+        // Masker: lichte rand rond België
+        const outerBounds = [
+          { lat: 60, lng: -10 },
+          { lat: 60, lng: 15 },
+          { lat: 45, lng: 15 },
+          { lat: 45, lng: -10 }
+        ];
+        const belgieCoords = [];
+        features.forEach(f => {
+          const path = [];
+          f.getGeometry().forEachLatLng(latlng => path.push({lat: latlng.lat(), lng: latlng.lng()}));
+          belgieCoords.push(path);
+        });
+        new google.maps.Polygon({
+          map,
+          paths: [outerBounds, ...belgieCoords],
+          strokeColor: "#99cc99",
+          strokeWeight: 1,
+          fillColor: "#eaf6ea",
+          fillOpacity: 1,
+          clickable: false
+        });
+
+        // Na kaart: parochies en leden laden
         laadParochies();
       });
     }
@@ -92,26 +114,27 @@
             .then(data => {
               if (data.results && data.results[0]) {
                 const locatie = data.results[0].geometry.location;
-                const marker = new google.maps.marker.AdvancedMarkerElement({
+                const marker = new google.maps.Marker({
                   position: locatie,
                   map,
-                  title: parochie.naam,
-                  content: (() => {
-                    const img = document.createElement("img");
-                    img.src = "https://maps.google.com/mapfiles/kml/shapes/church_maps.png";
-                    img.style.width = "28px";
-                    img.style.height = "28px";
-                    return img;
-                  })()
+                  icon: {
+                    url: "https://maps.google.com/mapfiles/kml/shapes/church_maps.png",
+                    scaledSize: new google.maps.Size(28, 28)
+                  },
+                  title: parochie.naam
                 });
 
+                // Klik op kerk = popup (alleen naam + adres)
                 marker.addListener("click", () => {
-                  infoWindow.setContent(`<b>${parochie.naam}</b><br>📍 ${parochie.adres}`);
+                  infoWindow.setContent(
+                    `<b>${parochie.naam}</b><br>📍 ${parochie.adres}`
+                  );
                   infoWindow.open(map, marker);
                 });
               }
             });
 
+          // Leden van deze parochie laden
           laadLeden(paroDoc.id);
         }
       });
@@ -129,20 +152,21 @@
             .then(data => {
               if (data.results && data.results[0]) {
                 const locatie = data.results[0].geometry.location;
-                const marker = new google.maps.marker.AdvancedMarkerElement({
+                const marker = new google.maps.Marker({
                   position: locatie,
                   map,
-                  title: lid.voornaam || "Onbekend",
-                  content: (() => {
-                    const span = document.createElement("span");
-                    span.textContent = lid.bloemen;
-                    span.style.fontSize = "18px";
-                    return span;
-                  })()
+                  label: {
+                    text: lid.bloemen,
+                    fontSize: "16px"
+                  },
+                  title: lid.voornaam || "Onbekend"
                 });
 
+                // Klik op bloem = popup (alleen voornaam + bloem)
                 marker.addListener("click", () => {
-                  infoWindow.setContent(`<b>${lid.voornaam || "Onbekend"}</b><br>🌸 ${lid.bloemen}`);
+                  infoWindow.setContent(
+                    `<b>${lid.voornaam || "Onbekend"}</b><br>🌸 ${lid.bloemen}`
+                  );
                   infoWindow.open(map, marker);
                 });
               }
@@ -153,6 +177,6 @@
   </script>
 
   <!-- Google Maps API -->
-  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB41mcK4sxdDX2LcAnnflE4lvNmwiZjKLg&callback=initMap" async defer></script>
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB41mcK4sxdDX2LcAnnflE4lvNmwiZjKLg&callback=initMap"></script>
 </body>
 </html>
