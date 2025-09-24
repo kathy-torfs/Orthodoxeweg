@@ -35,7 +35,7 @@
     const db = firebase.firestore();
 
     let map;
-    let infoWindow; // popup venster
+    let infoWindow;
 
     function initMap() {
       map = new google.maps.Map(document.getElementById("map"), {
@@ -43,9 +43,8 @@
         zoom: 8,
         mapTypeId: "roadmap",
         zoomControl: true,
-        zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_BOTTOM },
         styles: [
-          // Geen wegen, POI’s, transit
+          // Geen wegen of POI’s
           { featureType: "road", stylers: [{ visibility: "off" }] },
           { featureType: "poi", stylers: [{ visibility: "off" }] },
           { featureType: "transit", stylers: [{ visibility: "off" }] },
@@ -54,26 +53,16 @@
           { featureType: "landscape", elementType: "geometry", stylers: [{ color: "#f0fff0" }] },
           { featureType: "water", elementType: "geometry", stylers: [{ color: "#9fd3f6" }] },
 
-          // Provinciegrenzen weg
+          // Provincie- en gemeentegrenzen uit
           { featureType: "administrative", elementType: "geometry", stylers: [{ visibility: "off" }] },
 
-          // Grote steden zichtbaar vanaf zoom 10
+          // Steden/gemeentenamen zichtbaar
           { featureType: "administrative.locality", elementType: "labels.text.fill",
-            stylers: [{ visibility: "simplified" }, { color: "#222222" }] },
+            stylers: [{ visibility: "on" }, { color: "#333333" }] },
           { featureType: "administrative.locality", elementType: "labels.text.stroke",
             stylers: [{ visibility: "off" }] },
-
-          // Middelgrote steden zichtbaar vanaf zoom 11
           { featureType: "administrative.neighborhood", elementType: "labels.text.fill",
-            stylers: [{ visibility: "simplified" }, { color: "#555555" }] },
-          { featureType: "administrative.neighborhood", elementType: "labels.text.stroke",
-            stylers: [{ visibility: "off" }] },
-
-          // Dorpen/gemeenten zichtbaar vanaf zoom 13
-          { featureType: "administrative.land_parcel", elementType: "labels.text.fill",
-            stylers: [{ visibility: "simplified" }, { color: "#777777" }] },
-          { featureType: "administrative.land_parcel", elementType: "labels.text.stroke",
-            stylers: [{ visibility: "off" }] }
+            stylers: [{ visibility: "on" }, { color: "#555555" }] }
         ]
       });
 
@@ -90,11 +79,12 @@
           });
         });
 
+        // Fit op België
         const bounds = new google.maps.LatLngBounds();
         features.forEach(f => f.getGeometry().forEachLatLng(latlng => bounds.extend(latlng)));
         map.fitBounds(bounds);
 
-        // Masker: lichte rand rond België
+        // Buitenrand tekenen achter labels
         const outerBounds = [
           { lat: 60, lng: -10 },
           { lat: 60, lng: 15 },
@@ -104,7 +94,7 @@
         const belgieCoords = [];
         features.forEach(f => {
           const path = [];
-          f.getGeometry().forEachLatLng(latlng => path.push({lat: latlng.lat(), lng: latlng.lng()}));
+          f.getGeometry().forEachLatLng(latlng => path.push({ lat: latlng.lat(), lng: latlng.lng() }));
           belgieCoords.push(path);
         });
         new google.maps.Polygon({
@@ -114,7 +104,8 @@
           strokeWeight: 1,
           fillColor: "#eaf6ea",
           fillOpacity: 1,
-          clickable: false
+          clickable: false,
+          zIndex: -1   // ✅ Achter de labels
         });
 
         // Na kaart: parochies en leden laden
@@ -144,17 +135,13 @@
                   title: parochie.naam
                 });
 
-                // Klik op kerk = popup (alleen naam + adres)
                 marker.addListener("click", () => {
-                  infoWindow.setContent(
-                    `<b>${parochie.naam}</b><br>📍 ${parochie.adres}`
-                  );
+                  infoWindow.setContent(`<b>${parochie.naam}</b><br>📍 ${parochie.adres}`);
                   infoWindow.open(map, marker);
                 });
               }
             });
 
-          // Leden van deze parochie laden
           laadLeden(paroDoc.id);
         }
       });
@@ -175,18 +162,12 @@
                 const marker = new google.maps.Marker({
                   position: locatie,
                   map,
-                  label: {
-                    text: lid.bloemen,
-                    fontSize: "16px"
-                  },
+                  label: { text: lid.bloemen, fontSize: "16px" },
                   title: lid.voornaam || "Onbekend"
                 });
 
-                // Klik op bloem = popup (alleen voornaam + bloem)
                 marker.addListener("click", () => {
-                  infoWindow.setContent(
-                    `<b>${lid.voornaam || "Onbekend"}</b><br>🌸 ${lid.bloemen}`
-                  );
+                  infoWindow.setContent(`<b>${lid.voornaam || "Onbekend"}</b><br>🌸 ${lid.bloemen}`);
                   infoWindow.open(map, marker);
                 });
               }
