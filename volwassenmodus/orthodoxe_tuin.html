@@ -35,7 +35,7 @@
     const db = firebase.firestore();
 
     let map;
-    let infoWindow; // popup venster
+    let infoWindow;
 
     function initMap() {
       map = new google.maps.Map(document.getElementById("map"), {
@@ -50,25 +50,25 @@
       fetch("provincesprovincies-belgium.geojson")
         .then(res => res.json())
         .then(geojson => {
-          const belgiumRings = [];
+          const belgiumCoords = [];
           geojson.features.forEach(f => {
             const g = f.geometry;
             if (!g) return;
 
             if (g.type === "Polygon") {
               g.coordinates.forEach(ring => {
-                belgiumRings.push(ring.map(([lng, lat]) => ({ lat, lng })));
+                belgiumCoords.push(ring.map(([lng, lat]) => ({ lat, lng })));
               });
             } else if (g.type === "MultiPolygon") {
               g.coordinates.forEach(poly => {
                 poly.forEach(ring => {
-                  belgiumRings.push(ring.map(([lng, lat]) => ({ lat, lng })));
+                  belgiumCoords.push(ring.map(([lng, lat]) => ({ lat, lng })));
                 });
               });
             }
           });
 
-          // Groot buitenvlak (hele wereld)
+          // Groot buitenvlak
           const outerWorld = [
             { lat: 85,  lng: -180 },
             { lat: 85,  lng:  180 },
@@ -76,19 +76,19 @@
             { lat: -85, lng: -180 }
           ];
 
-          // 🔑 Alles buiten België vullen, België blijft standaardkaart
+          // 🔑 Belgie wordt uitgespaard, rest krijgt masker
           new google.maps.Polygon({
             map,
-            paths: [outerWorld, ...belgiumRings],
+            paths: [outerWorld, ...belgiumCoords],
             strokeWeight: 0,
-            fillColor: "#e6f5e1", // buiten België
+            fillColor: "#e6f5e1", // kleur buiten België
             fillOpacity: 1,
             clickable: false
           });
 
-          // Zoom netjes naar België
+          // Zoom naar België
           const bounds = new google.maps.LatLngBounds();
-          belgiumRings.forEach(r => r.forEach(ll => bounds.extend(ll)));
+          belgiumCoords.forEach(r => r.forEach(ll => bounds.extend(ll)));
           map.fitBounds(bounds);
 
           // Daarna parochies laden
@@ -119,9 +119,7 @@
                 });
 
                 marker.addListener("click", () => {
-                  infoWindow.setContent(
-                    `<b>${parochie.naam}</b><br>📍 ${parochie.adres}`
-                  );
+                  infoWindow.setContent(`<b>${parochie.naam}</b><br>📍 ${parochie.adres}`);
                   infoWindow.open(map, marker);
                 });
               }
@@ -155,9 +153,7 @@
                 });
 
                 marker.addListener("click", () => {
-                  infoWindow.setContent(
-                    `<b>${lid.voornaam || "Onbekend"}</b><br>🌸 ${lid.bloemen}`
-                  );
+                  infoWindow.setContent(`<b>${lid.voornaam || "Onbekend"}</b><br>🌸 ${lid.bloemen}`);
                   infoWindow.open(map, marker);
                 });
               }
