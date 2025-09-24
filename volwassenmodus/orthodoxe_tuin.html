@@ -6,20 +6,11 @@
   <title>Orthodoxe Tuin – Orthodoxeweg</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background-color: #e6f5e1;
-      color: #333;
-    }
-    #map {
-      height: 100vh;
-      width: 100%;
-    }
+    body { margin: 0; font-family: Arial, sans-serif; background-color: #e6f5e1; }
+    #map { height: 100vh; width: 100%; }
   </style>
 </head>
 <body>
-  <!-- ==== GEMEENSCHAPPELIJKE HEADER ==== -->
   <div id="volwassen-header"></div>
   <script src="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/common/layout.js"></script>
 
@@ -28,8 +19,8 @@
   <script>
     function initMap() {
       const map = new google.maps.Map(document.getElementById("map"), {
-        center: { lat: 50.85, lng: 4.35 }, // Brussel centraal
-        zoom: 7,
+        center: { lat: 50.85, lng: 4.35 }, // Brussel
+        zoom: 8,
         mapTypeId: "roadmap",
         styles: [
           { featureType: "all", elementType: "labels", stylers: [{ visibility: "off" }] },
@@ -41,26 +32,22 @@
         ]
       });
 
-      // ===== Land contour (België) =====
-      map.data.loadGeoJson('https://raw.githubusercontent.com/johan/world.geo.json/master/countries/BEL.geo.json', {
-        idPropertyName: 'id'
-      });
-      map.data.setStyle({
-        fillColor: '#8fe68f',
-        fillOpacity: 1,
-        strokeColor: '#000',
-        strokeWeight: 2
-      });
-
-      // ===== Provincies =====
-      map.data.loadGeoJson('https://raw.githubusercontent.com/AshKyd/geojson-regions/master/countries/BE-BEL.geojson');
-      map.data.addListener('addfeature', function(event) {
-        // Alleen provincies lichter tekenen
-        map.data.overrideStyle(event.feature, {
-          fillOpacity: 0,           // transparant
-          strokeColor: '#555',      // grijs
-          strokeWeight: 1           // dunne lijnen
+      // ===== België laden uit lokaal bestand =====
+      map.data.loadGeoJson('regionsgeweste-belgium.geojson', {}, function(features) {
+        // België groen vullen + zwarte rand
+        features.forEach(f => {
+          map.data.overrideStyle(f, {
+            fillColor: '#8fe68f',
+            fillOpacity: 1,
+            strokeColor: '#000',
+            strokeWeight: 2
+          });
         });
+
+        // Fit map naar België
+        const bounds = new google.maps.LatLngBounds();
+        features.forEach(f => f.getGeometry().forEachLatLng(latlng => bounds.extend(latlng)));
+        map.fitBounds(bounds);
       });
     }
   </script>
