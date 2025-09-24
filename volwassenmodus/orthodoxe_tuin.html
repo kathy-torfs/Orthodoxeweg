@@ -46,27 +46,45 @@
 
     function initMap() {
       map = new google.maps.Map(document.getElementById("map"), {
+        center: { lat: 50.85, lng: 4.35 }, // Brussel
+        zoom: 7,
         mapTypeId: "roadmap",
-        // 🌿 Hele kaart groen, water blauw
         styles: [
           { featureType: "all", elementType: "labels", stylers: [{ visibility: "off" }] },
           { featureType: "road", stylers: [{ visibility: "off" }] },
           { featureType: "transit", stylers: [{ visibility: "off" }] },
           { featureType: "poi", stylers: [{ visibility: "off" }] },
           { featureType: "administrative", stylers: [{ visibility: "off" }] },
-          { featureType: "landscape", elementType: "geometry", stylers: [{ color: "#a8e6a3" }] }, // zachtgroen
-          { featureType: "water", elementType: "geometry", stylers: [{ color: "#9fd3f6" }] } // lichtblauw
+          { featureType: "landscape", elementType: "geometry", stylers: [{ color: "#b8f7ac" }] }, // lichtgroen achtergrond
+          { featureType: "water", elementType: "geometry", stylers: [{ color: "#9fd3f6" }] } // blauw water
         ]
       });
 
-      // 📍 Grenzen van België
-      const belgieBounds = {
-        north: 51.505,
-        south: 49.49,
-        west: 2.54,
-        east: 6.4
-      };
-      map.fitBounds(belgieBounds);
+      // 📍 Vereenvoudigde polygon rond België
+      const belgieCoords = [
+        { lat: 51.50, lng: 3.36 },
+        { lat: 51.50, lng: 6.40 },
+        { lat: 50.80, lng: 6.40 },
+        { lat: 49.50, lng: 5.80 },
+        { lat: 49.50, lng: 2.55 },
+        { lat: 50.80, lng: 2.55 }
+      ];
+
+      const belgiePolygon = new google.maps.Polygon({
+        paths: belgieCoords,
+        strokeColor: "#000000",   // zwarte rand
+        strokeOpacity: 1,
+        strokeWeight: 2,
+        fillColor: "#8fe68f",    // donkerder groen voor België
+        fillOpacity: 1
+      });
+
+      belgiePolygon.setMap(map);
+
+      // Fit kaart op België
+      const bounds = new google.maps.LatLngBounds();
+      belgieCoords.forEach(c => bounds.extend(c));
+      map.fitBounds(bounds);
 
       laadLeden();
     }
