@@ -25,14 +25,14 @@
 <body>
   <!-- ==== GEMEENSCHAPPELIJKE HEADER ==== -->
   <div id="volwassen-header"></div>
-  <script src="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/common/layout.js"></script>
+  <script src="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/common/layout.js" defer></script>
 
   <div id="map"></div>
 
   <script>
     // ==== FIREBASE CONFIG ====
     const firebaseConfig = {
-      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
       authDomain: "orthodoxeweg.firebaseapp.com",
       projectId: "orthodoxeweg",
       storageBucket: "orthodoxeweg.appspot.com",
@@ -46,24 +46,32 @@
 
     function initMap() {
       map = new google.maps.Map(document.getElementById("map"), {
-        mapTypeId: "roadmap"
+        mapTypeId: "roadmap",
+        // 🌿 Hele kaart groen, water blauw
+        styles: [
+          { featureType: "all", elementType: "labels", stylers: [{ visibility: "off" }] },
+          { featureType: "road", stylers: [{ visibility: "off" }] },
+          { featureType: "transit", stylers: [{ visibility: "off" }] },
+          { featureType: "poi", stylers: [{ visibility: "off" }] },
+          { featureType: "administrative", stylers: [{ visibility: "off" }] },
+          { featureType: "landscape", elementType: "geometry", stylers: [{ color: "#a8e6a3" }] }, // zachtgroen
+          { featureType: "water", elementType: "geometry", stylers: [{ color: "#9fd3f6" }] } // lichtblauw
+        ]
       });
 
       // 📍 Grenzen van België
       const belgieBounds = {
-        north: 51.505, // bovenkust
-        south: 49.49,  // grens Luxemburg/Frankrijk
-        west: 2.54,    // grens Frankrijk (Westhoek)
-        east: 6.4      // grens Duitsland/Luxemburg
+        north: 51.505,
+        south: 49.49,
+        west: 2.54,
+        east: 6.4
       };
-
-      // Stel in dat de kaart altijd start met België in beeld
       map.fitBounds(belgieBounds);
 
-      laadBloemen();
+      laadLeden();
     }
 
-    async function laadBloemen() {
+    async function laadLeden() {
       try {
         const parochiesSnap = await db.collection("parochies").get();
 
@@ -73,7 +81,7 @@
           ledenSnap.forEach(lidDoc => {
             const lid = lidDoc.data();
 
-            if (lid.gemeente && lid.postcode && lid.bloemen) {
+            if (lid.gemeente && lid.postcode) {
               const adres = `${lid.postcode} ${lid.gemeente}, België`;
 
               fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(adres)}&key=AIzaSyB41mcK4sxdDX2LcAnnflE4lvNmwiZjKLg`)
@@ -82,14 +90,19 @@
                   if (data.results && data.results.length > 0) {
                     const locatie = data.results[0].geometry.location;
 
-                    new google.maps.Marker({
+                    const marker = new google.maps.Marker({
                       position: locatie,
                       map,
-                      label: {
-                        text: lid.bloemen, // 🌷🪻🌱
-                        fontSize: "16px"
-                      },
+                      label: { text: "🌸", fontSize: "22px" },
                       title: `${lid.voornaam || ""} ${lid.achternaam || ""}`
+                    });
+
+                    const info = new google.maps.InfoWindow({
+                      content: `<b>${lid.voornaam || ""} ${lid.achternaam || ""}</b><br>${lid.postcode} ${lid.gemeente}`
+                    });
+
+                    marker.addListener("click", () => {
+                      info.open(map, marker);
                     });
                   }
                 });
@@ -97,7 +110,7 @@
           });
         }
       } catch (e) {
-        console.error("Fout bij laden bloemen:", e);
+        console.error("Fout bij laden leden:", e);
       }
     }
   </script>
