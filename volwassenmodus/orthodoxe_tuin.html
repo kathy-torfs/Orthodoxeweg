@@ -35,18 +35,21 @@
     const db = firebase.firestore();
 
     let map;
-    let infoWindow;
+    let infoWindow; // popup venster
 
     function initMap() {
       map = new google.maps.Map(document.getElementById("map"), {
         center: { lat: 50.85, lng: 4.35 },
         zoom: 8,
         mapTypeId: "roadmap",
-        mapId: "d5b87c8017660697b16d5512", // jouw gestylde Map-ID
-        zoomControl: true,
-        streetViewControl: false,
-        mapTypeControl: false,
-        fullscreenControl: false
+        styles: [
+          { featureType: "road", stylers: [{ visibility: "off" }] },
+          { featureType: "poi", stylers: [{ visibility: "off" }] },
+          { featureType: "transit", stylers: [{ visibility: "off" }] },
+          // labels en plaatsnamen blijven zichtbaar
+          { featureType: "landscape", elementType: "geometry", stylers: [{ color: "#f0fff0" }] },
+          { featureType: "water", elementType: "geometry", stylers: [{ color: "#9fd3f6" }] }
+        ]
       });
 
       infoWindow = new google.maps.InfoWindow();
@@ -66,7 +69,7 @@
         features.forEach(f => f.getGeometry().forEachLatLng(latlng => bounds.extend(latlng)));
         map.fitBounds(bounds);
 
-        // Masker: alleen België zichtbaar, maar labels blijven zichtbaar
+        // Masker: lichte rand rond België
         const outerBounds = [
           { lat: 60, lng: -10 },
           { lat: 60, lng: 15 },
@@ -84,16 +87,17 @@
           paths: [outerBounds, ...belgieCoords],
           strokeColor: "#99cc99",
           strokeWeight: 1,
-          fillColor: "#ffffff", // neutrale kleur
-          fillOpacity: 0,       // ✅ transparant → labels zichtbaar
+          fillColor: "#eaf6ea",
+          fillOpacity: 1,
           clickable: false
         });
 
+        // Na kaart: parochies en leden laden
         laadParochies();
       });
     }
 
-    // === Parochies ===
+    // === Parochies ophalen ===
     async function laadParochies() {
       const snap = await db.collection("parochies").get();
       snap.forEach(async paroDoc => {
@@ -105,32 +109,33 @@
             .then(data => {
               if (data.results && data.results[0]) {
                 const locatie = data.results[0].geometry.location;
-
-                const icon = document.createElement("img");
-                icon.src = "https://maps.google.com/mapfiles/kml/shapes/church_maps.png";
-                icon.style.width = "28px";
-                icon.style.height = "28px";
-
-                const marker = new google.maps.marker.AdvancedMarkerElement({
+                const marker = new google.maps.Marker({
                   position: locatie,
-                  map: map,
-                  title: parochie.naam,
-                  content: icon
+                  map,
+                  icon: {
+                    url: "https://maps.google.com/mapfiles/kml/shapes/church_maps.png",
+                    scaledSize: new google.maps.Size(28, 28)
+                  },
+                  title: parochie.naam
                 });
 
-                marker.addListener("gmp-click", () => {
-                  infoWindow.setContent(`<b>${parochie.naam}</b><br>📍 ${parochie.adres}`);
+                // Klik op kerk = popup (alleen naam + adres)
+                marker.addListener("click", () => {
+                  infoWindow.setContent(
+                    `<b>${parochie.naam}</b><br>📍 ${parochie.adres}`
+                  );
                   infoWindow.open(map, marker);
                 });
               }
             });
 
+          // Leden van deze parochie laden
           laadLeden(paroDoc.id);
         }
       });
     }
 
-    // === Leden ===
+    // === Leden ophalen ===
     async function laadLeden(parochieId) {
       const ledenSnap = await db.collection("parochies").doc(parochieId).collection("leden").get();
       ledenSnap.forEach(lidDoc => {
@@ -142,24 +147,21 @@
             .then(data => {
               if (data.results && data.results[0]) {
                 const locatie = data.results[0].geometry.location;
-
-                const label = document.createElement("div");
-                label.textContent = lid.bloemen;
-                label.style.fontSize = "16px";
-                label.style.background = "white";
-                label.style.borderRadius = "50%";
-                label.style.padding = "2px 6px";
-                label.style.border = "1px solid #666";
-
-                const marker = new google.maps.marker.AdvancedMarkerElement({
+                const marker = new google.maps.Marker({
                   position: locatie,
-                  map: map,
-                  title: lid.voornaam || "Onbekend",
-                  content: label
+                  map,
+                  label: {
+                    text: lid.bloemen,
+                    fontSize: "16px"
+                  },
+                  title: lid.voornaam || "Onbekend"
                 });
 
-                marker.addListener("gmp-click", () => {
-                  infoWindow.setContent(`<b>${lid.voornaam || "Onbekend"}</b><br>🌸 ${lid.bloemen}`);
+                // Klik op bloem = popup (alleen voornaam + bloem)
+                marker.addListener("click", () => {
+                  infoWindow.setContent(
+                    `<b>${lid.voornaam || "Onbekend"}</b><br>🌸 ${lid.bloemen}`
+                  );
                   infoWindow.open(map, marker);
                 });
               }
@@ -169,13 +171,7 @@
     }
   </script>
 
-  <!-- Google Maps API zonder callback -->
-  <script async defer 
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB41mcK4sxdDX2LcAnnflE4lvNmwiZjKLg&libraries=marker">
-  </script>
-  <script>
-    // initMap starten zodra pagina geladen is
-    window.addEventListener("load", initMap);
-  </script>
+  <!-- Google Maps API -->
+  <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB41mcK4sxdDX2LcAnnflE4lvNmwiZjKLg&callback=initMap"></script>
 </body>
 </html>
