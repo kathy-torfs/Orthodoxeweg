@@ -35,69 +35,52 @@
     const db = firebase.firestore();
 
     let map;
-    let infoWindow; // popup venster
+    let infoWindow;
 
     function initMap() {
       map = new google.maps.Map(document.getElementById("map"), {
         center: { lat: 50.85, lng: 4.35 },
         zoom: 8,
-        mapTypeId: "roadmap",
-        styles: [
-          { featureType: "road", stylers: [{ visibility: "off" }] },
-          { featureType: "poi", stylers: [{ visibility: "off" }] },
-          { featureType: "transit", stylers: [{ visibility: "off" }] },
-          // labels en plaatsnamen blijven zichtbaar
-          { featureType: "landscape", elementType: "geometry", stylers: [{ color: "#f0fff0" }] },
-          { featureType: "water", elementType: "geometry", stylers: [{ color: "#9fd3f6" }] }
-        ]
+        mapTypeId: "roadmap"
       });
 
       infoWindow = new google.maps.InfoWindow();
 
-      // Laad provincies van België
-      map.data.loadGeoJson("provincesprovincies-belgium.geojson", {}, function(features) {
-        features.forEach(f => {
-          map.data.overrideStyle(f, {
-            fillColor: "#6cc96c",
-            fillOpacity: 1,
-            strokeColor: "#004d00",
-            strokeWeight: 2
+      // Masker: alleen België zichtbaar
+      fetch("provincesprovincies-belgium.geojson")
+        .then(res => res.json())
+        .then(geojson => {
+          const belgieCoords = [];
+          geojson.features.forEach(f => {
+            const path = [];
+            f.geometry.coordinates[0].forEach(coord => {
+              path.push({lat: coord[1], lng: coord[0]});
+            });
+            belgieCoords.push(path);
           });
-        });
 
-        const bounds = new google.maps.LatLngBounds();
-        features.forEach(f => f.getGeometry().forEachLatLng(latlng => bounds.extend(latlng)));
-        map.fitBounds(bounds);
+          const outerBounds = [
+            { lat: 60, lng: -10 },
+            { lat: 60, lng: 15 },
+            { lat: 45, lng: 15 },
+            { lat: 45, lng: -10 }
+          ];
 
-        // Masker: lichte rand rond België
-        const outerBounds = [
-          { lat: 60, lng: -10 },
-          { lat: 60, lng: 15 },
-          { lat: 45, lng: 15 },
-          { lat: 45, lng: -10 }
-        ];
-        const belgieCoords = [];
-        features.forEach(f => {
-          const path = [];
-          f.getGeometry().forEachLatLng(latlng => path.push({lat: latlng.lat(), lng: latlng.lng()}));
-          belgieCoords.push(path);
-        });
-        new google.maps.Polygon({
-          map,
-          paths: [outerBounds, ...belgieCoords],
-          strokeColor: "#99cc99",
-          strokeWeight: 1,
-          fillColor: "#eaf6ea",
-          fillOpacity: 1,
-          clickable: false
-        });
+          new google.maps.Polygon({
+            map,
+            paths: [outerBounds, ...belgieCoords],
+            strokeColor: "#99cc99",
+            strokeWeight: 1,
+            fillOpacity: 0,   // ✅ geen vulling, dus geen overlay
+            clickable: false
+          });
 
-        // Na kaart: parochies en leden laden
-        laadParochies();
-      });
+          // Parochies laden
+          laadParochies();
+        });
     }
 
-    // === Parochies ophalen ===
+    // === Parochies ===
     async function laadParochies() {
       const snap = await db.collection("parochies").get();
       snap.forEach(async paroDoc => {
@@ -119,23 +102,19 @@
                   title: parochie.naam
                 });
 
-                // Klik op kerk = popup (alleen naam + adres)
                 marker.addListener("click", () => {
-                  infoWindow.setContent(
-                    `<b>${parochie.naam}</b><br>📍 ${parochie.adres}`
-                  );
+                  infoWindow.setContent(`<b>${parochie.naam}</b><br>📍 ${parochie.adres}`);
                   infoWindow.open(map, marker);
                 });
               }
             });
 
-          // Leden van deze parochie laden
           laadLeden(paroDoc.id);
         }
       });
     }
 
-    // === Leden ophalen ===
+    // === Leden ===
     async function laadLeden(parochieId) {
       const ledenSnap = await db.collection("parochies").doc(parochieId).collection("leden").get();
       ledenSnap.forEach(lidDoc => {
@@ -157,11 +136,8 @@
                   title: lid.voornaam || "Onbekend"
                 });
 
-                // Klik op bloem = popup (alleen voornaam + bloem)
                 marker.addListener("click", () => {
-                  infoWindow.setContent(
-                    `<b>${lid.voornaam || "Onbekend"}</b><br>🌸 ${lid.bloemen}`
-                  );
+                  infoWindow.setContent(`<b>${lid.voornaam || "Onbekend"}</b><br>🌸 ${lid.bloemen}`);
                   infoWindow.open(map, marker);
                 });
               }
