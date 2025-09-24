@@ -44,19 +44,12 @@
         mapTypeId: "roadmap",
         zoomControl: true,
         styles: [
-          // Geen wegen of POI’s
           { featureType: "road", stylers: [{ visibility: "off" }] },
           { featureType: "poi", stylers: [{ visibility: "off" }] },
           { featureType: "transit", stylers: [{ visibility: "off" }] },
-
-          // Land & water
           { featureType: "landscape", elementType: "geometry", stylers: [{ color: "#f0fff0" }] },
           { featureType: "water", elementType: "geometry", stylers: [{ color: "#9fd3f6" }] },
-
-          // Provincie- en gemeentegrenzen uit
           { featureType: "administrative", elementType: "geometry", stylers: [{ visibility: "off" }] },
-
-          // Steden/gemeentenamen zichtbaar
           { featureType: "administrative.locality", elementType: "labels.text.fill",
             stylers: [{ visibility: "on" }, { color: "#333333" }] },
           { featureType: "administrative.locality", elementType: "labels.text.stroke",
@@ -68,7 +61,7 @@
 
       infoWindow = new google.maps.InfoWindow();
 
-      // Laad provincies van België
+      // Provincies van België laden
       map.data.loadGeoJson("provincesprovincies-belgium.geojson", {}, function(features) {
         features.forEach(f => {
           map.data.overrideStyle(f, {
@@ -79,36 +72,10 @@
           });
         });
 
-        // Fit op België
         const bounds = new google.maps.LatLngBounds();
         features.forEach(f => f.getGeometry().forEachLatLng(latlng => bounds.extend(latlng)));
         map.fitBounds(bounds);
 
-        // Buitenrand tekenen achter labels
-        const outerBounds = [
-          { lat: 60, lng: -10 },
-          { lat: 60, lng: 15 },
-          { lat: 45, lng: 15 },
-          { lat: 45, lng: -10 }
-        ];
-        const belgieCoords = [];
-        features.forEach(f => {
-          const path = [];
-          f.getGeometry().forEachLatLng(latlng => path.push({ lat: latlng.lat(), lng: latlng.lng() }));
-          belgieCoords.push(path);
-        });
-        new google.maps.Polygon({
-          map,
-          paths: [outerBounds, ...belgieCoords],
-          strokeColor: "#99cc99",
-          strokeWeight: 1,
-          fillColor: "#eaf6ea",
-          fillOpacity: 1,
-          clickable: false,
-          zIndex: -1   // ✅ Achter de labels
-        });
-
-        // Na kaart: parochies en leden laden
         laadParochies();
       });
     }
@@ -125,14 +92,17 @@
             .then(data => {
               if (data.results && data.results[0]) {
                 const locatie = data.results[0].geometry.location;
-                const marker = new google.maps.Marker({
+                const marker = new google.maps.marker.AdvancedMarkerElement({
                   position: locatie,
                   map,
-                  icon: {
-                    url: "https://maps.google.com/mapfiles/kml/shapes/church_maps.png",
-                    scaledSize: new google.maps.Size(28, 28)
-                  },
-                  title: parochie.naam
+                  title: parochie.naam,
+                  content: (() => {
+                    const img = document.createElement("img");
+                    img.src = "https://maps.google.com/mapfiles/kml/shapes/church_maps.png";
+                    img.style.width = "28px";
+                    img.style.height = "28px";
+                    return img;
+                  })()
                 });
 
                 marker.addListener("click", () => {
@@ -159,11 +129,16 @@
             .then(data => {
               if (data.results && data.results[0]) {
                 const locatie = data.results[0].geometry.location;
-                const marker = new google.maps.Marker({
+                const marker = new google.maps.marker.AdvancedMarkerElement({
                   position: locatie,
                   map,
-                  label: { text: lid.bloemen, fontSize: "16px" },
-                  title: lid.voornaam || "Onbekend"
+                  title: lid.voornaam || "Onbekend",
+                  content: (() => {
+                    const span = document.createElement("span");
+                    span.textContent = lid.bloemen;
+                    span.style.fontSize = "18px";
+                    return span;
+                  })()
                 });
 
                 marker.addListener("click", () => {
@@ -178,6 +153,6 @@
   </script>
 
   <!-- Google Maps API -->
-  <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB41mcK4sxdDX2LcAnnflE4lvNmwiZjKLg&callback=initMap"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB41mcK4sxdDX2LcAnnflE4lvNmwiZjKLg&callback=initMap" async defer></script>
 </body>
 </html>
