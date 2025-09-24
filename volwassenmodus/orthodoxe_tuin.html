@@ -20,8 +20,8 @@
   <script>
     function initMap() {
       const map = new google.maps.Map(document.getElementById("map"), {
-        center: { lat: 50.85, lng: 4.35 }, // Brussel
-        zoom: 12,
+        center: { lat: 50.85, lng: 4.35 }, // voorlopig Brussel
+        zoom: 8,
         mapTypeId: "roadmap",
         styles: [
           { featureType: "all", elementType: "labels", stylers: [{ visibility: "off" }] },
@@ -35,7 +35,7 @@
 
       // ===== Provincies laden =====
       map.data.loadGeoJson('provincesprovincies-belgium.geojson', {}, function(features) {
-        // België groen invullen en provincies met grijze lijnen
+        // Stijl voor provincies
         features.forEach(f => {
           map.data.overrideStyle(f, {
             fillColor: '#8fe68f',
@@ -45,11 +45,14 @@
           });
         });
 
-        // Kaart automatisch schalen op België
+        // Bereken het midden van België
         const bounds = new google.maps.LatLngBounds();
         features.forEach(f => f.getGeometry().forEachLatLng(latlng => bounds.extend(latlng)));
-        map.fitBounds(bounds);
-        map.setZoom(8); // iets meer ingezoomd zodat buurlanden niet domineren
+        const center = bounds.getCenter();
+
+        // Kaart instellen op midden + vaste zoom
+        map.setCenter(center);
+        map.setZoom(8); // eventueel 9 voor dichterbij
       });
     }
   </script>
