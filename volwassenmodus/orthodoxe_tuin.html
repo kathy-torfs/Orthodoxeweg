@@ -17,140 +17,51 @@
       width: 100%;
     }
   </style>
-
-  <!-- FIREBASE -->
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
   <!-- ==== GEMEENSCHAPPELIJKE HEADER ==== -->
   <div id="volwassen-header"></div>
-  <script src="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/common/layout.js" defer></script>
+  <script src="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/common/layout.js"></script>
 
   <div id="map"></div>
 
   <script>
-    // ==== FIREBASE CONFIG ====
-    const firebaseConfig = {
-      apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
-      authDomain: "orthodoxeweg.firebaseapp.com",
-      projectId: "orthodoxeweg",
-      storageBucket: "orthodoxeweg.appspot.com",
-      messagingSenderId: "408582263618",
-      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
-    };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    let map;
-
     function initMap() {
-      map = new google.maps.Map(document.getElementById("map"), {
-        center: { lat: 50.85, lng: 4.35 }, // Brussel
+      const map = new google.maps.Map(document.getElementById("map"), {
+        center: { lat: 50.85, lng: 4.35 }, // Brussel centraal
         zoom: 7,
         mapTypeId: "roadmap",
         styles: [
           { featureType: "all", elementType: "labels", stylers: [{ visibility: "off" }] },
           { featureType: "road", stylers: [{ visibility: "off" }] },
-          { featureType: "transit", stylers: [{ visibility: "off" }] },
           { featureType: "poi", stylers: [{ visibility: "off" }] },
+          { featureType: "transit", stylers: [{ visibility: "off" }] },
           { featureType: "administrative", stylers: [{ visibility: "off" }] },
-          { featureType: "landscape", elementType: "geometry", stylers: [{ color: "#b8f7ac" }] }, // lichtgroen achtergrond
-          { featureType: "water", elementType: "geometry", stylers: [{ color: "#9fd3f6" }] } // blauw water
+          { featureType: "water", elementType: "geometry", stylers: [{ color: "#9fd3f6" }] }
         ]
       });
 
-      // Nauwkeurige polygon van België (vereenvoudigd maar herkenbaar)
-      const belgieGeoJson = {
-        "type": "FeatureCollection",
-        "features": [{
-          "type": "Feature",
-          "properties": {},
-          "geometry": {
-            "type": "Polygon",
-            "coordinates": [[
-              [2.51357303225, 51.1485061713],
-              [3.31497114423, 51.3457809515],
-              [4.04707116051, 51.2672586127],
-              [4.97399132662, 51.4750237087],
-              [5.60697594567, 51.03729848897],
-              [6.15665815596, 50.80372101501],
-              [6.04307335778, 50.12805166279],
-              [5.7824174333, 50.09032786722],
-              [5.67405195478, 49.52948354756],
-              [4.79922163252, 49.98537303324],
-              [4.28602298343, 49.90749664977],
-              [3.58818444176, 50.378992418],
-              [2.86714390389, 50.42523754735],
-              [2.51357303225, 51.1485061713]
-            ]]
-          }
-        }]
-      };
-
-      // Voeg België toe
-      map.data.addGeoJson(belgieGeoJson);
-
-      // Stijl België met zwarte rand en donkerder groen
+      // ===== Land contour (België) =====
+      map.data.loadGeoJson('https://raw.githubusercontent.com/johan/world.geo.json/master/countries/BEL.geo.json', {
+        idPropertyName: 'id'
+      });
       map.data.setStyle({
-        fillColor: "#8fe68f",
+        fillColor: '#8fe68f',
         fillOpacity: 1,
-        strokeColor: "#000000",
+        strokeColor: '#000',
         strokeWeight: 2
       });
 
-      // Fit kaart op België
-      const bounds = new google.maps.LatLngBounds();
-      belgieGeoJson.features[0].geometry.coordinates[0].forEach(coord => {
-        bounds.extend(new google.maps.LatLng(coord[1], coord[0]));
+      // ===== Provincies =====
+      map.data.loadGeoJson('https://raw.githubusercontent.com/AshKyd/geojson-regions/master/countries/BE-BEL.geojson');
+      map.data.addListener('addfeature', function(event) {
+        // Alleen provincies lichter tekenen
+        map.data.overrideStyle(event.feature, {
+          fillOpacity: 0,           // transparant
+          strokeColor: '#555',      // grijs
+          strokeWeight: 1           // dunne lijnen
+        });
       });
-      map.fitBounds(bounds);
-
-      // 🌸 Leden plaatsen
-      laadLeden();
-    }
-
-    async function laadLeden() {
-      try {
-        const parochiesSnap = await db.collection("parochies").get();
-
-        for (const paroDoc of parochiesSnap.docs) {
-          const ledenSnap = await paroDoc.ref.collection("leden").get();
-
-          ledenSnap.forEach(lidDoc => {
-            const lid = lidDoc.data();
-
-            if (lid.gemeente && lid.postcode) {
-              const adres = `${lid.postcode} ${lid.gemeente}, België`;
-
-              fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(adres)}&key=AIzaSyB41mcK4sxdDX2LcAnnflE4lvNmwiZjKLg`)
-                .then(res => res.json())
-                .then(data => {
-                  if (data.results && data.results.length > 0) {
-                    const locatie = data.results[0].geometry.location;
-
-                    const marker = new google.maps.Marker({
-                      position: locatie,
-                      map,
-                      label: { text: "🌸", fontSize: "22px" },
-                      title: `${lid.voornaam || ""} ${lid.achternaam || ""}`
-                    });
-
-                    const info = new google.maps.InfoWindow({
-                      content: `<b>${lid.voornaam || ""} ${lid.achternaam || ""}</b><br>${lid.postcode} ${lid.gemeente}`
-                    });
-
-                    marker.addListener("click", () => {
-                      info.open(map, marker);
-                    });
-                  }
-                });
-            }
-          });
-        }
-      } catch (e) {
-        console.error("Fout bij laden leden:", e);
-      }
     }
   </script>
 
