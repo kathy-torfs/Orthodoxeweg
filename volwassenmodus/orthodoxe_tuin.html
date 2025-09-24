@@ -42,7 +42,7 @@
         center: { lat: 50.85, lng: 4.35 },
         zoom: 8,
         mapTypeId: "roadmap",
-        mapId: "d5b87c8017660697b16d5512", // ✅ jouw gestylde Map-ID
+        mapId: "d5b87c8017660697b16d5512", // jouw gestylde Map-ID
         zoomControl: true,
         streetViewControl: false,
         mapTypeControl: false,
@@ -51,7 +51,7 @@
 
       infoWindow = new google.maps.InfoWindow();
 
-      // Laad provincies
+      // Laad provincies van België
       map.data.loadGeoJson("provincesprovincies-belgium.geojson", {}, function(features) {
         features.forEach(f => {
           map.data.overrideStyle(f, {
@@ -66,7 +66,29 @@
         features.forEach(f => f.getGeometry().forEachLatLng(latlng => bounds.extend(latlng)));
         map.fitBounds(bounds);
 
-        // 👉 Masker (groene layover) is hier weggelaten
+        // Masker: alleen België zichtbaar, maar labels blijven zichtbaar
+        const outerBounds = [
+          { lat: 60, lng: -10 },
+          { lat: 60, lng: 15 },
+          { lat: 45, lng: 15 },
+          { lat: 45, lng: -10 }
+        ];
+        const belgieCoords = [];
+        features.forEach(f => {
+          const path = [];
+          f.getGeometry().forEachLatLng(latlng => path.push({lat: latlng.lat(), lng: latlng.lng()}));
+          belgieCoords.push(path);
+        });
+        new google.maps.Polygon({
+          map,
+          paths: [outerBounds, ...belgieCoords],
+          strokeColor: "#99cc99",
+          strokeWeight: 1,
+          fillColor: "#ffffff", // neutrale kleur
+          fillOpacity: 0,       // ✅ transparant → labels zichtbaar
+          clickable: false
+        });
+
         laadParochies();
       });
     }
