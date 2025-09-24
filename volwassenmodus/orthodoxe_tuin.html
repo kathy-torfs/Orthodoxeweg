@@ -66,29 +66,7 @@
         features.forEach(f => f.getGeometry().forEachLatLng(latlng => bounds.extend(latlng)));
         map.fitBounds(bounds);
 
-        // Masker: alles buiten België lichter inkleuren
-        const outerBounds = [
-          { lat: 60, lng: -10 },
-          { lat: 60, lng: 15 },
-          { lat: 45, lng: 15 },
-          { lat: 45, lng: -10 }
-        ];
-        const belgieCoords = [];
-        features.forEach(f => {
-          const path = [];
-          f.getGeometry().forEachLatLng(latlng => path.push({lat: latlng.lat(), lng: latlng.lng()}));
-          belgieCoords.push(path);
-        });
-        new google.maps.Polygon({
-          map,
-          paths: [outerBounds, ...belgieCoords],
-          strokeColor: "#99cc99",
-          strokeWeight: 1,
-          fillColor: "#eaf6ea",
-          fillOpacity: 1,
-          clickable: false
-        });
-
+        // 👉 Masker (groene layover) is hier weggelaten
         laadParochies();
       });
     }
