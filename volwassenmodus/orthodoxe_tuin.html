@@ -60,32 +60,53 @@
         ]
       });
 
-      // 📍 Vereenvoudigde polygon rond België
-      const belgieCoords = [
-        { lat: 51.50, lng: 3.36 },
-        { lat: 51.50, lng: 6.40 },
-        { lat: 50.80, lng: 6.40 },
-        { lat: 49.50, lng: 5.80 },
-        { lat: 49.50, lng: 2.55 },
-        { lat: 50.80, lng: 2.55 }
-      ];
+      // Nauwkeurige polygon van België (vereenvoudigd maar herkenbaar)
+      const belgieGeoJson = {
+        "type": "FeatureCollection",
+        "features": [{
+          "type": "Feature",
+          "properties": {},
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [[
+              [2.51357303225, 51.1485061713],
+              [3.31497114423, 51.3457809515],
+              [4.04707116051, 51.2672586127],
+              [4.97399132662, 51.4750237087],
+              [5.60697594567, 51.03729848897],
+              [6.15665815596, 50.80372101501],
+              [6.04307335778, 50.12805166279],
+              [5.7824174333, 50.09032786722],
+              [5.67405195478, 49.52948354756],
+              [4.79922163252, 49.98537303324],
+              [4.28602298343, 49.90749664977],
+              [3.58818444176, 50.378992418],
+              [2.86714390389, 50.42523754735],
+              [2.51357303225, 51.1485061713]
+            ]]
+          }
+        }]
+      };
 
-      const belgiePolygon = new google.maps.Polygon({
-        paths: belgieCoords,
-        strokeColor: "#000000",   // zwarte rand
-        strokeOpacity: 1,
-        strokeWeight: 2,
-        fillColor: "#8fe68f",    // donkerder groen voor België
-        fillOpacity: 1
+      // Voeg België toe
+      map.data.addGeoJson(belgieGeoJson);
+
+      // Stijl België met zwarte rand en donkerder groen
+      map.data.setStyle({
+        fillColor: "#8fe68f",
+        fillOpacity: 1,
+        strokeColor: "#000000",
+        strokeWeight: 2
       });
-
-      belgiePolygon.setMap(map);
 
       // Fit kaart op België
       const bounds = new google.maps.LatLngBounds();
-      belgieCoords.forEach(c => bounds.extend(c));
+      belgieGeoJson.features[0].geometry.coordinates[0].forEach(coord => {
+        bounds.extend(new google.maps.LatLng(coord[1], coord[0]));
+      });
       map.fitBounds(bounds);
 
+      // 🌸 Leden plaatsen
       laadLeden();
     }
 
