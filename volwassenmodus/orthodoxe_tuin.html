@@ -3,50 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Orthodoxe Tuin – Orthodoxeweg</title>
-  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
+  <title>Orthodoxe Tuin – Enkel België</title>
   <style>
-    body { margin:0; font-family:Arial,sans-serif; background:#e6f5e1; color:#333; }
+    body { margin:0; }
     #map { height:100vh; width:100%; }
   </style>
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <!-- Gemeenschappelijke header -->
-  <div id="volwassen-header"></div>
-  <script src="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/common/layout.js"></script>
-
   <div id="map"></div>
 
   <script>
-    // ==== Firebase config ====
-    const firebaseConfig = {
-      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
-      authDomain: "orthodoxeweg.firebaseapp.com",
-      projectId: "orthodoxeweg",
-      storageBucket: "orthodoxeweg.appspot.com",
-      messagingSenderId: "408582263618",
-      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
-    };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
     let map;
-    let infoWindow;
 
     function initMap() {
-      map = new google.maps.Map(document.getElementById("map"), {
+      map = new google.maps.Map(document.getElementById("map"), { 
         center: { lat: 50.85, lng: 4.35 },
         zoom: 8,
-        mapTypeId: "roadmap"
+        mapTypeId: "roadmap",
+        mapId: "d5b87c8017660697b16d5512", // jouw gestylde kaart
+        zoomControl: true,
+        streetViewControl: false,
+        mapTypeControl: false,
+        fullscreenControl: false
       });
 
-      infoWindow = new google.maps.InfoWindow();
-
-      // Masker: alleen België zichtbaar
+      // Masker tekenen
       fetch("provincesprovincies-belgium.geojson")
         .then(res => res.json())
         .then(geojson => {
@@ -54,100 +35,41 @@
           geojson.features.forEach(f => {
             const path = [];
             f.geometry.coordinates[0].forEach(coord => {
-              path.push({lat: coord[1], lng: coord[0]});
+              path.push({ lat: coord[1], lng: coord[0] });
             });
             belgieCoords.push(path);
           });
 
+          // Groot vlak dat heel Europa bedekt
           const outerBounds = [
-            { lat: 60, lng: -10 },
-            { lat: 60, lng: 15 },
-            { lat: 45, lng: 15 },
-            { lat: 45, lng: -10 }
+            { lat: 85, lng: -180 },
+            { lat: 85, lng: 180 },
+            { lat: -85, lng: 180 },
+            { lat: -85, lng: -180 }
           ];
 
+          // Polygon tekenen met uitsparing voor België
           new google.maps.Polygon({
             map,
             paths: [outerBounds, ...belgieCoords],
-            strokeColor: "#99cc99",
-            strokeWeight: 1,
-            fillOpacity: 0,   // ✅ geen vulling, dus geen overlay
+            strokeColor: "#000000", // randje rond België
+            strokeWeight: 2,
+            fillColor: "#ffffff",   // buiten België wit
+            fillOpacity: 1,
             clickable: false
           });
 
-          // Parochies laden
-          laadParochies();
+          // Inzoomen op België
+          const bounds = new google.maps.LatLngBounds();
+          belgieCoords[0].forEach(pt => bounds.extend(pt));
+          map.fitBounds(bounds);
         });
-    }
-
-    // === Parochies ===
-    async function laadParochies() {
-      const snap = await db.collection("parochies").get();
-      snap.forEach(async paroDoc => {
-        const parochie = paroDoc.data();
-        if (parochie.adres) {
-          const adres = encodeURIComponent(parochie.adres + ", België");
-          fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${adres}&key=AIzaSyB41mcK4sxdDX2LcAnnflE4lvNmwiZjKLg`)
-            .then(res => res.json())
-            .then(data => {
-              if (data.results && data.results[0]) {
-                const locatie = data.results[0].geometry.location;
-                const marker = new google.maps.Marker({
-                  position: locatie,
-                  map,
-                  icon: {
-                    url: "https://maps.google.com/mapfiles/kml/shapes/church_maps.png",
-                    scaledSize: new google.maps.Size(28, 28)
-                  },
-                  title: parochie.naam
-                });
-
-                marker.addListener("click", () => {
-                  infoWindow.setContent(`<b>${parochie.naam}</b><br>📍 ${parochie.adres}`);
-                  infoWindow.open(map, marker);
-                });
-              }
-            });
-
-          laadLeden(paroDoc.id);
-        }
-      });
-    }
-
-    // === Leden ===
-    async function laadLeden(parochieId) {
-      const ledenSnap = await db.collection("parochies").doc(parochieId).collection("leden").get();
-      ledenSnap.forEach(lidDoc => {
-        const lid = lidDoc.data();
-        if (lid.gemeente && lid.postcode && lid.bloemen) {
-          const adres = encodeURIComponent(lid.postcode + " " + lid.gemeente + ", België");
-          fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${adres}&key=AIzaSyB41mcK4sxdDX2LcAnnflE4lvNmwiZjKLg`)
-            .then(res => res.json())
-            .then(data => {
-              if (data.results && data.results[0]) {
-                const locatie = data.results[0].geometry.location;
-                const marker = new google.maps.Marker({
-                  position: locatie,
-                  map,
-                  label: {
-                    text: lid.bloemen,
-                    fontSize: "16px"
-                  },
-                  title: lid.voornaam || "Onbekend"
-                });
-
-                marker.addListener("click", () => {
-                  infoWindow.setContent(`<b>${lid.voornaam || "Onbekend"}</b><br>🌸 ${lid.bloemen}`);
-                  infoWindow.open(map, marker);
-                });
-              }
-            });
-        }
-      });
     }
   </script>
 
   <!-- Google Maps API -->
-  <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB41mcK4sxdDX2LcAnnflE4lvNmwiZjKLg&callback=initMap"></script>
+  <script async defer 
+    src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap">
+  </script>
 </body>
 </html>
