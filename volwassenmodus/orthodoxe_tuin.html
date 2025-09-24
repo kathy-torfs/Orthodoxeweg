@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html>  
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
@@ -46,47 +46,54 @@
 
       infoWindow = new google.maps.InfoWindow();
 
-      // Masker: alleen België zichtbaar
+      // === Alleen België tonen ===
       fetch("provincesprovincies-belgium.geojson")
         .then(res => res.json())
         .then(geojson => {
-          const belgieCoords = [];
-
+          const belgiumRings = [];
           geojson.features.forEach(f => {
-            if (f.geometry.type === "Polygon") {
-              const path = f.geometry.coordinates[0].map(coord => ({lat: coord[1], lng: coord[0]}));
-              belgieCoords.push(path);
-            } else if (f.geometry.type === "MultiPolygon") {
-              f.geometry.coordinates.forEach(polygon => {
-                const path = polygon[0].map(coord => ({lat: coord[1], lng: coord[0]}));
-                belgieCoords.push(path);
+            const g = f.geometry;
+            if (!g) return;
+
+            if (g.type === "Polygon") {
+              g.coordinates.forEach(ring => {
+                belgiumRings.push(ring.map(([lng, lat]) => ({ lat, lng })));
+              });
+            } else if (g.type === "MultiPolygon") {
+              g.coordinates.forEach(poly => {
+                poly.forEach(ring => {
+                  belgiumRings.push(ring.map(([lng, lat]) => ({ lat, lng })));
+                });
               });
             }
           });
 
-          const outerBounds = [
-            { lat: 85, lng: -180 },
-            { lat: 85, lng: 180 },
-            { lat: -85, lng: 180 },
+          // Groot buitenvlak
+          const outerWorld = [
+            { lat: 85,  lng: -180 },
+            { lat: 85,  lng:  180 },
+            { lat: -85, lng:  180 },
             { lat: -85, lng: -180 }
           ];
 
+          const bg = getComputedStyle(document.body).backgroundColor || "#e6f5e1";
+
           new google.maps.Polygon({
             map,
-            paths: [outerBounds, ...belgieCoords],
+            paths: [outerWorld, ...belgiumRings],
             strokeColor: "#000000",
-            strokeWeight: 2,
-            fillColor: "#ffffff",  // buiten België wit
+            strokeWeight: 1,
+            fillColor: bg,
             fillOpacity: 1,
             clickable: false
           });
 
           // Zoom naar België
           const bounds = new google.maps.LatLngBounds();
-          belgieCoords.forEach(path => path.forEach(pt => bounds.extend(pt)));
+          belgiumRings.forEach(r => r.forEach(ll => bounds.extend(ll)));
           map.fitBounds(bounds);
 
-          // Na kaart: parochies en leden laden
+          // Daarna markers laden
           laadParochies();
         });
     }
