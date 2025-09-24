@@ -50,7 +50,7 @@
         styles: [
           { featureType: "all", elementType: "labels", stylers: [{ visibility: "off" }] },
           { featureType: "road", stylers: [{ visibility: "off" }] },
-          { featureType: "poi", stylers: [{ visibility: "off" }] },   // ✅ geen standaard pins
+          { featureType: "poi", stylers: [{ visibility: "off" }] },   // geen standaard pins
           { featureType: "transit", stylers: [{ visibility: "off" }] },
           { featureType: "administrative", stylers: [{ visibility: "off" }] },
           { featureType: "landscape", elementType: "geometry", stylers: [{ color: "#f0fff0" }] },
@@ -115,11 +115,13 @@
             .then(data => {
               if (data.results && data.results[0]) {
                 const locatie = data.results[0].geometry.location;
+                // ✅ Kerken als emoji, geen rode pin
                 const marker = new google.maps.Marker({
                   position: locatie,
                   map,
+                  icon: null,
                   label: {
-                    text: "⛪",   // ✅ vervangt kerk-icoon door emoji
+                    text: "⛪",
                     fontSize: "20px"
                   },
                   title: parochie.naam
@@ -151,14 +153,16 @@
             .then(data => {
               if (data.results && data.results[0]) {
                 const locatie = data.results[0].geometry.location;
+                // ✅ Bloemen als label, geen rode pin
                 const marker = new google.maps.Marker({
                   position: locatie,
                   map,
+                  icon: null,
                   label: {
-                    text: lid.bloemen, // ✅ bloem zichtbaar in tuin
+                    text: lid.bloemen,
                     fontSize: "16px"
                   },
-                  title: lid.voornaam || "Onbekend"
+                  title: `${lid.voornaam || "Onbekend"} (${lid.gemeente})`
                 });
 
                 marker.addListener("click", () => {
