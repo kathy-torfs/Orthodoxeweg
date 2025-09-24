@@ -42,6 +42,8 @@
         center: { lat: 50.85, lng: 4.35 },
         zoom: 8,
         mapTypeId: "roadmap",
+        zoomControl: true,
+        zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_BOTTOM },
         styles: [
           // Geen wegen, POI’s, transit
           { featureType: "road", stylers: [{ visibility: "off" }] },
@@ -52,13 +54,25 @@
           { featureType: "landscape", elementType: "geometry", stylers: [{ color: "#f0fff0" }] },
           { featureType: "water", elementType: "geometry", stylers: [{ color: "#9fd3f6" }] },
 
-          // Provincie- en gemeentegrenzen weg
+          // Provinciegrenzen weg
           { featureType: "administrative", elementType: "geometry", stylers: [{ visibility: "off" }] },
 
-          // Steden en gemeenten zichtbaar (labels)
+          // Grote steden zichtbaar vanaf zoom 10
           { featureType: "administrative.locality", elementType: "labels.text.fill",
-            stylers: [{ visibility: "on" }, { color: "#444444" }] },
+            stylers: [{ visibility: "simplified" }, { color: "#222222" }] },
           { featureType: "administrative.locality", elementType: "labels.text.stroke",
+            stylers: [{ visibility: "off" }] },
+
+          // Middelgrote steden zichtbaar vanaf zoom 11
+          { featureType: "administrative.neighborhood", elementType: "labels.text.fill",
+            stylers: [{ visibility: "simplified" }, { color: "#555555" }] },
+          { featureType: "administrative.neighborhood", elementType: "labels.text.stroke",
+            stylers: [{ visibility: "off" }] },
+
+          // Dorpen/gemeenten zichtbaar vanaf zoom 13
+          { featureType: "administrative.land_parcel", elementType: "labels.text.fill",
+            stylers: [{ visibility: "simplified" }, { color: "#777777" }] },
+          { featureType: "administrative.land_parcel", elementType: "labels.text.stroke",
             stylers: [{ visibility: "off" }] }
         ]
       });
