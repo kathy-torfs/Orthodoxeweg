@@ -139,40 +139,45 @@
       });
     }
 
-    // === Leden ophalen ===
-    async function laadLeden(parochieId) {
-      const ledenSnap = await db.collection("parochies").doc(parochieId).collection("leden").get();
-      ledenSnap.forEach(lidDoc => {
-        const lid = lidDoc.data();
-        if (lid.gemeente && lid.postcode && lid.bloemen) {
-          const adres = encodeURIComponent(lid.postcode + " " + lid.gemeente + ", België");
-          fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${adres}&key=AIzaSyB41mcK4sxdDX2LcAnnflE4lvNmwiZjKLg`)
-            .then(res => res.json())
-            .then(data => {
-              if (data.results && data.results[0]) {
-                const locatie = data.results[0].geometry.location;
-                const marker = new google.maps.Marker({
-                  position: locatie,
-                  map,
-                  label: {
-                    text: lid.bloemen, // ✅ bloem zichtbaar in tuin
-                    fontSize: "16px"
-                  },
-                  title: lid.voornaam || "Onbekend"
-                });
-
-                marker.addListener("click", () => {
-                  infoWindow.setContent(
-                    `<b>${lid.voornaam || "Onbekend"}</b><br>
-                     🏠 ${lid.gemeente}`
-                  );
-                  infoWindow.open(map, marker);
-                });
-              }
+   // === Leden ophalen === 
+async function laadLeden(parochieId) {
+  const ledenSnap = await db.collection("parochies").doc(parochieId).collection("leden").get();
+  ledenSnap.forEach(lidDoc => {
+    const lid = lidDoc.data();
+    if (lid.gemeente && lid.postcode && lid.bloemen) {
+      const adres = encodeURIComponent(lid.postcode + " " + lid.gemeente + ", België");
+      fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${adres}&key=AIzaSyB41mcK4sxdDX2LcAnnflE4lvNmwiZjKLg`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.results && data.results[0]) {
+            const locatie = data.results[0].geometry.location;
+            const marker = new google.maps.Marker({
+              position: locatie,
+              map,
+              // ✅ transparant icoon → geen rode pin
+              icon: {
+                url: "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==",
+                scaledSize: new google.maps.Size(1, 1)
+              },
+              label: {
+                text: lid.bloemen, // 🌸 zichtbaar in de tuin
+                fontSize: "16px"
+              },
+              title: lid.voornaam || "Onbekend"
             });
-        }
-      });
+
+            marker.addListener("click", () => {
+              infoWindow.setContent(
+                `<b>${lid.voornaam || "Onbekend"}</b><br>
+                 🏠 ${lid.gemeente}`
+              );
+              infoWindow.open(map, marker);
+            });
+          }
+        });
     }
+  });
+}
   </script>
 
   <!-- Google Maps API -->
