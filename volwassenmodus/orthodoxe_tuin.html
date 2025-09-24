@@ -11,6 +11,7 @@
   </style>
 </head>
 <body>
+  <!-- Gemeenschappelijke header -->
   <div id="volwassen-header"></div>
   <script src="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/common/layout.js"></script>
 
@@ -32,27 +33,28 @@
         ]
       });
 
-      // ===== België laden uit lokaal bestand =====
-      map.data.loadGeoJson('regionsgeweste-belgium.geojson', {}, function(features) {
-        // België groen vullen + zwarte rand
+      // ===== Provincies laden =====
+      map.data.loadGeoJson('provincesprovincies-belgium.geojson', {}, function(features) {
+        // België groen invullen en provincies met grijze lijnen
         features.forEach(f => {
           map.data.overrideStyle(f, {
             fillColor: '#8fe68f',
             fillOpacity: 1,
-            strokeColor: '#000',
-            strokeWeight: 2
+            strokeColor: '#666',
+            strokeWeight: 1
           });
         });
 
-        // Fit map naar België
+        // Kaart automatisch schalen op België
         const bounds = new google.maps.LatLngBounds();
         features.forEach(f => f.getGeometry().forEachLatLng(latlng => bounds.extend(latlng)));
         map.fitBounds(bounds);
+        map.setZoom(8); // iets meer ingezoomd zodat buurlanden niet domineren
       });
     }
   </script>
 
-  <!-- GOOGLE MAPS API -->
+  <!-- Google Maps API -->
   <script async
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB41mcK4sxdDX2LcAnnflE4lvNmwiZjKLg&callback=initMap">
   </script>
