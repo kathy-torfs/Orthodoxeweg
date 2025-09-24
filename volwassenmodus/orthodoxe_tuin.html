@@ -35,6 +35,7 @@
     const db = firebase.firestore();
 
     let map;
+    let infoWindow; // popup venster
 
     function initMap() {
       map = new google.maps.Map(document.getElementById("map"), {
@@ -52,6 +53,8 @@
         ]
       });
 
+      infoWindow = new google.maps.InfoWindow();
+
       // Laad provincies van België
       map.data.loadGeoJson("provincesprovincies-belgium.geojson", {}, function(features) {
         features.forEach(f => {
@@ -63,7 +66,6 @@
           });
         });
 
-        // Center op België
         const bounds = new google.maps.LatLngBounds();
         features.forEach(f => f.getGeometry().forEachLatLng(latlng => bounds.extend(latlng)));
         map.fitBounds(bounds);
@@ -91,12 +93,12 @@
           clickable: false
         });
 
-        // Na de kaart: parochies en leden laden
+        // Na kaart: parochies en leden laden
         laadParochies();
       });
     }
 
-    // === Parochies ophalen en markeren ===
+    // === Parochies ophalen ===
     async function laadParochies() {
       const snap = await db.collection("parochies").get();
       snap.forEach(async paroDoc => {
@@ -108,7 +110,7 @@
             .then(data => {
               if (data.results && data.results[0]) {
                 const locatie = data.results[0].geometry.location;
-                new google.maps.Marker({
+                const marker = new google.maps.Marker({
                   position: locatie,
                   map,
                   icon: {
@@ -116,6 +118,14 @@
                     scaledSize: new google.maps.Size(28, 28)
                   },
                   title: parochie.naam
+                });
+
+                // Klik op kerk = popup (alleen naam + adres)
+                marker.addListener("click", () => {
+                  infoWindow.setContent(
+                    `<b>${parochie.naam}</b><br>📍 ${parochie.adres}`
+                  );
+                  infoWindow.open(map, marker);
                 });
               }
             });
@@ -126,7 +136,7 @@
       });
     }
 
-    // === Leden ophalen en bloemen tonen ===
+    // === Leden ophalen ===
     async function laadLeden(parochieId) {
       const ledenSnap = await db.collection("parochies").doc(parochieId).collection("leden").get();
       ledenSnap.forEach(lidDoc => {
@@ -138,14 +148,22 @@
             .then(data => {
               if (data.results && data.results[0]) {
                 const locatie = data.results[0].geometry.location;
-                new google.maps.Marker({
+                const marker = new google.maps.Marker({
                   position: locatie,
                   map,
                   label: {
                     text: lid.bloemen,
                     fontSize: "16px"
                   },
-                  title: `${lid.voornaam || ""} ${lid.achternaam || ""}`
+                  title: lid.voornaam || "Onbekend"
+                });
+
+                // Klik op bloem = popup (alleen voornaam + bloem)
+                marker.addListener("click", () => {
+                  infoWindow.setContent(
+                    `<b>${lid.voornaam || "Onbekend"}</b><br>🌸 ${lid.bloemen}`
+                  );
+                  infoWindow.open(map, marker);
                 });
               }
             });
