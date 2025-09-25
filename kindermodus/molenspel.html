@@ -1,4 +1,4 @@
-<!DOCTYPE html>  
+<!DOCTYPE html>
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
@@ -39,11 +39,11 @@
     .point.player{ fill:#e53935; }
     .point.computer{ fill:#fbc02d; }
     .point.selected{ stroke:#000; stroke-width:4; }
-    .point.highlight{ stroke:#000; stroke-width:4; animation: blink 0.8s linear 4; }
+    .point.highlight{ stroke:#000; stroke-width:4; animation: blink 0.6s linear infinite; }
 
     @keyframes blink {
       0%, 50%, 100% { filter: brightness(1.2); }
-      25%, 75% { filter: brightness(0.4); }
+      25%, 75% { filter: brightness(0.6); }
     }
 
     #status{ margin-top:12px; font-weight:bold }
@@ -222,49 +222,70 @@
     }
 
     function computerMove(){
-      if(phase==="placing" || phase==="moving"){
+      if(mustRemove==="computerRemove"){
+        const targets=Object.keys(stones).filter(k=>stones[k]==="player");
+        if(targets.length){
+          const pick=targets[Math.floor(Math.random()*targets.length)];
+          stones[pick]=null;
+        }
+        mustRemove=null; updateBoard();
+        current="player"; status("Jij bent aan zet"); return;
+      }
+
+      if(phase==="placing"){
         let choice;
-        if(phase==="placing"){
-          if(difficulty==="easy"){
+        if(difficulty==="easy"){
+          const empty=Object.keys(stones).filter(k=>!stones[k]);
+          choice=empty[Math.floor(Math.random()*empty.length)];
+        } else {
+          choice=findMoveSmart("computer");
+          if(choice===null) choice=findMoveSmart("player");
+          if(choice===null){
             const empty=Object.keys(stones).filter(k=>!stones[k]);
             choice=empty[Math.floor(Math.random()*empty.length)];
-          } else {
-            choice=findMoveSmart("computer") ?? findMoveSmart("player");
-            if(choice===null){
-              const empty=Object.keys(stones).filter(k=>!stones[k]);
-              choice=empty[Math.floor(Math.random()*empty.length)];
-            }
           }
-          stones[choice]="computer"; placed.computer++;
-        } else {
-          const own=Object.keys(stones).filter(k=>stones[k]==="computer");
-          if(own.length===0)return;
-          const from=own[Math.floor(Math.random()*own.length)];
-          const opts=adj[from].filter(n=>!stones[n]);
-          if(!opts.length)return;
-          choice=opts[Math.floor(Math.random()*opts.length)];
-          stones[choice]="computer"; stones[from]=null;
         }
-
-        updateBoard(); if(gameOver) return;
+        stones[choice]="computer"; placed.computer++;
+        updateBoard();
         if(checkMill("computer",choice)){
-          // ✅ computer verwijdert direct een rode steen
-          const targets=Object.keys(stones).filter(k=>stones[k]==="player");
-          if(targets.length){
-            const pick=targets[Math.floor(Math.random()*targets.length)];
-            const circle=document.querySelector(`.point[data-id="${pick}"]`);
-            if(circle){
-              circle.classList.add("highlight");
-              setTimeout(()=>{ stones[pick]=null; updateBoard(); },800);
-            } else {
-              stones[pick]=null; updateBoard();
-            }
+          if(Object.values(stones).filter(s=>s==="player").length>0){
+            mustRemove="computerRemove";
+            status("De computer heeft een molen!"); return;
           }
-          status("De computer heeft een molen en neemt een rode steen weg!");
-          setTimeout(()=>{ current="player"; status("Jij bent aan zet"); },900);
-          return;
         }
         if(placed.player>=9 && placed.computer>=9){ phase="moving"; status("Alle stenen geplaatst, verschuiven!"); }
+        current="player"; status("Jij bent aan zet");
+      } else if(phase==="moving"){
+        const own=Object.keys(stones).filter(k=>stones[k]==="computer");
+        if(own.length===0)return;
+        let moved=false;
+        for(let tries=0;tries<40 && !moved;tries++){
+          const from=own[Math.floor(Math.random()*own.length)];
+          const opts=adj[from].filter(n=>!stones[n]);
+          if(!opts.length) continue;
+
+          let to;
+          if(difficulty==="easy"){
+            to=opts[Math.floor(Math.random()*opts.length)];
+          } else {
+            to=findWinningMoveNear(from,"computer");
+            if(to===null) to=findWinningMoveNear(from,"player");
+            if(to===null) to=opts[Math.floor(Math.random()*opts.length)];
+            if(difficulty==="hard"){
+              to=pickBestMove(from,opts) || to;
+            }
+          }
+
+          stones[to]="computer"; stones[from]=null;
+          updateBoard();
+          if(checkMill("computer",to)){
+            if(Object.values(stones).filter(s=>s==="player").length>0){
+              mustRemove="computerRemove";
+              status("De computer heeft een molen!"); return;
+            }
+          }
+          moved=true;
+        }
         current="player"; status("Jij bent aan zet");
       }
     }
@@ -282,7 +303,7 @@
         c.classList.remove("player","computer","selected","highlight");
         if(stones[id]) c.classList.add(stones[id]);
       });
-      checkWin(); if(gameOver) return;
+      checkWin();
     }
 
     function highlight(id){ document.querySelector(`.point[data-id="${id}"]`).classList.add("selected"); }
