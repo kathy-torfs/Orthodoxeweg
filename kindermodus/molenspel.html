@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
@@ -227,8 +227,10 @@
         if(targets.length){
           const pick=targets[Math.floor(Math.random()*targets.length)];
           stones[pick]=null;
+          updateBoard();
+          status("De computer heeft een molen en neemt jouw steen weg!");
         }
-        mustRemove=null; updateBoard();
+        mustRemove=null; if(gameOver) return;
         current="player"; status("Jij bent aan zet"); return;
       }
 
@@ -246,11 +248,14 @@
           }
         }
         stones[choice]="computer"; placed.computer++;
-        updateBoard();
+        updateBoard(); if(gameOver) return;
         if(checkMill("computer",choice)){
-          if(Object.values(stones).filter(s=>s==="player").length>0){
-            mustRemove="computerRemove";
-            status("De computer heeft een molen!"); return;
+          const targets=Object.keys(stones).filter(k=>stones[k]==="player");
+          if(targets.length){
+            const pick=targets[Math.floor(Math.random()*targets.length)];
+            stones[pick]=null;
+            updateBoard();
+            status("De computer heeft een molen en neemt jouw steen weg!");
           }
         }
         if(placed.player>=9 && placed.computer>=9){ phase="moving"; status("Alle stenen geplaatst, verschuiven!"); }
@@ -277,11 +282,14 @@
           }
 
           stones[to]="computer"; stones[from]=null;
-          updateBoard();
+          updateBoard(); if(gameOver) return;
           if(checkMill("computer",to)){
-            if(Object.values(stones).filter(s=>s==="player").length>0){
-              mustRemove="computerRemove";
-              status("De computer heeft een molen!"); return;
+            const targets=Object.keys(stones).filter(k=>stones[k]==="player");
+            if(targets.length){
+              const pick=targets[Math.floor(Math.random()*targets.length)];
+              stones[pick]=null;
+              updateBoard();
+              status("De computer heeft een molen en neemt jouw steen weg!");
             }
           }
           moved=true;
@@ -303,7 +311,7 @@
         c.classList.remove("player","computer","selected","highlight");
         if(stones[id]) c.classList.add(stones[id]);
       });
-      checkWin();
+      checkWin(); if(gameOver) return;
     }
 
     function highlight(id){ document.querySelector(`.point[data-id="${id}"]`).classList.add("selected"); }
