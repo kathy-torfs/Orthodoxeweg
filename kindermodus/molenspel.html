@@ -39,11 +39,11 @@
     .point.player{ fill:#e53935; }
     .point.computer{ fill:#fbc02d; }
     .point.selected{ stroke:#000; stroke-width:4; }
-    .point.highlight{ stroke:#000; stroke-width:4; animation: blink 0.6s linear infinite; }
+    .point.highlight{ stroke:#000; stroke-width:4; animation: blink 0.8s linear 4; }
 
     @keyframes blink {
       0%, 50%, 100% { filter: brightness(1.2); }
-      25%, 75% { filter: brightness(0.6); }
+      25%, 75% { filter: brightness(0.4); }
     }
 
     #status{ margin-top:12px; font-weight:bold }
@@ -222,72 +222,49 @@
     }
 
     function computerMove(){
-      if(mustRemove==="computerRemove"){
-        const targets=Object.keys(stones).filter(k=>stones[k]==="player");
-        if(targets.length){
-          const pick=targets[Math.floor(Math.random()*targets.length)];
-          stones[pick]=null;
-        }
-        mustRemove=null; updateBoard(); if(gameOver) return;
-        current="player"; status("Jij bent aan zet"); return;
-      }
-
-      if(phase==="placing"){
+      if(phase==="placing" || phase==="moving"){
         let choice;
-        if(difficulty==="easy"){
-          const empty=Object.keys(stones).filter(k=>!stones[k]);
-          choice=empty[Math.floor(Math.random()*empty.length)];
-        } else {
-          choice=findMoveSmart("computer");
-          if(choice===null) choice=findMoveSmart("player");
-          if(choice===null){
+        if(phase==="placing"){
+          if(difficulty==="easy"){
             const empty=Object.keys(stones).filter(k=>!stones[k]);
             choice=empty[Math.floor(Math.random()*empty.length)];
+          } else {
+            choice=findMoveSmart("computer") ?? findMoveSmart("player");
+            if(choice===null){
+              const empty=Object.keys(stones).filter(k=>!stones[k]);
+              choice=empty[Math.floor(Math.random()*empty.length)];
+            }
           }
-        }
-        stones[choice]="computer"; placed.computer++;
-        updateBoard(); if(gameOver) return;
-        if(checkMill("computer",choice)){
-          if(Object.values(stones).filter(s=>s==="player").length>0){
-            mustRemove="computerRemove";
-            status("De computer heeft een molen! Neem een rode steen weg");
-            return;
-          }
-        }
-        if(placed.player>=9 && placed.computer>=9){ phase="moving"; status("Alle stenen geplaatst, verschuiven!"); }
-        current="player"; status("Jij bent aan zet");
-      } else if(phase==="moving"){
-        const own=Object.keys(stones).filter(k=>stones[k]==="computer");
-        if(own.length===0)return;
-        let moved=false;
-        for(let tries=0;tries<40 && !moved;tries++){
+          stones[choice]="computer"; placed.computer++;
+        } else {
+          const own=Object.keys(stones).filter(k=>stones[k]==="computer");
+          if(own.length===0)return;
           const from=own[Math.floor(Math.random()*own.length)];
           const opts=adj[from].filter(n=>!stones[n]);
-          if(!opts.length) continue;
-
-          let to;
-          if(difficulty==="easy"){
-            to=opts[Math.floor(Math.random()*opts.length)];
-          } else {
-            to=findWinningMoveNear(from,"computer");
-            if(to===null) to=findWinningMoveNear(from,"player");
-            if(to===null) to=opts[Math.floor(Math.random()*opts.length)];
-            if(difficulty==="hard"){
-              to=pickBestMove(from,opts) || to;
-            }
-          }
-
-          stones[to]="computer"; stones[from]=null;
-          updateBoard(); if(gameOver) return;
-          if(checkMill("computer",to)){
-            if(Object.values(stones).filter(s=>s==="player").length>0){
-              mustRemove="computerRemove";
-              status("De computer heeft een molen! Neem een rode steen weg");
-              return;
-            }
-          }
-          moved=true;
+          if(!opts.length)return;
+          choice=opts[Math.floor(Math.random()*opts.length)];
+          stones[choice]="computer"; stones[from]=null;
         }
+
+        updateBoard(); if(gameOver) return;
+        if(checkMill("computer",choice)){
+          // ✅ computer verwijdert direct een rode steen
+          const targets=Object.keys(stones).filter(k=>stones[k]==="player");
+          if(targets.length){
+            const pick=targets[Math.floor(Math.random()*targets.length)];
+            const circle=document.querySelector(`.point[data-id="${pick}"]`);
+            if(circle){
+              circle.classList.add("highlight");
+              setTimeout(()=>{ stones[pick]=null; updateBoard(); },800);
+            } else {
+              stones[pick]=null; updateBoard();
+            }
+          }
+          status("De computer heeft een molen en neemt een rode steen weg!");
+          setTimeout(()=>{ current="player"; status("Jij bent aan zet"); },900);
+          return;
+        }
+        if(placed.player>=9 && placed.computer>=9){ phase="moving"; status("Alle stenen geplaatst, verschuiven!"); }
         current="player"; status("Jij bent aan zet");
       }
     }
