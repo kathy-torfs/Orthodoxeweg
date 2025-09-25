@@ -140,45 +140,38 @@
     }
 
     // === Leden ophalen === 
-async function laadLeden(parochieId) {
-  const ledenSnap = await db.collection("parochies").doc(parochieId).collection("leden").get();
-  ledenSnap.forEach(lidDoc => {
-    const lid = lidDoc.data();
-    if (lid.gemeente && lid.postcode && lid.bloemen) {
-      const adres = encodeURIComponent(lid.postcode + " " + lid.gemeente + ", België");
-      fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${adres}&key=AIzaSyB41mcK4sxdDX2LcAnnflE4lvNmwiZjKLg`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.results && data.results[0]) {
-            const locatie = data.results[0].geometry.location;
-            const marker = new google.maps.Marker({
-              position: locatie,
-              map,
-              icon: {
-                url: "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==", // transparant icoon
-                scaledSize: new google.maps.Size(1, 1),
-                labelOrigin: new google.maps.Point(0, 0) // zorgt dat label klikbaar wordt
-              },
-              label: {
-                text: lid.bloemen,   // 🌸 de bloem zelf
-                fontSize: "16px"
-              },
-              title: lid.voornaam || "Onbekend"
-            });
+    async function laadLeden(parochieId) {
+      const ledenSnap = await db.collection("parochies").doc(parochieId).collection("leden").get();
+      ledenSnap.forEach(lidDoc => {
+        const lid = lidDoc.data();
+        if (lid.gemeente && lid.postcode && lid.bloemen) {
+          const adres = encodeURIComponent(lid.postcode + " " + lid.gemeente + ", België");
+          fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${adres}&key=AIzaSyB41mcK4sxdDX2LcAnnflE4lvNmwiZjKLg`)
+            .then(res => res.json())
+            .then(data => {
+              if (data.results && data.results[0]) {
+                const locatie = data.results[0].geometry.location;
+                const marker = new google.maps.Marker({
+                  position: locatie,
+                  map,
+                  label: {
+                    text: lid.bloemen, // 🌸 enkel bloem zichtbaar
+                    fontSize: "16px"
+                  },
+                  title: lid.voornaam || "Onbekend"
+                });
 
-            // ✅ Klik op bloem toont popup
-            marker.addListener("click", () => {
-              infoWindow.setContent(
-                `<b>${lid.voornaam || "Onbekend"}</b><br>🏠 ${lid.gemeente}`
-              );
-              infoWindow.open(map, marker);
+                marker.addListener("click", () => {
+                  infoWindow.setContent(
+                    `<b>${lid.voornaam || "Onbekend"}</b><br>🏠 ${lid.gemeente}`
+                  );
+                  infoWindow.open(map, marker);
+                });
+              }
             });
-          }
-        });
+        }
+      });
     }
-  });
-}
-
   </script>
 
   <!-- Google Maps API -->
