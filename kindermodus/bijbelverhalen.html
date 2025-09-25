@@ -29,7 +29,6 @@
     }
     .intro b{ color:var(--primair); }
 
-    .story-list{ display:flex; flex-direction:column; gap:16px; }
     .story{
       background:var(--kaart);
       border:1.5px solid var(--rand);
@@ -60,6 +59,18 @@
       text-align:center; color:#7a6b42; padding:22px 8px; font-size:1.05rem;
     }
 
+    #nav{
+      text-align:center; margin-top:20px; display:flex; justify-content:center; gap:14px;
+    }
+    #nav button{
+      padding:10px 20px; font-size:1rem; border:none; border-radius:10px;
+      background:#7bb235; color:white; cursor:pointer;
+      box-shadow:0 3px 6px rgba(0,0,0,.2);
+    }
+    #nav button[disabled]{
+      background:#cccccc; cursor:default; box-shadow:none;
+    }
+
     @media (max-width: 600px){
       .story{ padding:14px; }
       .story h2{ font-size:1.14rem; }
@@ -80,13 +91,19 @@
 
   <main>
     <div class="intro">
-      <b>Welkom!</b> Hieronder vind je mooie bijbelverhalen. Ze verschijnen één voor één —
-      neem rustig je tijd om ze te lezen. ✨
+      <b>Welkom!</b> Hieronder vind je mooie bijbelverhalen. Je leest ze één voor één —
+      gebruik de knoppen om verder of terug te gaan. ✨
     </div>
 
     <div class="label">Bijbelverhalen</div>
-    <div id="stories" class="story-list"></div>
+    <div id="stories"></div>
     <div id="loader" class="loading">Laden…</div>
+
+    <!-- Navigatieknoppen -->
+    <div id="nav" style="display:none;">
+      <button id="prevBtn">⬅ Vorige</button>
+      <button id="nextBtn">Volgende ➡</button>
+    </div>
   </main>
 
   <script>
@@ -107,6 +124,9 @@
       }).then(loadStories).catch(loadStories);
     })();
 
+    let verhalen = [];
+    let huidigeIndex = 0;
+
     async function loadStories(){
       try{
         if (!firebase.apps.length) {
@@ -125,44 +145,69 @@
                              .orderBy(firebase.firestore.FieldPath.documentId())
                              .get();
 
-        const data = [];
         snap.forEach(doc => {
           const d = doc.data() || {};
           const titel = d.titel || d.Titel || `Verhaal ${doc.id}`;
           const tekst = d.tekst || d.verhaal || d.content || d.beschrijving || "";
-          if (String(tekst).trim().length) data.push({ id: doc.id, titel, tekst: String(tekst) });
+          if (String(tekst).trim().length) {
+            verhalen.push({ titel, tekst: String(tekst) });
+          }
         });
 
-        if (!data.length){
-          document.getElementById('loader').textContent = "Er zijn nog geen bijbelverhalen toegevoegd.";
-          return;
-        }
-
-        const root = document.getElementById('stories');
         document.getElementById('loader').style.display = 'none';
 
-        let i = 0;
-        const STEP_MS = 450;
-        function addNext(){
-          if (i >= data.length) return;
-          const { titel, tekst } = data[i++];
+        if (verhalen.length){
+          document.getElementById('nav').style.display = 'flex';
 
-          const card = document.createElement('article');
-          card.className = 'story';
-          card.innerHTML = `
-            <h2>${escapeHtml(titel)}</h2>
-            <div class="tekst">${sanitizeTextWithBr(tekst)}</div>
-          `;
-          root.appendChild(card);
-          setTimeout(addNext, STEP_MS);
+          // haal laatst gelezen index uit localStorage
+          const savedIndex = parseInt(localStorage.getItem("bijbelverhaalIndex"));
+          if (!isNaN(savedIndex) && savedIndex >= 0 && savedIndex < verhalen.length){
+            huidigeIndex = savedIndex;
+          }
+          toonVerhaal(huidigeIndex);
+        } else {
+          document.getElementById('loader').textContent = "Er zijn nog geen bijbelverhalen toegevoegd.";
         }
-        addNext();
 
       }catch(e){
         console.error(e);
         document.getElementById('loader').textContent = "Kon de verhalen niet laden. Probeer later opnieuw.";
       }
     }
+
+    function toonVerhaal(index){
+      const root = document.getElementById('stories');
+      root.innerHTML = "";
+      if (index < verhalen.length){
+        const { titel, tekst } = verhalen[index];
+        root.innerHTML = `
+          <article class="story">
+            <h2>${escapeHtml(titel)}</h2>
+            <div class="tekst">${sanitizeTextWithBr(tekst)}</div>
+          </article>
+        `;
+        // onthoud waar het kind gebleven is
+        localStorage.setItem("bijbelverhaalIndex", index);
+      }
+
+      // knoppen updaten
+      document.getElementById('prevBtn').disabled = (index <= 0);
+      document.getElementById('nextBtn').disabled = (index >= verhalen.length - 1);
+    }
+
+    document.getElementById('prevBtn').addEventListener('click', () => {
+      if (huidigeIndex > 0){
+        huidigeIndex--;
+        toonVerhaal(huidigeIndex);
+      }
+    });
+
+    document.getElementById('nextBtn').addEventListener('click', () => {
+      if (huidigeIndex < verhalen.length - 1){
+        huidigeIndex++;
+        toonVerhaal(huidigeIndex);
+      }
+    });
 
     function sanitizeTextWithBr(s){
       return String(s)
