@@ -145,7 +145,7 @@
       if(mustRemove==="playerRemove"){
         if(stones[id]!=="computer")return;
         stones[id]=null; mustRemove=null;
-        updateBoard(); if(gameOver) return;
+        updateBoard(false); // geen checkWin hier!
         current="computer"; status("Computer is aan zet..."); setTimeout(computerMove,600);
         return;
       }
@@ -153,7 +153,7 @@
       if(phase==="placing"){
         if(stones[id])return;
         stones[id]="player"; placed.player++;
-        updateBoard(); if(gameOver) return;
+        updateBoard(false);
         if(checkMill("player",id)){
           if(Object.values(stones).filter(s=>s==="computer").length>0){
             mustRemove="playerRemove";
@@ -171,7 +171,7 @@
           if(stones[id]){ unselect(); return; }
           if(!adj[selected].includes(id)){ unselect(); return; }
           stones[id]="player"; stones[selected]=null;
-          unselect(); updateBoard(); if(gameOver) return;
+          unselect(); updateBoard(false);
           if(checkMill("player",id)){
             if(Object.values(stones).filter(s=>s==="computer").length>0){
               mustRemove="playerRemove";
@@ -184,43 +184,6 @@
       }
     }
 
-    function findMoveSmart(who){
-      const empty=Object.keys(stones).filter(k=>!stones[k]);
-      for(const id of empty){
-        stones[id]=who;
-        if(checkMill(who,id)){ stones[id]=null; return parseInt(id); }
-        stones[id]=null;
-      }
-      return null;
-    }
-
-    function findWinningMoveNear(from,who){
-      const opts=adj[from].filter(n=>!stones[n]);
-      for(const id of opts){
-        stones[id]=who;
-        if(checkMill(who,id)){ stones[id]=null; return id; }
-        stones[id]=null;
-      }
-      return null;
-    }
-
-    function pickBestMove(from,opts){
-      let best=null, score=-1;
-      for(const id of opts){
-        let s=0;
-        mills.forEach(m=>{
-          if(m.includes(parseInt(id))){
-            const count=m.filter(i=>stones[i]==="computer").length;
-            const empty=m.filter(i=>!stones[i]).length;
-            if(count===2 && empty===1) s+=2;
-            if(count===1 && empty===2) s+=1;
-          }
-        });
-        if(s>score){ score=s; best=id; }
-      }
-      return best;
-    }
-
     function computerMove(){
       if(mustRemove==="computerRemove"){
         const targets=Object.keys(stones).filter(k=>stones[k]==="player");
@@ -228,7 +191,7 @@
           const pick=targets[Math.floor(Math.random()*targets.length)];
           stones[pick]=null;
         }
-        mustRemove=null; updateBoard(); if(gameOver) return;
+        mustRemove=null; updateBoard(false);
         current="player"; status("Jij bent aan zet"); return;
       }
 
@@ -246,13 +209,12 @@
           }
         }
         stones[choice]="computer"; placed.computer++;
-        updateBoard(); if(gameOver) return;
+        updateBoard(false);
         if(checkMill("computer",choice)){
           if(Object.values(stones).filter(s=>s==="player").length>0){
             mustRemove="computerRemove";
             status("De computer heeft een molen! Neem een rode steen weg");
-            updateBoard();
-            return; // wacht tot steen verwijderd is
+            return;
           }
         }
         if(placed.player>=9 && placed.computer>=9){ phase="moving"; status("Alle stenen geplaatst, verschuiven!"); }
@@ -279,12 +241,11 @@
           }
 
           stones[to]="computer"; stones[from]=null;
-          updateBoard(); if(gameOver) return;
+          updateBoard(false);
           if(checkMill("computer",to)){
             if(Object.values(stones).filter(s=>s==="player").length>0){
               mustRemove="computerRemove";
               status("De computer heeft een molen! Neem een rode steen weg");
-              updateBoard();
               return;
             }
           }
@@ -294,20 +255,13 @@
       }
     }
 
-    function checkMill(who,lastId){
-      return mills.some(set=>{
-        if(!set.includes(parseInt(lastId))) return false;
-        return set.every(i=>stones[i]===who);
-      });
-    }
-
-    function updateBoard(){
+    function updateBoard(doCheck=true){
       document.querySelectorAll(".point").forEach(c=>{
         const id=c.dataset.id;
         c.classList.remove("player","computer","selected","highlight");
         if(stones[id]) c.classList.add(stones[id]);
       });
-      checkWin(); if(gameOver) return;
+      if(doCheck) checkWin();
     }
 
     function highlight(id){ document.querySelector(`.point[data-id="${id}"]`).classList.add("selected"); }
