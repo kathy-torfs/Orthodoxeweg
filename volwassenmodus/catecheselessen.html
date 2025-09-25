@@ -15,7 +15,7 @@
     form{background:#fff8eb;border:2px solid #dab97a;border-radius:12px;padding:16px;box-shadow:0 2px 6px rgba(0,0,0,.1);margin-top:20px}
     form h2{margin-top:0;color:#7a5f35}
     label{display:block;margin:10px 0 4px}
-    input[type=text],textarea{width:100%;padding:8px;border:1px solid #dab97a;border-radius:6px;background:#fffdf6}
+    input[type=text],textarea,input[type=number]{width:100%;padding:8px;border:1px solid #dab97a;border-radius:6px;background:#fffdf6}
     textarea{min-height:80px;resize:vertical}
     button{background:#7bb235;color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:bold;margin:4px 4px 0 0}
     button:hover{background:#5e8e29}
@@ -131,6 +131,8 @@
         ${[0,1,2,3].map(i=>`<input type="text" class="antw" value="${q.antwoorden?q.antwoorden[i]:""}"><br>`).join("")}
         <label>Correct (1-4):</label>
         <input type="number" min="1" max="4" class="correct" value="${(q.correct||0)+1}">
+        <label>Punten:</label>
+        <input type="number" min="1" class="punten" value="${q.punten||1}">
       `;
       quizContainer.appendChild(div);
     }
@@ -166,7 +168,10 @@
         const vraag=div.querySelector(".vraag").value.trim();
         const antwoorden=[...div.querySelectorAll(".antw")].map(i=>i.value.trim());
         const correct=parseInt(div.querySelector(".correct").value)-1;
-        if(vraag && antwoorden.filter(a=>a).length===4) data.vragen.push({vraag,antwoorden,correct});
+        const punten=parseInt(div.querySelector(".punten").value) || 1;
+        if(vraag && antwoorden.filter(a=>a).length===4) {
+          data.vragen.push({vraag,antwoorden,correct,punten});
+        }
       });
       await db.collection("parochies").doc(parochieId).collection("catecheselessen").doc(docId).set(data);
       form.reset();platenContainer.innerHTML="";quizContainer.innerHTML="";editId=null;origineel=null;
