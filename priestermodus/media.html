@@ -15,6 +15,7 @@
     textarea { resize:vertical; }
     button { background:#7a5f35; color:#fff; border:none; padding:10px 18px; border-radius:8px; cursor:pointer; }
     button:hover { background:#5d4726; }
+    .yt-box { margin:20px 0; padding:15px; border:2px dashed #dab97a; border-radius:10px; background:#fffdf5; }
     .media-lijst { margin-top:30px; }
     .media-item { border-bottom:1px solid #ddd; padding:10px 0; }
     .media-item h3 { margin:0; color:#5d4726; }
@@ -22,8 +23,6 @@
     .media-item button { background:#c62828; margin-top:6px; }
     .media-item button:hover { background:#a61c1c; }
     audio, img { margin-top:10px; max-width:100%; border-radius:8px; }
-    .yt-container { margin-top:30px; text-align:center; }
-    iframe { border-radius:12px; max-width:100%; }
   </style>
 
   <!-- Firebase -->
@@ -40,19 +39,28 @@
   <div class="container">
     <h1>🎵 Media uploaden</h1>
 
-    <!-- YouTube kanaal/playlist instellen -->
-    <form id="ytForm">
-      <label for="youtubeLink">YouTube kanaal of playlist</label>
-      <input type="url" id="youtubeLink" placeholder="https://www.youtube.com/playlist?list=...">
-      <button type="submit">💾 Opslaan</button>
-      <div id="ytStatus"></div>
-    </form>
+    <!-- YouTube kanaal/playlist -->
+    <div class="yt-box">
+      <form id="ytAutoForm">
+        <label for="ytAutoLink">YouTube kanaal of playlist (toont altijd laatste 3)</label>
+        <input type="url" id="ytAutoLink" placeholder="https://www.youtube.com/playlist?list=...">
+        <button type="submit">💾 Opslaan kanaal/playlist</button>
+        <div id="ytAutoStatus"></div>
+      </form>
+    </div>
 
-    <!-- Weergave YouTube -->
-    <div class="yt-container" id="ytContainer"></div>
+    <!-- Specifieke YouTube video -->
+    <div class="yt-box">
+      <form id="ytVideoForm">
+        <label for="ytVideoLink">Specifieke YouTube video</label>
+        <input type="url" id="ytVideoLink" placeholder="https://www.youtube.com/watch?v=...">
+        <input type="text" id="ytVideoTitel" placeholder="Titel van de video">
+        <button type="submit">💾 Opslaan video</button>
+        <div id="ytVideoStatus"></div>
+      </form>
+    </div>
 
-    <hr>
-
+    <!-- Overige media -->
     <form id="mediaForm">
       <label for="titel">Titel</label>
       <input type="text" id="titel" required>
@@ -92,43 +100,52 @@
 
     const parochieId = localStorage.getItem("ingelogdeParochie");
 
-    // ====== YOUTUBE OPSLAAN ======
-    document.getElementById("ytForm").onsubmit = async (e) => {
+    // ===== YOUTUBE AUTO OPSLAAN =====
+    document.getElementById("ytAutoForm").onsubmit = async (e) => {
       e.preventDefault();
-      const link = document.getElementById("youtubeLink").value.trim();
-      const status = document.getElementById("ytStatus");
+      const link = document.getElementById("ytAutoLink").value.trim();
+      const status = document.getElementById("ytAutoStatus");
       if (!link) { status.textContent = "⚠️ Vul een link in"; return; }
 
       try {
-        await db.collection("parochies").doc(parochieId).set({ youtube_link: link }, { merge: true });
-        status.textContent = "✅ YouTube link opgeslagen";
-        toonYoutube(link);
+        await db.collection("parochies").doc(parochieId).collection("uploads").add({
+          titel: "Laatste 3 video's",
+          omschrijving: "Automatisch de nieuwste video's van dit kanaal/playlist",
+          url: link,
+          type: "youtube_auto",
+          datum: new Date()
+        });
+        status.textContent = "✅ Kanaal/playlist opgeslagen!";
+        document.getElementById("ytAutoForm").reset();
+        laadMedia();
       } catch (err) {
         status.textContent = "❌ Fout: " + err;
       }
     };
 
-    async function laadYoutube() {
-      const snap = await db.collection("parochies").doc(parochieId).get();
-      if (snap.exists && snap.data().youtube_link) {
-        toonYoutube(snap.data().youtube_link);
-      }
-    }
+    // ===== YOUTUBE VIDEO OPSLAAN =====
+    document.getElementById("ytVideoForm").onsubmit = async (e) => {
+      e.preventDefault();
+      const link = document.getElementById("ytVideoLink").value.trim();
+      const titel = document.getElementById("ytVideoTitel").value.trim();
+      const status = document.getElementById("ytVideoStatus");
+      if (!link) { status.textContent = "⚠️ Vul een link in"; return; }
 
-    function toonYoutube(link) {
-      const container = document.getElementById("ytContainer");
-      // playlist-link gebruiken in embed
-      let embed = "";
-      if (link.includes("list=")) {
-        embed = `<iframe width="560" height="315" src="https://www.youtube.com/embed/videoseries?list=${new URL(link).searchParams.get("list")}" frameborder="0" allowfullscreen></iframe>`;
-      } else if (link.includes("watch?v=")) {
-        const videoId = new URL(link).searchParams.get("v");
-        embed = `<iframe width="560" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`;
-      } else {
-        embed = `<a href="${link}" target="_blank">${link}</a>`;
+      try {
+        await db.collection("parochies").doc(parochieId).collection("uploads").add({
+          titel: titel || "YouTube Video",
+          omschrijving: "",
+          url: link,
+          type: "youtube_video",
+          datum: new Date()
+        });
+        status.textContent = "✅ Video opgeslagen!";
+        document.getElementById("ytVideoForm").reset();
+        laadMedia();
+      } catch (err) {
+        status.textContent = "❌ Fout: " + err;
       }
-      container.innerHTML = embed;
-    }
+    };
 
     // ===== UPLOAD BESTAND =====
     async function uploadBestand(file, pad) {
@@ -142,7 +159,7 @@
       });
     }
 
-    // ===== FORM SUBMIT =====
+    // ===== FORM SUBMIT MEDIA =====
     document.getElementById("mediaForm").onsubmit = async (e) => {
       e.preventDefault();
       const titel = document.getElementById("titel").value.trim();
@@ -197,6 +214,8 @@
         div.innerHTML = `
           <h3>${d.titel}</h3>
           <small>${d.omschrijving || ""}</small><br>
+          ${d.type === "youtube_auto" ? `<em>Automatische playlist</em>` : ""}
+          ${d.type === "youtube_video" ? `<em>YouTube video</em>` : ""}
           ${d.type === "bestand" && d.url.endsWith(".mp3") ? `<audio controls src="${d.url}"></audio>` : ""}
           ${d.type === "bestand" && !d.url.endsWith(".mp3") ? `<img src="${d.url}">` : ""}
           ${d.type === "link" ? `<a href="${d.url}" target="_blank">${d.url}</a>` : ""}
@@ -213,10 +232,7 @@
       laadMedia();
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
-      laadYoutube();
-      laadMedia();
-    });
+    document.addEventListener("DOMContentLoaded", laadMedia);
   </script>
 </body>
 </html>
