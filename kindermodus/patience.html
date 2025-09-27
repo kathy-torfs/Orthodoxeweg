@@ -2026,6 +2026,7 @@ on(this.el, "touchend", (e) => {
 // --- Selectie & verplaatsen via tikken ---
 // --- Selectie & verplaatsen via tikken ---
 Game.prototype.selectedCard = null;
+Game.prototype.selectedSiblings = [];
 
 Game.prototype.cardClick = function (e) {
   var t = e.target.closest(".card, .column, .stack");
@@ -2039,6 +2040,15 @@ Game.prototype.cardClick = function (e) {
     if (!this.selectedCard) {
       this.selectedCard = card;
       t.classList.add("hint");
+
+      // Alle kaarten erboven ook selecteren
+      this.selectedSiblings = [];
+      var next = card.el.nextElementSibling;
+      while (next) {
+        this.selectedSiblings.push(next);
+        next.classList.add("hint");
+        next = next.nextElementSibling;
+      }
     }
     // Tweede tik: verplaatsen
     else {
@@ -2054,7 +2064,10 @@ Game.prototype.cardClick = function (e) {
           }
         }
 
+        // geselecteerde kaart + siblings verplaatsen
         parent.appendChild(this.selectedCard.el);
+        this.selectedSiblings.forEach(s => parent.appendChild(s));
+
         this.updateHistory();
         this.updateScore();
         this.emit("change");
@@ -2075,7 +2088,10 @@ Game.prototype.cardClick = function (e) {
           }
         }
 
+        // geselecteerde kaart + siblings verplaatsen
         t.appendChild(this.selectedCard.el);
+        this.selectedSiblings.forEach(s => t.appendChild(s));
+
         this.updateHistory();
         this.updateScore();
         this.emit("change");
@@ -2089,6 +2105,7 @@ Game.prototype.clearSelection = function () {
   this.columns.querySelectorAll(".card").forEach(c => c.classList.remove("hint"));
   this.stacks.querySelectorAll(".card").forEach(c => c.classList.remove("hint"));
   this.selectedCard = null;
+  this.selectedSiblings = [];
 };
 
   global.Game = Game;
