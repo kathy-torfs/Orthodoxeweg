@@ -1183,6 +1183,9 @@ on(doc, "dragenter", this.events.dragenter);
 on(doc, "dragover", this.events.dragover);
 on(doc, "dragend", this.events.dragend);
 on(doc, "keydown", this.events.keydown);
+// muis + touch: tik systeem
+on(this.el, "click", this.cardClick.bind(this));
+on(this.el, "touchstart", this.cardClick.bind(this));
 
 // touch
 on(this.el, "touchstart", this.events.mousedown);
@@ -2018,6 +2021,52 @@ on(doc, "touchcancel", this.events.mouseup);
       that.win();
     }, this.animationInterval);
   };
+// --- Selectie & verplaatsen via tikken ---
+Game.prototype.selectedCard = null;
+
+Game.prototype.cardClick = function (e) {
+  var t = e.target.closest(".card, .column, .stack");
+  if (!t) return;
+
+  // kaart gekozen
+  if (t.classList.contains("card")) {
+    var card = this.pack.cards[t.idx];
+
+    // eerste selectie
+    if (!this.selectedCard) {
+      this.selectedCard = card;
+      t.classList.add("hint");
+    }
+    else {
+      // tweede tik op een andere kaart = proberen te zetten op die kolom
+      var parent = t.parentNode;
+      if (this.isLegalMove(this.selectedCard, parent)) {
+        parent.appendChild(this.selectedCard.el);
+        this.updateHistory();
+        this.updateScore();
+      }
+
+      this.clearSelection();
+    }
+  }
+  // tik rechtstreeks op kolom/stack
+  else if (t.classList.contains("column") || t.classList.contains("stack")) {
+    if (this.selectedCard) {
+      if (this.isLegalMove(this.selectedCard, t)) {
+        t.appendChild(this.selectedCard.el);
+        this.updateHistory();
+        this.updateScore();
+      }
+      this.clearSelection();
+    }
+  }
+};
+
+Game.prototype.clearSelection = function () {
+  this.columns.querySelectorAll(".card").forEach(c => c.classList.remove("hint"));
+  this.stacks.querySelectorAll(".card").forEach(c => c.classList.remove("hint"));
+  this.selectedCard = null;
+};
 
   global.Game = Game;
 })(this);
