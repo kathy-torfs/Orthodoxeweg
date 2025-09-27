@@ -1163,18 +1163,19 @@ function normalizeTouch(e) {
   return e;
 }
 
+// ===== Events instellen (muis = slepen, mobiel = tikken) =====
 this.events = {
   click: this.click.bind(this),
-  mousedown: (e) => this.mousedown(normalizeTouch(e)),
+  mousedown: this.mousedown.bind(this),
   keydown: this.keydown.bind(this),
-  mouseup: (e) => this.mouseup(normalizeTouch(e)),
+  mouseup: this.mouseup.bind(this),
   dragstart: this.dragstart.bind(this),
   dragenter: this.dragenter.bind(this),
-  dragover: (e) => this.dragover(normalizeTouch(e)),
-  dragend: (e) => this.dragend(normalizeTouch(e))
+  dragover: this.dragover.bind(this),
+  dragend: this.dragend.bind(this)
 };
 
-// muis
+// ---- Desktop (muis / toetsenbord) ----
 on(this.dealer, "click", this.events.click);
 on(this.el, "mousedown", this.events.mousedown);
 on(doc, "mouseup", this.events.mouseup);
@@ -1183,15 +1184,16 @@ on(doc, "dragenter", this.events.dragenter);
 on(doc, "dragover", this.events.dragover);
 on(doc, "dragend", this.events.dragend);
 on(doc, "keydown", this.events.keydown);
-// muis + touch: tik systeem
-on(this.el, "click", this.cardClick.bind(this));
-on(this.el, "touchstart", this.cardClick.bind(this));
 
-// touch
-on(this.el, "touchstart", this.events.mousedown);
-on(doc, "touchend", this.events.mouseup);
-on(doc, "touchmove", this.events.dragover);
-on(doc, "touchcancel", this.events.mouseup);
+// ---- Desktop extra: klik op kaart (niet slepen) ----
+on(this.el, "click", this.cardClick.bind(this));
+
+// ---- Mobiel: tik op kaart (geen slepen) ----
+on(this.el, "touchend", (e) => {
+  e.preventDefault(); // voorkomt dubbel-tap
+  this.cardClick(e);
+});
+
 
   };
   Game.prototype.click = function (e) {
