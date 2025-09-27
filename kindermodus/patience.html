@@ -1185,15 +1185,15 @@ on(doc, "dragover", this.events.dragover);
 on(doc, "dragend", this.events.dragend);
 on(doc, "keydown", this.events.keydown);
 
-// ---- Desktop extra: klik op kaart (niet slepen) ----
-on(this.el, "click", this.cardClick.bind(this));
-
 // ---- Mobiel: tik op kaart (geen slepen) ----
 on(this.el, "touchend", (e) => {
   e.preventDefault(); // voorkomt dubbel-tap
-  this.cardClick(e);
+  let touch = e.changedTouches[0];
+  let realTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+  if (realTarget) {
+    this.cardClick({ target: realTarget });
+  }
 });
-
 
   };
   Game.prototype.click = function (e) {
