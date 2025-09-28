@@ -1084,107 +1084,120 @@
     }
   };
 
-  // GAME
-  function Game(el, options) {
-    if (typeof el === "string") {
-      el = document.querySelector(el);
-    }
-    this.el = el;
-    this.options = extend(defaultConfig, options);
-    this.score = 0;
-    this.animationInterval = 250;
-    this.stackToColumn = false;
-    this.history = [];
-    this.pack = new Pack();
-    Emitter.mixin(this);
-    this.render();
+ // GAME
+function Game(el, options) {
+  if (typeof el === "string") {
+    el = document.querySelector(el);
+  }
+  this.el = el;
+  this.options = extend(defaultConfig, options);
+  this.score = 0;
+  this.animationInterval = 250;
+  this.stackToColumn = false;
+  this.history = [];
+  this.pack = new Pack();
+  Emitter.mixin(this);
+  this.render();
+}
+
+Game.prototype.render = function () {
+  var frag = document.createDocumentFragment();
+
+  this.columns = doc.createElement("div");
+  this.columns.className = "columns";
+
+  this.stacks = doc.createElement("div");
+  this.stacks.className = "stacks";
+
+  /* create stacks */
+  for (var i = 0; i < 4; i++) {
+    var stack = doc.createElement("div");
+    stack.className = "stack";
+    this.stacks.appendChild(stack);
   }
 
-  Game.prototype.render = function () {
-    var frag = document.createDocumentFragment();
+  /* create columns */
+  for (var i = 0; i < 7; i++) {
+    var column = doc.createElement("div");
+    column.className = "column";
+    this.columns.appendChild(column);
+  }
 
-    this.columns = doc.createElement("div");
-    this.columns.className = "columns";
+  this.dealer = doc.createElement("div");
+  this.dealer.className = "dealer";
 
-    this.stacks = doc.createElement("div");
-    this.stacks.className = "stacks";
+  this.packArea = doc.createElement("div");
+  this.packArea.className = "pack";
 
-    /* create stacks */
-    for (var i = 0; i < 4; i++) {
-      var stack = doc.createElement("div");
-      stack.className = "stack";
-      this.stacks.appendChild(stack);
-    }
+  this.dealArea = doc.createElement("div");
+  this.dealArea.className = "dealt";
 
-    /* create columns */
-    for (var i = 0; i < 7; i++) {
-      var column = doc.createElement("div");
-      column.className = "column";
-      this.columns.appendChild(column);
-    }
+  this.dealer.appendChild(this.packArea);
+  this.dealer.appendChild(this.dealArea);
 
-    this.dealer = doc.createElement("div");
-    this.dealer.className = "dealer";
+  frag.appendChild(this.dealer);
+  frag.appendChild(this.stacks);
+  frag.appendChild(this.columns);
 
-    this.packArea = doc.createElement("div");
-    this.packArea.className = "pack";
+  this.el.appendChild(frag);
 
-    this.dealArea = doc.createElement("div");
-    this.dealArea.className = "dealt";
+  this.mouse = { x: 0, y: 0 };
 
-    this.dealer.appendChild(this.packArea);
-    this.dealer.appendChild(this.dealArea);
-
-    frag.appendChild(this.dealer);
-    frag.appendChild(this.stacks);
-    frag.appendChild(this.columns);
-
-    this.el.appendChild(frag);
-
-    this.mouse = { x: 0, y: 0 };
-
-    var id = "images/solitair-cards-{t}.png";
-    this.images = {
-      clubs: id.replace("{t}", "clubs"),
-      spades: id.replace("{t}", "spades"),
-      diamonds: id.replace("{t}", "diamonds"),
-      hearts: id.replace("{t}", "hearts")
-    };
-
-    each(this.images, function (i, src) {
-      var image = new Image();
-      image.onload = function () {};
-      image.src = src;
-      this.images[i] = image;
-    }, this);
-
-    this.events = {
-      click: this.click.bind(this),
-      mousedown: this.mousedown.bind(this),
-      keydown: this.keydown.bind(this),
-      mouseup: this.mouseup.bind(this),
-      dragstart: this.dragstart.bind(this),
-      dragenter: this.dragenter.bind(this),
-      dragover: this.dragover.bind(this),
-      dragend: this.dragend.bind(this)
-    };
-
-    on(this.dealer, "click", this.events.click);
-    on(this.el, "mousedown", this.events.mousedown);
-    on(doc, "keydown", this.events.keydown);
-    on(doc, "mouseup", this.events.mouseup);
-    on(doc, "dragstart", this.events.dragstart);
-    on(doc, "dragenter", this.events.dragenter);
-    on(doc, "dragover", this.events.dragover);
-    on(doc, "dragend", this.events.dragend);
+  var id = "images/solitair-cards-{t}.png";
+  this.images = {
+    clubs: id.replace("{t}", "clubs"),
+    spades: id.replace("{t}", "spades"),
+    diamonds: id.replace("{t}", "diamonds"),
+    hearts: id.replace("{t}", "hearts")
   };
-  Game.prototype.click = function (e) {
-    var t = e.target;
-    if (t.classList.contains("pack")) {
-      e.stopImmediatePropagation();
-      this.deal();
-    }
+
+  each(this.images, function (i, src) {
+    var image = new Image();
+    image.onload = function () {};
+    image.src = src;
+    this.images[i] = image;
+  }, this);
+
+  this.events = {
+    click: this.click.bind(this),
+    mousedown: this.mousedown.bind(this),
+    keydown: this.keydown.bind(this),
+    mouseup: this.mouseup.bind(this),
+    dragstart: this.dragstart.bind(this),
+    dragenter: this.dragenter.bind(this),
+    dragover: this.dragover.bind(this),
+    dragend: this.dragend.bind(this)
   };
+
+  // ---- Desktop (muis/keyboard) ----
+  on(this.dealer, "click", this.events.click);
+  on(this.el, "mousedown", this.events.mousedown);
+  on(doc, "keydown", this.events.keydown);
+  on(doc, "mouseup", this.events.mouseup);
+  on(doc, "dragstart", this.events.dragstart);
+  on(doc, "dragenter", this.events.dragenter);
+  on(doc, "dragover", this.events.dragover);
+  on(doc, "dragend", this.events.dragend);
+
+  // ---- Mobiel (touch) ----
+  on(this.el, "touchend", (e) => {
+    e.preventDefault(); // voorkomt dubbel-tap/zoom
+    let touch = e.changedTouches[0];
+    let realTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (realTarget) {
+      this.click({ target: realTarget });
+    }
+  });
+};
+
+Game.prototype.click = function (e) {
+  var t = e.target;
+  if (t.classList.contains("pack")) {
+    e.stopImmediatePropagation();
+    this.deal();
+  }
+};
+
 
   Game.prototype.keydown = function (e) {
     var k = e.key;
