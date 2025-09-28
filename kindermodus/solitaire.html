@@ -14,43 +14,148 @@
       --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
       --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
     }
+    html, body { height: 100%; }
     body{
       margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
       min-height:100vh; background:var(--pastel1); transition:background .6s;
     }
 
-    #controls {
-      box-sizing: border-box;
-      background-color: #3B96E5;
-      padding: 6px;
-    }
+    /* besturing */
+    #controls { width: 770px; margin: 0 auto 10px auto; box-sizing: border-box; background:#3B96E5; padding:6px; }
     #controls button {
-      color: #fff;
-      font-family: inherit;
-      font-weight: 500;
-      padding: 6px 12px;
-      font-size: 16px;
-      cursor: pointer;
-      background-color: transparent;
-      border: none;
+      color:#fff; font:500 16px inherit; padding:6px 12px; cursor:pointer; background:transparent; border:none;
     }
-    #controls button:hover {
-      background-color: rgba(0, 0, 0, 0.3);
-      border-color: rgba(0, 0, 0, 0.3);
+    #controls button:hover { background-color: rgba(0,0,0,.3); }
+    #score { color:#fff; float:right; padding:6px 12px; }
+
+    /* speelveld */
+    #spelcontainer::after, .clearfix::after { clear:both; content:""; display:table; }
+    #spelcontainer {
+      position:relative; margin:60px auto 0; height:80vh; width:770px; text-align:center;
     }
-    #score {
-      color: #fff;
-      float: right;
-      padding: 6px 12px;
+    .columns { width:100%; }
+
+    .column, .pack, .dealt, .stack {
+      position:relative; width:100px; height:150px; float:left;
+      background: rgba(0,0,0,.3); border-radius:6.25px; margin:0 10px 10px 0;
     }
+    .stack { display:inline-block; float:none; }
+
+    .dealer, .stacks { float:left; }
+    .dealer { width:30%; text-align:left; }
+    .stacks { width:70%; text-align:right; }
+
+    .column { width:100px; height:150px; }
+    /* stapeling in kolommen (max 20 zichtbaar) */
+    .column .card:nth-child(1),  .column .ghost:nth-child(1)  { top: 0px;   z-index:11; }
+    .column .card:nth-child(2),  .column .ghost:nth-child(2)  { top: 25px;  z-index:12; }
+    .column .card:nth-child(3),  .column .ghost:nth-child(3)  { top: 50px;  z-index:13; }
+    .column .card:nth-child(4),  .column .ghost:nth-child(4)  { top: 75px;  z-index:14; }
+    .column .card:nth-child(5),  .column .ghost:nth-child(5)  { top:100px;  z-index:15; }
+    .column .card:nth-child(6),  .column .ghost:nth-child(6)  { top:125px;  z-index:16; }
+    .column .card:nth-child(7),  .column .ghost:nth-child(7)  { top:150px;  z-index:17; }
+    .column .card:nth-child(8),  .column .ghost:nth-child(8)  { top:175px;  z-index:18; }
+    .column .card:nth-child(9),  .column .ghost:nth-child(9)  { top:200px;  z-index:19; }
+    .column .card:nth-child(10), .column .ghost:nth-child(10) { top:225px;  z-index:20; }
+    .column .card:nth-child(11), .column .ghost:nth-child(11) { top:250px;  z-index:21; }
+    .column .card:nth-child(12), .column .ghost:nth-child(12) { top:275px;  z-index:22; }
+    .column .card:nth-child(13), .column .ghost:nth-child(13) { top:300px;  z-index:23; }
+    .column .card:nth-child(14), .column .ghost:nth-child(14) { top:325px;  z-index:24; }
+    .column .card:nth-child(15), .column .ghost:nth-child(15) { top:350px;  z-index:25; }
+    .column .card:nth-child(16), .column .ghost:nth-child(16) { top:375px;  z-index:26; }
+    .column .card:nth-child(17), .column .ghost:nth-child(17) { top:400px;  z-index:27; }
+    .column .card:nth-child(18), .column .ghost:nth-child(18) { top:425px;  z-index:28; }
+    .column .card:nth-child(19), .column .ghost:nth-child(19) { top:450px;  z-index:29; }
+    .column .card:nth-child(20), .column .ghost:nth-child(20) { top:475px;  z-index:30; }
+
+    /* kaarten */
+    .card {
+      width:100px; height:150px; border:2px solid #2c3e50; border-radius:6.25px;
+      position:absolute; background:#fff; left:0; top:0;
+      transform: rotateY(180deg); transform-style:preserve-3d;
+      cursor:pointer; z-index:1; transition: transform 250ms, z-index 250ms step-end;
+      /* kaarten zelf moeten events kunnen krijgen – kinderen niet (text/icons) */
+      pointer-events:auto;
+    }
+    .column .card.flipped { box-shadow:0 0 20px -5px #000; }
+    .card * { pointer-events:none; } /* binnenin geen klikevents stelen */
+
+    /* alleen speelbare kaarten klikbaar */
+    .dealt .card { pointer-events:none; }
+    .dealt .card:last-child,
+    .column .card.flipped,
+    .stack .card.flipped:last-child { pointer-events:auto; }
+
+    .dealer.dealing .card { transition: transform 250ms; }
+
+    .card > div {
+      display:block; height:100%; width:100%; position:absolute; backface-visibility:hidden; border-radius:6.25px;
+    }
+    .card .rear {
+      background:#fff url("images/solitair_back.png") center/82% 88% no-repeat;
+      transform: rotateY(180deg);
+    }
+    .card.flipped { transform: rotateY(0deg); z-index:2; }
+
+    .card::after, .column::after {
+      position:absolute; left:0; top:0; width:100%; height:100%; content:""; opacity:0; transition:opacity 250ms; pointer-events:none;
+    }
+
+    .column.hint { box-shadow:0 0 0 5px #fff inset; }
+    .card.hint { transform: scale(1.05) rotateY(0deg); }
+
+    .column.over.empty::before,
+    .column.over > .card:not(.dragging):last-child::before {
+      content:""; width:100%; height:100%; position:absolute; left:0; top:0; border-radius:6.25px;
+      z-index:100; border:2px dashed #fff; box-sizing:border-box; background:rgba(255,255,255,.2);
+    }
+    .column.over > .card:not(.dragging):last-child::before { top:25px; }
+
+    .card.dragging {
+      z-index:1000 !important; box-shadow:0 0 20px -5px #000;
+      transition: z-index 250ms step-start;
+      transform: scale(1.05) rotateY(0deg);
+    }
+
+    /* waarden/suits in de hoek */
+    .card .value {
+      position:absolute; font-size:19.2307692308px; width:19.2307692308px; height:41.6666666667px; text-align:center;
+    }
+    .card .value::after { position:absolute; font-size:20.8333333333px; }
+    .card .value:nth-child(1) { top:0; left:0; }
+    .card .value:nth-child(2) { bottom:0; right:0; transform:rotate(180deg); }
+    .card .value:nth-child(1)::after, .card .value:nth-child(2)::after {
+      position:absolute; top:15.625px; left:50%; transform:translate3d(-50%,0,0);
+    }
+
+    .hearts, .diamonds { color:#c0392b; }
+    .clubs, .spades   { color:#2c3e50; }
+    .hearts .value::after,   .hearts span::after   { content:"♥"; }
+    .diamonds .value::after, .diamonds span::after { content:"♦"; }
+    .clubs .value::after,    .clubs span::after    { content:"♣"; }
+    .spades .value::after,   .spades span::after   { content:"♠"; }
+
+    .middle {
+      height:85%; width:85%; position:absolute; left:7.5%; top:7.5%;
+    }
+    .middle span { position:absolute; display:block; height:31.25px; width:31.25px; }
+    .middle span::after {
+      font-size:50px; display:flex; align-items:center; justify-content:center;
+      width:100%; height:100%; position:absolute; top:-6.25px;
+    }
+
+    /* plaatjes */
+    .card-J .middle, .card-Q .middle, .card-K .middle { display:flex; align-items:center; justify-content:center; }
+    .card-J .middle::after { content:""; display:block; width:70%; height:70%; background:url("images/jack.png") center/contain no-repeat; }
+    .card-Q .middle::after { content:""; display:block; width:70%; height:70%; background:url("images/queen.png") center/contain no-repeat; }
+    .card-K .middle::after { content:""; display:block; width:70%; height:70%; background:url("images/king.png") center/contain no-repeat; }
   </style>
 
-  <!-- Header + menubalk + beveiliging -->
+  <!-- Header + menubalk + beveiliging (optioneel, niet vereist voor het spel) -->
   <script defer src="common/layout.js"></script>
 </head>
 
 <body>
-  <!-- Hier komt automatisch de header en menubalk uit header.html -->
   <div id="kinder-header" data-header-src="common/header.html"></div>
 
   <div id="controls">
@@ -60,258 +165,6 @@
     <span id="score">Score: 0</span>
   </div>
 
-  <style>
-    #spelcontainer::after,
-    .clearfix::after {
-      clear: both;
-      content: "";
-      display: table;
-    }
-
-    #spelcontainer {
-      position: relative;
-      margin: 60px auto 0 auto;
-      height: 80vh;
-      width: 770px;
-      text-align: center;
-    }
-
-    #controls {
-      width: 770px;
-      margin: 0 auto 10px auto;
-      box-sizing: border-box;
-      background-color: #3B96E5;
-      padding: 6px;
-    }
-
-    #score {
-      color: #fff;
-      float: right;
-      padding: 6px 12px;
-    }
-
-    .columns { width: 100%; }
-
-    .column {
-      float: left;
-      position: relative;
-      width: 100px;
-      height: 150px;
-    }
-
-    .column .card:nth-child(1), .column .ghost:nth-child(1) { top: 0px;   z-index: 11; }
-    .column .card:nth-child(2), .column .ghost:nth-child(2) { top: 25px;  z-index: 12; }
-    .column .card:nth-child(3), .column .ghost:nth-child(3) { top: 50px;  z-index: 13; }
-    .column .card:nth-child(4), .column .ghost:nth-child(4) { top: 75px;  z-index: 14; }
-    .column .card:nth-child(5), .column .ghost:nth-child(5) { top: 100px; z-index: 15; }
-    .column .card:nth-child(6), .column .ghost:nth-child(6) { top: 125px; z-index: 16; }
-    .column .card:nth-child(7), .column .ghost:nth-child(7) { top: 150px; z-index: 17; }
-    .column .card:nth-child(8), .column .ghost:nth-child(8) { top: 175px; z-index: 18; }
-    .column .card:nth-child(9), .column .ghost:nth-child(9) { top: 200px; z-index: 19; }
-    .column .card:nth-child(10), .column .ghost:nth-child(10){ top: 225px; z-index: 20; }
-    .column .card:nth-child(11), .column .ghost:nth-child(11){ top: 250px; z-index: 21; }
-    .column .card:nth-child(12), .column .ghost:nth-child(12){ top: 275px; z-index: 22; }
-    .column .card:nth-child(13), .column .ghost:nth-child(13){ top: 300px; z-index: 23; }
-    .column .card:nth-child(14), .column .ghost:nth-child(14){ top: 325px; z-index: 24; }
-    .column .card:nth-child(15), .column .ghost:nth-child(15){ top: 350px; z-index: 25; }
-    .column .card:nth-child(16), .column .ghost:nth-child(16){ top: 375px; z-index: 26; }
-    .column .card:nth-child(17), .column .ghost:nth-child(17){ top: 400px; z-index: 27; }
-    .column .card:nth-child(18), .column .ghost:nth-child(18){ top: 425px; z-index: 28; }
-    .column .card:nth-child(19), .column .ghost:nth-child(19){ top: 450px; z-index: 29; }
-    .column .card:nth-child(20), .column .ghost:nth-child(20){ top: 475px; z-index: 30; }
-
-    .pack, .dealt {
-      position: relative;
-      width: 100px;
-      height: 150px;
-      float: left;
-    }
-
-    .stack {
-      width: 100px;
-      height: 150px;
-      border-radius: 6.25px;
-      display: inline-block;
-      position: relative;
-      box-sizing: border-box;
-    }
-
-    .dealer, .stacks { float: left; }
-    .dealer { width: 30%; text-align: left; }
-    .stacks { width: 70%; text-align: right; }
-
-    .pack, .dealt, .stack, .column {
-      background-color: rgba(0, 0, 0, 0.3);
-      margin: 0 10px 10px 0;
-      border-radius: 6.25px;
-    }
-
-    /* THE CARDS */
-    .card {
-      width: 100px;
-      height: 150px;
-      border: 2px solid #2c3e50;
-      border-radius: 6.25px;
-      position: absolute;
-      background-color: #fff;
-      cursor: pointer;
-      left: 0;
-      top: 0;
-      -webkit-transform: rotateY(180deg);
-              transform: rotateY(180deg);
-      z-index: 1;
-      -webkit-transform-style: preserve-3d;
-              transform-style: preserve-3d;
-      transition: transform 250ms, z-index 250ms step-end;
-    }
-
-    .column .card.flipped { box-shadow: 0 0 20px -5px #000; }
-
-    .card, .card * { pointer-events: none; }
-    .dealt .card { pointer-events: none; }
-
-    .dealt .card:last-child,
-    .column .card.flipped,
-    .stack .card.flipped:last-child {
-      pointer-events: inherit;
-    }
-
-    .dealer.dealing .card { transition: transform 250ms; }
-
-    .card > div {
-      display: block;
-      height: 100%;
-      width: 100%;
-      position: absolute;
-      -webkit-backface-visibility: hidden;
-              backface-visibility: hidden;
-      border-radius: 6.25px;
-    }
-
-    .card .rear {
-      background-color: #fff;
-      background-image: url("images/solitair_back.png");
-      background-position: center center;
-      background-repeat: no-repeat;
-      background-size: 82% 88%;
-      -webkit-transform: rotateY(180deg);
-              transform: rotateY(180deg);
-    }
-
-    .card.flipped {
-      -webkit-transform: rotateY(0deg);
-              transform: rotateY(0deg);
-      z-index: 2;
-    }
-
-    .card::after, .column::after {
-      position: absolute;
-      left: 0; top: 0; width: 100%; height: 100%;
-      content: ""; opacity: 0; transition: opacity 250ms; pointer-events: none;
-    }
-
-    .column.hint { box-shadow: 0 0 0px 5px #fff inset; }
-
-    .card.hint { -webkit-transform: scale(1.05, 1.05); transform: scale(1.05, 1.05); }
-
-    .column.over.empty::before,
-    .column.over > .card:not(.dragging):last-child::before {
-      content: "";
-      width: 100%;
-      height: 100%;
-      background-color: rgba(255, 255, 255, 0.2);
-      position: absolute;
-      left: 0; top: 0;
-      border-radius: 6.25px;
-      z-index: 100;
-      border: 2px dashed #fff;
-      box-sizing: border-box;
-    }
-    .column.over > .card:not(.dragging):last-child::before { top: 25px; }
-
-    .card.dragging {
-      z-index: 1000 !important;
-      box-shadow: 0 0 20px -5px #000;
-      transition: z-index 250ms step-start;
-      -webkit-transform: scale(1.05, 1.05);
-              transform: scale(1.05, 1.05);
-    }
-
-    .card .value {
-      position: absolute;
-      font-size: 19.2307692308px;
-      width: 19.2307692308px;
-      height: 41.6666666667px;
-      text-align: center;
-    }
-    .card .value::after { position: absolute; font-size: 20.8333333333px; }
-
-    .card .value:nth-child(1) { top: 0px; left: 0px; }
-    .card .value:nth-child(2) {
-      bottom: 0px; right: 0px; -webkit-transform: rotate(180deg); transform: rotate(180deg);
-    }
-
-    .card .value:nth-child(1)::after,
-    .card .value:nth-child(2)::after {
-      position: absolute;
-      top: 15.625px; left: 50%;
-      -webkit-transform: translate3d(-50%, 0px, 0px);
-              transform: translate3d(-50%, 0px, 0px);
-    }
-
-    .hearts, .diamonds { color: #c0392b; }
-    .clubs, .spades   { color: #2c3e50; }
-
-    .hearts .value::after,   .hearts span::after   { content: "♥"; }
-    .diamonds .value::after, .diamonds span::after { content: "♦"; }
-    .clubs .value::after,    .clubs span::after    { content: "♣"; }
-    .spades .value::after,   .spades span::after   { content: "♠"; }
-
-    .middle {
-      height: 85%;
-      left: 7.5%;
-      position: absolute;
-      top: 7.5%;
-      width: 85%;
-    }
-    .middle span {
-      position: absolute;
-      display: block;
-      height: 31.25px; width: 31.25px;
-    }
-    .middle span::after {
-      font-size: 50px;
-      display: flex; align-items: center; justify-content: center;
-      width: 100%; height: 100%;
-      position: absolute; top: -6.25px;
-    }
-
-    .card-J .middle, .card-Q .middle, .card-K .middle {
-      display: flex; align-items: center; justify-content: center;
-    }
-    .card-J .middle::after { content: ""; display: block; width: 70%; height: 70%; background: url("images/jack.png") center/contain no-repeat; }
-    .card-Q .middle::after { content: ""; display: block; width: 70%; height: 70%; background: url("images/queen.png") center/contain no-repeat; }
-    .card-K .middle::after { content: ""; display: block; width: 70%; height: 70%; background: url("images/king.png") center/contain no-repeat; }
-
-    .card-1 .middle { display: flex; align-items: center; justify-content: center; font-size: 62.5px; }
-    .card-1 .middle span { position: relative; height: 62.5px; width: 62.5px; }
-    .card-1 .middle span::after { font-size: 62.5px; }
-
-    .card-2 .middle span { left: 50%; -webkit-transform: translate3d(-50%, 0, 0); transform: translate3d(-50%, 0, 0); }
-    .card-2 .middle span:nth-child(1) { top: 0; }
-    .card-2 .middle span:nth-child(2) { bottom: 0; -webkit-transform: rotate(180deg); transform: rotate(180deg); -webkit-transform-origin: 25% 50% 0; transform-origin: 25% 50% 0; }
-
-    .card-3 .middle span { left: 50%; -webkit-transform: translate3d(-50%, 0, 0); transform: translate3d(-50%, 0, 0); }
-    .card-3 .middle span:nth-child(1) { top: 0; }
-    .card-3 .middle span:nth-child(2) { top: 50%; -webkit-transform: translate3d(-50%, -50%, 0); transform: translate3d(-50%, -50%, 0); }
-    .card-3 .middle span:nth-child(3) { bottom: 0; -webkit-transform: rotate(180deg); transform: rotate(180deg); -webkit-transform-origin: 25% 50% 0; transform-origin: 25% 50% 0; }
-
-    .card-4 .middle span:nth-child(1), .card-4 .middle span:nth-child(3) { left: 12.5px; }
-    .card-4 .middle span:nth-child(2), .card-4 .middle span:nth-child(4) { right: 12.5px; }
-    .card-4 .middle span:nth-child(1), .card-4 .middle span:nth-child(2) { top: 0; }
-    .card-4 .middle span:nth-child(3), .card-4 .middle span:nth-child(4) { bottom: 0; -webkit-transform: rotate(180deg); transform: rotate(180deg); }
-  </style>
-
   <div id="fb-root"></div>
 
   <div id="page-wrapper">
@@ -320,178 +173,146 @@
     </section>
   </div>
 
-  <script id="rendered-js">
+  <script>
   (function (global) {
     'use strict';
-    var win = window,
-        doc = document,
-        body = doc.body;
+    var win = window, doc = document, body = doc.body;
 
+    /* ---------- helpers ---------- */
     var defaultConfig = {};
-
     var extend = function (r, t) {
       for (var e = Object(r), n = 1; n < arguments.length; n++) {
-        var a = arguments[n];
-        if (a != null) for (var o in a)
+        var a = arguments[n]; if (a != null) for (var o in a)
           if (Object.prototype.hasOwnProperty.call(a, o)) e[o] = a[o];
-      }
-      return e;
+      } return e;
     };
-
-    var on = function (el, e, fn) {
-      if (el && fn) el.addEventListener(e, fn, false);
-    };
-
+    var on = function (el, e, fn) { if (el && fn) el.addEventListener(e, fn, false); };
     var each = function (arr, fn, s) {
       if ("[object Object]" === Object.prototype.toString.call(arr)) {
-        for (var d in arr) {
-          if (Object.prototype.hasOwnProperty.call(arr, d)) {
-            fn.call(s, d, arr[d]);
-          }
-        }
+        for (var d in arr) { if (Object.prototype.hasOwnProperty.call(arr, d)) fn.call(s, d, arr[d]); }
       } else {
-        for (var e = 0, f = arr.length; e < f; e++) {
-          fn.call(s, e, arr[e]);
-        }
+        var list = arr && typeof arr.length === "number" ? arr : []; for (var i = 0; i < list.length; i++) fn.call(s, i, list[i]);
       }
     };
-
-    var style = function (t, e) {
-      var i = t && t.style,
-          n = "[object Object]" === Object.prototype.toString.call(e);
-      if (i) {
-        if (!e) return win.getComputedStyle(t);
-        n && each(e, function (t, e) {
-          t in i || (t = "-webkit-" + t);
-          i[t] = e + ("string" == typeof e ? "" : "opacity" === t ? "" : "px");
-        });
-      }
-    };
-
     var rect = function (e) {
-      var t = win,
-          o = e.getBoundingClientRect(),
-          b = doc.documentElement || body.parentNode || body,
+      var t = win, o = e.getBoundingClientRect(), b = doc.documentElement || body.parentNode || body,
           d = void 0 !== t.pageXOffset ? t.pageXOffset : b.scrollLeft,
           n = void 0 !== t.pageYOffset ? t.pageYOffset : b.scrollTop;
-      return {
-        left: o.left + d,
-        top: o.top + n,
-        height: Math.round(o.height),
-        width: Math.round(o.width)
-      };
+      return { left: o.left + d, top: o.top + n, height: Math.round(o.height), width: Math.round(o.width) };
     };
+    var getRandomInt = function (min, max) { min = Math.ceil(min); max = Math.floor(max); return Math.floor(Math.random() * (max - min)) + min; };
+    function Vector(x, y) { this.x = x; this.y = y; } Vector.prototype = { add: function (v) { this.x += v.x; this.y += v.y; } };
 
-    var getRandomInt = function (min, max) {
-      min = Math.ceil(min);
-      max = Math.floor(max);
-      return Math.floor(Math.random() * (max - min)) + min;
-    };
-
+    /* ---------- Emitter ---------- */
     var Emitter = function () {};
     Emitter.prototype = {
-      on: function (event, fct) {
-        this._events = this._events || {};
-        this._events[event] = this._events[event] || [];
-        this._events[event].push(fct);
-      },
-      off: function (event, fct) {
-        this._events = this._events || {};
-        if (event in this._events === false) return;
-        this._events[event].splice(this._events[event].indexOf(fct), 1);
-      },
-      emit: function (event) {
-        this._events = this._events || {};
-        if (event in this._events === false) return;
-        for (var i = 0; i < this._events[event].length; i++) {
-          this._events[event][i].apply(this, Array.prototype.slice.call(arguments, 1));
-        }
-      }
+      on: function (event, fct) { this._events = this._events || {}; (this._events[event] = this._events[event] || []).push(fct); },
+      off: function (event, fct) { this._events = this._events || {}; if (!(event in this._events)) return; this._events[event].splice(this._events[event].indexOf(fct), 1); },
+      emit: function (event) { this._events = this._events || {}; if (!(event in this._events)) return; for (var i = 0; i < this._events[event].length; i++) this._events[event][i].apply(this, Array.prototype.slice.call(arguments, 1)); }
     };
-    Emitter.mixin = function (obj) {
-      var props = ['on', 'off', 'emit'];
-      for (var i = 0; i < props.length; i++) {
-        if (typeof obj === 'function') {
-          obj.prototype[props[i]] = Emitter.prototype[props[i]];
-        } else {
-          obj[props[i]] = Emitter.prototype[props[i]];
-        }
-      }
-      return obj;
-    };
+    Emitter.mixin = function (obj) { var p = ['on','off','emit']; for (var i=0;i<p.length;i++) { if (typeof obj === 'function') obj.prototype[p[i]] = Emitter.prototype[p[i]]; else obj[p[i]] = Emitter.prototype[p[i]]; } return obj; };
 
-    function Vector(x, y) { this.x = x; this.y = y; }
-    Vector.prototype = { add: function (v) { this.x += v.x; this.y += v.y; } };
-
+    /* ---------- Kaart ---------- */
     function Card(value, suit) {
-      this.value = value;
-      this.suit = suit;
-      this.flipped = false;
-      this.picture = this.value > 10;
+      this.value = value; this.suit = suit; this.flipped = false; this.picture = this.value > 10;
 
       switch (this.suit) {
-        case "hearts":
-        case "diamonds":
-          this.color = "red";
-          break;
-        case "clubs":
-        case "spades":
-          this.color = "black";
-          break;
+        case "hearts": case "diamonds": this.color = "red"; break;
+        case "clubs":  case "spades":   this.color = "black"; break;
       }
 
-      var cards = ["A", 2, 3, 4, 5, 6, 7, 8, 9, 10, "J", "Q", "K"];
+      var faces = ["A",2,3,4,5,6,7,8,9,10,"J","Q","K"];
       var template = [
-        "<div class='front'><div class='value'>", cards[this.value - 1],
-        "</div><div class='value'>", cards[this.value - 1],
+        "<div class='front'><div class='value'>", faces[this.value - 1],
+        "</div><div class='value'>", faces[this.value - 1],
         "</div><div class='middle'>"
       ];
 
-      if (!this.picture) {
-        for (var i = 0; i < this.value; i++) {
-          template.push("<span></span>");
-        }
-      }
+      if (!this.picture) { for (var i = 0; i < this.value; i++) template.push("<span></span>"); }
       template.push("</div></div><div class='rear'></div>");
 
-      var card = doc.createElement("div");
-      card.className = "card " + this.suit + " card-" + (this.picture ? cards[this.value - 1] : this.value);
-      card.innerHTML = template.join("");
-      if (this.picture) card.classList.add("picture");
-      card.card = true;
-      this.el = card;
+      var el = doc.createElement("div");
+      el.className = "card " + this.suit + " card-" + (this.picture ? faces[this.value - 1] : this.value);
+      el.innerHTML = template.join("");
+      if (this.picture) el.classList.add("picture");
+      el.card = true;
+      this.el = el;
+
+      if (!this.picture) this.layoutPips();
     }
+
+    /* Plaats pips (1–10) via JS zodat er geen megablokken CSS nodig zijn */
+    Card.prototype.layoutPips = function () {
+      var spans = this.el.querySelectorAll(".middle span");
+      var m = this.el.querySelector(".middle");
+      var v = this.value;
+
+      // grid posities (kolom: 0=links,1=midden,2=rechts / rij: 0=boven,1=tussenboven,2=midden,3=tussenonder,4=onder)
+      var pos = {
+        TL:[0,0], TM:[1,0], TR:[2,0],
+        ML:[0,2], MM:[1,2], MR:[2,2],
+        BL:[0,4], BM:[1,4], BR:[2,4],
+        UML:[0,1], UMR:[2,1],
+        LML:[0,3], LMR:[2,3]
+      };
+      var patterns = {
+        1: ["MM"],
+        2: ["TM","BM"],
+        3: ["TM","MM","BM"],
+        4: ["TL","TR","BL","BR"],
+        5: ["TL","TR","MM","BL","BR"],
+        6: ["TL","TR","ML","MR","BL","BR"],
+        7: ["TL","TR","ML","MR","MM","BL","BR"],
+        8: ["TL","TR","UML","UMR","LML","LMR","BL","BR"],
+        9: ["TL","TR","UML","UMR","MM","LML","LMR","BL","BR"],
+        10:["TL","TR","UML","UMR","ML","MR","LML","LMR","BL","BR"]
+      };
+
+      var wanted = patterns[v] || ["MM"];
+      var i=0;
+      wanted.forEach(function(code){
+        if (!spans[i]) return;
+        var c = pos[code], col = c[0], row = c[1];
+        var left =  (col===0? 0 : col===1? 50 : 100);
+        var top  =  (row===0? 0 : row===1? 25 : row===2? 50 : row===3? 75 : 100);
+        spans[i].style.left = "calc("+left+"% - 15.625px)";   /* 31.25 / 2 */
+        spans[i].style.top  = "calc("+top+"% - 15.625px)";
+        if (row>2) spans[i].style.transform = "rotate(180deg)"; // onderste pips omdraaien
+        i++;
+      });
+    };
+
     Card.prototype.flip = function () {
       this.el.classList.toggle("flipped", !this.flipped);
-      this.el.draggable = !this.flipped;
+      this.el.draggable = !this.flipped;       // na flippen naar bovenkant: draggable = true
       this.flipped = !this.flipped;
       if (!this.flipped) this.el.style.transform = "";
     };
 
+    /* ---------- Kaartspel ---------- */
     function Pack() {
       this.cards = [];
-      this.suits = ["hearts", "spades", "diamonds", "clubs"];
-      var count = 0;
-      each(this.suits, function (i, suit) {
+      this.suits = ["hearts","spades","diamonds","clubs"];
+      var count = 0, self = this;
+      each(this.suits, function (_, suit) {
         for (var j = 1; j < 14; j++) {
           var card = new Card(j, suit);
           card.el.idx = count;
-          this.cards.push(card);
+          self.cards.push(card);
           count++;
         }
-      }, this);
+      });
     }
     Pack.prototype.shuffle = function () {
       var m = this.cards.length, t, i;
       while (m) {
         i = Math.floor(Math.random() * m--);
-        t = this.cards[m];
-        this.cards[m] = this.cards[i];
-        this.cards[i] = t;
-        this.cards[i].el.idx = i;
-        this.cards[m].el.idx = m;
+        t = this.cards[m]; this.cards[m] = this.cards[i]; this.cards[i] = t;
+        this.cards[i].el.idx = i; this.cards[m].el.idx = m;
       }
     };
+
+    /* ---------- Spel ---------- */
     function Game(el, options) {
       if (typeof el === "string") el = document.querySelector(el);
       this.el = el;
@@ -501,10 +322,7 @@
       this.stackToColumn = false;
       this.history = [];
       this.pack = new Pack();
-      this.activeCard = null;
-      this.activeColumn = null;
-      this.startParent = null;
-      this.siblings = [];
+      this.activeCard = null; this.activeColumn = null; this.startParent = null; this.siblings = [];
       Emitter.mixin(this);
       this.render();
     }
@@ -512,159 +330,101 @@
     Game.prototype.render = function () {
       var frag = document.createDocumentFragment();
 
-      this.columns = doc.createElement("div");
-      this.columns.className = "columns";
-
-      this.stacks = doc.createElement("div");
-      this.stacks.className = "stacks";
+      this.columns = doc.createElement("div"); this.columns.className = "columns";
+      this.stacks  = doc.createElement("div"); this.stacks.className  = "stacks";
 
       for (var i = 0; i < 4; i++) {
-        var stack = doc.createElement("div");
-        stack.className = "stack";
-        this.stacks.appendChild(stack);
+        var s = doc.createElement("div"); s.className = "stack"; this.stacks.appendChild(s);
       }
-
       for (var c = 0; c < 7; c++) {
-        var column = doc.createElement("div");
-        column.className = "column";
-        this.columns.appendChild(column);
+        var col = doc.createElement("div"); col.className = "column"; this.columns.appendChild(col);
       }
 
-      this.dealer = doc.createElement("div");
-      this.dealer.className = "dealer";
+      this.dealer   = doc.createElement("div"); this.dealer.className = "dealer";
+      this.packArea = doc.createElement("div"); this.packArea.className = "pack";
+      this.dealArea = doc.createElement("div"); this.dealArea.className = "dealt";
+      this.dealer.appendChild(this.packArea); this.dealer.appendChild(this.dealArea);
 
-      this.packArea = doc.createElement("div");
-      this.packArea.className = "pack";
-
-      this.dealArea = doc.createElement("div");
-      this.dealArea.className = "dealt";
-
-      this.dealer.appendChild(this.packArea);
-      this.dealer.appendChild(this.dealArea);
-
-      frag.appendChild(this.dealer);
-      frag.appendChild(this.stacks);
-      frag.appendChild(this.columns);
-
+      frag.appendChild(this.dealer); frag.appendChild(this.stacks); frag.appendChild(this.columns);
       this.el.appendChild(frag);
+      this.mouse = { x:0, y:0 };
 
-      this.mouse = { x: 0, y: 0 };
-
-      /* VERWIJDERD: sprite-afbeeldingen solitair-cards-*.png (fallback gebruiken) */
-
-      // Event handlers veilig binden
+      /* events */
       this.events = {};
-      if (this.click)     this.events.click     = this.click.bind(this);
-      if (this.mousedown) this.events.mousedown = this.mousedown.bind(this);
-      if (this.keydown)   this.events.keydown   = this.keydown.bind(this);
-      if (this.mouseup)   this.events.mouseup   = this.mouseup.bind(this);
-      if (this.dragstart) this.events.dragstart = this.dragstart.bind(this);
-      if (this.dragenter) this.events.dragenter = this.dragenter.bind(this);
-      if (this.dragover)  this.events.dragover  = this.dragover.bind(this);
-      if (this.dragend)   this.events.dragend   = this.dragend.bind(this);
+      this.events.click     = this.click.bind(this);
+      this.events.mousedown = this.mousedown.bind(this);
+      this.events.keydown   = this.keydown.bind(this);
+      this.events.mouseup   = this.mouseup.bind(this);
+      this.events.dragstart = this.dragstart.bind(this);
+      this.events.dragenter = this.dragenter.bind(this);
+      this.events.dragover  = this.dragover.bind(this);
+      this.events.dragend   = this.dragend.bind(this);
 
-      // Desktop events
-      if (this.events.click)     on(this.dealer, "click", this.events.click);
-      if (this.events.mousedown) on(this.el, "mousedown", this.events.mousedown);
-      if (this.events.keydown)   on(doc, "keydown", this.events.keydown);
-      if (this.events.mouseup)   on(doc, "mouseup", this.events.mouseup);
-      if (this.events.dragstart) on(doc, "dragstart", this.events.dragstart);
-      if (this.events.dragenter) on(doc, "dragenter", this.events.dragenter);
-      if (this.events.dragover)  on(doc, "dragover", this.events.dragover);
-      if (this.events.dragend)   on(doc, "dragend", this.events.dragend);
+      on(this.dealer, "click", this.events.click);
+      on(this.el, "mousedown", this.events.mousedown);
+      on(doc, "keydown", this.events.keydown);
+      on(doc, "mouseup", this.events.mouseup);
+      on(doc, "dragstart", this.events.dragstart);
+      on(doc, "dragenter", this.events.dragenter);
+      on(doc, "dragover", this.events.dragover);
+      on(doc, "dragend", this.events.dragend);
 
-      // Mobiel: touchstart => deal of drag-simulatie
+      /* touch */
       on(this.el, "touchstart", (e) => {
         var t = e.touches[0];
         var target = document.elementFromPoint(t.clientX, t.clientY);
-
         if (target && target.classList.contains("pack")) {
-          if (this.click) this.click({ target: target, preventDefault: function(){} });
-          else this.deal();
+          this.click({ target: target, preventDefault: function(){} });
         } else {
-          if (this.mousedown) {
-            this.mousedown({
-              target: target,
-              pageX: t.clientX,
-              pageY: t.clientY,
-              preventDefault: function(){}
-            });
-          }
+          this.mousedown({ target: target, pageX: t.clientX, pageY: t.clientY, preventDefault: function(){} });
         }
       });
-
       on(this.el, "touchmove", (e) => {
         var t = e.touches[0];
-        if (this.dragover) {
-          this.dragover({
-            preventDefault: function () {},
-            pageX: t.clientX,
-            pageY: t.clientY,
-            dataTransfer: { dropEffect: "move" }
-          });
-        }
+        this.dragover({
+          preventDefault: function () {},
+          pageX: t.clientX, pageY: t.clientY,
+          dataTransfer: { dropEffect: "move" }
+        });
       });
-
       on(this.el, "touchend", (e) => {
-        e.preventDefault();
         var t = e.changedTouches[0];
-        if (this.mouseup) {
-          this.mouseup({
-            pageX: t.clientX,
-            pageY: t.clientY
-          });
-        }
+        this.mouseup({ pageX: t.clientX, pageY: t.clientY });
       });
     };
 
-    // Minimale click handler: klik op pack => deal
+    /* ---------- UI handlers ---------- */
     Game.prototype.click = function (e) {
       var t = e && e.target ? e.target : null;
       if (!t) return;
-      if (t.classList.contains("pack")) {
-        this.deal();
-      }
+      if (t.classList.contains("pack")) this.deal();
     };
 
-    // Mousedown: selecteer actieve kaart + siblings voor drag
     Game.prototype.mousedown = function (e) {
       var t = e.target;
-      // Zoek de kaart node
-      while (t && !t.classList.contains("card") && t !== this.el) {
-        t = t.parentNode;
-      }
+      while (t && !t.classList.contains("card") && t !== this.el) t = t.parentNode;
       if (!t || !t.classList || !t.classList.contains("card")) return;
 
       var card = this.pack.cards[t.idx];
-      if (!card || !card.flipped) return; // alleen omgedraaide kaarten kunnen
+      if (!card || !card.flipped) return; // alleen omgedraaide kaarten
 
-      this.activeCard = card;
-      this.startParent = card.el.parentNode;
-      this.activeColumn = null;
+      this.activeCard = card; this.startParent = card.el.parentNode; this.activeColumn = null;
 
-      // siblings na de kaart in dezelfde kolom
       var nodeIndex = [].slice.call(this.startParent.children).indexOf(card.el);
       this.siblings = [];
-      each(this.startParent.children, function(i, node){
-        if (i > nodeIndex) this.siblings.push(node);
-      }, this);
+      each(this.startParent.children, function(i, node){ if (i > nodeIndex) this.siblings.push(node); }, this);
 
       var r = rect(card.el);
       card.origin = { x: e.pageX - r.left, y: e.pageY - r.top };
 
       card.el.classList.add("dragging");
-      if (this.siblings.length) {
-        each(this.siblings, function(i, node){
-          node.classList.add("dragging");
-        }, this);
-      }
+      if (this.siblings.length) each(this.siblings, function(_, node){ node.classList.add("dragging"); }, this);
       this.dragging = true;
       if (e.preventDefault) e.preventDefault();
     };
 
-    // Keyboard shortcuts (optioneel)
     Game.prototype.keydown = function (e) {
-      var k = e.key.toLowerCase();
+      var k = (e.key || "").toLowerCase();
       if (k === "h") this.hint();
       if (k === "u") this.undo();
       if (k === "n") this.start();
@@ -674,26 +434,21 @@
     Game.prototype.dragstart = function (e) {
       if (!e.dataTransfer) return;
       e.dataTransfer.effectAllowed = "move";
-      e.dataTransfer.setData("text/html", "");
-      var dragIcon = doc.createElement("img");
+      e.dataTransfer.setData("text/plain", "");
+      var dragIcon = doc.createElement("img"); dragIcon.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
       e.dataTransfer.setDragImage(dragIcon, -10, -10);
       this.dragging = true;
     };
 
     Game.prototype.dragenter = function (e) {
       var t = e.target;
-      var column = t.classList && t.classList.contains("column");
-      var stack = t.classList && t.classList.contains("stack");
-      var canDrop = (t && t.card) || column || stack;
+      var isColumn = t.classList && t.classList.contains("column");
+      var isStack  = t.classList && t.classList.contains("stack");
+      var canDrop  = (t && t.card) || isColumn || isStack;
 
       if (this.activeColumn) this.activeColumn.classList.remove("over");
-
       if (canDrop) {
-        if (column || stack) {
-          this.activeColumn = t;
-        } else {
-          this.activeColumn = t.parentNode;
-        }
+        this.activeColumn = (isColumn || isStack) ? t : t.parentNode;
         if (this.activeColumn) this.activeColumn.classList.add("over");
       }
     };
@@ -706,44 +461,25 @@
         var c = this.activeCard;
         var x = e.pageX - c.origin.x;
         var y = e.pageY - c.origin.y;
-        var css =
-          "pointer-events: none; transform: scale(1.05, 1.05) rotateX(0deg) translate3d(" +
-          x + "px, " + y + "px, 0px);";
+        var css = "pointer-events:none; transform: scale(1.05) rotateX(0deg) translate3d("+x+"px,"+y+"px,0);";
         this.activeCard.el.style.cssText = css;
-
-        if (this.siblings.length) {
-          each(this.siblings, function (i, cardEl) {
-            cardEl.style.cssText = css;
-          }, this);
-        }
+        if (this.siblings.length) each(this.siblings, function (_, el) { el.style.cssText = css; }, this);
       }
     };
 
-    Game.prototype.dragend = function (e) {
+    Game.prototype.dragend = function () {
       if (this.activeCard && this.dragging) {
         var c = this.activeCard;
         c.el.classList.remove("dragging");
-
         c.el.style.cssText = "";
-
-        if (this.siblings.length) {
-          each(this.siblings, function (i, cardEl) {
-            cardEl.classList.remove("dragging");
-            cardEl.style.cssText = "";
-          }, this);
-        }
-
+        if (this.siblings.length) each(this.siblings, function (_, el) { el.classList.remove("dragging"); el.style.cssText = ""; }, this);
         if (this.activeColumn) this.activeColumn.classList.remove("over");
 
         if (this.isLegalMove()) {
           var prev = c.el.previousElementSibling;
           if (prev) {
             var prevCard = this.pack.cards[prev.idx];
-            if (!prevCard.flipped) {
-              prevCard.prevState = prevCard.flipped;
-              prevCard.flip();
-              this.score += 5;
-            }
+            if (!prevCard.flipped) { prevCard.flip(); this.score += 5; }
           }
 
           this.stackToColumn = c.el.parentNode.classList.contains("stack");
@@ -754,54 +490,37 @@
           this.updateScore();
 
           if (this.siblings.length) {
-            each(this.siblings, function (i, cardEl) {
-              if (
-                this.activeCard.value === 13 &&
-                this.dropCount === 0 &&
-                !this.startParent.classList.contains("dealt") &&
-                c.el.parentNode.firstElementChild === c.el
-              ) {
-                // geen extra score voor koning naar lege kolom
-              } else {
+            each(this.siblings, function (_, node) {
+              if (!(this.activeCard.value === 13 && this.dropCount === 0 && !this.startParent.classList.contains("dealt") && c.el.parentNode.firstElementChild === c.el)) {
                 this.score += 5;
               }
-              c.el.parentNode.appendChild(cardEl);
-              cardEl.classList.remove("dragging");
+              c.el.parentNode.appendChild(node);
+              node.classList.remove("dragging");
             }, this);
           }
 
           this.updateHistory();
           this.startParent.classList.toggle("empty", !this.startParent.childElementCount);
           this.activeColumn.classList.toggle("empty", !this.activeColumn.childElementCount);
-
           this.emit("change");
         }
       }
 
-      if (!this.stackToColumn) {
-        this.check();
-      }
+      if (!this.stackToColumn) this.check();
 
-      this.dragging = false;
-      this.activeCard = null;
-      this.siblings = [];
+      this.dragging = false; this.activeCard = null; this.siblings = [];
     };
 
     Game.prototype.mouseup = function () {
       if (this.activeCard) {
         this.activeCard.el.classList.remove("dragging");
         this.activeCard = null;
-
-        if (this.siblings.length) {
-          each(this.siblings, function (i, cardEl) {
-            cardEl.classList.remove("dragging");
-          }, this);
-        }
+        if (this.siblings.length) each(this.siblings, function (_, el) { el.classList.remove("dragging"); }, this);
       }
-      this.hinted = false;
-      this.emit("change");
+      this.hinted = false; this.emit("change");
     };
 
+    /* ---------- Game rules ---------- */
     Game.prototype.updateHistory = function (card, start, end, siblings) {
       var obj = {};
       if (Array.isArray(card)) {
@@ -809,135 +528,82 @@
       } else {
         card = card || this.activeCard;
         start = start || this.startParent;
-        end = end || this.activeColumn;
+        end   = end || this.activeColumn;
         siblings = siblings || this.siblings;
 
-        var max = 10;
         var cards = this.pack.cards;
         var prev = card.el.previousElementSibling;
 
         obj = { card: card, start: start, end: end, siblings: siblings };
-
-        if (prev) {
-          obj.prevSibling = {
-            card: cards[prev.idx],
-            flipped: cards[prev.idx].flipped
-          };
-        }
+        if (prev) obj.prevSibling = { card: cards[prev.idx], flipped: cards[prev.idx].flipped };
       }
 
       this.history.push(obj);
-      if (this.history.length > 10) {
-        this.history.splice(0, this.history.length - 10);
-      }
+      if (this.history.length > 10) this.history.splice(0, this.history.length - 10);
     };
 
     Game.prototype.updateScore = function (start, stop) {
-      start = start || this.startParent;
-      stop = stop || this.activeColumn;
+      start = start || this.startParent; stop = stop || this.activeColumn;
+      if (this.dropCount === 0 && this.activeCard.value === 13 && !start.classList.contains("dealt") && this.activeCard.el.parentNode.firstElementChild === this.activeCard.el) return;
 
-      if (
-        this.dropCount === 0 &&
-        this.activeCard.value === 13 &&
-        !start.classList.contains("dealt") &&
-        this.activeCard.el.parentNode.firstElementChild === this.activeCard.el
-      ) {
-        return false;
-      }
-
-      if (start.classList.contains("dealt")) {
-        if (stop.classList.contains("column")) this.score += 5;
-      } else if (start.classList.contains("column")) {
-        if (stop.classList.contains("column")) this.score += 3;
-      }
+      if (start.classList.contains("dealt")) { if (stop.classList.contains("column")) this.score += 5; }
+      else if (start.classList.contains("column")) { if (stop.classList.contains("column")) this.score += 3; }
 
       if (stop.classList.contains("stack")) this.score += 10;
       if (start.classList.contains("stack") && stop.classList.contains("column")) this.score -= 10;
     };
 
     Game.prototype.isLegalMove = function (active, column) {
-      active = active || this.activeCard;
-      column = column || this.activeColumn;
-
+      active = active || this.activeCard; column = column || this.activeColumn;
       if (!active || !column) return false;
 
-      var last = false;
-      var legalMove = false;
-      var lastEl = column.lastElementChild;
+      var last = false, legal = false, lastEl = column.lastElementChild;
       var isColumn = column.classList.contains("column");
-      var isPlaceholder = column.classList.contains("stack");
-
+      var isStack  = column.classList.contains("stack");
       if (lastEl) last = this.pack.cards[lastEl.idx];
 
       if (isColumn) {
-        if (!column.childElementCount) {
-          legalMove = active.value === 13;
-        } else {
-          legalMove = active.color !== last.color && active.value === last.value - 1;
-        }
-      } else if (isPlaceholder) {
-        if (!column.childElementCount) {
-          legalMove = active.value === 1;
-        } else {
-          legalMove =
-            active.color === last.color &&
-            active.suit === last.suit &&
-            active.value === last.value + 1;
-        }
+        if (!column.childElementCount) legal = active.value === 13;
+        else legal = active.color !== last.color && active.value === last.value - 1;
+      } else if (isStack) {
+        if (!column.childElementCount) legal = active.value === 1;
+        else legal = active.color === last.color && active.suit === last.suit && active.value === last.value + 1;
       }
-
-      return legalMove;
+      return legal;
     };
 
     Game.prototype.undo = function () {
-      var index = this.history.length - 1;
-      if (index > -1) {
-        var obj = this.history[index];
+      var i = this.history.length - 1;
+      if (i < 0) return;
+      var obj = this.history[i];
 
-        if (obj.deal) {
-          var cards = [].slice.call(this.dealArea.children);
-          var diff = this.dealArea.childElementCount - this.dealCount;
-          var last = cards.splice(diff, this.dealCount);
-
-          last.forEach(function (el) {
-            var card = this.pack.cards[el.idx];
-            if (card.flipped) {
-              card.flip();
-              this.startParent.classList.toggle("empty", !this.startParent.childElementCount);
-            }
-            this.packArea.appendChild(el);
-          }, this);
-        } else {
-          var card = obj.card;
-          var last = obj.start.lastElementChild;
-
-          if (last) {
-            var lastCard = this.pack.cards[last.idx];
-            if (obj.prevSibling) {
-              if (!obj.prevSibling.prevState && lastCard.flipped) {
-                lastCard.flip();
-              }
-            }
-          }
-
-          obj.start.appendChild(card.el);
-
-          if (obj.siblings.length) {
-            obj.siblings.forEach(function (el) {
-              obj.start.appendChild(el);
-            }, this);
-          }
-
-          card.checked = false;
-          obj.start.classList.toggle("empty", !obj.start.childElementCount);
-          obj.end.classList.toggle("empty", !obj.end.childElementCount);
+      if (obj.deal) {
+        var cards = [].slice.call(this.dealArea.children);
+        var diff = this.dealArea.childElementCount - this.dealCount;
+        var last = cards.splice(diff, this.dealCount);
+        last.forEach(function (el) {
+          var card = this.pack.cards[el.idx];
+          if (card.flipped) card.flip();
+          this.packArea.appendChild(el);
+        }, this);
+      } else {
+        var card = obj.card;
+        var lastEl = obj.start.lastElementChild;
+        if (lastEl) {
+          var lastCard = this.pack.cards[lastEl.idx];
+          if (obj.prevSibling && !obj.prevSibling.flipped && lastCard.flipped) lastCard.flip();
         }
-
-        this.history.splice(index, 1);
-        this.emit("change");
+        obj.start.appendChild(card.el);
+        if (obj.siblings.length) obj.siblings.forEach(function (el) { obj.start.appendChild(el); });
+        card.checked = false;
+        obj.start.classList.toggle("empty", !obj.start.childElementCount);
+        obj.end.classList.toggle("empty", !obj.end.childElementCount);
       }
+
+      this.history.splice(i, 1);
+      this.emit("change");
     };
-    
+
     Game.prototype.deal = function () {
       var frag = document.createDocumentFragment();
       var pack = [].slice.call(this.packArea.children);
@@ -946,50 +612,34 @@
       if (!count) {
         while (this.dealArea.childElementCount) {
           var card = this.pack.cards[this.dealArea.lastElementChild.idx];
-          card.flip();
-          frag.appendChild(card.el);
+          card.flip(); frag.appendChild(card.el);
         }
         this.packArea.appendChild(frag);
-        return false;
+        return;
       }
 
       this.dealer.classList.add("dealing");
       this.startParent = this.packArea;
 
-      // telkens 1 kaart
-      var items = [pack[count - 1]];
+      var items = [pack[count - 1]];         // telkens 1 kaart
       this.dealCount = items.length;
 
       items.forEach((el, i) => {
-        if (el) {
-          var card = this.pack.cards[el.idx];
+        if (!el) return;
+        var card = this.pack.cards[el.idx];
+        var crect = rect(card.el), prect = rect(this.dealArea);
+        var x = crect.left - prect.left, y = crect.top - prect.top;
 
-          var crect = rect(card.el);
-          var prect = rect(this.dealArea);
+        this.dealArea.appendChild(card.el);
+        card.el.style.cssText = "transform: translate3d("+x+"px,"+y+"px,0) rotateY(180deg);";
 
-          var x = crect.left - prect.left;
-          var y = crect.top - prect.top;
-
-          this.dealArea.appendChild(card.el);
-
-          card.el.style.cssText = "transform: translate3d(" + x + "px," + y + "px,0px) rotateY(180deg);";
-
-          setTimeout(() => {
-            card.el.style.cssText =
-              "transform-origin: 50% 50%; transform: translate3d(0px,0px,0px) rotateY(0deg); transition: transform " +
-              this.animationInterval + "ms;";
-
-            card.flip();
-            card.el.style.cssText = "";
-
-            if (i === items.length - 1) {
-              setTimeout(() => {
-                this.dealer.classList.remove("dealing");
-              }, 250);
-            }
-          }, this.animationInterval * i);
-        }
-      }, this);
+        setTimeout(() => {
+          card.el.style.cssText = "transform-origin:50% 50%; transform: translate3d(0,0,0) rotateY(0deg); transition: transform "+this.animationInterval+"ms;";
+          card.flip();
+          card.el.style.cssText = "";
+          if (i === items.length - 1) setTimeout(() => this.dealer.classList.remove("dealing"), 250);
+        }, this.animationInterval * i);
+      });
 
       this.updateHistory([]);
       this.emit("change");
@@ -1000,301 +650,153 @@
 
       var columns = [].slice.call(this.columns.children);
       var holders = this.stacks.children;
-
       columns.push(this.dealArea);
 
       columns.forEach((column) => {
         var c = column.lastElementChild;
-        if (c) {
-          var card = this.pack.cards[c.idx];
-          var start = card.el.parentNode;
+        if (!c) return;
+        var card = this.pack.cards[c.idx];
+        var start = card.el.parentNode;
 
-          each(holders, function (i, holder) {
-            if (this.isLegalMove(card, holder) && !card.checked) {
-              this.checked = true;
-              card.checked = true;
+        each(holders, function (_, holder) {
+          if (this.isLegalMove(card, holder) && !card.checked) {
+            this.checked = true; card.checked = true;
 
-              var prev = card.el.previousElementSibling;
-              if (prev) {
-                var prevCard = this.pack.cards[prev.idx];
-                if (!prevCard.flipped) {
-                  prevCard.flip();
-                  this.score += 5;
-                }
-              }
-
-              this.updateHistory(card, card.el.parentNode, holder);
-
-              var crect = rect(card.el);
-              var prect = rect(holder);
-
-              var x = crect.left - prect.left;
-              var y = crect.top - prect.top;
-
-              this.updateScore(card.el.parentNode, holder);
-
-              holder.appendChild(card.el);
-
-              start.classList.toggle("empty", !start.childElementCount);
-
-              card.el.style.cssText =
-                "transform: translate3d(" + x + "px," + y + "px,0px);";
-
-              // force repaint
-              card.el.offsetTop;
-
-              card.el.style.cssText =
-                "transform: translate3d(0px,0px,0px); transition: transform " +
-                this.animationInterval + "ms;";
-
-              setTimeout(() => {
-                card.el.style.transform = "";
-              }, this.animationInterval);
-
-              this.emit("change");
+            var prev = card.el.previousElementSibling;
+            if (prev) {
+              var prevCard = this.pack.cards[prev.idx];
+              if (!prevCard.flipped) { prevCard.flip(); this.score += 5; }
             }
-          }, this);
-        }
+
+            this.updateHistory(card, card.el.parentNode, holder);
+
+            var crect = rect(card.el), prect = rect(holder);
+            var x = crect.left - prect.left, y = crect.top - prect.top;
+
+            this.updateScore(card.el.parentNode, holder);
+            holder.appendChild(card.el);
+            start.classList.toggle("empty", !start.childElementCount);
+
+            card.el.style.cssText = "transform: translate3d("+x+"px,"+y+"px,0);";
+            card.el.offsetTop; // repaint
+            card.el.style.cssText = "transform: translate3d(0,0,0); transition: transform "+this.animationInterval+"ms;";
+            setTimeout(() => { card.el.style.transform = ""; }, this.animationInterval);
+
+            this.emit("change");
+          }
+        }, this);
       }, this);
 
-      var count = 0;
-      each(this.stacks.children, function (i, stack) {
-        count += stack.childElementCount;
-      });
-
+      var count = 0; each(this.stacks.children, function (_, stack) { count += stack.childElementCount; });
       this.won = false;
-      if (count === 52) {
-        setTimeout(() => {
-          this.win();
-        }, this.animationInterval);
-        return false;
-      }
+      if (count === 52) { setTimeout(() => { this.win(); }, this.animationInterval); return; }
 
-      if (this.checked) {
-        setTimeout(() => {
-          this.check();
-        }, this.animationInterval);
-      }
+      if (this.checked) setTimeout(() => { this.check(); }, this.animationInterval);
     };
 
     Game.prototype.start = function () {
-      var columnsCount = 7;
-      var current = 0;
-      var start = 0;
+      var columnsCount = 7, current = 0, start = 0;
+      var columns = this.columns, pack = this.packArea;
 
-      var columns = this.columns;
-      var pack = this.packArea;
-
-      this.reset();
-      this.pack.shuffle();
+      this.reset(); this.pack.shuffle();
 
       for (var i = 0; i < 28; i++) {
         var card = this.pack.cards[i];
         columns.children[current].appendChild(card.el);
-        if (start === current) {
-          card.flip();
-        }
+        if (start === current) card.flip();
         current++;
-        if (current === columnsCount) {
-          start++;
-          current = start;
-        }
+        if (current === columnsCount) { start++; current = start; }
       }
-
-      for (var j = 28; j < 52; j++) {
-        pack.appendChild(this.pack.cards[j].el);
-      }
+      for (var j = 28; j < 52; j++) pack.appendChild(this.pack.cards[j].el);
 
       this.packArea.parentNode.replaceChild(pack, this.packArea);
       this.columns.parentNode.replaceChild(columns, this.columns);
+      this.packArea = pack; this.columns = columns;
 
-      this.packArea = pack;
-      this.columns = columns;
-
-      this.emit("start");
-      this.emit("change");
+      this.emit("start"); this.emit("change");
     };
 
     Game.prototype.hint = function () {
       this.hinted = false;
-
       var columns = [].slice.call(this.columns.children);
       columns.push(this.dealArea);
+      each(this.stacks.children, function (_, stack) { columns.push(stack); });
 
-      each(this.stacks, function (i, stack) {
-        columns.push(stack);
-      });
+      each(columns, function (_, column) {
+        var c = (column === this.dealArea) ? column.lastElementChild : column.getElementsByClassName("flipped")[0];
+        if (!c) return;
 
-      each(columns, function (i, column) {
-        var c;
-        if (column === this.dealArea) {
-          c = column.lastElementChild;
-        } else {
-          c = column.getElementsByClassName("flipped")[0];
+        var card = this.pack.cards[c.idx], isLast = false, siblings = [];
+        var nodeIndex = [].slice.call(card.el.parentNode.children).indexOf(card.el);
+
+        if (card.el.previousElementSibling) {
+          if (card.el.parentNode === this.dealArea) isLast = true;
+          else isLast = !card.el.previousElementSibling.classList.contains("flipped");
         }
+        if (card.value === 1 || card.el.parentNode.childElementCount === 1) isLast = true;
+        if (card.value === 13 && card.el.parentNode.classList.contains("column") && card.el.parentNode.childElementCount === 1) return;
 
-        if (c) {
-          var card = this.pack.cards[c.idx];
-          var isLast,
-              siblings = [];
+        each(card.el.parentNode.children, function (i, node) { if (i > nodeIndex) siblings.push(node); });
 
-          var nodeIndex = [].slice.call(card.el.parentNode.children).indexOf(card.el);
+        each(columns, function (_, col) {
+          if (this.isLegalMove(card, col) && isLast && !this.hinted) {
+            var lastCard, last = col.lastElementChild;
+            lastCard = last ? this.pack.cards[last.idx].el : (card.value === 13 ? col : null);
+            if (!lastCard) return;
 
-          if (card.el.previousElementSibling) {
-            if (card.el.parentNode === this.dealArea) {
-              isLast = true;
-            } else {
-              isLast = !card.el.previousElementSibling.classList.contains("flipped");
-            }
+            card.el.classList.add("hint");
+            if (siblings.length) each(siblings, function (_, node) { node.classList.add("hint"); });
+
+            setTimeout(function () {
+              card.el.classList.remove("hint");
+              if (siblings.length) each(siblings, function (_, node) { node.classList.remove("hint"); });
+              lastCard.classList.add("hint");
+              setTimeout(function () { lastCard.classList.remove("hint"); }, 500);
+            }, 500);
+
+            this.hinted = true; this.score -= 20; this.emit("change");
           }
-
-          if (card.value === 1 || card.el.parentNode.childElementCount === 1) {
-            isLast = true;
-          }
-
-          if (
-            card.value === 13 &&
-            card.el.parentNode.classList.contains("column") &&
-            card.el.parentNode.childElementCount === 1
-          ) {
-            return false;
-          }
-
-          each(card.el.parentNode.children, function (i, node) {
-            if (i > nodeIndex) siblings.push(node);
-          });
-
-          each(columns, function (idx, col) {
-            if (this.isLegalMove(card, col) && isLast && !this.hinted) {
-              var lastCard,
-                  last = col.lastElementChild;
-
-              if (last) {
-                lastCard = this.pack.cards[last.idx].el;
-              } else {
-                if (card.value === 13) {
-                  lastCard = col;
-                }
-              }
-
-              card.el.classList.add("hint");
-
-              if (siblings.length) {
-                each(siblings, function (i, node) {
-                  node.classList.add("hint");
-                });
-              }
-
-              setTimeout(function () {
-                card.el.classList.remove("hint");
-                if (siblings.length) {
-                  each(siblings, function (i, node) {
-                    node.classList.remove("hint");
-                  });
-                }
-                lastCard.classList.add("hint");
-                setTimeout(function () {
-                  lastCard.classList.remove("hint");
-                }, 500);
-              }, 500);
-
-              this.hinted = true;
-              this.score -= 20;
-              this.emit("change");
-            }
-          }, this);
-        }
+        }, this);
       }, this);
     };
 
     Game.prototype.reset = function () {
-      this.score = 0;
-      this.history = [];
+      this.score = 0; this.history = [];
+      if (this.won) { this.won = false; if (this.canvas && this.canvas.parentNode) document.body.removeChild(this.canvas); }
 
-      if (this.won) {
-        this.won = false;
-        if (this.canvas && this.canvas.parentNode) {
-          document.body.removeChild(this.canvas);
-        }
-      }
-
-      this.pack.cards.forEach(function (card) {
-        if (card.flipped) card.flip();
-        card.checked = false;
-      });
-
-      Array.from(this.columns.children).forEach(function (column) {
-        column.classList.remove("empty");
-      });
-
-      Array.from(this.stacks.children).forEach(function (stack) {
-        stack.classList.remove("empty");
-      });
+      this.pack.cards.forEach(function (card) { if (card.flipped) card.flip(); card.checked = false; });
+      Array.from(this.columns.children).forEach(function (col) { col.classList.remove("empty"); });
+      Array.from(this.stacks.children).forEach(function (stack) { stack.classList.remove("empty"); });
 
       this.emit("change");
     };
 
-    // WIN zonder sprites: teken eigen kaart met symbool
     Game.prototype.win = function () {
-      if (this.won) return false;
-      this.won = true;
+      if (this.won) return; this.won = true;
 
-      var rects = [];
-      var suits = [];
-
-      this.pack.cards.forEach(function (card) {
-        card.el.style.transform = "";
-      });
-
-      each(this.stacks.children, function (i, stack) {
-        rects.push(rect(stack));
-        var last = stack.lastElementChild;
-        var card = this.pack.cards[last.idx];
-        suits.push(card.suit);
+      var rects = [], suits = [];
+      this.pack.cards.forEach(function (card) { card.el.style.transform = ""; });
+      each(this.stacks.children, function (_, stack) {
+        rects.push(rect(stack)); var last = stack.lastElementChild; var card = this.pack.cards[last.idx]; suits.push(card.suit);
       }, this);
 
       this.canvas = document.createElement("canvas");
-      var that = this;
       var ctx = this.canvas.getContext("2d");
-
-      var w = (this.canvas.width = window.innerWidth);
+      var w = (this.canvas.width  = window.innerWidth);
       var h = (this.canvas.height = window.innerHeight);
 
       var gravity, wind;
       var pos = new Vector(rects[0].left, rects[0].top);
       var vel = new Vector(0, -getRandomInt(25, 30));
 
-      var sWidth = 125;
-      var sHeight = 188;
-
-      var frame = null;
+      var sWidth = 125, sHeight = 188;
       var x = 0;
 
-      var init = function () {
-        document.body.appendChild(that.canvas);
-        setGravity();
-        setWind();
-        draw();
-      };
-
-      var setGravity = function () {
-        gravity = new Vector(0, getRandomInt(1, 9));
-      };
-
-      var setWind = function () {
-        var a = [-1, 1];
-        var r = a[Math.floor(Math.random() * a.length)];
-        var w2 = getRandomInt(5, 15);
-        wind = new Vector(w2 * r, 0);
-      };
+      var setGravity = function () { gravity = new Vector(0, getRandomInt(1, 9)); };
+      var setWind    = function () { var a = [-1, 1]; var r = a[Math.floor(Math.random()*a.length)]; wind = new Vector(getRandomInt(5,15)*r, 0); };
 
       var drawCard = function (p, suit) {
-        // kaartachtergrond
-        ctx.fillStyle = "#FFFFFF";
-        ctx.strokeStyle = "#333333";
-        ctx.lineWidth = 2;
-        var r = 8;
-
+        ctx.fillStyle = "#FFFFFF"; ctx.strokeStyle = "#333333"; ctx.lineWidth = 2; var r = 8;
         ctx.beginPath();
         ctx.moveTo(p.x + r, p.y);
         ctx.lineTo(p.x + sWidth - r, p.y);
@@ -1305,110 +807,62 @@
         ctx.quadraticCurveTo(p.x, p.y + sHeight, p.x, p.y + sHeight - r);
         ctx.lineTo(p.x, p.y + r);
         ctx.quadraticCurveTo(p.x, p.y, p.x + r, p.y);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
+        ctx.closePath(); ctx.fill(); ctx.stroke();
 
-        // symbool
-        var symbol = "♠";
-        var color = "#2c3e50";
-        if (suit === "hearts") { symbol = "♥"; color = "#c0392b"; }
+        var symbol = "♠", color = "#2c3e50";
+        if (suit === "hearts")   { symbol = "♥"; color = "#c0392b"; }
         if (suit === "diamonds") { symbol = "♦"; color = "#c0392b"; }
-        if (suit === "clubs") { symbol = "♣"; color = "#2c3e50"; }
+        if (suit === "clubs")    { symbol = "♣"; color = "#2c3e50"; }
 
-        ctx.fillStyle = color;
-        ctx.font = "bold 72px Arial";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(symbol, p.x + sWidth / 2, p.y + sHeight / 2);
+        ctx.fillStyle = color; ctx.font = "bold 72px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText(symbol, p.x + sWidth/2, p.y + sHeight/2);
       };
 
-      var draw = function () {
-        frame = requestAnimationFrame(draw);
-
-        // physics
-        vel.add(gravity);
-        pos.add(vel);
-        pos.add(wind);
-
-        if (pos.y >= h - sHeight) {
-          pos.y = h - sHeight;
-          vel.y = -vel.y;
-        }
-
-        // fade trail
-        ctx.fillStyle = "rgba(255,255,255,0.3)";
-        ctx.fillRect(0,0,w,h);
-
+      var draw = () => {
+        requestAnimationFrame(draw);
+        vel.add(gravity); pos.add(vel); pos.add(wind);
+        if (pos.y >= h - sHeight) { pos.y = h - sHeight; vel.y = -vel.y; }
+        ctx.fillStyle = "rgba(255,255,255,0.3)"; ctx.fillRect(0,0,w,h);
         drawCard(pos, suits[x]);
-
         if (pos.x < 0 - sWidth || pos.x > w + sWidth) {
-          if (x < 3) { x++; } else { x = 0; }
-
+          x = (x < 3) ? x+1 : 0;
           pos = new Vector(rects[x].left, rects[x].top);
-          vel = new Vector(0, -getRandomInt(25, 30));
-          setGravity();
-          setWind();
+          vel = new Vector(0, -getRandomInt(25,30));
+          setGravity(); setWind();
         }
       };
 
-      init();
+      document.body.appendChild(this.canvas);
+      setGravity(); setWind(); draw();
     };
 
     Game.prototype.cheat = function () {
-      var that = this;
-      this.checked = false;
-
+      var that = this; this.checked = false;
       var columns = [].slice.call(this.columns.children);
       var holders = this.stacks.children;
-
       columns.push(this.dealArea);
 
       each(this.pack.suits, function (i, suit) {
         var el, card, s;
-
         for (var n = 1; n < 14; n++) {
-          s = n;
-          if (n > 10) {
-            if (n === 11) s = "J";
-            if (n === 12) s = "Q";
-            if (n === 13) s = "K";
-          }
-
+          s = n; if (n > 10) s = (n === 11 ? "J" : n === 12 ? "Q" : "K");
           el = document.querySelector(".card." + suit + ".card-" + s);
           card = this.pack.cards[el.idx];
 
           var prev = card.el.previousElementSibling;
-          if (!card.flipped && card.el.parentNode !== this.packArea) {
-            card.flip();
-          }
-
+          if (!card.flipped && card.el.parentNode !== this.packArea) card.flip();
           if (prev && card.el.parentNode !== this.packArea) {
             var prevCard = this.pack.cards[prev.idx];
-            if (!prevCard.flipped) {
-              prevCard.flip();
-              this.score += 5;
-            }
+            if (!prevCard.flipped) { prevCard.flip(); this.score += 5; }
           }
 
-          var crect = rect(card.el);
-          var prect = rect(holders[i]);
-          var x = crect.left - prect.left;
-          var y = crect.top - prect.top;
-
+          var crect = rect(card.el), prect = rect(holders[i]);
+          var x = crect.left - prect.left, y = crect.top - prect.top;
           holders[i].appendChild(card.el);
-
-          card.el.style.cssText = "transform: translate3d(" + x + "px," + y + "px,0px);";
-
+          card.el.style.cssText = "transform: translate3d("+x+"px,"+y+"px,0);";
           card.el.offsetTop;
-
-          card.el.style.cssText =
-            "transform: translate3d(0px,0px,0px); transition: transform " +
-            this.animationInterval + "ms;";
-
-          setTimeout(function () {
-            card.el.style.transform = "";
-          }.bind(this), this.animationInterval);
+          card.el.style.cssText = "transform: translate3d(0,0,0); transition: transform "+this.animationInterval+"ms;";
+          setTimeout(function () { card.el.style.transform = ""; }.bind(this), this.animationInterval);
         }
       }, this);
 
@@ -1418,11 +872,10 @@
     global.Game = Game;
   })(this);
 
-  // Start het spel
+  /* ---------- init + UI ---------- */
   var game = new Game("#spelcontainer");
   game.start();
 
-  // Buttons functionaliteit
   document.querySelectorAll('#controls button').forEach(function(btn){
     btn.addEventListener('click', function(){
       var action = btn.getAttribute('data-action');
@@ -1435,11 +888,9 @@
     });
   });
 
-  // Score live updaten
   game.on("change", function(){
     document.getElementById('score').textContent = "Score: " + game.score;
   });
   </script>
-
 </body>
 </html>
