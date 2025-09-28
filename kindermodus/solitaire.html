@@ -2025,6 +2025,30 @@ Game.prototype.click = function (e) {
 // Start het spel
 var game = new Game("#spelcontainer");
 game.start();
+  // Buttons functionaliteit
+document.querySelectorAll('#controls button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    let action = btn.getAttribute('data-action');
+    switch(action) {
+      case 'hint':
+        game.hint();
+        break;
+      case 'undo':
+        game.undo();
+        break;
+      case 'reset':
+        game.start();
+        break;
+    }
+    document.getElementById('score').textContent = "Score: " + game.score;
+  });
+});
+
+// Score live updaten
+game.on("change", () => {
+  document.getElementById('score').textContent = "Score: " + game.score;
+});
+
 </script>
 
 </body>
