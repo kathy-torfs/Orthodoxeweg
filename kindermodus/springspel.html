@@ -14,15 +14,30 @@
       --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
       --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
     }
-    body{
-      margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
-      min-height:100vh; background:var(--pastel1); transition:background .6s;
-      overflow:hidden; /* geen scrollen bij canvas */
+    body {
+      margin:0;
+      font-family:'Comic Sans MS', Arial, sans-serif;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
     }
-    #gameCanvas{
+
+    /* Header bovenaan vast */
+    #kinder-header {
+      flex:0 0 auto;
+    }
+
+    /* Spelcontainer = scherm in scherm */
+    #gameContainer {
+      flex:1 1 auto;
+      display:flex;
+      background:var(--pastel1);
+    }
+
+    #gameCanvas {
+      width:100%;
+      height:100%;
       display:block;
-      width:100vw;
-      height:100vh;
     }
   </style>
 
@@ -32,14 +47,16 @@
   <script defer src="springspel.js"></script>
 </head>
 <body>
-  <!-- Hier komt automatisch de header en menubalk uit header.html -->
+  <!-- Header wordt geladen uit header.html -->
   <div id="kinder-header" data-header-src="common/header.html"></div>
 
-  <!-- Canvas voor het spel -->
-  <canvas id="gameCanvas"></canvas>
+  <!-- Canvas-container -->
+  <div id="gameContainer">
+    <canvas id="gameCanvas"></canvas>
+  </div>
 
   <script>
-    // Zachte pastelachtergrond
+    // Willekeurige pastelachtergrond
     (function(){
       const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)',
                'var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)',
@@ -48,7 +65,7 @@
       document.body.style.background = p[Math.floor(Math.random()*p.length)];
     })();
 
-    // Header + menubalk activeren
+    // Header activeren
     (function boot(){
       if (!(window.KinderLayout)) return setTimeout(boot, 120);
       const el = document.getElementById('kinder-header');
