@@ -1,4 +1,4 @@
-// =============================
+// ============================= 
 // springspel.js
 // =============================
 
@@ -32,6 +32,9 @@ const collectableImgs = [
   "https://kathy-torfs.github.io/Orthodoxeweg/images/vleugel.png",
   "https://kathy-torfs.github.io/Orthodoxeweg/images/engel.png"
 ].map(src => { const i = new Image(); i.src = src; return i; });
+
+const skullImg = new Image();
+skullImg.src = "https://kathy-torfs.github.io/Orthodoxeweg/images/skull.png";
 
 // -----------------------------
 // Speler (Photeinos)
@@ -87,13 +90,26 @@ function spawnObstacle() {
 // Collectables
 // -----------------------------
 function spawnCollectable() {
-  const img = collectableImgs[Math.floor(Math.random()*collectableImgs.length)];
-  collectables.push({
-    x: canvas.width,
-    y: bandY + 20,
-    w: 50, h: 50,
-    img: img
-  });
+  // 75% kans licht, 25% kans zonde
+  const isZonde = Math.random() < 0.25;
+  if (isZonde) {
+    collectables.push({
+      x: canvas.width,
+      y: bandY + 20,
+      w: 50, h: 50,
+      img: skullImg,
+      type: "zonde"
+    });
+  } else {
+    const img = collectableImgs[Math.floor(Math.random()*collectableImgs.length)];
+    collectables.push({
+      x: canvas.width,
+      y: bandY + 20,
+      w: 50, h: 50,
+      img: img,
+      type: "licht"
+    });
+  }
 }
 
 // -----------------------------
@@ -123,6 +139,17 @@ function updatePlayer() {
 function rectsOverlap(a, b) {
   return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 }
+
+// -----------------------------
+// Vraag-config per level
+// -----------------------------
+const levelVraagConfig = {
+  0: { diff: 1, antwoorden: 3 }, // Level 1
+  1: { diff: 1, antwoorden: 4 }, // Level 2
+  2: { diff: 2, antwoorden: 3 }, // Level 3
+  3: { diff: 2, antwoorden: 4 }, // Level 4
+  4: { diff: 3, antwoorden: null } // Level 5
+};
 
 // -----------------------------
 // Update loop
@@ -157,12 +184,47 @@ function update() {
   for (let i = collectables.length - 1; i >= 0; i--) {
     const c = collectables[i];
     if (rectsOverlap(photeinos, c)) {
-      score++;
       collectables.splice(i,1);
-      // Vraag oproepen
-      if (typeof questions !== "undefined") {
-        const q = questions[Math.floor(Math.random()*questions.length)];
-        alert("Vraag uit vragen.js:\n\n" + q.q);
+
+      if (c.type === "licht") {
+        score++;
+        if (typeof vragen !== "undefined") {
+          const config = levelVraagConfig[currentLevel] || { diff: 1, antwoorden: 4 };
+          const keuzes = vragen.filter(v => v.difficulty === config.diff);
+          if (keuzes.length > 0) {
+            const q = keuzes[Math.floor(Math.random() * keuzes.length)];
+            let tekst = q.q + "\n\n";
+            let opties = q.a;
+            if (config.antwoorden) {
+              opties = opties.slice(0, config.antwoorden);
+            }
+            opties.forEach((ans, idx) => { tekst += (idx+1) + ". " + ans + "\n"; });
+            const antwoord = prompt(tekst);
+            if (parseInt(antwoord)-1 === q.correct) {
+              alert("Goed gedaan!");
+            } else {
+              alert("Niet juist, probeer de volgende keer beter.");
+            }
+          }
+        }
+      }
+
+      if (c.type === "zonde") {
+        if (typeof vragen !== "undefined") {
+          const keuzes = vragen.filter(v => v.difficulty === "zonde");
+          if (keuzes.length > 0) {
+            const q = keuzes[Math.floor(Math.random() * keuzes.length)];
+            let tekst = q.q + "\n\n";
+            q.a.forEach((ans, idx) => { tekst += (idx+1) + ". " + ans + "\n"; });
+            const antwoord = prompt(tekst);
+            if (parseInt(antwoord)-1 === q.correct) {
+              alert("Juist!");
+            } else {
+              alert("Fout antwoord → Game Over!");
+              running = false;
+            }
+          }
+        }
       }
     }
   }
