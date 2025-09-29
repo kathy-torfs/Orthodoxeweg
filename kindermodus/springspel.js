@@ -7,40 +7,25 @@ const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 function resizeCanvas() {
-  const container = document.getElementById("gameContainer");
-  canvas.width = container.clientWidth;
-  canvas.height = container.clientHeight;
+  canvas.width = canvas.parentElement.clientWidth;
+  canvas.height = canvas.parentElement.clientHeight;
 }
 resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
 
 // -----------------------------
-// Assets
+// Emoji's voor obstakels en collectables
 // -----------------------------
-const photeinosImg = new Image();
-photeinosImg.src = "https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.png";
-
-const levelBackgrounds = [
-  "https://kathy-torfs.github.io/Orthodoxeweg/images/level1.png",
-  "https://kathy-torfs.github.io/Orthodoxeweg/images/level2.png",
-  "https://kathy-torfs.github.io/Orthodoxeweg/images/level3.png",
-  "https://kathy-torfs.github.io/Orthodoxeweg/images/level4.png",
-  "https://kathy-torfs.github.io/Orthodoxeweg/images/level5.png"
-].map(src => { const i = new Image(); i.src = src; return i; });
-
-const collectableImgs = [
-  "https://kathy-torfs.github.io/Orthodoxeweg/images/duif.png",
-  "https://kathy-torfs.github.io/Orthodoxeweg/images/vleugel.png",
-  "https://kathy-torfs.github.io/Orthodoxeweg/images/engel.png"
-].map(src => { const i = new Image(); i.src = src; return i; });
+const obstacleEmojis = ["💀"];
+const collectableEmojis = ["🪽"];
 
 // -----------------------------
 // Speler (Photeinos)
 // -----------------------------
-const photeinos = { x: 50, y: 0, w: 80, h: 80, vy: 0, onGround: false };
+const photeinos = { x: 50, y: 0, w: 60, h: 60, vy: 0, onGround: false };
 let speed = 6;
-let gravity = 1;
-let jumpPower = -18;
+let gravity = 0.8;     // zachter
+let jumpPower = -12;   // minder hoog
 
 // -----------------------------
 // Game variabelen
@@ -58,10 +43,10 @@ let paused = false;
 // -----------------------------
 let bandX = 0;
 const bandSpeed = 3;
-const bandHeight = 100;
-let bandY = 0;
+const bandHeight = 80;
+let bandY = 0; 
 function updateBandY() {
-  bandY = canvas.height - bandHeight - 50;
+  bandY = canvas.height - bandHeight - 20;
 }
 updateBandY();
 window.addEventListener("resize", updateBandY);
@@ -76,11 +61,13 @@ document.addEventListener("keyup", e => keys[e.key] = false);
 // Obstakels
 // -----------------------------
 function spawnObstacle() {
-  const h = 60;
+  const size = 60;
+  const emoji = obstacleEmojis[Math.floor(Math.random()*obstacleEmojis.length)];
   obstacles.push({
     x: canvas.width,
-    y: canvas.height - h,
-    w: 60, h: h
+    y: bandY - size,
+    w: size, h: size,
+    emoji: emoji
   });
 }
 
@@ -88,12 +75,12 @@ function spawnObstacle() {
 // Collectables
 // -----------------------------
 function spawnCollectable() {
-  const img = collectableImgs[Math.floor(Math.random()*collectableImgs.length)];
+  const emoji = collectableEmojis[Math.floor(Math.random()*collectableEmojis.length)];
   collectables.push({
     x: canvas.width,
-    y: bandY + 20,
+    y: bandY - 120,
     w: 50, h: 50,
-    img: img
+    emoji: emoji
   });
 }
 
@@ -111,8 +98,8 @@ function updatePlayer() {
   photeinos.vy += gravity;
   photeinos.y += photeinos.vy;
 
-  if (photeinos.y + photeinos.h > canvas.height) {
-    photeinos.y = canvas.height - photeinos.h;
+  if (photeinos.y + photeinos.h > bandY) {
+    photeinos.y = bandY - photeinos.h;
     photeinos.vy = 0;
     photeinos.onGround = true;
   }
@@ -149,7 +136,7 @@ function update() {
   for (const o of obstacles) {
     if (rectsOverlap(photeinos, o)) {
       running = false;
-      alert("Botsing! Game Over.");
+      alert("💥 Botsing! Game Over.");
       return;
     }
   }
@@ -160,21 +147,7 @@ function update() {
     if (rectsOverlap(photeinos, c)) {
       score++;
       collectables.splice(i,1);
-
-      if (typeof vragen !== "undefined") {
-        const config = levelVraagConfig[currentLevel] || { diff: 1, antwoorden: 4 };
-        const keuzes = vragen.filter(v => v.difficulty === config.diff);
-        const q = keuzes[Math.floor(Math.random()*keuzes.length)];
-
-        let tekst = q.q + "\n\n";
-        let opties = q.a;
-        if (config.antwoorden) {
-          opties = opties.slice(0, config.antwoorden);
-        }
-        opties.forEach((ans, idx) => { tekst += (idx+1) + ". " + ans + "\n"; });
-
-        alert(tekst);
-      }
+      alert("✨ Je hebt een vleugel gevangen!");
     }
   }
 }
@@ -185,19 +158,24 @@ function update() {
 function draw() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  ctx.drawImage(levelBackgrounds[currentLevel], 0, 0, canvas.width, canvas.height);
-
-  ctx.fillStyle = "rgba(200,200,200,0.2)";
+  // Gras-band
+  ctx.fillStyle = "lightgreen";
   ctx.fillRect(bandX, bandY, canvas.width, bandHeight);
   ctx.fillRect(bandX + canvas.width, bandY, canvas.width, bandHeight);
 
-  collectables.forEach(c => ctx.drawImage(c.img, c.x, c.y, c.w, c.h));
+  // Obstakels
+  ctx.font = "48px Arial";
+  obstacles.forEach(o => ctx.fillText(o.emoji, o.x, o.y));
 
-  ctx.fillStyle = "brown";
-  obstacles.forEach(o => ctx.fillRect(o.x, o.y, o.w, o.h));
+  // Collectables
+  ctx.font = "42px Arial";
+  collectables.forEach(c => ctx.fillText(c.emoji, c.x, c.y));
 
-  ctx.drawImage(photeinosImg, photeinos.x, photeinos.y, photeinos.w, photeinos.h);
+  // Speler
+  ctx.fillStyle = "blue";
+  ctx.fillRect(photeinos.x, photeinos.y, photeinos.w, photeinos.h);
 
+  // Score
   ctx.fillStyle = "black";
   ctx.font = "20px Comic Sans MS";
   ctx.fillText("Score: " + score, 20, 30);
@@ -244,14 +222,3 @@ pauseBtn.onclick = () => { paused = !paused; };
 // -----------------------------
 setInterval(() => { if(running && !paused) spawnObstacle(); }, 4000);
 setInterval(() => { if(running && !paused) spawnCollectable(); }, 3000);
-
-// -----------------------------
-// Config voor vragen per level
-// -----------------------------
-const levelVraagConfig = {
-  0: { diff: 1, antwoorden: 3 }, // level 1
-  1: { diff: 1, antwoorden: 4 }, // level 2
-  2: { diff: 2, antwoorden: 3 }, // level 3
-  3: { diff: 2, antwoorden: 4 }, // level 4
-  4: { diff: 3, antwoorden: null } // level 5
-};
