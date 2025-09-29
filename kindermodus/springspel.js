@@ -9,12 +9,13 @@ const ctx = canvas.getContext("2d");
 function resizeCanvas() {
   canvas.width = canvas.parentElement.clientWidth;
   canvas.height = canvas.parentElement.clientHeight;
+  updateBandY();
 }
 resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
 
 // -----------------------------
-// Emoji's voor obstakels en collectables
+// Emoji's
 // -----------------------------
 const obstacleEmojis = ["💀"];
 const collectableEmojis = ["🪽"];
@@ -22,15 +23,14 @@ const collectableEmojis = ["🪽"];
 // -----------------------------
 // Speler (Photeinos)
 // -----------------------------
-const photeinos = { x: 50, y: 0, w: 60, h: 60, vy: 0, onGround: false };
+const photeinos = { x: 60, y: 0, w: 60, h: 60, vy: 0, onGround: false };
 let speed = 6;
-let gravity = 0.8;     // zachter
-let jumpPower = -12;   // minder hoog
+let gravity = 0.7;
+let jumpPower = -12;
 
 // -----------------------------
 // Game variabelen
 // -----------------------------
-let currentLevel = 0;
 let obstacles = [];
 let collectables = [];
 let keys = {};
@@ -48,8 +48,6 @@ let bandY = 0;
 function updateBandY() {
   bandY = canvas.height - bandHeight - 20;
 }
-updateBandY();
-window.addEventListener("resize", updateBandY);
 
 // -----------------------------
 // Input
@@ -62,12 +60,11 @@ document.addEventListener("keyup", e => keys[e.key] = false);
 // -----------------------------
 function spawnObstacle() {
   const size = 60;
-  const emoji = obstacleEmojis[Math.floor(Math.random()*obstacleEmojis.length)];
   obstacles.push({
     x: canvas.width,
     y: bandY - size,
     w: size, h: size,
-    emoji: emoji
+    emoji: "💀"
   });
 }
 
@@ -75,12 +72,11 @@ function spawnObstacle() {
 // Collectables
 // -----------------------------
 function spawnCollectable() {
-  const emoji = collectableEmojis[Math.floor(Math.random()*collectableEmojis.length)];
   collectables.push({
     x: canvas.width,
     y: bandY - 120,
     w: 50, h: 50,
-    emoji: emoji
+    emoji: "🪽"
   });
 }
 
@@ -103,6 +99,10 @@ function updatePlayer() {
     photeinos.vy = 0;
     photeinos.onGround = true;
   }
+  if (photeinos.y < 0) {
+    photeinos.y = 0;
+    photeinos.vy = 0;
+  }
 }
 
 // -----------------------------
@@ -120,7 +120,7 @@ function update() {
 
   updatePlayer();
 
-  // Band laten schuiven
+  // Band schuiven
   bandX -= bandSpeed;
   if (bandX <= -canvas.width) bandX = 0;
 
@@ -171,7 +171,7 @@ function draw() {
   ctx.font = "42px Arial";
   collectables.forEach(c => ctx.fillText(c.emoji, c.x, c.y));
 
-  // Speler
+  // Speler (Photeinos = blauw blokje voorlopig)
   ctx.fillStyle = "blue";
   ctx.fillRect(photeinos.x, photeinos.y, photeinos.w, photeinos.h);
 
@@ -192,30 +192,23 @@ function loop() {
 loop();
 
 // -----------------------------
-// Controls: start/pauze
+// Controls
 // -----------------------------
-const startBtn = document.createElement("button");
-startBtn.innerText = "Start spel (-20 punten)";
-startBtn.style.position = "absolute";
-startBtn.style.top = "80px";
-startBtn.style.right = "20px";
-document.body.appendChild(startBtn);
-
-startBtn.onclick = () => {
+document.getElementById("startBtn").onclick = () => {
   running = true;
+  paused = false;
   score = 0;
   obstacles = [];
   collectables = [];
+  photeinos.x = 60;
+  photeinos.y = bandY - photeinos.h;
+  photeinos.vy = 0;
+  photeinos.onGround = true;
 };
 
-const pauseBtn = document.createElement("button");
-pauseBtn.innerText = "Pauze";
-pauseBtn.style.position = "absolute";
-pauseBtn.style.top = "120px";
-pauseBtn.style.right = "20px";
-document.body.appendChild(pauseBtn);
-
-pauseBtn.onclick = () => { paused = !paused; };
+document.getElementById("pauseBtn").onclick = () => {
+  paused = !paused;
+};
 
 // -----------------------------
 // Spawners
