@@ -6,12 +6,8 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-function resizeCanvas() {
-  canvas.width = 800;
-  canvas.height = 400;
-}
-resizeCanvas();
-window.addEventListener("resize", resizeCanvas);
+canvas.width = 800;
+canvas.height = 400;
 
 // -----------------------------
 // Assets
@@ -28,7 +24,15 @@ const FLOWERS = ["🌷","🌻","🌼","🌸","🌹","🌺","🌿","🍀"];
 // -----------------------------
 // Speler (Photeinos)
 // -----------------------------
-const photeinos = { x: 100, y: 0, w: 60, h: 60, vy: 0, jumping: false };
+let grassTop = canvas.height - canvas.height / 4; // gras 1/4 schermhoogte
+const photeinos = { 
+  x: 100, 
+  y: grassTop - 60,  // start op gras
+  w: 60, 
+  h: 60, 
+  vy: 0, 
+  jumping: false 
+};
 
 // -----------------------------
 // Game variabelen
@@ -45,7 +49,6 @@ let paused = false;
 // -----------------------------
 let clouds = [];
 let flowers = [];
-let grassTop = 0;
 
 function makeClouds(count = 6) {
   clouds = [];
@@ -62,7 +65,6 @@ function makeFlowers(count = 15) {
   for (let i = 0; i < count; i++) {
     flowers.push({
       x: Math.random() * canvas.width,
-      y: 0, // wordt getekend op gras
       glyph: FLOWERS[Math.floor(Math.random()*FLOWERS.length)]
     });
   }
@@ -97,7 +99,7 @@ function spawnObstacle() {
 
   obstacles.push({
     x: canvas.width,
-    y: inGras ? grassTop - 40 : grassTop - 120,
+    y: inGras ? grassTop - 20 : grassTop - 120,
     w: 40, h: 40,
     soort: soort,
     inGras: inGras,
@@ -120,12 +122,11 @@ function jump() {
 // -----------------------------
 function updatePlayer() {
   if (keys[" "] || keys["ArrowUp"]) jump();
-  if (keys["ArrowLeft"]) photeinos.x -= 5;
-  if (keys["ArrowRight"]) photeinos.x += 5;
 
-  photeinos.vy += 0.8;
+  photeinos.vy += 0.8; // zwaartekracht
   photeinos.y += photeinos.vy;
 
+  // op gras landen
   if (photeinos.y + photeinos.h > grassTop) {
     photeinos.y = grassTop - photeinos.h;
     photeinos.vy = 0;
@@ -136,16 +137,14 @@ function updatePlayer() {
 // -----------------------------
 // Collision check
 // -----------------------------
-function collisionCheck(ob, playerY) {
+function collisionCheck(ob) {
   const xHit = photeinos.x < ob.x + ob.w && photeinos.x + photeinos.w > ob.x;
   if (!xHit) return false;
 
   if (ob.inGras) {
-    // raakt als speler niet springt
-    return !photeinos.jumping;
+    return !photeinos.jumping; // geraakt als je niet springt
   } else {
-    // raakt als speler springt
-    return photeinos.jumping;
+    return photeinos.jumping;  // geraakt als je wel springt
   }
 }
 
@@ -163,7 +162,7 @@ function update() {
 
   for (let i = obstacles.length - 1; i >= 0; i--) {
     const o = obstacles[i];
-    if (o.actief && collisionCheck(o, photeinos.y)) {
+    if (o.actief && collisionCheck(o)) {
       if (o.soort === "licht") {
         score++;
         alert("Licht-vraag!");
@@ -172,12 +171,6 @@ function update() {
       }
       o.actief = false;
     }
-  }
-
-  if (score > 0 && score % 5 === 0) {
-    currentLevel = Math.min(5, currentLevel + 1);
-    makeClouds();
-    makeFlowers();
   }
 }
 
@@ -208,7 +201,7 @@ function draw() {
   // bloemen
   ctx.font = "20px Arial";
   flowers.forEach(f => {
-    ctx.fillText(f.glyph, f.x, grassTop + 25);
+    ctx.fillText(f.glyph, f.x, grassTop + 20);
     f.x -= 1;
     if (f.x < -20) f.x = canvas.width + 20;
   });
