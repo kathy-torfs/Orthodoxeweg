@@ -1,5 +1,5 @@
 // =============================
-// springspel.js – Orthodoxe Kinderpagina
+// springspel.js (volledige versie)
 // =============================
 
 // Canvas
@@ -24,13 +24,14 @@ const FLOWERS = ["🌷","🌻","🌼","🌸","🌹","🌺","🌿","🍀"];
 // -----------------------------
 // Gras & speler
 // -----------------------------
-let grassHeight = canvas.height / 3;
+//nota// graszone = onderste 1/4 van het canvas
+let grassHeight = canvas.height / 4;
 let grassTop = canvas.height - grassHeight;
 
-//nota// photeinos wordt altijd geplaatst net boven het gras
+//nota// Photeinos voeten net boven canvasbodem
 const photeinos = { 
   x: 100, 
-  y: grassTop - 20,   // altijd correct in graszone
+  y: canvas.height - 60 - 5,  // volledig in graszone
   w: 60, 
   h: 60, 
   vy: 0, 
@@ -48,7 +49,7 @@ let running = false;
 let paused = false;
 
 // -----------------------------
-// Achtergrond state
+// Achtergrond
 // -----------------------------
 let clouds = [];
 let flowers = [];
@@ -63,7 +64,8 @@ function makeClouds(count = 6) {
     });
   }
 }
-function makeFlowers(count = 15) {
+
+function makeFlowers(count = 20) {
   flowers = [];
   for (let i = 0; i < count; i++) {
     const rowOffset = [20, 40, 60][Math.floor(Math.random()*3)];
@@ -80,15 +82,14 @@ makeFlowers();
 // -----------------------------
 // Input
 // -----------------------------
-//nota// springen met spatiebalk of tik op canvas
-document.addEventListener("keydown", e => keys[e.key] = true);
-document.addEventListener("keyup", e => keys[e.key] = false);
+document.addEventListener("keydown", e => {
+  if (e.key === " ") { e.preventDefault(); jump(); }
+});
 canvas.addEventListener("touchstart", () => jump());
 
 // -----------------------------
-// Speed per level
+// Speed
 // -----------------------------
-//nota// lage basissnelheid en zachte stijging
 function speedForLevel(level) {
   const base = 1.0;
   const perLevel = 0.3;
@@ -98,14 +99,13 @@ function speedForLevel(level) {
 // -----------------------------
 // Obstakels
 // -----------------------------
-//nota// obstakels komen in 2 banden: gras of lucht
 function spawnObstacle() {
   const soort = Math.random() < 0.7 ? "licht" : "zonde";
   const inGras = Math.random() < 0.5;
 
   obstacles.push({
     x: canvas.width,
-    y: inGras ? (grassTop - 40) : (grassTop - 160),
+    y: inGras ? grassTop - 20 : grassTop - 100,
     w: 40, h: 40,
     soort: soort,
     inGras: inGras,
@@ -114,7 +114,7 @@ function spawnObstacle() {
 }
 
 // -----------------------------
-// Jump functie
+// Jump
 // -----------------------------
 function jump() {
   if (!photeinos.jumping) {
@@ -127,32 +127,26 @@ function jump() {
 // Player update
 // -----------------------------
 function updatePlayer() {
-  if (keys[" "]) jump();
-
-  photeinos.vy += 0.8; 
+  photeinos.vy += 0.8;
   photeinos.y += photeinos.vy;
 
-  //nota// landen op gras
-  if (photeinos.y + photeinos.h > grassTop) {
-    photeinos.y = grassTop - photeinos.h;
+  //nota// Landen op gras
+  const ground = canvas.height - 5; 
+  if (photeinos.y + photeinos.h > ground) {
+    photeinos.y = ground - photeinos.h;
     photeinos.vy = 0;
     photeinos.jumping = false;
   }
 }
 
 // -----------------------------
-// Collision check
+// Collision
 // -----------------------------
-//nota// gras = raak bij niet springen, lucht = raak bij springen
 function collisionCheck(ob) {
   const xHit = photeinos.x < ob.x + ob.w && photeinos.x + photeinos.w > ob.x;
   if (!xHit) return false;
-
-  if (ob.inGras) {
-    return !photeinos.jumping;
-  } else {
-    return photeinos.jumping;
-  }
+  if (ob.inGras) return !photeinos.jumping;
+  else return photeinos.jumping;
 }
 
 // -----------------------------
@@ -170,22 +164,32 @@ function update() {
   for (let i = obstacles.length - 1; i >= 0; i--) {
     const o = obstacles[i];
     if (o.actief && collisionCheck(o)) {
-      paused = true; // spel pauzeren
-      toonVraag(kiesVraag(o.soort), o.soort);
-      o.actief = false; //nota// obstakel verdwijnt na vraag
+      paused = true; // pauzeer spel
+      let q;
+      if (o.soort === "licht") {
+        const vragenLicht = vragen.filter(v => typeof v.difficulty === "number");
+        q = vragenLicht[Math.floor(Math.random()*vragenLicht.length)];
+      } else {
+        const vragenZonde = vragen.filter(v => v.difficulty === "zonde");
+        q = vragenZonde[Math.floor(Math.random()*vragenZonde.length)];
+      }
+      toonVraag(q, o.soort);
+      o.actief = false;
     }
   }
 }
 
 // -----------------------------
-// Draw loop
+// Draw
 // -----------------------------
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  // lucht
   ctx.fillStyle = "#aee7ff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+  // wolken
   ctx.font = "24px Arial";
   clouds.forEach(c => {
     ctx.fillText("☁️", c.x, c.y);
@@ -193,9 +197,11 @@ function draw() {
     if (c.x < -30) c.x = canvas.width + 20;
   });
 
+  // gras
   ctx.fillStyle = "#8BC34A";
   ctx.fillRect(0, grassTop, canvas.width, grassHeight);
 
+  // bloemen
   ctx.font = "20px Arial";
   flowers.forEach(f => {
     ctx.fillText(f.glyph, f.x, f.y);
@@ -203,18 +209,21 @@ function draw() {
     if (f.x < -20) f.x = canvas.width + 20;
   });
 
+  // obstakels
   ctx.font = "30px Arial";
   obstacles.forEach(o => ctx.fillText(OBSTACLES[o.soort], o.x, o.y));
 
+  // speler
   ctx.drawImage(photeinosImg, photeinos.x, photeinos.y, photeinos.w, photeinos.h);
 
+  // score
   ctx.fillStyle = "black";
   ctx.font = "18px Comic Sans MS";
   ctx.fillText("Score: " + score, 20, 25);
 }
 
 // -----------------------------
-// Main loop
+// Loop
 // -----------------------------
 function loop() {
   update();
@@ -224,20 +233,13 @@ function loop() {
 loop();
 
 // -----------------------------
-// Controls: start/pauze
+// Controls
 // -----------------------------
 const startBtn = document.createElement("button");
 startBtn.innerText = "▶ Start spel (-20 punten)";
 startBtn.style.position = "absolute";
 startBtn.style.bottom = "30px";
 startBtn.style.right = "180px";
-startBtn.style.padding = "15px 25px";
-startBtn.style.fontSize = "20px";
-startBtn.style.background = "#7bb235";
-startBtn.style.color = "white";
-startBtn.style.border = "none";
-startBtn.style.borderRadius = "12px";
-startBtn.style.cursor = "pointer";
 document.body.appendChild(startBtn);
 
 startBtn.onclick = () => {
@@ -247,7 +249,6 @@ startBtn.onclick = () => {
   obstacles = [];
   photeinos.vy = 0;
   photeinos.jumping = false;
-  photeinos.y = grassTop - photeinos.h; //nota// juiste startpositie
 };
 
 const pauseBtn = document.createElement("button");
@@ -255,35 +256,18 @@ pauseBtn.innerText = "⏸ Pauze";
 pauseBtn.style.position = "absolute";
 pauseBtn.style.bottom = "30px";
 pauseBtn.style.right = "30px";
-pauseBtn.style.padding = "15px 25px";
-pauseBtn.style.fontSize = "20px";
-pauseBtn.style.background = "#67510C";
-pauseBtn.style.color = "white";
-pauseBtn.style.border = "none";
-pauseBtn.style.borderRadius = "12px";
-pauseBtn.style.cursor = "pointer";
 document.body.appendChild(pauseBtn);
 
 pauseBtn.onclick = () => { paused = !paused; };
 
 // -----------------------------
-// Spawners
+// Spawner
 // -----------------------------
 setInterval(() => { if(running && !paused) spawnObstacle(); }, 5000);
 
 // -----------------------------
-// Vraag selectie + overlay
+// Vraag overlay
 // -----------------------------
-function kiesVraag(soort) {
-  if (soort === "licht") {
-    const vragenLicht = vragen.filter(v => typeof v.difficulty === "number");
-    return vragenLicht[Math.floor(Math.random()*vragenLicht.length)];
-  } else {
-    const vragenZonde = vragen.filter(v => v.difficulty === "zonde");
-    return vragenZonde[Math.floor(Math.random()*vragenZonde.length)];
-  }
-}
-
 function toonVraag(vraag, soort) {
   const overlay = document.getElementById("vraagOverlay");
   const tekst = document.getElementById("vraagTekst");
@@ -301,7 +285,7 @@ function toonVraag(vraag, soort) {
         alert("Goed zo!");
       } else {
         if (soort === "zonde") {
-          alert("Dat is fout (zondevraag) – Game Over!");
+          alert("Dat is fout – Game Over!");
           running = false;
         } else {
           alert("Dat is fout.");
