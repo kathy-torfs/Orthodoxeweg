@@ -24,13 +24,13 @@ const FLOWERS = ["🌷","🌻","🌼","🌸","🌹","🌺","🌿","🍀"];
 // -----------------------------
 // Gras & speler
 // -----------------------------
-let grassHeight = canvas.height / 4;
+let grassHeight = canvas.height / 3;
 let grassTop = canvas.height - grassHeight;
 
 //nota// photeinos wordt altijd geplaatst net boven het gras
 const photeinos = { 
   x: 100, 
-  y: grassTop - 60,   // altijd correct in graszone
+  y: grassTop - 20,   // altijd correct in graszone
   w: 60, 
   h: 60, 
   vy: 0, 
