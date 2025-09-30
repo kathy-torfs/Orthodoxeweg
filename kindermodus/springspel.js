@@ -1,12 +1,11 @@
 // =============================
-// springspel.js (met vragen en duidelijke notities)
+// springspel.js (schone versie met jouw vragen)
 // =============================
 
 // Canvas
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// Dynamische grootte
 canvas.width = 800;
 canvas.height = 500;
 
@@ -19,10 +18,10 @@ const grassTop = canvas.height - zoneHeight;
 // -----------------------------
 // Afmetingen
 // -----------------------------
-//nota// grootte van Photeinos = 35% van hoogte
-const phSize = canvas.height * 0.35;
-//nota// grootte van obstakels = 20% van hoogte
-const obSize = canvas.height * 0.20;
+//nota// grootte Photeinos
+const phSize = canvas.height * 0.30; 
+//nota// grootte Obstakels
+const obSize = canvas.height * 0.20; 
 
 // -----------------------------
 // Assets
@@ -36,20 +35,11 @@ const OBSTACLES = {
 };
 
 // -----------------------------
-// Voorbeeldvragen
-// -----------------------------
-const vragen = [
-  { q: "Wie is de Zoon van God?", a: ["Mozes", "Jezus", "Paulus"], correct: 1, difficulty: "licht" },
-  { q: "Wat doen we als we zondigen?", a: ["Bidden om vergeving", "Niets", "Meer zondigen"], correct: 0, difficulty: "zonde" },
-  { q: "Waar gaan christenen op zondag naartoe?", a: ["Moskee", "Kerk", "Synagoge"], correct: 1, difficulty: "licht" }
-];
-
-// -----------------------------
 // Speler
 // -----------------------------
 const photeinos = {
   x: 100,
-  //nota// Startpositie van Photeinos bij laden
+  //nota// Startpositie (bij laden én bij start spel)
   y: canvas.height - phSize,
   w: phSize,
   h: phSize,
@@ -69,18 +59,16 @@ let paused = false;
 // -----------------------------
 // Input
 // -----------------------------
-document.addEventListener("keydown", e => {
-  if (e.key === " ") jump();
-});
+document.addEventListener("keydown", e => { if (e.key === " ") jump(); });
 canvas.addEventListener("touchstart", () => jump());
 
 // -----------------------------
 // Jump
 // -----------------------------
-//nota// Spronghoogte: hoe negatief de vy = hoe hoger
+//nota// Spronghoogte hier aanpassen
 function jump() {
   if (!photeinos.jumping) {
-    photeinos.vy = -18; // hogere sprong
+    photeinos.vy = -22; // sterkere sprong → hoog genoeg in luchtzone
     photeinos.jumping = true;
   }
 }
@@ -94,7 +82,10 @@ function spawnObstacle() {
 
   obstacles.push({
     x: canvas.width,
-    y: inGras ? (canvas.height - obSize) : (grassTop - obSize),
+    //nota// plaats obstakel gecentreerd in zijn zone
+    y: inGras 
+      ? (grassTop + (zoneHeight / 2) - (obSize / 2)) // midden gras
+      : ((zoneHeight / 2) - (obSize / 2)),          // midden lucht
     w: obSize,
     h: obSize,
     soort,
@@ -107,10 +98,10 @@ function spawnObstacle() {
 // Player update
 // -----------------------------
 function updatePlayer() {
-  photeinos.vy += 0.9; // zwaartekracht
+  photeinos.vy += 1.0; // zwaartekracht
   photeinos.y += photeinos.vy;
 
-  // op de grond landen
+  // begrenzen op gras
   if (photeinos.y + photeinos.h > canvas.height) {
     photeinos.y = canvas.height - photeinos.h;
     photeinos.vy = 0;
@@ -142,14 +133,14 @@ function update() {
 
   updatePlayer();
 
-  obstacles.forEach(o => o.x -= 2); // langzamer bewegen
+  obstacles.forEach(o => o.x -= 2); 
   obstacles = obstacles.filter(o => o.x + o.w > 0);
 
   for (let i = obstacles.length - 1; i >= 0; i--) {
     const o = obstacles[i];
     if (o.actief && collisionCheck(o)) {
       paused = true;
-      toonVraag(o);
+      toonVraag(o); //nota// gebruikt jouw vragen.js
       o.actief = false;
     }
   }
@@ -195,7 +186,7 @@ function loop() {
 loop();
 
 // -----------------------------
-// Controls: start/pauze
+// Controls
 // -----------------------------
 document.getElementById("startBtn").onclick = () => {
   running = true;
@@ -204,8 +195,7 @@ document.getElementById("startBtn").onclick = () => {
   obstacles = [];
   photeinos.vy = 0;
   photeinos.jumping = false;
-  //nota// Startpositie van Photeinos bij spelstart
-  photeinos.y = canvas.height - photeinos.h;
+  photeinos.y = canvas.height - photeinos.h; // startpositie resetten
 };
 
 document.getElementById("pauseBtn").onclick = () => { paused = !paused; };
@@ -219,13 +209,16 @@ setInterval(() => {
 }, 5000);
 
 // -----------------------------
-// Vraag overlay
+// Vragen (van jouw vragen.js)
 // -----------------------------
+//nota// gebruikt gewoon jouw vragenbestand
 function toonVraag(ob) {
+  // Jouw vragen.js voorziet vragen[] en logica
   const overlay = document.getElementById("vraagOverlay");
   const tekst = document.getElementById("vraagTekst");
   const antwoorden = document.getElementById("vraagAntwoorden");
 
+  // filter vragen volgens obstakel
   let q;
   if (ob.soort === "licht") {
     q = vragen.find(v => v.difficulty === "licht");
@@ -241,10 +234,8 @@ function toonVraag(ob) {
     btn.innerText = optie;
     btn.onclick = () => {
       if (i === q.correct) {
-        if (ob.soort === "licht") {
-          score++;
-          if (score % 10 === 0) level++;
-        }
+        if (ob.soort === "licht") score++;
+        if (score % 10 === 0) level++;
         alert("Goed zo!");
       } else {
         if (ob.soort === "zonde") {
