@@ -43,8 +43,12 @@ let currentLevel = 0;
 let obstacles = [];
 let keys = {};
 let score = 0;
+let vleugels = 0;
 let running = false;
 let paused = false;
+let showVraag = false;
+let huidigeVraag = null;
+let vraagType = null;
 
 // -----------------------------
 // Achtergrond state
@@ -89,8 +93,8 @@ canvas.addEventListener("touchstart", () => jump());
 // Speed per level
 // -----------------------------
 function speedForLevel(level) {
-  const base = 1.4;      // trager basis
-  const perLevel = 0.4;  // stijgt iets minder snel
+  const base = 1.2;      // trager basis
+  const perLevel = 0.3;  // stijgt rustig
   return base + level * perLevel;
 }
 
@@ -153,6 +157,77 @@ function collisionCheck(ob) {
 }
 
 // -----------------------------
+// Vraag selectie
+// -----------------------------
+const lichtVragen = {
+  1: vragen.filter(v => v.difficulty === 1),
+  2: vragen.filter(v => v.difficulty === 2),
+  3: vragen.filter(v => v.difficulty === 3),
+  4: vragen.filter(v => v.difficulty === 3),
+  5: vragen.filter(v => v.difficulty === 3)
+};
+const zondeVragen = vragen.filter(v => v.difficulty === "zonde");
+
+function toonVraag(type) {
+  paused = true;
+  showVraag = true;
+  vraagType = type;
+  if (type === "licht") {
+    const lijst = lichtVragen[currentLevel+1] || lichtVragen[1];
+    huidigeVraag = lijst[Math.floor(Math.random()*lijst.length)];
+  } else {
+    huidigeVraag = zondeVragen[Math.floor(Math.random()*zondeVragen.length)];
+  }
+  renderVraag();
+}
+
+function antwoordGegeven(index) {
+  if (!huidigeVraag) return;
+  if (vraagType === "licht") {
+    if (index === huidigeVraag.correct) {
+      score++;
+      vleugels++;
+      if (vleugels >= 10) {
+        currentLevel++;
+        vleugels = 0;
+        alert("Level " + (currentLevel+1) + " bereikt!");
+      }
+    }
+  } else if (vraagType === "zonde") {
+    if (index !== huidigeVraag.correct) {
+      running = false;
+      alert("Fout! Game Over.");
+    }
+  }
+  showVraag = false;
+  paused = false;
+  huidigeVraag = null;
+}
+
+// -----------------------------
+// Vraag UI
+// -----------------------------
+function renderVraag() {
+  if (!showVraag || !huidigeVraag) return;
+
+  const modal = document.getElementById("vraagModal");
+  const vraagTekst = document.getElementById("vraagTekst");
+  const antwoordenDiv = document.getElementById("antwoorden");
+
+  vraagTekst.innerText = huidigeVraag.q;
+  antwoordenDiv.innerHTML = "";
+
+  huidigeVraag.a.forEach((ans, i) => {
+    const btn = document.createElement("button");
+    btn.innerText = ans;
+    btn.onclick = () => antwoordGegeven(i);
+    antwoordenDiv.appendChild(btn);
+  });
+
+  modal.style.display = "block";
+}
+
+// -----------------------------
 // Update loop
 // -----------------------------
 function update() {
@@ -167,12 +242,7 @@ function update() {
   for (let i = obstacles.length - 1; i >= 0; i--) {
     const o = obstacles[i];
     if (o.actief && collisionCheck(o)) {
-      if (o.soort === "licht") {
-        score++;
-        alert("Licht-vraag!");
-      } else {
-        alert("Zonde-vraag!");
-      }
+      toonVraag(o.soort);
       o.actief = false;
     }
   }
@@ -192,7 +262,7 @@ function draw() {
   ctx.font = "24px Arial";
   clouds.forEach(c => {
     ctx.fillText("☁️", c.x, c.y);
-    c.x -= 0.3;
+    c.x -= 0.2;
     if (c.x < -30) c.x = canvas.width + 20;
   });
 
@@ -204,7 +274,7 @@ function draw() {
   ctx.font = "20px Arial";
   flowers.forEach(f => {
     ctx.fillText(f.glyph, f.x, f.y);
-    f.x -= 0.7;
+    f.x -= 0.5;
     if (f.x < -20) f.x = canvas.width + 20;
   });
 
@@ -218,7 +288,7 @@ function draw() {
   // score
   ctx.fillStyle = "black";
   ctx.font = "18px Comic Sans MS";
-  ctx.fillText("Score: " + score, 20, 25);
+  ctx.fillText("Score: " + score + " | Vleugels: " + vleugels, 20, 25);
 }
 
 // -----------------------------
@@ -251,12 +321,12 @@ document.body.appendChild(startBtn);
 startBtn.onclick = () => {
   running = true;
   score = 0;
+  vleugels = 0;
   currentLevel = 0;
   obstacles = [];
-  photeinos.y = canvas.height - photeinos.h - 10; // reset startpositie
+  photeinos.y = canvas.height - photeinos.h - 10; // startpositie vast
 };
 
-// Pauze-knop
 const pauseBtn = document.createElement("button");
 pauseBtn.innerText = "⏸ Pauze";
 pauseBtn.style.position = "absolute";
@@ -276,4 +346,4 @@ pauseBtn.onclick = () => { paused = !paused; };
 // -----------------------------
 // Spawners
 // -----------------------------
-setInterval(() => { if(running && !paused) spawnObstacle(); }, 4000);
+setInterval(() => { if(running && !paused) spawnObstacle(); }, 5000);
