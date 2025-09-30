@@ -29,7 +29,7 @@ let grassTop = canvas.height - grassHeight;
 
 const photeinos = { 
   x: 100, 
-  y: canvas.height - 60,   // voeten net boven onderrand
+  y: canvas.height - 60 - 10,  // netjes in graszone
   w: 60, 
   h: 60, 
   vy: 0, 
@@ -41,7 +41,9 @@ const photeinos = {
 // -----------------------------
 let currentLevel = 0;
 let obstacles = [];
+let keys = {};
 let score = 0;
+let vleugels = 0;
 let running = false;
 let paused = false;
 
@@ -61,12 +63,13 @@ function makeClouds(count = 6) {
     });
   }
 }
-function makeFlowers(count = 20) {
+function makeFlowers(count = 15) {
   flowers = [];
   for (let i = 0; i < count; i++) {
+    const rowOffset = [20, 40, 60][Math.floor(Math.random()*3)];
     flowers.push({
       x: Math.random() * canvas.width,
-      y: grassTop + 15 + Math.floor(Math.random()*3) * 15, // 3 willekeurige rijen
+      y: grassTop + rowOffset,
       glyph: FLOWERS[Math.floor(Math.random()*FLOWERS.length)]
     });
   }
@@ -77,21 +80,18 @@ makeFlowers();
 // -----------------------------
 // Input
 // -----------------------------
-document.addEventListener("keydown", e => {
-  if (e.code === "Space") {
-    e.preventDefault();
-    jump();
-  }
-});
+document.addEventListener("keydown", e => keys[e.key] = true);
+document.addEventListener("keyup", e => keys[e.key] = false);
+
 // Touch controls (tablet)
-canvas.addEventListener("touchstart", jump);
+canvas.addEventListener("touchstart", () => jump());
 
 // -----------------------------
 // Speed per level
 // -----------------------------
 function speedForLevel(level) {
-  const base = 2;
-  const perLevel = 0.6;
+  const base = 1.4;
+  const perLevel = 0.4;
   return base + level * perLevel;
 }
 
@@ -103,8 +103,8 @@ function spawnObstacle() {
   const inGras = Math.random() < 0.5;
 
   obstacles.push({
-    x: canvas.width + 20,
-    y: inGras ? canvas.height - 60 : grassTop - 40, // gras of lucht
+    x: canvas.width,
+    y: inGras ? grassTop - 20 : grassTop - 120,
     w: 40, h: 40,
     soort: soort,
     inGras: inGras,
@@ -117,7 +117,7 @@ function spawnObstacle() {
 // -----------------------------
 function jump() {
   if (!photeinos.jumping) {
-    photeinos.vy = -12; // kracht omhoog
+    photeinos.vy = -14;
     photeinos.jumping = true;
   }
 }
@@ -126,12 +126,14 @@ function jump() {
 // Player update
 // -----------------------------
 function updatePlayer() {
-  photeinos.vy += 0.6; // zwaartekracht
+  if (keys[" "]) jump();
+
+  photeinos.vy += 0.8; // zwaartekracht
   photeinos.y += photeinos.vy;
 
-  // onderrand
-  if (photeinos.y + photeinos.h >= canvas.height) {
-    photeinos.y = canvas.height - photeinos.h;
+  // op gras landen
+  if (photeinos.y + photeinos.h > grassTop) {
+    photeinos.y = grassTop - photeinos.h;
     photeinos.vy = 0;
     photeinos.jumping = false;
   }
@@ -168,7 +170,13 @@ function update() {
     if (o.actief && collisionCheck(o)) {
       if (o.soort === "licht") {
         score++;
+        vleugels++;
         alert("Licht-vraag!");
+        if (vleugels >= 10) {
+          currentLevel++;
+          vleugels = 0;
+          alert("Level " + (currentLevel+1) + " bereikt!");
+        }
       } else {
         alert("Zonde-vraag!");
       }
@@ -191,7 +199,7 @@ function draw() {
   ctx.font = "24px Arial";
   clouds.forEach(c => {
     ctx.fillText("☁️", c.x, c.y);
-    c.x -= 0.5;
+    c.x -= 0.3;
     if (c.x < -30) c.x = canvas.width + 20;
   });
 
@@ -203,11 +211,8 @@ function draw() {
   ctx.font = "20px Arial";
   flowers.forEach(f => {
     ctx.fillText(f.glyph, f.x, f.y);
-    f.x -= 1;
-    if (f.x < -20) {
-      f.x = canvas.width + 20;
-      f.y = grassTop + 15 + Math.floor(Math.random()*3) * 15;
-    }
+    f.x -= 0.7;
+    if (f.x < -20) f.x = canvas.width + 20;
   });
 
   // obstakels
@@ -221,6 +226,8 @@ function draw() {
   ctx.fillStyle = "black";
   ctx.font = "18px Comic Sans MS";
   ctx.fillText("Score: " + score, 20, 25);
+  ctx.fillText("Level: " + (currentLevel+1), 20, 50);
+  ctx.fillText("Vleugels: " + vleugels + "/10", 20, 75);
 }
 
 // -----------------------------
@@ -237,25 +244,41 @@ loop();
 // Controls: start/pauze
 // -----------------------------
 const startBtn = document.createElement("button");
-startBtn.innerText = "Start spel (-20 punten)";
+startBtn.innerText = "▶ Start spel (-20 punten)";
 startBtn.style.position = "absolute";
-startBtn.style.top = "80px";
-startBtn.style.right = "20px";
+startBtn.style.bottom = "30px";
+startBtn.style.right = "180px";
+startBtn.style.padding = "15px 25px";
+startBtn.style.fontSize = "20px";
+startBtn.style.background = "#7bb235";
+startBtn.style.color = "white";
+startBtn.style.border = "none";
+startBtn.style.borderRadius = "12px";
+startBtn.style.cursor = "pointer";
 document.body.appendChild(startBtn);
 
 startBtn.onclick = () => {
   running = true;
   score = 0;
+  vleugels = 0;
   currentLevel = 0;
   obstacles = [];
-  photeinos.y = canvas.height - photeinos.h; // reset startpositie
+  photeinos.y = canvas.height - photeinos.h - 10; // reset startpositie
 };
 
+// Pauze-knop
 const pauseBtn = document.createElement("button");
-pauseBtn.innerText = "Pauze";
+pauseBtn.innerText = "⏸ Pauze";
 pauseBtn.style.position = "absolute";
-pauseBtn.style.top = "120px";
-pauseBtn.style.right = "20px";
+pauseBtn.style.bottom = "30px";
+pauseBtn.style.right = "30px";
+pauseBtn.style.padding = "15px 25px";
+pauseBtn.style.fontSize = "20px";
+pauseBtn.style.background = "#67510C";
+pauseBtn.style.color = "white";
+pauseBtn.style.border = "none";
+pauseBtn.style.borderRadius = "12px";
+pauseBtn.style.cursor = "pointer";
 document.body.appendChild(pauseBtn);
 
 pauseBtn.onclick = () => { paused = !paused; };
@@ -263,4 +286,4 @@ pauseBtn.onclick = () => { paused = !paused; };
 // -----------------------------
 // Spawners
 // -----------------------------
-setInterval(() => { if(running && !paused) spawnObstacle(); }, 2500);
+setInterval(() => { if(running && !paused) spawnObstacle(); }, 4000);
