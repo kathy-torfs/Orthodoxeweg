@@ -78,7 +78,8 @@ makeFlowers();
 // Input
 // -----------------------------
 document.addEventListener("keydown", e => {
-  if (e.code === "Space" || e.code === "ArrowUp") {
+  if (e.code === "Space") {
+    e.preventDefault();
     jump();
   }
 });
@@ -103,7 +104,7 @@ function spawnObstacle() {
 
   obstacles.push({
     x: canvas.width + 20,
-    y: inGras ? canvas.height - 60 : grassTop - 100,
+    y: inGras ? canvas.height - 60 : grassTop - 40, // gras of lucht
     w: 40, h: 40,
     soort: soort,
     inGras: inGras,
@@ -116,7 +117,7 @@ function spawnObstacle() {
 // -----------------------------
 function jump() {
   if (!photeinos.jumping) {
-    photeinos.vy = -14;
+    photeinos.vy = -12; // kracht omhoog
     photeinos.jumping = true;
   }
 }
@@ -125,11 +126,11 @@ function jump() {
 // Player update
 // -----------------------------
 function updatePlayer() {
-  photeinos.vy += 0.8; // zwaartekracht
+  photeinos.vy += 0.6; // zwaartekracht
   photeinos.y += photeinos.vy;
 
-  // op grond landen
-  if (photeinos.y + photeinos.h > canvas.height) {
+  // onderrand
+  if (photeinos.y + photeinos.h >= canvas.height) {
     photeinos.y = canvas.height - photeinos.h;
     photeinos.vy = 0;
     photeinos.jumping = false;
@@ -159,7 +160,7 @@ function update() {
   updatePlayer();
   const spd = speedForLevel(currentLevel);
 
-  obstacles.forEach(o => o.x -= spd + 1.5);
+  obstacles.forEach(o => o.x -= spd);
   obstacles = obstacles.filter(o => o.x + o.w > 0);
 
   for (let i = obstacles.length - 1; i >= 0; i--) {
@@ -262,4 +263,4 @@ pauseBtn.onclick = () => { paused = !paused; };
 // -----------------------------
 // Spawners
 // -----------------------------
-setInterval(() => { if(running && !paused) spawnObstacle(); }, 3000);
+setInterval(() => { if(running && !paused) spawnObstacle(); }, 2500);
