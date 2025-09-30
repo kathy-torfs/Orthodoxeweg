@@ -29,7 +29,7 @@ let grassTop = canvas.height - grassHeight;
 
 const photeinos = { 
   x: 100, 
-  y: canvas.height - 60 - 10,  // netjes in graszone
+  y: canvas.height - 50 - 10,  // netjes in graszone
   w: 60, 
   h: 60, 
   vy: 0, 
