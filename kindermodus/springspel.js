@@ -1,13 +1,27 @@
 // =============================
-// springspel.js
+// springspel.js (volledige versie)
 // =============================
 
 // Canvas
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+// Dynamische grootte
 canvas.width = 800;
-canvas.height = 400;
+canvas.height = 500;
+
+// -----------------------------
+// Zones
+// -----------------------------
+const zoneHeight = canvas.height / 2; // 50/50
+const grassTop = canvas.height - zoneHeight; // begin graszone
+
+// -----------------------------
+// Afmetingen
+// -----------------------------
+//nota// photeinos = 35% van hoogte
+const phSize = canvas.height * 0.35;
+const obSize = canvas.height * 0.30;
 
 // -----------------------------
 // Assets
@@ -22,24 +36,20 @@ const OBSTACLES = {
 const FLOWERS = ["🌷","🌻","🌼","🌸","🌹","🌺","🌿","🍀"];
 
 // -----------------------------
-// Gras & speler
+// Speler
 // -----------------------------
-let grassHeight = canvas.height / 4;
-let grassTop = canvas.height - grassHeight;
-
-const photeinos = { 
-  x: 100, 
-  y: canvas.height - 50 - 10,  // netjes in graszone
-  w: 60, 
-  h: 60, 
-  vy: 0, 
-  jumping: false 
+const photeinos = {
+  x: 100,
+  y: canvas.height - phSize, // start in gras
+  w: phSize,
+  h: phSize,
+  vy: 0,
+  jumping: false
 };
 
 // -----------------------------
 // Game variabelen
 // -----------------------------
-let currentLevel = 0;
 let obstacles = [];
 let keys = {};
 let score = 0;
@@ -47,33 +57,18 @@ let running = false;
 let paused = false;
 
 // -----------------------------
-// Achtergrond state
+// Achtergrond
 // -----------------------------
-let clouds = [];
 let flowers = [];
-
-function makeClouds(count = 6) {
-  clouds = [];
-  for (let i = 0; i < count; i++) {
-    clouds.push({
-      x: Math.random() * canvas.width,
-      y: 30 + Math.random() * 80,
-      size: 20 + Math.random() * 20
-    });
-  }
-}
-function makeFlowers(count = 15) {
+function makeFlowers(count = 18) {
   flowers = [];
   for (let i = 0; i < count; i++) {
-    const rowOffset = [20, 40, 60][Math.floor(Math.random()*3)];
     flowers.push({
       x: Math.random() * canvas.width,
-      y: grassTop + rowOffset,
-      glyph: FLOWERS[Math.floor(Math.random()*FLOWERS.length)]
+      glyph: FLOWERS[Math.floor(Math.random() * FLOWERS.length)]
     });
   }
 }
-makeClouds();
 makeFlowers();
 
 // -----------------------------
@@ -82,43 +77,35 @@ makeFlowers();
 document.addEventListener("keydown", e => keys[e.key] = true);
 document.addEventListener("keyup", e => keys[e.key] = false);
 
-// Touch controls (tablet)
+// Touch controls
 canvas.addEventListener("touchstart", () => jump());
 
 // -----------------------------
-// Speed per level
+// Jump
 // -----------------------------
-function speedForLevel(level) {
-  const base = 1.0;      // trager basis
-  const perLevel = 0.3;  // stijgt zacht
-  return base + level * perLevel;
+function jump() {
+  if (!photeinos.jumping) {
+    photeinos.vy = -15;
+    photeinos.jumping = true;
+  }
 }
 
 // -----------------------------
 // Obstakels
 // -----------------------------
 function spawnObstacle() {
-  const soort = Math.random() < 0.7 ? "licht" : "zonde";
+  const soort = Math.random() < 0.6 ? "licht" : "zonde";
   const inGras = Math.random() < 0.5;
 
   obstacles.push({
     x: canvas.width,
-    y: inGras ? grassTop - 20 : grassTop - 120,
-    w: 40, h: 40,
-    soort: soort,
-    inGras: inGras,
+    y: inGras ? (grassTop + zoneHeight - obSize) : (grassTop - obSize),
+    w: obSize,
+    h: obSize,
+    soort,
+    inGras,
     actief: true
   });
-}
-
-// -----------------------------
-// Jump functie
-// -----------------------------
-function jump() {
-  if (!photeinos.jumping) {
-    photeinos.vy = -14;
-    photeinos.jumping = true;
-  }
 }
 
 // -----------------------------
@@ -130,25 +117,32 @@ function updatePlayer() {
   photeinos.vy += 0.8; // zwaartekracht
   photeinos.y += photeinos.vy;
 
-  // op gras landen
-  if (photeinos.y + photeinos.h > grassTop) {
-    photeinos.y = grassTop - photeinos.h;
+  // ondergrond begrenzen
+  if (photeinos.y + photeinos.h > canvas.height) {
+    photeinos.y = canvas.height - photeinos.h;
     photeinos.vy = 0;
     photeinos.jumping = false;
   }
 }
 
 // -----------------------------
-// Collision check
+// Collision (echte overlap)
 // -----------------------------
-function collisionCheck(ob) {
-  const xHit = photeinos.x < ob.x + ob.w && photeinos.x + photeinos.w > ob.x;
-  if (!xHit) return false;
+function rectsOverlap(a, b) {
+  return (
+    a.x < b.x + b.w &&
+    a.x + a.w > b.x &&
+    a.y < b.y + b.h &&
+    a.y + a.h > b.y
+  );
+}
 
+function collisionCheck(ob) {
+  if (!rectsOverlap(photeinos, ob)) return false;
   if (ob.inGras) {
-    return !photeinos.jumping; // geraakt als je niet springt
+    return !photeinos.jumping;
   } else {
-    return photeinos.jumping;  // geraakt als je wel springt
+    return photeinos.jumping;
   }
 }
 
@@ -159,26 +153,15 @@ function update() {
   if (!running || paused) return;
 
   updatePlayer();
-  const spd = speedForLevel(currentLevel);
 
-  obstacles.forEach(o => o.x -= spd);
+  obstacles.forEach(o => o.x -= 2); // niet te snel
   obstacles = obstacles.filter(o => o.x + o.w > 0);
 
   for (let i = obstacles.length - 1; i >= 0; i--) {
     const o = obstacles[i];
     if (o.actief && collisionCheck(o)) {
-      paused = true; // spel pauzeren
-
-      let q;
-      if (o.soort === "licht") {
-        const vragenLicht = vragen.filter(v => typeof v.difficulty === "number");
-        q = vragenLicht[Math.floor(Math.random()*vragenLicht.length)];
-      } else {
-        const vragenZonde = vragen.filter(v => v.difficulty === "zonde");
-        q = vragenZonde[Math.floor(Math.random()*vragenZonde.length)];
-      }
-
-      toonVraag(q, o.soort);
+      paused = true;
+      toonVraag(o);
       o.actief = false;
     }
   }
@@ -192,31 +175,25 @@ function draw() {
 
   // lucht
   ctx.fillStyle = "#aee7ff";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  // wolken
-  ctx.font = "24px Arial";
-  clouds.forEach(c => {
-    ctx.fillText("☁️", c.x, c.y);
-    c.x -= 0.2;
-    if (c.x < -30) c.x = canvas.width + 20;
-  });
+  ctx.fillRect(0, 0, canvas.width, zoneHeight);
 
   // gras
   ctx.fillStyle = "#8BC34A";
-  ctx.fillRect(0, grassTop, canvas.width, grassHeight);
+  ctx.fillRect(0, grassTop, canvas.width, zoneHeight);
 
   // bloemen
-  ctx.font = "20px Arial";
+  ctx.font = "22px Arial";
   flowers.forEach(f => {
-    ctx.fillText(f.glyph, f.x, f.y);
-    f.x -= 0.5;
+    ctx.fillText(f.glyph, f.x, grassTop + 25 + Math.random() * (zoneHeight - 50));
+    f.x -= 0.4;
     if (f.x < -20) f.x = canvas.width + 20;
   });
 
   // obstakels
-  ctx.font = "30px Arial";
-  obstacles.forEach(o => ctx.fillText(OBSTACLES[o.soort], o.x, o.y));
+  ctx.font = `${obSize}px Arial`;
+  obstacles.forEach(o => {
+    ctx.fillText(OBSTACLES[o.soort], o.x, o.y + o.h);
+  });
 
   // speler
   ctx.drawImage(photeinosImg, photeinos.x, photeinos.y, photeinos.w, photeinos.h);
@@ -241,7 +218,7 @@ loop();
 // Controls: start/pauze
 // -----------------------------
 const startBtn = document.createElement("button");
-startBtn.innerText = "▶ Start spel (-20 punten)";
+startBtn.innerText = "▶ Start spel";
 startBtn.style.position = "absolute";
 startBtn.style.bottom = "30px";
 startBtn.style.right = "180px";
@@ -257,10 +234,10 @@ document.body.appendChild(startBtn);
 startBtn.onclick = () => {
   running = true;
   score = 0;
-  currentLevel = 0;
   obstacles = [];
   photeinos.vy = 0;
   photeinos.jumping = false;
+  photeinos.y = canvas.height - photeinos.h;
 };
 
 const pauseBtn = document.createElement("button");
@@ -282,36 +259,41 @@ pauseBtn.onclick = () => { paused = !paused; };
 // -----------------------------
 // Spawners
 // -----------------------------
-setInterval(() => { if(running && !paused) spawnObstacle(); }, 5000);
+setInterval(() => { if(running && !paused) spawnObstacle(); }, 4500);
 
 // -----------------------------
 // Vraag overlay
 // -----------------------------
-function toonVraag(vraag, soort) {
+function toonVraag(ob) {
   const overlay = document.getElementById("vraagOverlay");
   const tekst = document.getElementById("vraagTekst");
   const antwoorden = document.getElementById("vraagAntwoorden");
 
-  tekst.textContent = vraag.q;
+  let q;
+  if (ob.soort === "licht") {
+    const vragenLicht = vragen.filter(v => typeof v.difficulty === "number");
+    q = vragenLicht[Math.floor(Math.random()*vragenLicht.length)];
+  } else {
+    const vragenZonde = vragen.filter(v => v.difficulty === "zonde");
+    q = vragenZonde[Math.floor(Math.random()*vragenZonde.length)];
+  }
+
+  tekst.textContent = q.q;
   antwoorden.innerHTML = "";
 
-  vraag.a.forEach((optie, i) => {
+  q.a.forEach((optie, i) => {
     const btn = document.createElement("button");
     btn.innerText = optie;
-    btn.style.margin = "5px";
-    btn.style.padding = "10px 15px";
-    btn.style.borderRadius = "8px";
-    btn.style.cursor = "pointer";
     btn.onclick = () => {
-      if (i === vraag.correct) {
-        if (soort === "licht") score++;
-        alert("Goed!");
+      if (i === q.correct) {
+        if (ob.soort === "licht") score++;
+        alert("Goed zo!");
       } else {
-        if (soort === "zonde") {
+        if (ob.soort === "zonde") {
           alert("Fout bij zondevraag – Game Over!");
           running = false;
         } else {
-          alert("Niet juist.");
+          alert("Dat is fout.");
         }
       }
       overlay.style.display = "none";
