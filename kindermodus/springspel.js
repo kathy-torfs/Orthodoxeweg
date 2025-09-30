@@ -1,26 +1,28 @@
 // =============================
-// springspel.js (volledige versie)
+// springspel.js (volledige nieuwe versie)
 // =============================
 
 // Canvas
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// Dynamische grootte
+//nota// Schermgrootte vastzetten
 canvas.width = 800;
 canvas.height = 500;
 
 // -----------------------------
 // Zones
 // -----------------------------
-const zoneHeight = canvas.height / 2; // 50/50
-const grassTop = canvas.height - zoneHeight; // begin graszone
+//nota// Halverwege canvas: onder = gras, boven = lucht
+const zoneHeight = canvas.height / 2;
+const grassTop = canvas.height - zoneHeight;
 
 // -----------------------------
 // Afmetingen
 // -----------------------------
-//nota// photeinos = 35% van hoogte
+//nota// Grootte Photeinos = 35% vh scherm
 const phSize = canvas.height * 0.35;
+//nota// Grootte obstakels = 30% vh scherm
 const obSize = canvas.height * 0.30;
 
 // -----------------------------
@@ -33,14 +35,13 @@ const OBSTACLES = {
   licht: "🪽",
   zonde: "💀"
 };
-const FLOWERS = ["🌷","🌻","🌼","🌸","🌹","🌺","🌿","🍀"];
 
 // -----------------------------
 // Speler
 // -----------------------------
 const photeinos = {
   x: 100,
-  y: canvas.height - phSize, // start in gras
+  y: canvas.height - phSize, // start onderaan in graszone
   w: phSize,
   h: phSize,
   vy: 0,
@@ -57,21 +58,6 @@ let running = false;
 let paused = false;
 
 // -----------------------------
-// Achtergrond
-// -----------------------------
-let flowers = [];
-function makeFlowers(count = 18) {
-  flowers = [];
-  for (let i = 0; i < count; i++) {
-    flowers.push({
-      x: Math.random() * canvas.width,
-      glyph: FLOWERS[Math.floor(Math.random() * FLOWERS.length)]
-    });
-  }
-}
-makeFlowers();
-
-// -----------------------------
 // Input
 // -----------------------------
 document.addEventListener("keydown", e => keys[e.key] = true);
@@ -85,7 +71,8 @@ canvas.addEventListener("touchstart", () => jump());
 // -----------------------------
 function jump() {
   if (!photeinos.jumping) {
-    photeinos.vy = -15;
+    //nota// springhoogte zodat hij helemaal in luchtzone komt
+    photeinos.vy = -18;
     photeinos.jumping = true;
   }
 }
@@ -99,11 +86,10 @@ function spawnObstacle() {
 
   obstacles.push({
     x: canvas.width,
-    y: inGras ? (grassTop + zoneHeight - obSize) : (grassTop - obSize),
+    y: inGras ? (canvas.height - obSize) : (zoneHeight - obSize),
     w: obSize,
     h: obSize,
     soort,
-    inGras,
     actief: true
   });
 }
@@ -114,7 +100,7 @@ function spawnObstacle() {
 function updatePlayer() {
   if (keys[" "]) jump();
 
-  photeinos.vy += 0.8; // zwaartekracht
+  photeinos.vy += 0.9; // zwaartekracht
   photeinos.y += photeinos.vy;
 
   // ondergrond begrenzen
@@ -126,7 +112,7 @@ function updatePlayer() {
 }
 
 // -----------------------------
-// Collision (echte overlap)
+// Collision
 // -----------------------------
 function rectsOverlap(a, b) {
   return (
@@ -137,15 +123,6 @@ function rectsOverlap(a, b) {
   );
 }
 
-function collisionCheck(ob) {
-  if (!rectsOverlap(photeinos, ob)) return false;
-  if (ob.inGras) {
-    return !photeinos.jumping;
-  } else {
-    return photeinos.jumping;
-  }
-}
-
 // -----------------------------
 // Update loop
 // -----------------------------
@@ -154,12 +131,13 @@ function update() {
 
   updatePlayer();
 
-  obstacles.forEach(o => o.x -= 2); // niet te snel
+  //nota// Obstakels trager laten bewegen
+  obstacles.forEach(o => o.x -= 2);
   obstacles = obstacles.filter(o => o.x + o.w > 0);
 
   for (let i = obstacles.length - 1; i >= 0; i--) {
     const o = obstacles[i];
-    if (o.actief && collisionCheck(o)) {
+    if (o.actief && rectsOverlap(photeinos, o)) {
       paused = true;
       toonVraag(o);
       o.actief = false;
@@ -180,14 +158,6 @@ function draw() {
   // gras
   ctx.fillStyle = "#8BC34A";
   ctx.fillRect(0, grassTop, canvas.width, zoneHeight);
-
-  // bloemen
-  ctx.font = "22px Arial";
-  flowers.forEach(f => {
-    ctx.fillText(f.glyph, f.x, grassTop + 25 + Math.random() * (zoneHeight - 50));
-    f.x -= 0.4;
-    if (f.x < -20) f.x = canvas.width + 20;
-  });
 
   // obstakels
   ctx.font = `${obSize}px Arial`;
@@ -215,10 +185,10 @@ function loop() {
 loop();
 
 // -----------------------------
-// Controls: start/pauze
+// Controls
 // -----------------------------
 const startBtn = document.createElement("button");
-startBtn.innerText = "▶ Start spel";
+startBtn.innerText = "▶ Start spel (-20 punten)";
 startBtn.style.position = "absolute";
 startBtn.style.bottom = "30px";
 startBtn.style.right = "180px";
@@ -259,7 +229,8 @@ pauseBtn.onclick = () => { paused = !paused; };
 // -----------------------------
 // Spawners
 // -----------------------------
-setInterval(() => { if(running && !paused) spawnObstacle(); }, 4500);
+//nota// Obstakels minder snel: om de 6 seconden
+setInterval(() => { if(running && !paused) spawnObstacle(); }, 6000);
 
 // -----------------------------
 // Vraag overlay
@@ -286,8 +257,10 @@ function toonVraag(ob) {
     btn.innerText = optie;
     btn.onclick = () => {
       if (i === q.correct) {
-        if (ob.soort === "licht") score++;
-        alert("Goed zo!");
+        if (ob.soort === "licht") {
+          score++;
+          alert("Goed zo!");
+        }
       } else {
         if (ob.soort === "zonde") {
           alert("Fout bij zondevraag – Game Over!");
