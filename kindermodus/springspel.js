@@ -29,7 +29,7 @@ let grassTop = canvas.height - grassHeight;
 
 const photeinos = { 
   x: 100, 
-  y: grassTop - 20,  // netjes op gras
+  y: canvas.height - 60 - 10,  // voeten net boven onderrand
   w: 60, 
   h: 60, 
   vy: 0, 
@@ -62,15 +62,20 @@ function makeClouds(count = 6) {
     });
   }
 }
-function makeFlowers(count = 15) {
+
+// 🌸 Drie rijen bloemen in het gras
+function makeFlowers(count = 24) {
   flowers = [];
+  const rows = [grassTop + 15, grassTop + 30, grassTop + 45];
   for (let i = 0; i < count; i++) {
     flowers.push({
       x: Math.random() * canvas.width,
+      y: rows[Math.floor(Math.random()*rows.length)],
       glyph: FLOWERS[Math.floor(Math.random()*FLOWERS.length)]
     });
   }
 }
+
 makeClouds();
 makeFlowers();
 
@@ -101,7 +106,7 @@ function spawnObstacle() {
 
   obstacles.push({
     x: canvas.width,
-    y: inGras ? grassTop - 20 : grassTop - 120,
+    y: inGras ? grassTop - 40 : grassTop - 120,
     w: 40, h: 40,
     soort: soort,
     inGras: inGras,
@@ -114,7 +119,7 @@ function spawnObstacle() {
 // -----------------------------
 function jump() {
   if (!photeinos.jumping) {
-    photeinos.vy = -14;
+    photeinos.vy = -16;  // iets krachtiger sprong
     photeinos.jumping = true;
   }
 }
@@ -129,8 +134,8 @@ function updatePlayer() {
   photeinos.y += photeinos.vy;
 
   // op gras landen
-  if (photeinos.y + photeinos.h > grassTop) {
-    photeinos.y = grassTop - photeinos.h;
+  if (photeinos.y + photeinos.h > canvas.height - 10) {
+    photeinos.y = canvas.height - photeinos.h - 10;
     photeinos.vy = 0;
     photeinos.jumping = false;
   }
@@ -201,7 +206,7 @@ function draw() {
   // bloemen
   ctx.font = "20px Arial";
   flowers.forEach(f => {
-    ctx.fillText(f.glyph, f.x, grassTop + 20);
+    ctx.fillText(f.glyph, f.x, f.y);
     f.x -= 1;
     if (f.x < -20) f.x = canvas.width + 20;
   });
@@ -244,7 +249,7 @@ startBtn.onclick = () => {
   score = 0;
   currentLevel = 0;
   obstacles = [];
-  photeinos.y = grassTop - photeinos.h; // reset startpositie
+  photeinos.y = canvas.height - photeinos.h - 10; // reset startpositie
 };
 
 const pauseBtn = document.createElement("button");
