@@ -1,4 +1,4 @@
-// ============================= 
+// =============================
 // springspel.js
 // =============================
 
@@ -7,106 +7,101 @@ const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 function resizeCanvas() {
-  canvas.width = document.getElementById("gameContainer").clientWidth;
-  canvas.height = document.getElementById("gameContainer").clientHeight;
+  canvas.width = 800;   // vast formaat binnen kader
+  canvas.height = 400;
 }
 resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
 
 // -----------------------------
+// Assets (emoji's ipv images)
+// -----------------------------
+const OBSTACLES = {
+  licht: "🪽",
+  zonde: "💀"
+};
+const FLOWERS = ["🌷","🌻","🌼","🌸","🌹","🌺","🌿","🍀"];
+
+// -----------------------------
 // Speler (Photeinos)
 // -----------------------------
-const photeinos = { x: 50, y: 0, w: 50, h: 50, vy: 0, onGround: false };
-let speed = 6;
-let gravity = 1;
-let jumpPower = -18;
+const photeinos = { x: 100, y: 300, w: 50, h: 50, vy: 0, onGround: false };
+let gravity = 0.8;
+let jumpPower = -12;
 
 // -----------------------------
 // Game variabelen
 // -----------------------------
 let currentLevel = 0;
 let obstacles = [];
-let collectables = [];
 let keys = {};
 let score = 0;
 let running = false;
 let paused = false;
 
 // -----------------------------
-// Band variabelen
+// Achtergrond state
 // -----------------------------
-let bandX = 0;
-const bandSpeed = 3;
-const bandHeight = 100;
-let bandY = 0; 
-function updateBandY() {
-  bandY = canvas.height - bandHeight - 50;
+let clouds = [];
+let flowers = [];
+
+function makeClouds(count = 6) {
+  clouds = [];
+  for (let i = 0; i < count; i++) {
+    clouds.push({
+      x: Math.random() * canvas.width,
+      y: 30 + Math.random() * 80,
+      size: 20 + Math.random() * 20
+    });
+  }
 }
-updateBandY();
-window.addEventListener("resize", updateBandY);
+function makeFlowers(count = 15) {
+  flowers = [];
+  for (let i = 0; i < count; i++) {
+    flowers.push({
+      x: Math.random() * canvas.width,
+      y: canvas.height - 30 - Math.random() * 20,
+      glyph: FLOWERS[Math.floor(Math.random()*FLOWERS.length)]
+    });
+  }
+}
+makeClouds();
+makeFlowers();
 
 // -----------------------------
-// Input toetsenbord
+// Input
 // -----------------------------
 document.addEventListener("keydown", e => keys[e.key] = true);
 document.addEventListener("keyup", e => keys[e.key] = false);
 
-// -----------------------------
-// Input tablet (touch)
-// -----------------------------
-let touchStartX = null;
-let touchStartY = null;
-
-canvas.addEventListener("touchstart", e => {
-  if (!running) return;
-  e.preventDefault();
-  const touch = e.touches[0];
-  touchStartX = touch.clientX;
-  touchStartY = touch.clientY;
-
-  // Tik = springen
+// Touch controls (tablet)
+canvas.addEventListener("touchstart", () => {
   if (photeinos.onGround) {
     photeinos.vy = jumpPower;
     photeinos.onGround = false;
   }
 });
 
-canvas.addEventListener("touchmove", e => {
-  if (!running) return;
-  e.preventDefault();
-  const touch = e.touches[0];
-  const dx = touch.clientX - touchStartX;
-
-  if (dx > 40) { 
-    photeinos.x += speed; // veeg rechts
-    touchStartX = touch.clientX;
-  }
-  if (dx < -40) { 
-    photeinos.x -= speed; // veeg links
-    touchStartX = touch.clientX;
-  }
-});
-
 // -----------------------------
-// Obstakels (💀)
+// Speed per level
 // -----------------------------
-function spawnObstacle() {
-  const h = 60;
-  obstacles.push({
-    x: canvas.width,
-    y: canvas.height - h,
-    w: 50, h: h
-  });
+function speedForLevel(level) {
+  const base = 2;      // trage start
+  const perLevel = 0.6;
+  return base + level * perLevel;
 }
 
 // -----------------------------
-// Collectables (🪽)
+// Obstakels
 // -----------------------------
-function spawnCollectable() {
-  collectables.push({
+function spawnObstacle() {
+  const soort = Math.random() < 0.7 ? "licht" : "zonde"; // meer vleugels dan doodskoppen
+  obstacles.push({
     x: canvas.width,
-    y: bandY + 20,
-    w: 40, h: 40
+    y: soort === "licht" ? 250 : 320,
+    w: 40, h: 40,
+    soort: soort,
+    actief: true
   });
 }
 
@@ -114,18 +109,22 @@ function spawnCollectable() {
 // Player update
 // -----------------------------
 function updatePlayer() {
-  if (keys["ArrowRight"]) photeinos.x += speed;
-  if (keys["ArrowLeft"]) photeinos.x -= speed;
   if (keys[" "] && photeinos.onGround) {
     photeinos.vy = jumpPower;
     photeinos.onGround = false;
   }
+  if (keys["ArrowUp"] && photeinos.onGround) {
+    photeinos.vy = jumpPower;
+    photeinos.onGround = false;
+  }
+  if (keys["ArrowLeft"]) photeinos.x -= 5;
+  if (keys["ArrowRight"]) photeinos.x += 5;
 
   photeinos.vy += gravity;
   photeinos.y += photeinos.vy;
 
-  if (photeinos.y + photeinos.h > canvas.height) {
-    photeinos.y = canvas.height - photeinos.h;
+  if (photeinos.y + photeinos.h > canvas.height - 40) {
+    photeinos.y = canvas.height - 40 - photeinos.h;
     photeinos.vy = 0;
     photeinos.onGround = true;
   }
@@ -146,35 +145,31 @@ function update() {
 
   updatePlayer();
 
-  // Band laten schuiven
-  bandX -= bandSpeed;
-  if (bandX <= -canvas.width) bandX = 0;
+  const spd = speedForLevel(currentLevel);
 
-  // Obstacles bewegen
-  obstacles.forEach(o => o.x -= bandSpeed);
+  // obstakels bewegen
+  obstacles.forEach(o => o.x -= spd);
   obstacles = obstacles.filter(o => o.x + o.w > 0);
 
-  // Collectables bewegen
-  collectables.forEach(c => c.x -= bandSpeed);
-  collectables = collectables.filter(c => c.x + c.w > 0);
-
-  // Botsing obstakels
-  for (const o of obstacles) {
-    if (rectsOverlap(photeinos, o)) {
-      running = false;
-      alert("Botsing! Game Over.");
-      return;
+  // botsing
+  for (let i = obstacles.length - 1; i >= 0; i--) {
+    const o = obstacles[i];
+    if (o.actief && rectsOverlap(photeinos, o)) {
+      if (o.soort === "licht") {
+        score++;
+        alert("Vraag (moeilijkheid " + (currentLevel < 2 ? 1 : currentLevel < 4 ? 2 : 3) + ")");
+      } else {
+        alert("Zonde-vraag!");
+      }
+      o.actief = false;
     }
   }
 
-  // Botsing collectables
-  for (let i = collectables.length - 1; i >= 0; i--) {
-    const c = collectables[i];
-    if (rectsOverlap(photeinos, c)) {
-      score++;
-      collectables.splice(i,1);
-      alert("🪽 Je hebt een vleugel gevangen!");
-    }
+  // moeilijkheid omhoog
+  if (score > 0 && score % 5 === 0) {
+    currentLevel = Math.min(5, currentLevel + 1);
+    makeClouds();
+    makeFlowers();
   }
 }
 
@@ -182,29 +177,45 @@ function update() {
 // Draw loop
 // -----------------------------
 function draw() {
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Band tekenen
-  ctx.fillStyle = "rgba(200,200,200,0.2)";
-  ctx.fillRect(bandX, bandY, canvas.width, bandHeight);
-  ctx.fillRect(bandX + canvas.width, bandY, canvas.width, bandHeight);
+  // lucht
+  ctx.fillStyle = "#aee7ff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Obstakels (💀)
-  ctx.font = "40px Arial";
-  obstacles.forEach(o => ctx.fillText("💀", o.x, o.y));
+  // wolkjes
+  ctx.font = "24px Arial";
+  clouds.forEach(c => {
+    ctx.fillText("☁️", c.x, c.y);
+    c.x -= 0.5;
+    if (c.x < -30) c.x = canvas.width + 20;
+  });
 
-  // Collectables (🪽)
-  ctx.font = "36px Arial";
-  collectables.forEach(c => ctx.fillText("🪽", c.x, c.y));
+  // grasband
+  ctx.fillStyle = "#8BC34A";
+  ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
 
-  // Speler ⭐
-  ctx.font = "42px Arial";
+  // bloemen
+  ctx.font = "20px Arial";
+  flowers.forEach(f => {
+    ctx.fillText(f.glyph, f.x, f.y);
+    f.x -= 1;
+    if (f.x < -20) f.x = canvas.width + 20;
+  });
+
+  // obstakels
+  ctx.font = "30px Arial";
+  obstacles.forEach(o => {
+    ctx.fillText(OBSTACLES[o.soort], o.x, o.y);
+  });
+
+  // speler
   ctx.fillText("⭐", photeinos.x, photeinos.y);
 
-  // Score
+  // score
   ctx.fillStyle = "black";
-  ctx.font = "20px Comic Sans MS";
-  ctx.fillText("Score: " + score, 20, 30);
+  ctx.font = "18px Comic Sans MS";
+  ctx.fillText("Score: " + score, 20, 25);
 }
 
 // -----------------------------
@@ -230,8 +241,8 @@ document.body.appendChild(startBtn);
 startBtn.onclick = () => {
   running = true;
   score = 0;
+  currentLevel = 0;
   obstacles = [];
-  collectables = [];
 };
 
 const pauseBtn = document.createElement("button");
@@ -246,5 +257,4 @@ pauseBtn.onclick = () => { paused = !paused; };
 // -----------------------------
 // Spawners
 // -----------------------------
-setInterval(() => { if(running && !paused) spawnObstacle(); }, 4000);
-setInterval(() => { if(running && !paused) spawnCollectable(); }, 3000);
+setInterval(() => { if(running && !paused) spawnObstacle(); }, 3000);
