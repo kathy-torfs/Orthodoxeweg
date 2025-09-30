@@ -22,12 +22,14 @@ const OBSTACLES = {
 const FLOWERS = ["🌷","🌻","🌼","🌸","🌹","🌺","🌿","🍀"];
 
 // -----------------------------
-// Speler (Photeinos)
+// Gras & speler
 // -----------------------------
-let grassTop = canvas.height - canvas.height / 4; // gras 1/4 schermhoogte
+let grassHeight = canvas.height / 4;
+let grassTop = canvas.height - grassHeight;
+
 const photeinos = { 
   x: 100, 
-  y: grassTop - 60,  // start op gras
+  y: grassTop - 60,  // netjes op gras
   w: 60, 
   h: 60, 
   vy: 0, 
@@ -193,8 +195,6 @@ function draw() {
   });
 
   // gras
-  const grassHeight = canvas.height / 4;
-  grassTop = canvas.height - grassHeight;
   ctx.fillStyle = "#8BC34A";
   ctx.fillRect(0, grassTop, canvas.width, grassHeight);
 
@@ -244,6 +244,7 @@ startBtn.onclick = () => {
   score = 0;
   currentLevel = 0;
   obstacles = [];
+  photeinos.y = grassTop - photeinos.h; // reset startpositie
 };
 
 const pauseBtn = document.createElement("button");
