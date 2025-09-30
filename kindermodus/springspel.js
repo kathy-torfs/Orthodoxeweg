@@ -7,15 +7,18 @@ const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 function resizeCanvas() {
-  canvas.width = 800;   // vast formaat binnen kader
+  canvas.width = 800;
   canvas.height = 400;
 }
 resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
 
 // -----------------------------
-// Assets (emoji's ipv images)
+// Assets
 // -----------------------------
+const photeinosImg = new Image();
+photeinosImg.src = "https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.png";
+
 const OBSTACLES = {
   licht: "🪽",
   zonde: "💀"
@@ -25,9 +28,7 @@ const FLOWERS = ["🌷","🌻","🌼","🌸","🌹","🌺","🌿","🍀"];
 // -----------------------------
 // Speler (Photeinos)
 // -----------------------------
-const photeinos = { x: 100, y: 300, w: 50, h: 50, vy: 0, onGround: false };
-let gravity = 0.8;
-let jumpPower = -12;
+const photeinos = { x: 100, y: 0, w: 60, h: 60, vy: 0, jumping: false };
 
 // -----------------------------
 // Game variabelen
@@ -44,6 +45,7 @@ let paused = false;
 // -----------------------------
 let clouds = [];
 let flowers = [];
+let grassTop = 0;
 
 function makeClouds(count = 6) {
   clouds = [];
@@ -60,7 +62,7 @@ function makeFlowers(count = 15) {
   for (let i = 0; i < count; i++) {
     flowers.push({
       x: Math.random() * canvas.width,
-      y: canvas.height - 30 - Math.random() * 20,
+      y: 0, // wordt getekend op gras
       glyph: FLOWERS[Math.floor(Math.random()*FLOWERS.length)]
     });
   }
@@ -75,18 +77,13 @@ document.addEventListener("keydown", e => keys[e.key] = true);
 document.addEventListener("keyup", e => keys[e.key] = false);
 
 // Touch controls (tablet)
-canvas.addEventListener("touchstart", () => {
-  if (photeinos.onGround) {
-    photeinos.vy = jumpPower;
-    photeinos.onGround = false;
-  }
-});
+canvas.addEventListener("touchstart", () => jump());
 
 // -----------------------------
 // Speed per level
 // -----------------------------
 function speedForLevel(level) {
-  const base = 2;      // trage start
+  const base = 2;
   const perLevel = 0.6;
   return base + level * perLevel;
 }
@@ -95,46 +92,61 @@ function speedForLevel(level) {
 // Obstakels
 // -----------------------------
 function spawnObstacle() {
-  const soort = Math.random() < 0.7 ? "licht" : "zonde"; // meer vleugels dan doodskoppen
+  const soort = Math.random() < 0.7 ? "licht" : "zonde";
+  const inGras = Math.random() < 0.5;
+
   obstacles.push({
     x: canvas.width,
-    y: soort === "licht" ? 250 : 320,
+    y: inGras ? grassTop - 40 : grassTop - 120,
     w: 40, h: 40,
     soort: soort,
+    inGras: inGras,
     actief: true
   });
+}
+
+// -----------------------------
+// Jump functie
+// -----------------------------
+function jump() {
+  if (!photeinos.jumping) {
+    photeinos.vy = -14;
+    photeinos.jumping = true;
+  }
 }
 
 // -----------------------------
 // Player update
 // -----------------------------
 function updatePlayer() {
-  if (keys[" "] && photeinos.onGround) {
-    photeinos.vy = jumpPower;
-    photeinos.onGround = false;
-  }
-  if (keys["ArrowUp"] && photeinos.onGround) {
-    photeinos.vy = jumpPower;
-    photeinos.onGround = false;
-  }
+  if (keys[" "] || keys["ArrowUp"]) jump();
   if (keys["ArrowLeft"]) photeinos.x -= 5;
   if (keys["ArrowRight"]) photeinos.x += 5;
 
-  photeinos.vy += gravity;
+  photeinos.vy += 0.8;
   photeinos.y += photeinos.vy;
 
-  if (photeinos.y + photeinos.h > canvas.height - 40) {
-    photeinos.y = canvas.height - 40 - photeinos.h;
+  if (photeinos.y + photeinos.h > grassTop) {
+    photeinos.y = grassTop - photeinos.h;
     photeinos.vy = 0;
-    photeinos.onGround = true;
+    photeinos.jumping = false;
   }
 }
 
 // -----------------------------
 // Collision check
 // -----------------------------
-function rectsOverlap(a, b) {
-  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+function collisionCheck(ob, playerY) {
+  const xHit = photeinos.x < ob.x + ob.w && photeinos.x + photeinos.w > ob.x;
+  if (!xHit) return false;
+
+  if (ob.inGras) {
+    // raakt als speler niet springt
+    return !photeinos.jumping;
+  } else {
+    // raakt als speler springt
+    return photeinos.jumping;
+  }
 }
 
 // -----------------------------
@@ -144,20 +156,17 @@ function update() {
   if (!running || paused) return;
 
   updatePlayer();
-
   const spd = speedForLevel(currentLevel);
 
-  // obstakels bewegen
   obstacles.forEach(o => o.x -= spd);
   obstacles = obstacles.filter(o => o.x + o.w > 0);
 
-  // botsing
   for (let i = obstacles.length - 1; i >= 0; i--) {
     const o = obstacles[i];
-    if (o.actief && rectsOverlap(photeinos, o)) {
+    if (o.actief && collisionCheck(o, photeinos.y)) {
       if (o.soort === "licht") {
         score++;
-        alert("Vraag (moeilijkheid " + (currentLevel < 2 ? 1 : currentLevel < 4 ? 2 : 3) + ")");
+        alert("Licht-vraag!");
       } else {
         alert("Zonde-vraag!");
       }
@@ -165,7 +174,6 @@ function update() {
     }
   }
 
-  // moeilijkheid omhoog
   if (score > 0 && score % 5 === 0) {
     currentLevel = Math.min(5, currentLevel + 1);
     makeClouds();
@@ -183,7 +191,7 @@ function draw() {
   ctx.fillStyle = "#aee7ff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // wolkjes
+  // wolken
   ctx.font = "24px Arial";
   clouds.forEach(c => {
     ctx.fillText("☁️", c.x, c.y);
@@ -191,26 +199,26 @@ function draw() {
     if (c.x < -30) c.x = canvas.width + 20;
   });
 
-  // grasband
+  // gras
+  const grassHeight = canvas.height / 4;
+  grassTop = canvas.height - grassHeight;
   ctx.fillStyle = "#8BC34A";
-  ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
+  ctx.fillRect(0, grassTop, canvas.width, grassHeight);
 
   // bloemen
   ctx.font = "20px Arial";
   flowers.forEach(f => {
-    ctx.fillText(f.glyph, f.x, f.y);
+    ctx.fillText(f.glyph, f.x, grassTop + 25);
     f.x -= 1;
     if (f.x < -20) f.x = canvas.width + 20;
   });
 
   // obstakels
   ctx.font = "30px Arial";
-  obstacles.forEach(o => {
-    ctx.fillText(OBSTACLES[o.soort], o.x, o.y);
-  });
+  obstacles.forEach(o => ctx.fillText(OBSTACLES[o.soort], o.x, o.y));
 
   // speler
-  ctx.fillText("⭐", photeinos.x, photeinos.y);
+  ctx.drawImage(photeinosImg, photeinos.x, photeinos.y, photeinos.w, photeinos.h);
 
   // score
   ctx.fillStyle = "black";
