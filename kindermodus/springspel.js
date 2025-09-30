@@ -29,7 +29,7 @@ let grassTop = canvas.height - grassHeight;
 
 const photeinos = { 
   x: 100, 
-  y: canvas.height - 60 - 10,  // voeten net boven onderrand
+  y: canvas.height - 60,   // voeten net boven onderrand
   w: 60, 
   h: 60, 
   vy: 0, 
@@ -41,7 +41,6 @@ const photeinos = {
 // -----------------------------
 let currentLevel = 0;
 let obstacles = [];
-let keys = {};
 let score = 0;
 let running = false;
 let paused = false;
@@ -62,31 +61,29 @@ function makeClouds(count = 6) {
     });
   }
 }
-
-// 🌸 Drie rijen bloemen in het gras
-function makeFlowers(count = 24) {
+function makeFlowers(count = 20) {
   flowers = [];
-  const rows = [grassTop + 15, grassTop + 30, grassTop + 45];
   for (let i = 0; i < count; i++) {
     flowers.push({
       x: Math.random() * canvas.width,
-      y: rows[Math.floor(Math.random()*rows.length)],
+      y: grassTop + 15 + Math.floor(Math.random()*3) * 15, // 3 willekeurige rijen
       glyph: FLOWERS[Math.floor(Math.random()*FLOWERS.length)]
     });
   }
 }
-
 makeClouds();
 makeFlowers();
 
 // -----------------------------
 // Input
 // -----------------------------
-document.addEventListener("keydown", e => keys[e.key] = true);
-document.addEventListener("keyup", e => keys[e.key] = false);
-
+document.addEventListener("keydown", e => {
+  if (e.code === "Space" || e.code === "ArrowUp") {
+    jump();
+  }
+});
 // Touch controls (tablet)
-canvas.addEventListener("touchstart", () => jump());
+canvas.addEventListener("touchstart", jump);
 
 // -----------------------------
 // Speed per level
@@ -105,8 +102,8 @@ function spawnObstacle() {
   const inGras = Math.random() < 0.5;
 
   obstacles.push({
-    x: canvas.width,
-    y: inGras ? grassTop - 40 : grassTop - 120,
+    x: canvas.width + 20,
+    y: inGras ? canvas.height - 60 : grassTop - 100,
     w: 40, h: 40,
     soort: soort,
     inGras: inGras,
@@ -119,7 +116,7 @@ function spawnObstacle() {
 // -----------------------------
 function jump() {
   if (!photeinos.jumping) {
-    photeinos.vy = -16;  // iets krachtiger sprong
+    photeinos.vy = -14;
     photeinos.jumping = true;
   }
 }
@@ -128,14 +125,12 @@ function jump() {
 // Player update
 // -----------------------------
 function updatePlayer() {
-  if (keys[" "] || keys["ArrowUp"]) jump();
-
   photeinos.vy += 0.8; // zwaartekracht
   photeinos.y += photeinos.vy;
 
-  // op gras landen
-  if (photeinos.y + photeinos.h > canvas.height - 10) {
-    photeinos.y = canvas.height - photeinos.h - 10;
+  // op grond landen
+  if (photeinos.y + photeinos.h > canvas.height) {
+    photeinos.y = canvas.height - photeinos.h;
     photeinos.vy = 0;
     photeinos.jumping = false;
   }
@@ -164,7 +159,7 @@ function update() {
   updatePlayer();
   const spd = speedForLevel(currentLevel);
 
-  obstacles.forEach(o => o.x -= spd);
+  obstacles.forEach(o => o.x -= spd + 1.5);
   obstacles = obstacles.filter(o => o.x + o.w > 0);
 
   for (let i = obstacles.length - 1; i >= 0; i--) {
@@ -208,7 +203,10 @@ function draw() {
   flowers.forEach(f => {
     ctx.fillText(f.glyph, f.x, f.y);
     f.x -= 1;
-    if (f.x < -20) f.x = canvas.width + 20;
+    if (f.x < -20) {
+      f.x = canvas.width + 20;
+      f.y = grassTop + 15 + Math.floor(Math.random()*3) * 15;
+    }
   });
 
   // obstakels
@@ -249,7 +247,7 @@ startBtn.onclick = () => {
   score = 0;
   currentLevel = 0;
   obstacles = [];
-  photeinos.y = canvas.height - photeinos.h - 10; // reset startpositie
+  photeinos.y = canvas.height - photeinos.h; // reset startpositie
 };
 
 const pauseBtn = document.createElement("button");
