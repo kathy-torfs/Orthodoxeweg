@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
@@ -31,6 +31,7 @@
       border:3px solid var(--primair);
       border-radius:18px;
       box-shadow:0 4px 10px rgba(0,0,0,0.15);
+      position:relative;
     }
     #gameCanvas{
       width:100%;
@@ -38,11 +39,51 @@
       display:block;
       border-radius:12px;
     }
+
+    /* Vraagmodal */
+    #vraagModal{
+      display:none;
+      position:fixed;
+      top:15%;
+      left:50%;
+      transform:translateX(-50%);
+      width:70%;
+      max-width:600px;
+      background:white;
+      border:3px solid var(--donker);
+      border-radius:16px;
+      box-shadow:0 6px 20px rgba(0,0,0,0.25);
+      padding:20px;
+      z-index:1000;
+    }
+    #vraagTekst{
+      font-size:20px;
+      margin-bottom:15px;
+      color:var(--donker);
+    }
+    #antwoorden button{
+      display:block;
+      width:100%;
+      margin:8px 0;
+      padding:12px 18px;
+      font-size:18px;
+      background:var(--primair);
+      color:white;
+      border:none;
+      border-radius:10px;
+      cursor:pointer;
+      text-align:left;
+      transition:background 0.3s;
+    }
+    #antwoorden button:hover{
+      background:#5c8a24;
+    }
   </style>
 
   <!-- Header + menubalk -->
   <script defer src="common/layout.js"></script>
-  <!-- Het spel -->
+  <!-- Eerst vragen.js, dan het spel -->
+  <script defer src="vragen.js"></script>
   <script defer src="springspel.js"></script>
 </head>
 <body>
@@ -52,6 +93,12 @@
   <!-- Scherm-in-scherm blok -->
   <div id="gameContainer">
     <canvas id="gameCanvas"></canvas>
+  </div>
+
+  <!-- Vraagmodal -->
+  <div id="vraagModal">
+    <p id="vraagTekst"></p>
+    <div id="antwoorden"></div>
   </div>
 
   <script>
