@@ -43,12 +43,8 @@ let currentLevel = 0;
 let obstacles = [];
 let keys = {};
 let score = 0;
-let vleugels = 0;
 let running = false;
 let paused = false;
-let showVraag = false;
-let huidigeVraag = null;
-let vraagType = null;
 
 // -----------------------------
 // Achtergrond state
@@ -93,8 +89,8 @@ canvas.addEventListener("touchstart", () => jump());
 // Speed per level
 // -----------------------------
 function speedForLevel(level) {
-  const base = 1.2;      // trager basis
-  const perLevel = 0.3;  // stijgt rustig
+  const base = 1.0;      // trager basis
+  const perLevel = 0.3;  // stijgt zacht
   return base + level * perLevel;
 }
 
@@ -157,77 +153,6 @@ function collisionCheck(ob) {
 }
 
 // -----------------------------
-// Vraag selectie
-// -----------------------------
-const lichtVragen = {
-  1: vragen.filter(v => v.difficulty === 1),
-  2: vragen.filter(v => v.difficulty === 2),
-  3: vragen.filter(v => v.difficulty === 3),
-  4: vragen.filter(v => v.difficulty === 3),
-  5: vragen.filter(v => v.difficulty === 3)
-};
-const zondeVragen = vragen.filter(v => v.difficulty === "zonde");
-
-function toonVraag(type) {
-  paused = true;
-  showVraag = true;
-  vraagType = type;
-  if (type === "licht") {
-    const lijst = lichtVragen[currentLevel+1] || lichtVragen[1];
-    huidigeVraag = lijst[Math.floor(Math.random()*lijst.length)];
-  } else {
-    huidigeVraag = zondeVragen[Math.floor(Math.random()*zondeVragen.length)];
-  }
-  renderVraag();
-}
-
-function antwoordGegeven(index) {
-  if (!huidigeVraag) return;
-  if (vraagType === "licht") {
-    if (index === huidigeVraag.correct) {
-      score++;
-      vleugels++;
-      if (vleugels >= 10) {
-        currentLevel++;
-        vleugels = 0;
-        alert("Level " + (currentLevel+1) + " bereikt!");
-      }
-    }
-  } else if (vraagType === "zonde") {
-    if (index !== huidigeVraag.correct) {
-      running = false;
-      alert("Fout! Game Over.");
-    }
-  }
-  showVraag = false;
-  paused = false;
-  huidigeVraag = null;
-}
-
-// -----------------------------
-// Vraag UI
-// -----------------------------
-function renderVraag() {
-  if (!showVraag || !huidigeVraag) return;
-
-  const modal = document.getElementById("vraagModal");
-  const vraagTekst = document.getElementById("vraagTekst");
-  const antwoordenDiv = document.getElementById("antwoorden");
-
-  vraagTekst.innerText = huidigeVraag.q;
-  antwoordenDiv.innerHTML = "";
-
-  huidigeVraag.a.forEach((ans, i) => {
-    const btn = document.createElement("button");
-    btn.innerText = ans;
-    btn.onclick = () => antwoordGegeven(i);
-    antwoordenDiv.appendChild(btn);
-  });
-
-  modal.style.display = "block";
-}
-
-// -----------------------------
 // Update loop
 // -----------------------------
 function update() {
@@ -242,7 +167,18 @@ function update() {
   for (let i = obstacles.length - 1; i >= 0; i--) {
     const o = obstacles[i];
     if (o.actief && collisionCheck(o)) {
-      toonVraag(o.soort);
+      paused = true; // spel pauzeren
+
+      let q;
+      if (o.soort === "licht") {
+        const vragenLicht = vragen.filter(v => typeof v.difficulty === "number");
+        q = vragenLicht[Math.floor(Math.random()*vragenLicht.length)];
+      } else {
+        const vragenZonde = vragen.filter(v => v.difficulty === "zonde");
+        q = vragenZonde[Math.floor(Math.random()*vragenZonde.length)];
+      }
+
+      toonVraag(q, o.soort);
       o.actief = false;
     }
   }
@@ -288,7 +224,7 @@ function draw() {
   // score
   ctx.fillStyle = "black";
   ctx.font = "18px Comic Sans MS";
-  ctx.fillText("Score: " + score + " | Vleugels: " + vleugels, 20, 25);
+  ctx.fillText("Score: " + score, 20, 25);
 }
 
 // -----------------------------
@@ -321,10 +257,10 @@ document.body.appendChild(startBtn);
 startBtn.onclick = () => {
   running = true;
   score = 0;
-  vleugels = 0;
   currentLevel = 0;
   obstacles = [];
-  photeinos.y = canvas.height - photeinos.h - 10; // startpositie vast
+  photeinos.vy = 0;
+  photeinos.jumping = false;
 };
 
 const pauseBtn = document.createElement("button");
@@ -347,3 +283,42 @@ pauseBtn.onclick = () => { paused = !paused; };
 // Spawners
 // -----------------------------
 setInterval(() => { if(running && !paused) spawnObstacle(); }, 5000);
+
+// -----------------------------
+// Vraag overlay
+// -----------------------------
+function toonVraag(vraag, soort) {
+  const overlay = document.getElementById("vraagOverlay");
+  const tekst = document.getElementById("vraagTekst");
+  const antwoorden = document.getElementById("vraagAntwoorden");
+
+  tekst.textContent = vraag.q;
+  antwoorden.innerHTML = "";
+
+  vraag.a.forEach((optie, i) => {
+    const btn = document.createElement("button");
+    btn.innerText = optie;
+    btn.style.margin = "5px";
+    btn.style.padding = "10px 15px";
+    btn.style.borderRadius = "8px";
+    btn.style.cursor = "pointer";
+    btn.onclick = () => {
+      if (i === vraag.correct) {
+        if (soort === "licht") score++;
+        alert("Goed!");
+      } else {
+        if (soort === "zonde") {
+          alert("Fout bij zondevraag – Game Over!");
+          running = false;
+        } else {
+          alert("Niet juist.");
+        }
+      }
+      overlay.style.display = "none";
+      paused = false;
+    };
+    antwoorden.appendChild(btn);
+  });
+
+  overlay.style.display = "flex";
+}
