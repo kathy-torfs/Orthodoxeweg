@@ -43,7 +43,6 @@ let currentLevel = 0;
 let obstacles = [];
 let keys = {};
 let score = 0;
-let vleugels = 0;
 let running = false;
 let paused = false;
 
@@ -90,8 +89,8 @@ canvas.addEventListener("touchstart", () => jump());
 // Speed per level
 // -----------------------------
 function speedForLevel(level) {
-  const base = 1.4;
-  const perLevel = 0.4;
+  const base = 1.4;      // trager basis
+  const perLevel = 0.4;  // stijgt iets minder snel
   return base + level * perLevel;
 }
 
@@ -170,13 +169,7 @@ function update() {
     if (o.actief && collisionCheck(o)) {
       if (o.soort === "licht") {
         score++;
-        vleugels++;
         alert("Licht-vraag!");
-        if (vleugels >= 10) {
-          currentLevel++;
-          vleugels = 0;
-          alert("Level " + (currentLevel+1) + " bereikt!");
-        }
       } else {
         alert("Zonde-vraag!");
       }
@@ -226,8 +219,6 @@ function draw() {
   ctx.fillStyle = "black";
   ctx.font = "18px Comic Sans MS";
   ctx.fillText("Score: " + score, 20, 25);
-  ctx.fillText("Level: " + (currentLevel+1), 20, 50);
-  ctx.fillText("Vleugels: " + vleugels + "/10", 20, 75);
 }
 
 // -----------------------------
@@ -260,7 +251,6 @@ document.body.appendChild(startBtn);
 startBtn.onclick = () => {
   running = true;
   score = 0;
-  vleugels = 0;
   currentLevel = 0;
   obstacles = [];
   photeinos.y = canvas.height - photeinos.h - 10; // reset startpositie
