@@ -35,7 +35,7 @@ const grassTop = canvas.height - grassHeight;
 //nota// grootte aanpassen met w/h; startpositie met y
 const photeinos = {
   x: 100,
-  y: grassTop - 80,   // start in graszone
+  y: grassTop - 40,   // start in graszone
   w: 80,              // breedte Photeinos
   h: 80,              // hoogte Photeinos
   vy: 0,
