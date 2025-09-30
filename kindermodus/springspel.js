@@ -1,4 +1,4 @@
-// =============================
+// ============================= 
 // springspel.js
 // =============================
 
@@ -7,30 +7,24 @@ const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 function resizeCanvas() {
-  canvas.width = canvas.parentElement.clientWidth;
-  canvas.height = canvas.parentElement.clientHeight;
-  updateBandY();
+  canvas.width = document.getElementById("gameContainer").clientWidth;
+  canvas.height = document.getElementById("gameContainer").clientHeight;
 }
 resizeCanvas();
 window.addEventListener("resize", resizeCanvas);
 
 // -----------------------------
-// Emoji's
-// -----------------------------
-const obstacleEmojis = ["💀"];
-const collectableEmojis = ["🪽"];
-
-// -----------------------------
 // Speler (Photeinos)
 // -----------------------------
-const photeinos = { x: 60, y: 0, w: 60, h: 60, vy: 0, onGround: false };
+const photeinos = { x: 50, y: 0, w: 50, h: 50, vy: 0, onGround: false };
 let speed = 6;
-let gravity = 0.7;
-let jumpPower = -12;
+let gravity = 1;
+let jumpPower = -18;
 
 // -----------------------------
 // Game variabelen
 // -----------------------------
+let currentLevel = 0;
 let obstacles = [];
 let collectables = [];
 let keys = {};
@@ -43,40 +37,76 @@ let paused = false;
 // -----------------------------
 let bandX = 0;
 const bandSpeed = 3;
-const bandHeight = 80;
+const bandHeight = 100;
 let bandY = 0; 
 function updateBandY() {
-  bandY = canvas.height - bandHeight - 20;
+  bandY = canvas.height - bandHeight - 50;
 }
+updateBandY();
+window.addEventListener("resize", updateBandY);
 
 // -----------------------------
-// Input
+// Input toetsenbord
 // -----------------------------
 document.addEventListener("keydown", e => keys[e.key] = true);
 document.addEventListener("keyup", e => keys[e.key] = false);
 
 // -----------------------------
-// Obstakels
+// Input tablet (touch)
+// -----------------------------
+let touchStartX = null;
+let touchStartY = null;
+
+canvas.addEventListener("touchstart", e => {
+  if (!running) return;
+  e.preventDefault();
+  const touch = e.touches[0];
+  touchStartX = touch.clientX;
+  touchStartY = touch.clientY;
+
+  // Tik = springen
+  if (photeinos.onGround) {
+    photeinos.vy = jumpPower;
+    photeinos.onGround = false;
+  }
+});
+
+canvas.addEventListener("touchmove", e => {
+  if (!running) return;
+  e.preventDefault();
+  const touch = e.touches[0];
+  const dx = touch.clientX - touchStartX;
+
+  if (dx > 40) { 
+    photeinos.x += speed; // veeg rechts
+    touchStartX = touch.clientX;
+  }
+  if (dx < -40) { 
+    photeinos.x -= speed; // veeg links
+    touchStartX = touch.clientX;
+  }
+});
+
+// -----------------------------
+// Obstakels (💀)
 // -----------------------------
 function spawnObstacle() {
-  const size = 60;
+  const h = 60;
   obstacles.push({
     x: canvas.width,
-    y: bandY - size,
-    w: size, h: size,
-    emoji: "💀"
+    y: canvas.height - h,
+    w: 50, h: h
   });
 }
 
 // -----------------------------
-// Collectables
+// Collectables (🪽)
 // -----------------------------
 function spawnCollectable() {
   collectables.push({
     x: canvas.width,
-    y: bandY - 120,
-    w: 50, h: 50,
-    emoji: "🪽"
+    y: bandY + 20,
+    w: 40, h: 40
   });
 }
 
@@ -94,14 +124,10 @@ function updatePlayer() {
   photeinos.vy += gravity;
   photeinos.y += photeinos.vy;
 
-  if (photeinos.y + photeinos.h > bandY) {
-    photeinos.y = bandY - photeinos.h;
+  if (photeinos.y + photeinos.h > canvas.height) {
+    photeinos.y = canvas.height - photeinos.h;
     photeinos.vy = 0;
     photeinos.onGround = true;
-  }
-  if (photeinos.y < 0) {
-    photeinos.y = 0;
-    photeinos.vy = 0;
   }
 }
 
@@ -120,7 +146,7 @@ function update() {
 
   updatePlayer();
 
-  // Band schuiven
+  // Band laten schuiven
   bandX -= bandSpeed;
   if (bandX <= -canvas.width) bandX = 0;
 
@@ -136,7 +162,7 @@ function update() {
   for (const o of obstacles) {
     if (rectsOverlap(photeinos, o)) {
       running = false;
-      alert("💥 Botsing! Game Over.");
+      alert("Botsing! Game Over.");
       return;
     }
   }
@@ -147,7 +173,7 @@ function update() {
     if (rectsOverlap(photeinos, c)) {
       score++;
       collectables.splice(i,1);
-      alert("✨ Je hebt een vleugel gevangen!");
+      alert("🪽 Je hebt een vleugel gevangen!");
     }
   }
 }
@@ -158,22 +184,22 @@ function update() {
 function draw() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  // Gras-band
-  ctx.fillStyle = "lightgreen";
+  // Band tekenen
+  ctx.fillStyle = "rgba(200,200,200,0.2)";
   ctx.fillRect(bandX, bandY, canvas.width, bandHeight);
   ctx.fillRect(bandX + canvas.width, bandY, canvas.width, bandHeight);
 
-  // Obstakels
-  ctx.font = "48px Arial";
-  obstacles.forEach(o => ctx.fillText(o.emoji, o.x, o.y));
+  // Obstakels (💀)
+  ctx.font = "40px Arial";
+  obstacles.forEach(o => ctx.fillText("💀", o.x, o.y));
 
-  // Collectables
+  // Collectables (🪽)
+  ctx.font = "36px Arial";
+  collectables.forEach(c => ctx.fillText("🪽", c.x, c.y));
+
+  // Speler ⭐
   ctx.font = "42px Arial";
-  collectables.forEach(c => ctx.fillText(c.emoji, c.x, c.y));
-
-  // Speler (Photeinos = blauw blokje voorlopig)
-  ctx.fillStyle = "blue";
-  ctx.fillRect(photeinos.x, photeinos.y, photeinos.w, photeinos.h);
+  ctx.fillText("⭐", photeinos.x, photeinos.y);
 
   // Score
   ctx.fillStyle = "black";
@@ -192,23 +218,30 @@ function loop() {
 loop();
 
 // -----------------------------
-// Controls
+// Controls: start/pauze
 // -----------------------------
-document.getElementById("startBtn").onclick = () => {
+const startBtn = document.createElement("button");
+startBtn.innerText = "Start spel (-20 punten)";
+startBtn.style.position = "absolute";
+startBtn.style.top = "80px";
+startBtn.style.right = "20px";
+document.body.appendChild(startBtn);
+
+startBtn.onclick = () => {
   running = true;
-  paused = false;
   score = 0;
   obstacles = [];
   collectables = [];
-  photeinos.x = 60;
-  photeinos.y = bandY - photeinos.h;
-  photeinos.vy = 0;
-  photeinos.onGround = true;
 };
 
-document.getElementById("pauseBtn").onclick = () => {
-  paused = !paused;
-};
+const pauseBtn = document.createElement("button");
+pauseBtn.innerText = "Pauze";
+pauseBtn.style.position = "absolute";
+pauseBtn.style.top = "120px";
+pauseBtn.style.right = "20px";
+document.body.appendChild(pauseBtn);
+
+pauseBtn.onclick = () => { paused = !paused; };
 
 // -----------------------------
 // Spawners
