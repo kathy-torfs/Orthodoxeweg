@@ -63,6 +63,17 @@
     }
     h1 { color: #2276b9; font-weight: bold; font-size: 2.3rem; margin-bottom: .3em;}
     h2 { font-size: 1.2rem; font-weight: normal; color: #29518c; margin-top:0;}
+    #gameover {
+      font-size: 2rem;
+      color: #e53935;
+      margin-top: 30px;
+      font-weight: bold;
+    }
+    #herstartBtn {
+      background: #7bb235; color:#fff; padding:10px 22px;
+      border-radius: 8px; font-size:1.2rem; border:none; margin-top:16px;
+      cursor:pointer; font-family:inherit;
+    }
   </style>
 
   <!-- Header + menubalk + beveiliging -->
@@ -76,9 +87,9 @@
   <div id="spelkaart">
     <h1>Photeinos Springspel</h1>
     <h2>Spring om vleugeltjes te pakken, ontwijk de doodskoppen!</h2>
-    <div id="spelcontainer">
-      <!-- Phaser canvas komt hier automatisch -->
-    </div>
+    <div id="spelcontainer"></div>
+    <div id="gameover" style="display:none;"></div>
+    <button id="herstartBtn" style="display:none;">Opnieuw spelen</button>
   </div>
 
   <div id="controls">
@@ -90,6 +101,7 @@
     // Spelconfiguratie
     const SPEL_BREEDTE = 500, SPEL_HOOGTE = 350;
     let score = 0;
+    let game, sceneRef;
 
     const config = {
       type: Phaser.AUTO,
@@ -107,53 +119,127 @@
 
     let photeinos, cursors;
     let jumpRequested = false;
+    let obstacles;
+    let gameOver = false;
+    let herstartBtn = document.getElementById('herstartBtn');
+    let gameoverMsg = document.getElementById('gameover');
 
     function preload() {
       // Gebruik testster voor zichtbaarheid
       this.load.image('photeinos', 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Plain_Yellow_Star.png/256px-Plain_Yellow_Star.png');
-      // Gebruik jouw sprite als je wilt:
-      // this.load.image('photeinos', 'https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.png');
+      this.load.image('vleugel', 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Emoji_u1fab6.svg/48px-Emoji_u1fab6.svg.png');
+      this.load.image('doodskop', 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Skull_and_crossbones.svg/48px-Skull_and_crossbones.svg.png');
     }
 
     function create() {
+      sceneRef = this;
+      gameOver = false;
+      gameoverMsg.style.display = 'none';
+      herstartBtn.style.display = 'none';
+      score = 0;
+
       // Lucht (bovenste helft)
       this.add.rectangle(SPEL_BREEDTE/2, SPEL_HOOGTE/4, SPEL_BREEDTE, SPEL_HOOGTE/2, 0xaee7ff);
       // Gras (onderste helft)
       this.add.rectangle(SPEL_BREEDTE/2, SPEL_HOOGTE*0.75, SPEL_BREEDTE, SPEL_HOOGTE/2, 0x8bc34a);
 
       // Photeinos grootte = 40% van hoogte
-      const photeinosGrootte = Math.round(SPEL_HOOGTE * 0.4); // = 140px bij 350 hoogte
-      // Y-positie: vlak op de graslijn (net boven onderste helft)
-      const startY = SPEL_HOOGTE / 2 - photeinosGrootte / 2 + 5;
-
+      const photeinosGrootte = Math.round(SPEL_HOOGTE * 0.4);
+      const startY = SPEL_HOOGTE / 2 - photeinosGrootte / 2 + 8;
       photeinos = this.physics.add.image(80, startY, 'photeinos')
         .setDisplaySize(photeinosGrootte, photeinosGrootte)
         .setCollideWorldBounds(true);
+      photeinos.body.setGravityY(980);
 
-      // Zwaartekracht aanzetten
-      photeinos.body.setGravityY(900);
-
-      // Keyboard controls
       cursors = this.input.keyboard.createCursorKeys();
 
-      // Springen: knop en spatie
-      document.getElementById("jumpBtn").onclick = () => { jumpRequested = true; };
-      this.input.keyboard.on('keydown-SPACE', () => { jumpRequested = true; });
+      // Obstakelgroep
+      obstacles = this.physics.add.group();
+
+      // Obstakels aanmaken
+      addObstacles(this);
+
+      // Botsingen
+      this.physics.add.overlap(photeinos, obstacles, handleCollision, null, this);
+
+      // Spring controls
+      document.getElementById("jumpBtn").onclick = () => { if (!gameOver) jumpRequested = true; };
+      this.input.keyboard.on('keydown-SPACE', () => { if (!gameOver) jumpRequested = true; });
+      this.input.on('pointerdown', () => { if (!gameOver) jumpRequested = true; });
+
+      // Herstartknop
+      herstartBtn.onclick = () => {
+        game.destroy(true);
+        setTimeout(() => { game = new Phaser.Game(config); }, 100);
+      };
+    }
+
+    function addObstacles(scene) {
+      // Zorg dat er max 2 obstakels zijn (per keer)
+      while (obstacles.countActive(true) < 2) {
+        // Random: 0 = doodskop, 1 = vleugel
+        let soort = Math.random() < 0.5 ? "doodskop" : "vleugel";
+        let x = SPEL_BREEDTE + 40 + Math.random()*100;
+        let y;
+        if (soort === "doodskop") {
+          // Graszone: 70-90% van schermhoogte
+          y = Phaser.Math.Between(SPEL_HOOGTE*0.70, SPEL_HOOGTE*0.90);
+        } else {
+          // Luchtzone: 10-40% van schermhoogte
+          y = Phaser.Math.Between(SPEL_HOOGTE*0.10, SPEL_HOOGTE*0.40);
+        }
+        let sprite = obstacles.create(x, y, soort);
+        sprite.setDisplaySize(42, 42);
+        sprite.setVelocityX(-80); // Rustige snelheid
+        sprite.sojrt = soort;
+        sprite.body.allowGravity = false;
+      }
+    }
+
+    function handleCollision(photeinos, obstacle) {
+      if (gameOver) return;
+      if (obstacle.texture.key === "doodskop") {
+        // GAME OVER
+        gameOver = true;
+        photeinos.setTint(0xe53935);
+        obstacle.setTint(0xe53935);
+        gameoverMsg.innerHTML = "Oei! Je raakte een doodskop!<br>Score: "+score;
+        gameoverMsg.style.display = 'block';
+        herstartBtn.style.display = 'block';
+        sceneRef.physics.pause();
+      } else if (obstacle.texture.key === "vleugel") {
+        // Score +1, vleugel weg
+        obstacle.destroy();
+        score++;
+      }
     }
 
     function update() {
-      // Springen als knop/spatie
-      if (jumpRequested && photeinos.body.touching.down) {
-        photeinos.setVelocityY(-photeinos.displayHeight * 3.0); // Sprongkracht afhankelijk van grootte
+      if (gameOver) return;
+
+      // Springfunctie: altijd mogelijk, zolang je niet bovenin zit
+      if (jumpRequested && photeinos.y > 0.2 * SPEL_HOOGTE) {
+        photeinos.setVelocityY(-photeinos.displayHeight * 2.4);
         jumpRequested = false;
       }
+
+      // Verwijder obstakels die buiten beeld zijn, voeg zo nodig nieuwe toe
+      obstacles.getChildren().forEach(ob => {
+        if (ob.x < -40) ob.destroy();
+      });
+      addObstacles(this);
+
+      // Score live updaten
       document.getElementById("score").textContent = "Score: " + score;
     }
 
-    // Optioneel: ook springen bij klik/tap op canvas (mobiel)
+    // Ook springen bij touch
     document.addEventListener('touchstart', function(e){
       jumpRequested = true;
     });
+
+    // Start het spel
+    window.onload = () => { game = new Phaser.Game(config); };
   </script>
 </body>
 </html>
