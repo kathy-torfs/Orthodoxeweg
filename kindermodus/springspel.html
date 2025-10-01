@@ -2,7 +2,6 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Springspel – Orthodoxe Kinderpagina</title>
   <style>
     body { background:#eee; margin:0; }
@@ -28,6 +27,7 @@
   </div>
   <div id="controls">
     <button id="startBtn">▶ Start spel (-20 punten)</button>
+    <button id="pauseBtn">⏸ Pauze</button>
     <span id="status"></span>
   </div>
   <div id="vraagOverlay">
@@ -36,125 +36,7 @@
       <div id="vraagAntwoorden"></div>
     </div>
   </div>
-<script>
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
-
-// ZONES
-const W = canvas.width, H = canvas.height;
-const zoneHeight = H / 2;
-const grassTop = H - zoneHeight;
-
-// ASSETS
-const photeinosImg = new Image();
-photeinosImg.src = "https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.png";
-const OBSTACLES = { vleugel: "🪽", dood: "💀" };
-
-// SPELER
-const phW = 88, phH = 88;
-const photeinos = { x: 120, y: H-phH, w:phW, h:phH, vy:0, jumping:false };
-
-// GAMESTATE
-let running = false, paused = false, level=1, vleugels=0, punten=0, obstacles=[], obstDelay=0;
-
-// LOGICA
-function resetGame() {
-  vleugels = 0; level = 1; obstacles = [];
-  photeinos.y = H-phH; photeinos.vy=0; photeinos.jumping=false;
-}
-document.getElementById("startBtn").onclick = function(){
-  if (punten < 20 && !running) return alert("Niet genoeg punten!");
-  punten = running ? punten : punten-20;
-  running = true; paused = false; resetGame();
-  this.blur(); this.innerText = "Herstart";
-  document.getElementById("status").innerText = `Level: ${level}  Vleugels: ${vleugels}  Punten: ${punten}`;
-};
-window.onkeydown = e => { if(e.key===" ") jump(); };
-
-function jump() {
-  if (!photeinos.jumping && running && !paused) {
-    photeinos.vy = -19; photeinos.jumping = true;
-  }
-}
-
-// OBSTACLES
-function spawnObstacle() {
-  if (!running || paused) return;
-  if (obstacles.length>=2) return;
-  let soort = Math.random()<0.5 ? "vleugel" : "dood";
-  let y = soort=="vleugel" ? grassTop-zoneHeight/2 : (H-phH+10);
-  obstacles.push({ x:W+10, y, w:48, h:48, soort, actief:true });
-}
-setInterval(spawnObstacle, 2200);
-
-function updateObstacles() {
-  for (let o of obstacles) o.x -= 2.1;
-  obstacles = obstacles.filter(o => o.x+o.w>0 && o.actief);
-}
-
-function checkCollision(a, b) {
-  return (a.x<a.x+b.w && a.x+a.w>b.x && a.y<a.y+b.h && a.y+a.h>b.y);
-}
-
-function updatePlayer() {
-  photeinos.vy += 1.15; photeinos.y += photeinos.vy;
-  if (photeinos.y + photeinos.h >= H) { // Land op gras
-    photeinos.y = H-photeinos.h; photeinos.jumping = false; photeinos.vy = 0;
-  }
-  if (photeinos.y < 0) { photeinos.y = 0; photeinos.vy = 0; }
-}
-
-function checkObstacles() {
-  for (let o of obstacles) {
-    if (!o.actief) continue;
-    let geraakt = checkCollision(photeinos, o);
-    if (o.soort==="dood" && geraakt && !photeinos.jumping) { // Doodskop op de grond, raakt als niet springt
-      running = false;
-      document.getElementById("status").innerText = "Game Over! Probeer opnieuw.";
-      o.actief=false;
-    }
-    if (o.soort==="vleugel" && geraakt && photeinos.jumping) { // Vleugels in de lucht, alleen als je springt
-      vleugels++; o.actief=false;
-      document.getElementById("status").innerText = `Level: ${level}  Vleugels: ${vleugels}  Punten: ${punten}`;
-      if (vleugels>=10) {
-        vleugels = 0; level++;
-        document.getElementById("status").innerText = `Niveau omhoog! Nu level ${level}.`;
-        if (level>5) {
-          punten+=10;
-          running=false;
-          document.getElementById("status").innerText = `Gefeliciteerd! Je hebt alles gehaald! +10 punten`;
-        }
-      }
-    }
-  }
-}
-
-// TEKENEN
-function draw() {
-  ctx.clearRect(0,0,W,H);
-  // Lucht
-  ctx.fillStyle="#aee7ff"; ctx.fillRect(0,0,W,zoneHeight);
-  // Gras
-  ctx.fillStyle="#8BC34A"; ctx.fillRect(0,grassTop,W,zoneHeight);
-  // Obstakels
-  for (let o of obstacles) ctx.font="44px Arial", ctx.fillText(OBSTACLES[o.soort], o.x, o.y+40);
-  // Photeinos
-  ctx.drawImage(photeinosImg, photeinos.x, photeinos.y, photeinos.w, photeinos.h);
-  // Score
-  ctx.fillStyle="#333"; ctx.font="20px Comic Sans MS";
-  ctx.fillText(`Level: ${level}  Vleugels: ${vleugels}  Punten: ${punten}`, 25,35);
-}
-
-function loop() {
-  if (running) {
-    updatePlayer();
-    updateObstacles();
-    checkObstacles();
-  }
-  draw();
-  requestAnimationFrame(loop);
-}
-loop();
-</script>
+  <script src="vragen.js"></script>
+  <script src="springspel.js"></script>
 </body>
 </html>
