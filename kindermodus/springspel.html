@@ -4,158 +4,72 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Photeinos Springspel – Orthodoxe Kinderpagina</title>
-  <link rel="icon" href="images/kruis.png" />
-
   <style>
-    :root{
-      --primair:#7bb235; --donker:#67510C;
-      --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
-      --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
-      --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
-      --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
-    }
-    body{
-      margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
-      min-height:100vh; background:var(--pastel1); transition:background .6s;
-    }
-    #controls {
-      box-sizing: border-box;
-      background-color: #3B96E5;
-      padding: 6px;
-    }
-    #controls button {
-      color: #fff;
-      font-family: inherit;
-      font-weight: 500;
-      padding: 6px 12px;
-      font-size: 16px;
-      cursor: pointer;
-      background-color: transparent;
-      border: none;
-    }
-    #controls button:hover {
-      background-color: rgba(0, 0, 0, 0.3);
-      border-color: rgba(0, 0, 0, 0.3);
-    }
-    #score {
-      color: #fff;
-      float: right;
-      padding: 6px 12px;
-    }
-    .phaser-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 70vh;
-    }
+    body { margin:0; font-family:'Comic Sans MS', Arial, sans-serif; background:#f7fff3; }
+    .phaser-container { display: flex; justify-content: center; align-items: center; min-height: 70vh; }
   </style>
-  <!-- Header + menubalk + beveiliging -->
-  <script defer src="common/layout.js"></script>
-  <!-- Phaser.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.js"></script>
 </head>
-
 <body>
-  <div id="kinder-header" data-header-src="common/header.html"></div>
-
   <div style="text-align:center;margin:30px 0 0 0;">
     <h1 style="color:#2276b9; font-weight:bold;">Photeinos Springspel</h1>
     <div style="color:#29518c;">Spring om vleugeltjes te pakken, ontwijk de doodskoppen!</div>
   </div>
-
   <div class="phaser-container">
     <div id="game"></div>
   </div>
-  <div id="controls">
-    <button id="jumpBtn">Spring!</button>
-    <span id="score">Score: 0</span>
+  <div id="controls" style="background:#3B96E5; padding:8px;text-align:center;">
+    <button id="jumpBtn" style="color:#fff;font-size:18px;">Spring!</button>
+    <span id="score" style="color:#fff;float:right;">Score: 0</span>
   </div>
 
 <script>
-const GAME_W = 600;
-const GAME_H = 400;
+const GAME_W = 600, GAME_H = 400, GRASS_Y = GAME_H/2, PHOTEINOS_SIZE = 70;
+let score = 0, photeinos, jumping = false;
 
-const GRASS_Y = GAME_H / 2;
-const PHOTEINOS_SIZE = 70;
-
-let score = 0;
-
-// Phaser Game Config
 const config = {
   type: Phaser.AUTO,
   width: GAME_W,
   height: GAME_H,
   backgroundColor: '#aee7ff',
   parent: 'game',
-  physics: {
-    default: 'arcade',
-    arcade: {
-      gravity: { y: 900 },  // gravity down
-      debug: false
-    }
-  },
-  scene: {
-    preload: preload,
-    create: create,
-    update: update
-  }
+  physics: { default: 'arcade', arcade: { gravity: { y: 900 }, debug: false } },
+  scene: { preload, create, update }
 };
-
-let photeinos, cursors, jumpBtn, jumping = false;
 
 function preload() {
   this.load.image('photeinos', 'https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.png');
 }
-
 function create() {
-  // Gras (rechthoek)
   this.add.rectangle(GAME_W/2, GRASS_Y + GAME_H/4, GAME_W, GAME_H/2, 0x8BC34A);
-
-  // Photeinos toevoegen
   photeinos = this.physics.add.sprite(60, GRASS_Y + GAME_H/4 - PHOTEINOS_SIZE/2, 'photeinos');
   photeinos.setDisplaySize(PHOTEINOS_SIZE, PHOTEINOS_SIZE);
   photeinos.setCollideWorldBounds(true);
   photeinos.body.setGravityY(600);
   photeinos.body.setBounce(0.15);
-
-  // Zet hem op het gras
   photeinos.setY(GRASS_Y + GAME_H/4 - PHOTEINOS_SIZE/2);
 
-  cursors = this.input.keyboard.createCursorKeys();
-  // Spacebar
   this.input.keyboard.on('keydown-SPACE', () => spring(this));
-
-  // Jump button (mobiel)
   document.getElementById('jumpBtn').onclick = () => spring(this);
-
-  // Touch support
   this.input.on('pointerdown', () => spring(this));
-
-  // Score reset
   updateScore(0);
 }
-
 function spring(scene) {
   if (photeinos.body.touching.down || photeinos.y > GRASS_Y) {
-    photeinos.setVelocityY(-350); // springkracht omhoog
-    jumping = true;
+    photeinos.setVelocityY(-350); jumping = true;
   }
 }
-
 function updateScore(s) {
-  score = s;
-  document.getElementById('score').textContent = "Score: " + score;
+  score = s; document.getElementById('score').textContent = "Score: " + score;
 }
-
 function update() {
-  // Houd Photeinos altijd boven het gras als hij niet springt
   if (photeinos.y > GRASS_Y + GAME_H/4 - PHOTEINOS_SIZE/2) {
     photeinos.setY(GRASS_Y + GAME_H/4 - PHOTEINOS_SIZE/2);
     photeinos.setVelocityY(0);
     jumping = false;
   }
 }
-
+new Phaser.Game(config);
 </script>
 </body>
 </html>
