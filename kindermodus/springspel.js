@@ -1,5 +1,5 @@
 // =============================
-// springspel.js (schone versie met jouw vragen)
+// springspel.js (met jouw vragen.js)
 // =============================
 
 // Canvas
@@ -39,7 +39,7 @@ const OBSTACLES = {
 // -----------------------------
 const photeinos = {
   x: 100,
-  //nota// Startpositie (bij laden én bij start spel)
+  //nota// Startpositie
   y: canvas.height - phSize,
   w: phSize,
   h: phSize,
@@ -51,7 +51,7 @@ const photeinos = {
 // Game variabelen
 // -----------------------------
 let obstacles = [];
-let score = 0;
+let vleugels = 0;
 let level = 1;
 let running = false;
 let paused = false;
@@ -65,10 +65,10 @@ canvas.addEventListener("touchstart", () => jump());
 // -----------------------------
 // Jump
 // -----------------------------
-//nota// Spronghoogte hier aanpassen
+//nota// Spronghoogte
 function jump() {
   if (!photeinos.jumping) {
-    photeinos.vy = -22; // sterkere sprong → hoog genoeg in luchtzone
+    photeinos.vy = -22; // krachtiger sprong → komt in luchtzone
     photeinos.jumping = true;
   }
 }
@@ -82,14 +82,13 @@ function spawnObstacle() {
 
   obstacles.push({
     x: canvas.width,
-    //nota// plaats obstakel gecentreerd in zijn zone
+    //nota// plaats obstakel midden in zijn zone
     y: inGras 
       ? (grassTop + (zoneHeight / 2) - (obSize / 2)) // midden gras
       : ((zoneHeight / 2) - (obSize / 2)),          // midden lucht
     w: obSize,
     h: obSize,
     soort,
-    inGras,
     actief: true
   });
 }
@@ -121,10 +120,6 @@ function rectsOverlap(a, b) {
   );
 }
 
-function collisionCheck(ob) {
-  return rectsOverlap(photeinos, ob);
-}
-
 // -----------------------------
 // Update loop
 // -----------------------------
@@ -133,14 +128,14 @@ function update() {
 
   updatePlayer();
 
-  obstacles.forEach(o => o.x -= 2); 
+  obstacles.forEach(o => o.x -= 1.5); //nota// langzamer
   obstacles = obstacles.filter(o => o.x + o.w > 0);
 
   for (let i = obstacles.length - 1; i >= 0; i--) {
     const o = obstacles[i];
-    if (o.actief && collisionCheck(o)) {
+    if (o.actief && rectsOverlap(photeinos, o)) {
       paused = true;
-      toonVraag(o); //nota// gebruikt jouw vragen.js
+      toonVraag(o);
       o.actief = false;
     }
   }
@@ -169,10 +164,10 @@ function draw() {
   // speler
   ctx.drawImage(photeinosImg, photeinos.x, photeinos.y, photeinos.w, photeinos.h);
 
-  // score + level
+  // status
   ctx.fillStyle = "black";
   ctx.font = "18px Comic Sans MS";
-  ctx.fillText("Score: " + score + " | Level: " + level, 20, 25);
+  ctx.fillText("Vleugels: " + vleugels + " | Level: " + level, 20, 25);
 }
 
 // -----------------------------
@@ -190,12 +185,12 @@ loop();
 // -----------------------------
 document.getElementById("startBtn").onclick = () => {
   running = true;
-  score = 0;
+  vleugels = 0;
   level = 1;
   obstacles = [];
   photeinos.vy = 0;
   photeinos.jumping = false;
-  photeinos.y = canvas.height - photeinos.h; // startpositie resetten
+  photeinos.y = canvas.height - photeinos.h;
 };
 
 document.getElementById("pauseBtn").onclick = () => { paused = !paused; };
@@ -203,27 +198,28 @@ document.getElementById("pauseBtn").onclick = () => { paused = !paused; };
 // -----------------------------
 // Spawners
 // -----------------------------
-// max 2 obstakels tegelijk
+// max 2 obstakels tegelijk, langzamer ritme
 setInterval(() => { 
   if(running && !paused && obstacles.length < 2) spawnObstacle(); 
-}, 5000);
+}, 6000);
 
 // -----------------------------
-// Vragen (van jouw vragen.js)
+// Vragen (met jouw vragen.js)
 // -----------------------------
-//nota// gebruikt gewoon jouw vragenbestand
 function toonVraag(ob) {
-  // Jouw vragen.js voorziet vragen[] en logica
   const overlay = document.getElementById("vraagOverlay");
   const tekst = document.getElementById("vraagTekst");
   const antwoorden = document.getElementById("vraagAntwoorden");
 
-  // filter vragen volgens obstakel
   let q;
   if (ob.soort === "licht") {
-    q = vragen.find(v => v.difficulty === "licht");
+    // Kies vraag uit level = difficulty
+    const opties = vragen.filter(v => v.difficulty === level || (level > 2 && v.difficulty === 3));
+    q = opties[Math.floor(Math.random()*opties.length)];
   } else {
-    q = vragen.find(v => v.difficulty === "zonde");
+    // zondevraag
+    const opties = vragen.filter(v => v.difficulty === "zonde");
+    q = opties[Math.floor(Math.random()*opties.length)];
   }
 
   tekst.textContent = q.q;
@@ -234,9 +230,14 @@ function toonVraag(ob) {
     btn.innerText = optie;
     btn.onclick = () => {
       if (i === q.correct) {
-        if (ob.soort === "licht") score++;
-        if (score % 10 === 0) level++;
-        alert("Goed zo!");
+        if (ob.soort === "licht") {
+          vleugels++;
+          if (vleugels % 10 === 0) {
+            level++;
+            alert("Goed gedaan! Je bent nu Level " + level);
+          }
+        }
+        alert("Juist!");
       } else {
         if (ob.soort === "zonde") {
           alert("Fout bij zondevraag – Game Over!");
