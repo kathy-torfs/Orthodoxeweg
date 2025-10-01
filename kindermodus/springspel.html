@@ -4,154 +4,157 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Springspel – Orthodoxe Kinderpagina</title>
-  <link rel="icon" href="images/kruis.png" />
-
   <style>
-    :root{
-      --primair:#7bb235; --donker:#67510C;
-      --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
-      --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
-      --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
-      --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
+    body { background:#eee; margin:0; }
+    #gameContainer {
+      width: 800px; height: 500px; 
+      margin: 50px auto; 
+      border: 4px solid #7bb235; 
+      border-radius: 16px; 
+      box-shadow: 0 4px 24px #bbb; 
+      position: relative; 
+      background: #fff;
     }
-    body{
-      margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
-      min-height:100vh; background:var(--pastel1); transition:background .6s;
-      overflow:hidden;
-    }
-    /* Scherm-in-scherm container */
-    #gameContainer{
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      margin:20px auto;
-      max-width:900px;
-      height:500px;
-      background:white;
-      border:3px solid var(--primair);
-      border-radius:18px;
-      box-shadow:0 4px 10px rgba(0,0,0,0.15);
-      position:relative;
-    }
-    #gameCanvas{
-      width:100%;
-      height:100%;
-      display:block;
-      border-radius:12px;
-    }
-
-    /* Vraagoverlay */
-    #vraagOverlay{
-      display:none; 
-      position:fixed; 
-      top:0; left:0; 
-      width:100%; height:100%;
-      background:rgba(0,0,0,0.7); 
-      z-index:1000;
-      justify-content:center; 
-      align-items:center; 
-      flex-direction:column;
-    }
-    #vraagBox{
-      background:#fff; 
-      color:#333; 
-      padding:20px; 
-      border-radius:12px; 
-      max-width:500px; 
-      width:80%;
-      box-shadow:0 6px 20px rgba(0,0,0,0.3);
-    }
-    #vraagTekst{
-      font-size:20px;
-      margin-bottom:15px;
-      color:var(--donker);
-    }
-    #vraagAntwoorden button{
-      display:block;
-      width:100%;
-      margin:8px 0;
-      padding:12px 18px;
-      font-size:18px;
-      background:var(--primair);
-      color:white;
-      border:none;
-      border-radius:10px;
-      cursor:pointer;
-      text-align:left;
-      transition:background 0.3s;
-    }
-    #vraagAntwoorden button:hover{
-      background:#5c8a24;
-    }
-
-    /* Start / Pauze knoppen */
-    #controls{
-      display:flex;
-      justify-content:center;
-      gap:20px;
-      margin:20px auto;
-    }
-    #controls button{
-      padding:12px 20px;
-      font-size:18px;
-      border:none;
-      border-radius:10px;
-      cursor:pointer;
-      color:#fff;
-    }
-    #startBtn{ background:var(--primair); }
-    #pauseBtn{ background:var(--donker); }
+    canvas { display:block; width:100%; height:100%; border-radius:12px; }
+    #controls { text-align: center; margin: 18px 0; }
+    #vraagOverlay { display:none; position:fixed;top:0;left:0;width:100vw;height:100vh;
+      background:rgba(0,0,0,.55);z-index:99;align-items:center;justify-content:center; }
+    #vraagBox { background:#fff; padding:24px; border-radius:12px; min-width:320px;}
   </style>
-
-  <!-- Header + menubalk -->
-  <script defer src="common/layout.js"></script>
-  <!-- Eerst vragen.js, dan springspel.js -->
-  <script defer src="vragen.js"></script>
-  <script defer src="springspel.js"></script>
 </head>
 <body>
-  <!-- Header -->
-  <div id="kinder-header" data-header-src="common/header.html"></div>
-
-  <!-- Scherm-in-scherm blok -->
   <div id="gameContainer">
-    <canvas id="gameCanvas"></canvas>
+    <canvas id="gameCanvas" width="800" height="500"></canvas>
   </div>
-
-  <!-- Knoppen -->
   <div id="controls">
     <button id="startBtn">▶ Start spel (-20 punten)</button>
-    <button id="pauseBtn">⏸ Pauze</button>
+    <span id="status"></span>
   </div>
-
-  <!-- Vraag overlay -->
   <div id="vraagOverlay">
     <div id="vraagBox">
       <p id="vraagTekst"></p>
       <div id="vraagAntwoorden"></div>
     </div>
   </div>
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
 
-  <script>
-    // Willekeurige pastelachtergrond
-    (function(){
-      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)',
-               'var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)',
-               'var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)',
-               'var(--pastel15)','var(--pastel16)'];
-      document.body.style.background = p[Math.floor(Math.random()*p.length)];
-    })();
+// ZONES
+const W = canvas.width, H = canvas.height;
+const zoneHeight = H / 2;
+const grassTop = H - zoneHeight;
 
-    // Header activeren
-    (function boot(){
-      if (!(window.KinderLayout)) return setTimeout(boot, 120);
-      const el = document.getElementById('kinder-header');
-      window.KinderLayout.mountHeader({
-        rootId: 'kinder-header',
-        headerSrc: el.dataset.headerSrc,
-        active: 'spelletjes'
-      });
-    })();
-  </script>
+// ASSETS
+const photeinosImg = new Image();
+photeinosImg.src = "https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.png";
+const OBSTACLES = { vleugel: "🪽", dood: "💀" };
+
+// SPELER
+const phW = 88, phH = 88;
+const photeinos = { x: 120, y: H-phH, w:phW, h:phH, vy:0, jumping:false };
+
+// GAMESTATE
+let running = false, paused = false, level=1, vleugels=0, punten=0, obstacles=[], obstDelay=0;
+
+// LOGICA
+function resetGame() {
+  vleugels = 0; level = 1; obstacles = [];
+  photeinos.y = H-phH; photeinos.vy=0; photeinos.jumping=false;
+}
+document.getElementById("startBtn").onclick = function(){
+  if (punten < 20 && !running) return alert("Niet genoeg punten!");
+  punten = running ? punten : punten-20;
+  running = true; paused = false; resetGame();
+  this.blur(); this.innerText = "Herstart";
+  document.getElementById("status").innerText = `Level: ${level}  Vleugels: ${vleugels}  Punten: ${punten}`;
+};
+window.onkeydown = e => { if(e.key===" ") jump(); };
+
+function jump() {
+  if (!photeinos.jumping && running && !paused) {
+    photeinos.vy = -19; photeinos.jumping = true;
+  }
+}
+
+// OBSTACLES
+function spawnObstacle() {
+  if (!running || paused) return;
+  if (obstacles.length>=2) return;
+  let soort = Math.random()<0.5 ? "vleugel" : "dood";
+  let y = soort=="vleugel" ? grassTop-zoneHeight/2 : (H-phH+10);
+  obstacles.push({ x:W+10, y, w:48, h:48, soort, actief:true });
+}
+setInterval(spawnObstacle, 2200);
+
+function updateObstacles() {
+  for (let o of obstacles) o.x -= 2.1;
+  obstacles = obstacles.filter(o => o.x+o.w>0 && o.actief);
+}
+
+function checkCollision(a, b) {
+  return (a.x<a.x+b.w && a.x+a.w>b.x && a.y<a.y+b.h && a.y+a.h>b.y);
+}
+
+function updatePlayer() {
+  photeinos.vy += 1.15; photeinos.y += photeinos.vy;
+  if (photeinos.y + photeinos.h >= H) { // Land op gras
+    photeinos.y = H-photeinos.h; photeinos.jumping = false; photeinos.vy = 0;
+  }
+  if (photeinos.y < 0) { photeinos.y = 0; photeinos.vy = 0; }
+}
+
+function checkObstacles() {
+  for (let o of obstacles) {
+    if (!o.actief) continue;
+    let geraakt = checkCollision(photeinos, o);
+    if (o.soort==="dood" && geraakt && !photeinos.jumping) { // Doodskop op de grond, raakt als niet springt
+      running = false;
+      document.getElementById("status").innerText = "Game Over! Probeer opnieuw.";
+      o.actief=false;
+    }
+    if (o.soort==="vleugel" && geraakt && photeinos.jumping) { // Vleugels in de lucht, alleen als je springt
+      vleugels++; o.actief=false;
+      document.getElementById("status").innerText = `Level: ${level}  Vleugels: ${vleugels}  Punten: ${punten}`;
+      if (vleugels>=10) {
+        vleugels = 0; level++;
+        document.getElementById("status").innerText = `Niveau omhoog! Nu level ${level}.`;
+        if (level>5) {
+          punten+=10;
+          running=false;
+          document.getElementById("status").innerText = `Gefeliciteerd! Je hebt alles gehaald! +10 punten`;
+        }
+      }
+    }
+  }
+}
+
+// TEKENEN
+function draw() {
+  ctx.clearRect(0,0,W,H);
+  // Lucht
+  ctx.fillStyle="#aee7ff"; ctx.fillRect(0,0,W,zoneHeight);
+  // Gras
+  ctx.fillStyle="#8BC34A"; ctx.fillRect(0,grassTop,W,zoneHeight);
+  // Obstakels
+  for (let o of obstacles) ctx.font="44px Arial", ctx.fillText(OBSTACLES[o.soort], o.x, o.y+40);
+  // Photeinos
+  ctx.drawImage(photeinosImg, photeinos.x, photeinos.y, photeinos.w, photeinos.h);
+  // Score
+  ctx.fillStyle="#333"; ctx.font="20px Comic Sans MS";
+  ctx.fillText(`Level: ${level}  Vleugels: ${vleugels}  Punten: ${punten}`, 25,35);
+}
+
+function loop() {
+  if (running) {
+    updatePlayer();
+    updateObstacles();
+    checkObstacles();
+  }
+  draw();
+  requestAnimationFrame(loop);
+}
+loop();
+</script>
 </body>
 </html>
