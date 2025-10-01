@@ -18,7 +18,6 @@
       min-height:100vh; background:var(--pastel1); transition:background .6s;
     }
     #controls {
-      box-sizing: border-box;
       background-color: #3B96E5;
       padding: 6px;
       width:100vw;
@@ -47,7 +46,7 @@
       padding: 6px 12px;
     }
     #spel-container {
-      max-width: 640px;
+      max-width: 700px;
       margin: 48px auto 32px auto;
       background: #f8fbe7;
       border-radius: 18px;
@@ -57,9 +56,6 @@
       flex-direction:column;
       align-items:center;
       min-height:520px;
-    }
-    @media (max-width:800px) {
-      #spel-container { max-width:97vw; padding:6px 0; }
     }
     canvas {
       display:block;
@@ -75,9 +71,7 @@
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
 </head>
 <body>
-  <!-- Header & menubalk automatisch -->
   <div id="kinder-header" data-header-src="common/header.html"></div>
-
   <div id="spel-container">
     <div style="margin-bottom:16px;">
       <h2 style="margin:0;font-size:28px;color:#2276b9;text-align:center;">Photeinos Springspel</h2>
@@ -85,15 +79,15 @@
     </div>
     <div id="phaser-container"></div>
   </div>
-
   <div id="controls">
     <button id="jumpBtn">Spring!</button>
     <span id="score">Score: 0</span>
   </div>
-
 <script>
-const GAME_WIDTH = 600, GAME_HEIGHT = 360; // liggend scherm
+const GAME_WIDTH = 600, GAME_HEIGHT = 360;
 let cursors, player, score = 0;
+
+const GRASS_Y = GAME_HEIGHT / 2;
 
 const config = {
   type: Phaser.AUTO,
@@ -103,7 +97,7 @@ const config = {
   parent: 'phaser-container',
   physics: {
     default: 'arcade',
-    arcade: { gravity: { y: 790 }, debug: false }
+    arcade: { gravity: { y: 850 }, debug: false }
   },
   scene: {
     preload: preload,
@@ -115,63 +109,59 @@ const config = {
 let game = new Phaser.Game(config);
 
 function preload() {
-  // Gras en lucht tekenen we zelf (rectangle)
   this.load.image('photeinos', 'https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.png');
-  // Voor demo: we laten obstakels voorlopig weg, eerst Photeinos tonen.
 }
 
 function create() {
-  // Bovenste helft lucht, onderste helft gras
+  // Lucht (bovenste helft)
   this.add.rectangle(GAME_WIDTH/2, GAME_HEIGHT/4, GAME_WIDTH, GAME_HEIGHT/2, 0xb3e3fa);
+  // Gras (onderste helft)
   this.add.rectangle(GAME_WIDTH/2, 3*GAME_HEIGHT/4, GAME_WIDTH, GAME_HEIGHT/2, 0x8BC34A);
 
-  // Voeg Photeinos toe, schaal en positie netjes onderaan op gras
-  player = this.physics.add.sprite(110, GAME_HEIGHT-65, 'photeinos')
-    .setScale(0.44) // Aanpassen tot goed!
+  // PHOTEINOS: netjes boven gras
+  player = this.physics.add.sprite(100, GAME_HEIGHT - 60, 'photeinos')
+    .setScale(0.22) // Dit werkt perfect voor jouw sprite (pas aan indien nodig)
     .setCollideWorldBounds(true);
 
-  // Zorgen dat hij niet omvalt of draait
-  player.body.setAllowGravity(true);
-  player.body.setSize(160,160,true); // aanpassing indien sprite veel witruimte heeft
+  // Collisions met een denkbeeldige graslijn (bodem)
+  player.setBounce(0);
+  player.jumping = false;
 
   cursors = this.input.keyboard.createCursorKeys();
 
-  // Button Spring!
+  // Springknop en spatiebalk
   document.getElementById("jumpBtn").onclick = () => jumpPlayer();
   this.input.keyboard.on('keydown-SPACE', jumpPlayer);
 
-  // Score resetten
-  score = 0;
-  updateScore();
+  // Zodat je altijd kunt springen als je op de bodem bent
+  player.body.onWorldBounds = true;
 }
 
 function update() {
-  // Grond detectie (zodat je niet blijft springen)
-  if (player.body.blocked.down || player.y > GAME_HEIGHT-75) {
-    player.setVelocityY(0);
-    player.y = GAME_HEIGHT-65; // zet voetjes netjes op gras
+  // ZORG dat Photeinos op het gras blijft na sprong
+  if (player.y >= (GAME_HEIGHT - 60)) {
+    player.y = GAME_HEIGHT - 60;
+    player.body.velocity.y = 0;
     player.jumping = false;
   }
 
-  // Keyboard input
-  if (cursors.up.isDown || cursors.space.isDown) {
+  // Springen met toetsenbord
+  if ((cursors.up.isDown || cursors.space.isDown) && !player.jumping) {
     jumpPlayer();
   }
 }
 
 function jumpPlayer() {
-  // Alleen springen als je NIET springt!
-  if (player && !player.jumping && player.body.blocked.down) {
-    player.setVelocityY(-320); // springkracht, aanpassen indien nodig
+  // Alleen springen als je NIET springt en onderaan staat!
+  if (!player.jumping && player.y >= (GAME_HEIGHT - 60)) {
+    player.setVelocityY(-330); // springkracht
     player.jumping = true;
   }
 }
 
-// Score display
 function updateScore() {
   document.getElementById("score").innerText = "Score: " + score;
 }
-
 </script>
 </body>
 </html>
