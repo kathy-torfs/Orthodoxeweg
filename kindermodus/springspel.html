@@ -1,70 +1,75 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Photeinos Springspel – Orthodoxe Kinderpagina</title>
-  <link rel="icon" href="images/kruis.png" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Phaser Springspel Demo</title>
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
   <style>
-    body { margin:0; font-family:'Comic Sans MS',Arial,sans-serif; background:var(--pastel1,#f9fbe7);}
-    #gameContainer {
-      margin:30px auto 0 auto; max-width:830px; background:white; border-radius:16px; box-shadow:0 2px 28px #bce1be44;
-      padding:12px 8px 30px 8px; border:4px solid #7bb235;
-      position:relative;
-    }
-    #scoreBar {
-      display:flex; justify-content:space-between; align-items:center;
-      margin-bottom:10px; padding:8px 16px 4px 16px;
-      background:linear-gradient(90deg,#f7fbf2,#e6ffe5 98%);
-      border-radius:11px;
-      font-size:20px; color:#26551a; font-weight:bold;
-      box-shadow:0 2px 9px #bde1be44;
-    }
-    #gameCanvas { width:800px; height:500px; background:transparent; border-radius:12px; display:block;}
-    #controls { display:flex; justify-content:center; gap:18px; margin:18px 0 0 0;}
-    #controls button { padding:11px 22px; font-size:18px; border:none; border-radius:10px; background:#7bb235; color:#fff; cursor:pointer;}
-    #controls button[disabled] { opacity:.5; cursor:not-allowed;}
-    #vraagOverlay { display:none; position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:100;
-      background:rgba(0,0,0,0.68); align-items:center; justify-content:center; }
-    #vraagBox { background:#fff; border-radius:15px; min-width:300px; max-width:480px; padding:22px 14px;}
-    #vraagTekst { font-size:19px; color:#355514; margin-bottom:10px;}
-    #vraagAntwoorden button { display:block; margin:7px 0; padding:9px 16px; border:none; border-radius:8px; font-size:17px; background:#aee7ff; color:#17595d; cursor:pointer;}
-    #vraagAntwoorden button:hover { background:#7bb235; color:#fff;}
-    @media (max-width:900px){ #gameCanvas{width:100vw;max-width:100vw;}}
+    body { margin:0; background: #cbefff; }
+    #gameContainer { margin: 32px auto; width: 420px; }
   </style>
-  <script defer src="common/layout.js"></script>
-  <script defer src="springspel.js"></script>
 </head>
 <body>
-  <div id="kinder-header" data-header-src="common/header.html"></div>
-  <div id="gameContainer">
-    <div id="scoreBar">
-      <span id="scoreText"></span>
-      <span id="puntentelling"></span>
-    </div>
-    <canvas id="gameCanvas" width="800" height="500"></canvas>
-    <div id="controls">
-      <button id="startBtn">▶ Start spel (kost 20 punten)</button>
-      <button id="pauseBtn">⏸ Pauze</button>
-    </div>
-    <div id="vraagOverlay">
-      <div id="vraagBox">
-        <p id="vraagTekst"></p>
-        <div id="vraagAntwoorden"></div>
-      </div>
-    </div>
-  </div>
+  <div id="gameContainer"></div>
   <script>
-    // Header activeren
-    (function boot(){
-      if (!(window.KinderLayout)) return setTimeout(boot, 100);
-      const el = document.getElementById('kinder-header');
-      window.KinderLayout.mountHeader({
-        rootId: 'kinder-header',
-        headerSrc: el.dataset.headerSrc,
-        active: 'spelletjes'
-      });
-    })();
+    // BASISCONFIG
+    const config = {
+      type: Phaser.AUTO,
+      width: 400,
+      height: 500,
+      parent: 'gameContainer',
+      backgroundColor: "#aee7ff",
+      physics: {
+        default: 'arcade',
+        arcade: {
+          gravity: { y: 900 }, // zwaartekracht
+          debug: false
+        }
+      },
+      scene: {
+        preload,
+        create,
+        update
+      }
+    };
+
+    let speler, cursors, springsleutel, gras;
+
+    function preload() {
+      // Plaatje voor Photeinos
+      this.load.image('photeinos', 'https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.png');
+    }
+
+    function create() {
+      // Graszone
+      gras = this.add.rectangle(200, 475, 400, 50, 0x8BC34A).setOrigin(0.5, 0.5);
+      // Speler
+      speler = this.physics.add.sprite(100, 440, 'photeinos').setScale(0.36).setCollideWorldBounds(true);
+      speler.body.setSize(speler.width*0.7, speler.height*0.7, true);
+      speler.setBounce(0.08);
+
+      // Simuleer vloer
+      speler.setCollideWorldBounds(true);
+
+      // Controls
+      cursors = this.input.keyboard.createCursorKeys();
+      springsleutel = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+
+      // Zodat hij op de 'vloer' blijft
+      speler.body.setGravityY(0);
+    }
+
+    function update() {
+      // Springen
+      if ((Phaser.Input.Keyboard.JustDown(cursors.up) || Phaser.Input.Keyboard.JustDown(springsleutel)) && speler.body.touching.down) {
+        speler.setVelocityY(-340);
+      }
+      // Niets extra's nodig: gravity doet de rest!
+    }
+
+    // Start spel
+    new Phaser.Game(config);
   </script>
 </body>
 </html>
