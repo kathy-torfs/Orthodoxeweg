@@ -1,75 +1,68 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Phaser Springspel Demo</title>
-  <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+  <meta charset="UTF-8" />
+  <title>Photeinos Springspel Demo</title>
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
   <style>
-    body { margin:0; background: #cbefff; }
-    #gameContainer { margin: 32px auto; width: 420px; }
+    body { margin:0; background:#cbeeff; }
+    #gameContainer { margin: 30px auto; display: block; width: 600px; }
   </style>
 </head>
 <body>
   <div id="gameContainer"></div>
-  <script>
-    // BASISCONFIG
-    const config = {
-      type: Phaser.AUTO,
-      width: 400,
-      height: 500,
-      parent: 'gameContainer',
-      backgroundColor: "#aee7ff",
-      physics: {
-        default: 'arcade',
-        arcade: {
-          gravity: { y: 900 }, // zwaartekracht
-          debug: false
-        }
-      },
-      scene: {
-        preload,
-        create,
-        update
-      }
-    };
+<script>
+const BREEDTE = 600;
+const HOOGTE = 400;
 
-    let speler, cursors, springsleutel, gras;
+const config = {
+  type: Phaser.AUTO,
+  width: BREEDTE,
+  height: HOOGTE,
+  parent: 'gameContainer',
+  backgroundColor: "#aee7ff",
+  physics: {
+    default: 'arcade',
+    arcade: { gravity: { y: 1100 }, debug: false }
+  },
+  scene: { preload, create, update }
+};
 
-    function preload() {
-      // Plaatje voor Photeinos
-      this.load.image('photeinos', 'https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.png');
-    }
+let speler, cursors, springsleutel;
 
-    function create() {
-      // Graszone
-      gras = this.add.rectangle(200, 475, 400, 50, 0x8BC34A).setOrigin(0.5, 0.5);
-      // Speler
-      speler = this.physics.add.sprite(100, 440, 'photeinos').setScale(0.36).setCollideWorldBounds(true);
-      speler.body.setSize(speler.width*0.7, speler.height*0.7, true);
-      speler.setBounce(0.08);
+function preload() {
+  this.load.image('photeinos', 'https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.png');
+}
 
-      // Simuleer vloer
-      speler.setCollideWorldBounds(true);
+function create() {
+  // Lucht (bovenste helft)
+  this.add.rectangle(BREEDTE/2, HOOGTE/4, BREEDTE, HOOGTE/2, 0xaee7ff).setDepth(0);
 
-      // Controls
-      cursors = this.input.keyboard.createCursorKeys();
-      springsleutel = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+  // Gras (onderste helft)
+  this.add.rectangle(BREEDTE/2, HOOGTE*3/4, BREEDTE, HOOGTE/2, 0x8BC34A).setDepth(0);
 
-      // Zodat hij op de 'vloer' blijft
-      speler.body.setGravityY(0);
-    }
+  // Speler
+  speler = this.physics.add.sprite(120, HOOGTE-70, 'photeinos').setScale(0.8).setCollideWorldBounds(true);
+  speler.body.setSize(speler.width * 0.7, speler.height * 0.8, true);
+  speler.setBounce(0.12);
 
-    function update() {
-      // Springen
-      if ((Phaser.Input.Keyboard.JustDown(cursors.up) || Phaser.Input.Keyboard.JustDown(springsleutel)) && speler.body.touching.down) {
-        speler.setVelocityY(-340);
-      }
-      // Niets extra's nodig: gravity doet de rest!
-    }
+  // Onzichtbare grond zodat hij niet doorzakt
+  let grond = this.add.rectangle(BREEDTE/2, HOOGTE-25, BREEDTE, 30, 0xffffff, 0).setDepth(1);
+  this.physics.add.existing(grond, true);
+  this.physics.add.collider(speler, grond);
 
-    // Start spel
-    new Phaser.Game(config);
-  </script>
+  cursors = this.input.keyboard.createCursorKeys();
+  springsleutel = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+}
+
+function update() {
+  // Springen: pijl omhoog of spatie
+  if ((Phaser.Input.Keyboard.JustDown(cursors.up) || Phaser.Input.Keyboard.JustDown(springsleutel)) && speler.body.touching.down) {
+    speler.setVelocityY(-440);
+  }
+}
+
+new Phaser.Game(config);
+</script>
 </body>
 </html>
