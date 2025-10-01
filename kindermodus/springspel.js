@@ -1,27 +1,28 @@
 // =============================
-// springspel.js (met jouw vragen.js)
+// springspel.js (volledige versie met //nota//)
 // =============================
 
 // Canvas
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+// Dynamische grootte
 canvas.width = 800;
 canvas.height = 500;
 
 // -----------------------------
 // Zones
 // -----------------------------
-const zoneHeight = canvas.height / 2; // 50% lucht, 50% gras
-const grassTop = canvas.height - zoneHeight;
+const zoneHeight = canvas.height / 2; // 50% lucht + 50% gras
+const grassTop = canvas.height - zoneHeight; // bovenkant graszone
 
 // -----------------------------
 // Afmetingen
 // -----------------------------
-//nota// grootte Photeinos
-const phSize = canvas.height * 0.30; 
-//nota// grootte Obstakels
-const obSize = canvas.height * 0.20; 
+//nota// grootte van Photeinos aanpassen
+const phSize = canvas.height * 0.35; // 35% van schermhoogte
+//nota// grootte van obstakels aanpassen
+const obSize = canvas.height * 0.20; // 20% van schermhoogte
 
 // -----------------------------
 // Assets
@@ -39,7 +40,7 @@ const OBSTACLES = {
 // -----------------------------
 const photeinos = {
   x: 100,
-  //nota// Startpositie
+  //nota// startpositie van Photeinos in graszone
   y: canvas.height - phSize,
   w: phSize,
   h: phSize,
@@ -51,24 +52,28 @@ const photeinos = {
 // Game variabelen
 // -----------------------------
 let obstacles = [];
-let vleugels = 0;
-let level = 1;
+let keys = {};
+let vleugels = 0;  // telt vleugeltjes
+let level = 1;     // startlevel
 let running = false;
 let paused = false;
 
 // -----------------------------
 // Input
 // -----------------------------
-document.addEventListener("keydown", e => { if (e.key === " ") jump(); });
+document.addEventListener("keydown", e => keys[e.key] = true);
+document.addEventListener("keyup", e => keys[e.key] = false);
+
+// Touch controls
 canvas.addEventListener("touchstart", () => jump());
 
 // -----------------------------
 // Jump
 // -----------------------------
-//nota// Spronghoogte
 function jump() {
   if (!photeinos.jumping) {
-    photeinos.vy = -22; // krachtiger sprong → komt in luchtzone
+    //nota// springhoogte aanpassen
+    photeinos.vy = -20;
     photeinos.jumping = true;
   }
 }
@@ -77,18 +82,18 @@ function jump() {
 // Obstakels
 // -----------------------------
 function spawnObstacle() {
+  if (obstacles.length >= 2) return; // max 2 tegelijk
+
   const soort = Math.random() < 0.6 ? "licht" : "zonde";
   const inGras = Math.random() < 0.5;
 
   obstacles.push({
     x: canvas.width,
-    //nota// plaats obstakel midden in zijn zone
-    y: inGras 
-      ? (grassTop + (zoneHeight / 2) - (obSize / 2)) // midden gras
-      : ((zoneHeight / 2) - (obSize / 2)),          // midden lucht
+    y: inGras ? (canvas.height - obSize) : (grassTop - obSize),
     w: obSize,
     h: obSize,
     soort,
+    inGras,
     actief: true
   });
 }
@@ -97,10 +102,12 @@ function spawnObstacle() {
 // Player update
 // -----------------------------
 function updatePlayer() {
-  photeinos.vy += 1.0; // zwaartekracht
+  if (keys[" "]) jump();
+
+  photeinos.vy += 0.9; // zwaartekracht
   photeinos.y += photeinos.vy;
 
-  // begrenzen op gras
+  // ondergrond begrenzen
   if (photeinos.y + photeinos.h > canvas.height) {
     photeinos.y = canvas.height - photeinos.h;
     photeinos.vy = 0;
@@ -109,7 +116,7 @@ function updatePlayer() {
 }
 
 // -----------------------------
-// Collision
+// Collision (echte overlap)
 // -----------------------------
 function rectsOverlap(a, b) {
   return (
@@ -120,6 +127,15 @@ function rectsOverlap(a, b) {
   );
 }
 
+function collisionCheck(ob) {
+  if (!rectsOverlap(photeinos, ob)) return false; // enkel bij echte botsing
+  if (ob.inGras) {
+    return !photeinos.jumping; // geraakt als niet springt
+  } else {
+    return photeinos.jumping;  // geraakt als springt
+  }
+}
+
 // -----------------------------
 // Update loop
 // -----------------------------
@@ -128,12 +144,13 @@ function update() {
 
   updatePlayer();
 
-  obstacles.forEach(o => o.x -= 1.5); //nota// langzamer
+  //nota// snelheid van obstakels aanpassen (kleiner = trager)
+  obstacles.forEach(o => o.x -= 2);
   obstacles = obstacles.filter(o => o.x + o.w > 0);
 
   for (let i = obstacles.length - 1; i >= 0; i--) {
     const o = obstacles[i];
-    if (o.actief && rectsOverlap(photeinos, o)) {
+    if (o.actief && collisionCheck(o)) {
       paused = true;
       toonVraag(o);
       o.actief = false;
@@ -157,17 +174,15 @@ function draw() {
 
   // obstakels
   ctx.font = `${obSize}px Arial`;
-  obstacles.forEach(o => {
-    ctx.fillText(OBSTACLES[o.soort], o.x, o.y + o.h);
-  });
+  obstacles.forEach(o => ctx.fillText(OBSTACLES[o.soort], o.x, o.y + o.h));
 
   // speler
   ctx.drawImage(photeinosImg, photeinos.x, photeinos.y, photeinos.w, photeinos.h);
 
-  // status
+  // score/level
   ctx.fillStyle = "black";
   ctx.font = "18px Comic Sans MS";
-  ctx.fillText("Vleugels: " + vleugels + " | Level: " + level, 20, 25);
+  ctx.fillText("Level: " + level + " | Vleugels: " + vleugels, 20, 25);
 }
 
 // -----------------------------
@@ -181,9 +196,16 @@ function loop() {
 loop();
 
 // -----------------------------
-// Controls
+// Controls: start/pauze
 // -----------------------------
-document.getElementById("startBtn").onclick = () => {
+const startBtn = document.createElement("button");
+startBtn.innerText = "▶ Start spel";
+startBtn.style.position = "absolute";
+startBtn.style.bottom = "30px";
+startBtn.style.right = "180px";
+document.body.appendChild(startBtn);
+
+startBtn.onclick = () => {
   running = true;
   vleugels = 0;
   level = 1;
@@ -193,18 +215,22 @@ document.getElementById("startBtn").onclick = () => {
   photeinos.y = canvas.height - photeinos.h;
 };
 
-document.getElementById("pauseBtn").onclick = () => { paused = !paused; };
+const pauseBtn = document.createElement("button");
+pauseBtn.innerText = "⏸ Pauze";
+pauseBtn.style.position = "absolute";
+pauseBtn.style.bottom = "30px";
+pauseBtn.style.right = "30px";
+document.body.appendChild(pauseBtn);
+
+pauseBtn.onclick = () => { paused = !paused; };
 
 // -----------------------------
 // Spawners
 // -----------------------------
-// max 2 obstakels tegelijk, langzamer ritme
-setInterval(() => { 
-  if(running && !paused && obstacles.length < 2) spawnObstacle(); 
-}, 6000);
+setInterval(() => { if(running && !paused) spawnObstacle(); }, 5000);
 
 // -----------------------------
-// Vragen (met jouw vragen.js)
+// Vraag overlay
 // -----------------------------
 function toonVraag(ob) {
   const overlay = document.getElementById("vraagOverlay");
@@ -213,31 +239,36 @@ function toonVraag(ob) {
 
   let q;
   if (ob.soort === "licht") {
-    // Kies vraag uit level = difficulty
-    const opties = vragen.filter(v => v.difficulty === level || (level > 2 && v.difficulty === 3));
-    q = opties[Math.floor(Math.random()*opties.length)];
+    const vragenLicht = vragen.filter(v => v.difficulty === level);
+    q = vragenLicht[Math.floor(Math.random()*vragenLicht.length)];
   } else {
-    // zondevraag
-    const opties = vragen.filter(v => v.difficulty === "zonde");
-    q = opties[Math.floor(Math.random()*opties.length)];
+    const vragenZonde = vragen.filter(v => v.difficulty === "zonde");
+    q = vragenZonde[Math.floor(Math.random()*vragenZonde.length)];
   }
 
   tekst.textContent = q.q;
   antwoorden.innerHTML = "";
 
-  q.a.forEach((optie, i) => {
+  // aantal antwoorden beperken volgens level
+  let opties = q.a;
+  if (level === 3) opties = opties.slice(0, 2);
+  if (level === 4) opties = opties.slice(0, 3);
+  // level 5 = alle opties
+
+  opties.forEach((optie, i) => {
     const btn = document.createElement("button");
     btn.innerText = optie;
     btn.onclick = () => {
       if (i === q.correct) {
         if (ob.soort === "licht") {
           vleugels++;
-          if (vleugels % 10 === 0) {
+          if (vleugels >= 10) {
             level++;
-            alert("Goed gedaan! Je bent nu Level " + level);
+            vleugels = 0;
+            alert("Proficiat! Je bent naar level " + level + " gegaan.");
           }
         }
-        alert("Juist!");
+        alert("Goed zo!");
       } else {
         if (ob.soort === "zonde") {
           alert("Fout bij zondevraag – Game Over!");
