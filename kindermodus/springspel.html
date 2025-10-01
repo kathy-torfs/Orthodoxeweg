@@ -76,9 +76,7 @@
   <div id="spelkaart">
     <h1>Photeinos Springspel</h1>
     <h2>Spring om vleugeltjes te pakken, ontwijk de doodskoppen!</h2>
-    <div id="spelcontainer">
-      <!-- Phaser canvas komt hier automatisch -->
-    </div>
+    <div id="spelcontainer"></div>
   </div>
 
   <div id="controls">
@@ -97,6 +95,13 @@
       height: SPEL_HOOGTE,
       backgroundColor: "#b8e4fa",
       parent: 'spelcontainer',
+      physics: {
+        default: 'arcade',
+        arcade: {
+          gravity: { y: 800 },
+          debug: false
+        }
+      },
       scene: {
         preload: preload,
         create: create,
@@ -108,10 +113,9 @@
     let jumpRequested = false;
 
     function preload() {
-      // **GEBRUIK DIT** voor de testster, werkt altijd:
+      // Gebruik deze ster voor universele werking
       this.load.image('photeinos', 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Plain_Yellow_Star.png/256px-Plain_Yellow_Star.png');
-
-      // **OF** gebruik je eigen sprite (pas aan als je wilt testen):
+      // Of je eigen sprite:
       // this.load.image('photeinos', 'https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.png');
     }
 
@@ -124,7 +128,6 @@
       photeinos = this.physics.add.image(80, SPEL_HOOGTE*0.75+35, 'photeinos')
         .setDisplaySize(70,70)
         .setCollideWorldBounds(true);
-      photeinos.body.setGravityY(800); // zwaartekracht
 
       // Keyboard controls
       cursors = this.input.keyboard.createCursorKeys();
@@ -140,10 +143,12 @@
         photeinos.setVelocityY(-340);
         jumpRequested = false;
       }
-
       // (Score bijvullen of extra logica...)
       document.getElementById("score").textContent = "Score: " + score;
     }
+
+    // Start het spel
+    new Phaser.Game(config);
   </script>
 </body>
 </html>
