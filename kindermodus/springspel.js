@@ -1,25 +1,35 @@
-// springspel.js – Orthodoxe versie (alle logica, clean)
-// === Canvas ===
+// ======================
+// SPRINGSPEL.JS – BASIS
+// ======================
+
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
+
+// Schermgrootte
 canvas.width = 800;
 canvas.height = 500;
 
-// === Zones & Afmetingen ===
+// Zones
 const zoneHeight = canvas.height / 2;
 const grassTop = canvas.height - zoneHeight;
-const phSize = canvas.height * 0.37;
-const obSize = canvas.height * 0.18;
-const obstacleSpeed = 1.1; // //nota// snelheid van obstakels
 
-// === Assets ===
+// Afmetingen
+const phSize = canvas.height * 0.32;
+const obSize = canvas.height * 0.17;
+const obstacleSpeed = 1.1;
+
+// Assets
 const photeinosImg = new Image();
 photeinosImg.src = "https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.png";
-const OBSTACLES = { licht: "🪽", zonde: "💀" };
 
-// === Speler ===
+const OBSTACLES = {
+  licht: "🪽",
+  zonde: "💀"
+};
+
+// Speler
 const photeinos = {
-  x: 100,
+  x: 90,
   y: canvas.height - phSize,
   w: phSize,
   h: phSize,
@@ -27,33 +37,31 @@ const photeinos = {
   jumping: false
 };
 
-// === Game variabelen ===
+// Game vars
 let obstacles = [];
 let vleugels = 0;
 let level = 1;
 let running = false;
 let paused = false;
-let keys = {};
 
-// === Bloemen & wolkjes (worden niet steeds vernieuwd) ===
-let flowers = [];
-let clouds = [];
-function makeFlowers(count = 14) {
+// Bloemen & wolkjes
+let flowers = [], clouds = [];
+function makeFlowers(count = 12) {
   flowers = [];
   for (let i = 0; i < count; i++) {
     flowers.push({
       x: Math.random() * canvas.width,
-      y: grassTop + Math.random() * (zoneHeight - 25),
+      y: grassTop + Math.random() * (zoneHeight - 22),
       glyph: ["🌷","🌻","🌼","🌸","🌹","🌺","🌿","🍀"][Math.floor(Math.random()*8)]
     });
   }
 }
-function makeClouds(count = 7) {
+function makeClouds(count = 8) {
   clouds = [];
   for (let i = 0; i < count; i++) {
     clouds.push({
       x: Math.random() * canvas.width,
-      y: 30 + Math.random() * (zoneHeight-50),
+      y: 22 + Math.random() * (zoneHeight-45),
       size: 25 + Math.random()*20
     });
   }
@@ -61,124 +69,113 @@ function makeClouds(count = 7) {
 makeFlowers();
 makeClouds();
 
-// === Controls ===
+// Input
 document.addEventListener("keydown", e => keys[e.key] = true);
 document.addEventListener("keyup", e => keys[e.key] = false);
 canvas.addEventListener("touchstart", () => jump());
+let keys = {};
 
-// === Springen ===
+// Jump
 function jump() {
   if (!photeinos.jumping) {
-    photeinos.vy = -22;
+    photeinos.vy = -20.5; // HOOGTE
     photeinos.jumping = true;
   }
 }
 
-// === Obstakels ===
+// Obstakels
 function spawnObstacle() {
-  // Nooit meer dan 2 tegelijk, en alleen als er wat tijd tussen zit:
   if (obstacles.length >= 2) return;
-  // Check of laatste obstakel te dicht op de rand zit:
-  if (obstacles.length > 0 && (canvas.width - obstacles[obstacles.length-1].x) < 240) return;
-
   const soort = Math.random() < 0.6 ? "licht" : "zonde";
-  // Ofwel exact in gras, ofwel exact in lucht:
-  const inGras = Math.random() < 0.5;
+  const lucht = ! (soort === "zonde");
   obstacles.push({
     x: canvas.width,
-    y: inGras ? (canvas.height - obSize) : (grassTop - obSize + 8),
+    y: lucht
+      ? grassTop - obSize + 10         // lucht (boven gras)
+      : canvas.height - obSize,         // gras
     w: obSize,
     h: obSize,
     soort,
-    inGras,
-    actief: true,
-    geraakt: false
+    lucht,
+    actief: true
   });
 }
 
-// === Player update ===
+// Player update
 function updatePlayer() {
   if (keys[" "]) jump();
 
-  photeinos.vy += 1.1; // zwaartekracht
+  photeinos.vy += 1.05;
   photeinos.y += photeinos.vy;
 
-  // Op de grond/gras blijven
   if (photeinos.y + photeinos.h > canvas.height) {
     photeinos.y = canvas.height - photeinos.h;
     photeinos.vy = 0;
     photeinos.jumping = false;
   }
-  // Niet boven luchtzone uitkomen
   if (photeinos.y < 0) {
     photeinos.y = 0;
     photeinos.vy = 0;
   }
 }
 
-// === Collision preciezer maken ===
+// Collision (precies contactvlak)
 function rectsOverlap(a, b) {
-  // Gebruik 92% van breedte/hoogte zodat aanraken visueel klopt
-  const padW = a.w * 0.08, padH = a.h * 0.08;
   return (
-    a.x + padW < b.x + b.w - padW &&
-    a.x + a.w - padW > b.x + padW &&
-    a.y + padH < b.y + b.h - padH &&
-    a.y + a.h - padH > b.y + padH
+    a.x + a.w > b.x + 10 &&
+    a.x < b.x + b.w - 10 &&
+    a.y + a.h > b.y + 10 &&
+    a.y < b.y + b.h - 10
   );
 }
 
 function collisionCheck(ob) {
-  if (!ob.actief) return false;
   if (!rectsOverlap(photeinos, ob)) return false;
-  if (ob.inGras) {
-    return !photeinos.jumping; // geraakt als niet springt
+  if (ob.lucht) {
+    return photeinos.jumping;
   } else {
-    return photeinos.jumping;  // geraakt als springt
+    return !photeinos.jumping && photeinos.y + photeinos.h >= grassTop;
   }
 }
 
-// === Update loop ===
+// Update loop
 function update() {
   if (!running || paused) return;
 
   updatePlayer();
 
-  // Obstakels laten bewegen
   obstacles.forEach(o => o.x -= obstacleSpeed);
 
-  // Obstakels niet verwijderen bij springen, maar alleen als geraakt of uit beeld
-  obstacles = obstacles.filter(o => o.x + o.w > 0 && !o.geraakt);
+  // Obstakels blijven tot je ze écht raakt of ze uit beeld zijn
+  obstacles = obstacles.filter(o => o.x + o.w > 0 && o.actief);
 
   for (let i = 0; i < obstacles.length; i++) {
     const o = obstacles[i];
     if (o.actief && collisionCheck(o)) {
       paused = true;
-      toonVraag(o, i);
+      toonVraag(o);
       o.actief = false;
     }
   }
 }
 
-// === Draw loop ===
+// Draw loop
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // lucht
   ctx.fillStyle = "#aee7ff";
   ctx.fillRect(0, 0, canvas.width, zoneHeight);
 
   // wolkjes
   ctx.font = "28px Arial";
   clouds.forEach(c => {
-    ctx.globalAlpha = 0.92;
+    ctx.globalAlpha = 0.9;
     ctx.fillText("☁️", c.x, c.y);
-    c.x -= 0.25;
+    c.x -= 0.15;
     if (c.x < -35) c.x = canvas.width + 40;
   });
   ctx.globalAlpha = 1;
 
-  // gras
   ctx.fillStyle = "#8BC34A";
   ctx.fillRect(0, grassTop, canvas.width, zoneHeight);
 
@@ -186,28 +183,26 @@ function draw() {
   ctx.font = "22px Arial";
   flowers.forEach(f => {
     ctx.fillText(f.glyph, f.x, f.y);
-    f.x -= 0.33;
+    f.x -= 0.22;
     if (f.x < -15) f.x = canvas.width + 15;
   });
 
   // obstakels
   ctx.font = `${obSize}px Arial`;
   obstacles.forEach(o => {
-    ctx.globalAlpha = o.actief ? 1 : 0.35;
     ctx.fillText(OBSTACLES[o.soort], o.x, o.y + o.h - 8);
-    ctx.globalAlpha = 1;
   });
 
   // speler
   ctx.drawImage(photeinosImg, photeinos.x, photeinos.y, photeinos.w, photeinos.h);
 
   // score/level
-  ctx.fillStyle = "black";
-  ctx.font = "18px Comic Sans MS";
-  ctx.fillText("Level: " + level + " | Vleugels: " + vleugels, 20, 25);
+  ctx.fillStyle = "#0a275b";
+  ctx.font = "22px Comic Sans MS";
+  ctx.fillText("Level: " + level + " | Vleugels: " + vleugels, 20, 38);
 }
 
-// === Main loop ===
+// Main loop
 function loop() {
   update();
   draw();
@@ -215,7 +210,7 @@ function loop() {
 }
 loop();
 
-// === Controls: start/pauze ===
+// Controls
 document.getElementById("startBtn").onclick = () => {
   running = true;
   vleugels = 0;
@@ -227,13 +222,15 @@ document.getElementById("startBtn").onclick = () => {
   makeFlowers();
   makeClouds();
 };
-document.getElementById("pauseBtn").onclick = () => { paused = !paused; };
+document.getElementById("pauseBtn").onclick = () => {
+  paused = !paused;
+};
 
-// === Spawners ===
-setInterval(() => { if(running && !paused) spawnObstacle(); }, 5400);
+// Spawners (relax interval)
+setInterval(() => { if(running && !paused) spawnObstacle(); }, 5100);
 
-// === Vraag overlay (zonder alerts) ===
-function toonVraag(ob, index) {
+// Vraag overlay
+function toonVraag(ob) {
   const overlay = document.getElementById("vraagOverlay");
   const tekst = document.getElementById("vraagTekst");
   const antwoorden = document.getElementById("vraagAntwoorden");
@@ -268,27 +265,18 @@ function toonVraag(ob, index) {
           if (vleugels >= 10) {
             level++;
             vleugels = 0;
-            tekst.textContent = "Proficiat! Je bent naar level " + level + " gegaan!";
-          } else {
-            tekst.textContent = "Goed zo!";
+            // (Hier mag eventueel een animatie komen)
           }
-        } else {
-          tekst.textContent = "Juist!";
         }
+        // Geen alert
       } else {
         if (ob.soort === "zonde") {
-          tekst.textContent = "Fout bij zondevraag – Game Over!";
           running = false;
-        } else {
-          tekst.textContent = "Dat is fout.";
         }
+        // Geen alert
       }
-      // Markeer obstakel als geraakt (dan verdwijnt hij na deze frame)
-      ob.geraakt = true;
-      setTimeout(() => {
-        overlay.style.display = "none";
-        paused = false;
-      }, 800); // toon het juiste/fout nog even, dan verder
+      overlay.style.display = "none";
+      paused = false;
     };
     antwoorden.appendChild(btn);
   });
