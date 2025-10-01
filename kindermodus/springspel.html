@@ -76,7 +76,9 @@
   <div id="spelkaart">
     <h1>Photeinos Springspel</h1>
     <h2>Spring om vleugeltjes te pakken, ontwijk de doodskoppen!</h2>
-    <div id="spelcontainer"></div>
+    <div id="spelcontainer">
+      <!-- Phaser canvas komt hier automatisch -->
+    </div>
   </div>
 
   <div id="controls">
@@ -85,7 +87,7 @@
   </div>
 
   <script>
-    // Phaser-configuratie
+    // Spelconfiguratie
     const SPEL_BREEDTE = 500, SPEL_HOOGTE = 350;
     let score = 0;
 
@@ -95,13 +97,7 @@
       height: SPEL_HOOGTE,
       backgroundColor: "#b8e4fa",
       parent: 'spelcontainer',
-      physics: {
-        default: 'arcade',
-        arcade: {
-          gravity: { y: 800 },
-          debug: false
-        }
-      },
+      physics: { default: 'arcade', arcade: { gravity: { y: 0 }, debug: false } },
       scene: {
         preload: preload,
         create: create,
@@ -113,26 +109,34 @@
     let jumpRequested = false;
 
     function preload() {
-      // Gebruik deze ster voor universele werking
+      // Gebruik testster voor zichtbaarheid
       this.load.image('photeinos', 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Plain_Yellow_Star.png/256px-Plain_Yellow_Star.png');
-      // Of je eigen sprite:
+      // Gebruik jouw sprite als je wilt:
       // this.load.image('photeinos', 'https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.png');
     }
 
     function create() {
-      // Maak lucht en gras elk de helft van het scherm
-      this.add.rectangle(SPEL_BREEDTE/2, SPEL_HOOGTE/4, SPEL_BREEDTE, SPEL_HOOGTE/2, 0xaee7ff); // lucht
-      this.add.rectangle(SPEL_BREEDTE/2, SPEL_HOOGTE*0.75, SPEL_BREEDTE, SPEL_HOOGTE/2, 0x8bc34a); // gras
+      // Lucht (bovenste helft)
+      this.add.rectangle(SPEL_BREEDTE/2, SPEL_HOOGTE/4, SPEL_BREEDTE, SPEL_HOOGTE/2, 0xaee7ff);
+      // Gras (onderste helft)
+      this.add.rectangle(SPEL_BREEDTE/2, SPEL_HOOGTE*0.75, SPEL_BREEDTE, SPEL_HOOGTE/2, 0x8bc34a);
 
-      // Voeg Photeinos toe in het gras, onderaan
-      photeinos = this.physics.add.image(80, SPEL_HOOGTE*0.75+35, 'photeinos')
-        .setDisplaySize(70,70)
+      // Photeinos grootte = 40% van hoogte
+      const photeinosGrootte = Math.round(SPEL_HOOGTE * 0.4); // = 140px bij 350 hoogte
+      // Y-positie: vlak op de graslijn (net boven onderste helft)
+      const startY = SPEL_HOOGTE / 2 - photeinosGrootte / 2 + 5;
+
+      photeinos = this.physics.add.image(80, startY, 'photeinos')
+        .setDisplaySize(photeinosGrootte, photeinosGrootte)
         .setCollideWorldBounds(true);
+
+      // Zwaartekracht aanzetten
+      photeinos.body.setGravityY(900);
 
       // Keyboard controls
       cursors = this.input.keyboard.createCursorKeys();
 
-      // Klik op knop of spatie = springen
+      // Springen: knop en spatie
       document.getElementById("jumpBtn").onclick = () => { jumpRequested = true; };
       this.input.keyboard.on('keydown-SPACE', () => { jumpRequested = true; });
     }
@@ -140,15 +144,16 @@
     function update() {
       // Springen als knop/spatie
       if (jumpRequested && photeinos.body.touching.down) {
-        photeinos.setVelocityY(-340);
+        photeinos.setVelocityY(-photeinos.displayHeight * 3.0); // Sprongkracht afhankelijk van grootte
         jumpRequested = false;
       }
-      // (Score bijvullen of extra logica...)
       document.getElementById("score").textContent = "Score: " + score;
     }
 
-    // Start het spel
-    new Phaser.Game(config);
+    // Optioneel: ook springen bij klik/tap op canvas (mobiel)
+    document.addEventListener('touchstart', function(e){
+      jumpRequested = true;
+    });
   </script>
 </body>
 </html>
