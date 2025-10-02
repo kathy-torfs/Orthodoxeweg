@@ -34,10 +34,12 @@
 <script>
 const GAME_WIDTH = 900, GAME_HEIGHT = 600;
 const LUCHT_H = GAME_HEIGHT * 0.5;
-const GRAS_Y = GAME_HEIGHT * 0.75;
-
 const lichtvragen = vragen.filter(q => q.difficulty !== "zonde");
 const zondevragen = vragen.filter(q => q.difficulty === "zonde");
+
+// ---- Nieuw: kleine hitboxes ----
+const HITBOX_SIZE_MAN = 30; // px
+const HITBOX_SIZE_OBS = 26; // px
 
 let speler, cursors, jumpRequested = false, canJump = true;
 let obstacles = [], wings = [];
@@ -128,11 +130,10 @@ function create() {
   createObstacle(this, GAME_WIDTH + 140, GAME_HEIGHT - 10, "💀", 1.11);
   createWing(this, GAME_WIDTH + 360, LUCHT_H/2 + 45, "🪽", 1.13);
 
-  // Obstakels traag bewegen
+  // Obstakels traag bewegen + alles parallax
   this.time.addEvent({
     delay: 14, loop: true, callback: () => {
       if (spelBlokkeren) return;
-      // Parallax bewegen
       luchtStroken.forEach(l => { l.x -= speed * 0.3; if (l.x < -GAME_WIDTH/2) l.x += GAME_WIDTH*2; });
       grasStroken.forEach(g => { g.x -= speed * 0.7; if (g.x < -GAME_WIDTH/2) g.x += GAME_WIDTH*2; });
       wolkjes.forEach(w => { w.x -= speed * 0.40; if (w.x < -50) w.x += GAME_WIDTH+100; });
@@ -159,16 +160,17 @@ function update() {
     canJump = false;
     setTimeout(() => canJump = true, 670);
   }
-  // Doodshoofd: botsing-check met smallere hitbox, alleen onderaan
+
+  // Botsing doodshoofd: alleen met puntje onderin mannetje & midden van doodshoofd
   obstacles.forEach(o => {
-    if (!spelBlokkeren && checkBotstOnder(speler, o) && !o.hit) {
+    if (!spelBlokkeren && botstPuntje(speler, o) && !o.hit) {
       o.hit = true;
       stelVraag(zondevragen);
     }
   });
-  // Vleugeltje: botsing-check met smallere hitbox
+  // Botsing vleugeltje: zelfde, maar met lichtvragen
   wings.forEach(w => {
-    if (!spelBlokkeren && checkBotst(speler, w) && !w.collected) {
+    if (!spelBlokkeren && botstPuntje(speler, w) && !w.collected) {
       w.collected = true;
       w.setVisible(false);
       stelVraag(lichtvragen);
@@ -176,20 +178,27 @@ function update() {
   });
 }
 
-// Hitbox: alleen onderste 35% van het mannetje telt voor obstakels!
-function checkBotstOnder(a, b) {
-  let ab = a.getBounds(), bb = b.getBounds();
-  ab.height = ab.height*0.38; // enkel onderkant van het mannetje
-  ab.y = ab.y + a.getBounds().height*0.62;
-  return Phaser.Geom.Intersects.RectangleToRectangle(ab, getSmallBounds(b, 0.60));
-}
-function checkBotst(a, b) {
-  return Phaser.Geom.Intersects.RectangleToRectangle(getSmallBounds(a, 0.65), getSmallBounds(b, 0.65));
-}
-function getSmallBounds(obj, scale=0.65) {
-  let b = obj.getBounds();
-  let w = b.width * scale, h = b.height * scale;
-  return new Phaser.Geom.Rectangle(b.centerX - w/2, b.centerY - h/2, w, h);
+// Puntje van obstakel & blokje van mannetje
+function botstPuntje(m, o) {
+  // Puntje obstakel: exact midden onderaan
+  let ob = o.getBounds();
+  let obsX = ob.centerX;
+  let obsY = ob.centerY + ob.height*0.15;
+  // Mini blokje mannetje: onderin (bij de voeten)
+  let mb = m.getBounds();
+  let manBox = {
+    x: mb.centerX - HITBOX_SIZE_MAN/2,
+    y: mb.bottom - HITBOX_SIZE_MAN,
+    w: HITBOX_SIZE_MAN,
+    h: HITBOX_SIZE_MAN
+  };
+  // Test: zit het puntje in het blokje?
+  return (
+    obsX > manBox.x &&
+    obsX < manBox.x + manBox.w &&
+    obsY > manBox.y &&
+    obsY < manBox.y + manBox.h
+  );
 }
 
 function createObstacle(scene, x, y, emoji, scale=1) {
