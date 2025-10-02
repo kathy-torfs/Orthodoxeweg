@@ -2,20 +2,64 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>Springspel met Emoji-mannetje</title>
+  <title>Springspel Emoji – Gespiegeld & Rustig</title>
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
-  <script src="vragen.js"></script> <!-- Jouw aparte vragenbestand -->
+  <script src="vragen.js"></script>
   <style>
     body { background: #e2f6ff; }
-    #spelcontainer { margin: 20px auto; width: 520px; }
+    #spelcontainer { margin: 30px auto; width: 700px; }
+    .vraag-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.25);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .vraag-box {
+      background: #fffde6;
+      padding: 30px 24px 18px 24px;
+      border-radius: 18px;
+      box-shadow: 0 2px 24px #8bc34ab0;
+      max-width: 96vw;
+      width: 400px;
+      font-family: 'Comic Sans MS', Arial, sans-serif;
+      color: #2276b9;
+      font-size: 20px;
+    }
+    .vraag-box h3 {
+      margin: 0 0 16px 0;
+      font-size: 1.1em;
+      font-weight: bold;
+      color: #67510C;
+    }
+    .vraag-antw-btn {
+      margin: 8px 0;
+      background: #7bb235;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 17px;
+      padding: 6px 12px;
+      width: 95%;
+      cursor: pointer;
+      display: block;
+    }
+    .vraag-antw-btn:hover {
+      background: #488f12;
+    }
   </style>
 </head>
 <body>
 <div id="spelcontainer"></div>
+<div id="vraag-overlay" style="display:none"></div>
 <script>
-const GAME_WIDTH = 500, GAME_HEIGHT = 350;
+const GAME_WIDTH = 700, GAME_HEIGHT = 450;
 let speler, cursors, jumpRequested = false;
 let obstacles = [], wings = [];
+let speed = 1.2; // rustiger!
+let canJump = true;
 
 const config = {
   type: Phaser.AUTO,
@@ -35,41 +79,46 @@ function create() {
   this.add.rectangle(GAME_WIDTH/2, GAME_HEIGHT/4, GAME_WIDTH, GAME_HEIGHT/2, 0xaee7ff); // lucht
   this.add.rectangle(GAME_WIDTH/2, GAME_HEIGHT*0.75, GAME_WIDTH, GAME_HEIGHT/2, 0x8bc34a); // gras
 
-  // Emoji-mannetje als speler
+  // Emoji-mannetje als speler (gespiegeld!)
   const spelerGrootte = GAME_HEIGHT * 0.4;
-  speler = this.add.text(60, GAME_HEIGHT - spelerGrootte/2 - 5, "🏃‍♂️", {
+  speler = this.add.text(110, GAME_HEIGHT - spelerGrootte/2 - 5, "🏃‍♂️", {
     fontFamily: 'Segoe UI Emoji, Arial',
     fontSize: Math.round(spelerGrootte) + 'px'
   });
   speler.setOrigin(0.5, 0.5);
+  speler.setScale(-1, 1); // spiegel horizontaal!
 
-  // Fysica toevoegen via een "zone" voor eenvoud (voor botsingen)
+  // Physics
   this.physics.add.existing(speler);
   speler.body.setCollideWorldBounds(true);
   speler.body.setGravityY(1200);
 
-  // Springen: knop/spatie
+  // Springen
   cursors = this.input.keyboard.createCursorKeys();
   this.input.keyboard.on('keydown-SPACE', () => { jumpRequested = true; });
 
   // Obstakel (💀) & vleugel (🪽)
-  createObstacle(this, 360, GAME_HEIGHT - 45, "💀", 0.9);
-  createWing(this, 250, 60, "🪽", 0.7);
+  createObstacle(this, GAME_WIDTH-60, GAME_HEIGHT-45, "💀", 0.95);
+  createWing(this, GAME_WIDTH-210, 75, "🪽", 1);
 
-  // Beweging van obstakels/vleugels
+  // Beweeg obstacles/vleugels (rustig tempo)
   this.time.addEvent({ delay: 10, loop: true, callback: () => {
-    obstacles.forEach(o => o.x -= 2);
-    wings.forEach(w => w.x -= 2);
+    obstacles.forEach(o => o.x -= speed);
+    wings.forEach(w => w.x -= speed);
+    // Reset obstacles/vleugels als ze buiten scherm zijn
+    obstacles.forEach(o => { if (o.x < -60) { o.x = GAME_WIDTH + Math.random()*120; o.hit = false; }});
+    wings.forEach(w => { if (w.x < -60) { w.x = GAME_WIDTH + 200 + Math.random()*120; w.collected = false; w.setVisible(true); }});
   }});
 }
 
 function update() {
-  // Simpele springlogica (enkel als op de grond)
-  if (jumpRequested && speler.body.touching.down) {
-    speler.body.setVelocityY(-500);
+  // Springen als op de grond (rustiger, geen herhaald jumpen)
+  if (jumpRequested && speler.body.touching.down && canJump) {
+    speler.body.setVelocityY(-540);
     jumpRequested = false;
+    canJump = false;
+    setTimeout(() => canJump = true, 380);
   }
-
   // Obstakel-botsing: vraag tonen
   obstacles.forEach(o => {
     if (Phaser.Geom.Intersects.RectangleToRectangle(speler.getBounds(), o.getBounds())) {
@@ -86,7 +135,7 @@ function update() {
       if (!w.collected) {
         w.collected = true;
         w.setVisible(false);
-        // hier score verhogen
+        // hier kun je evt score verhogen
       }
     }
   });
@@ -112,10 +161,38 @@ function createWing(scene, x, y, emoji, scale=1) {
   return wing;
 }
 
+// Mooi overlay venster om vraag te tonen:
 function stelVraag() {
   let v = vragen[Math.floor(Math.random()*vragen.length)];
-  alert(v.q + "\n" + v.a.map((ans, i) => `${i+1}. ${ans}`).join('\n'));
+  const overlay = document.getElementById('vraag-overlay');
+  overlay.innerHTML = `
+    <div class="vraag-overlay">
+      <div class="vraag-box">
+        <h3>Vraag:</h3>
+        <div style="margin-bottom:12px">${v.q}</div>
+        ${v.a.map((ans, i) => `<button class="vraag-antw-btn" onclick="beantwoordVraag(${i},${v.correct})">${ans}</button>`).join("")}
+      </div>
+    </div>
+  `;
+  overlay.style.display = '';
+  // Blokkeer het spel (optioneel) tot vraag is beantwoord
+  window.spelBlokkeren = true;
 }
+
+window.beantwoordVraag = function(given, correct) {
+  const overlay = document.getElementById('vraag-overlay');
+  if (given === correct) {
+    overlay.innerHTML = `<div class="vraag-overlay"><div class="vraag-box"><b>Juist!</b><br><button class="vraag-antw-btn" onclick="sluitVraag()">Doorgaan</button></div></div>`;
+  } else {
+    overlay.innerHTML = `<div class="vraag-overlay"><div class="vraag-box"><b>Helaas, niet juist.</b><br><button class="vraag-antw-btn" onclick="sluitVraag()">Verder</button></div></div>`;
+  }
+};
+
+window.sluitVraag = function() {
+  document.getElementById('vraag-overlay').style.display = 'none';
+  window.spelBlokkeren = false;
+};
+
 </script>
 </body>
 </html>
