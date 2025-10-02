@@ -2,44 +2,28 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>Springspel Emoji – Max 2 Obstakels & Rustig</title>
+  <title>Springspel – Orthodoxe Kinderpagina</title>
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
   <script src="vragen.js"></script>
   <style>
     body { background: #e2f6ff; }
-    #spelcontainer { margin: 30px auto; width: 700px; }
+    #spelcontainer { margin: 32px auto; width: 900px; }
     .vraag-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.25);
-      z-index: 9999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.18); z-index: 9999; display: flex;
+      align-items: center; justify-content: center;
     }
     .vraag-box {
-      background: #fffde6;
-      padding: 30px 24px 18px 24px;
-      border-radius: 18px;
-      box-shadow: 0 2px 24px #8bc34ab0;
-      max-width: 96vw;
-      width: 400px;
-      font-family: 'Comic Sans MS', Arial, sans-serif;
-      color: #2276b9;
-      font-size: 20px;
+      background: #fffde6; padding: 32px 28px 20px 28px;
+      border-radius: 18px; box-shadow: 0 2px 24px #8bc34ab0;
+      max-width: 96vw; width: 420px; font-family: 'Comic Sans MS', Arial, sans-serif;
+      color: #2276b9; font-size: 20px;
     }
     .vraag-box h3 { margin: 0 0 16px 0; font-size: 1.1em; font-weight: bold; color: #67510C;}
     .vraag-antw-btn {
-      margin: 8px 0;
-      background: #7bb235;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 17px;
-      padding: 6px 12px;
-      width: 95%;
-      cursor: pointer;
-      display: block;
+      margin: 10px 0; background: #7bb235; color: white;
+      border: none; border-radius: 8px; font-size: 17px;
+      padding: 8px 14px; width: 96%; cursor: pointer; display: block;
     }
     .vraag-antw-btn:hover { background: #488f12; }
   </style>
@@ -48,19 +32,25 @@
 <div id="spelcontainer"></div>
 <div id="vraag-overlay" style="display:none"></div>
 <script>
-const GAME_WIDTH = 700, GAME_HEIGHT = 450;
-let speler, cursors, jumpRequested = false;
+const GAME_WIDTH = 900, GAME_HEIGHT = 600;
+const GRAS_Y = GAME_HEIGHT * 0.75; // onderrand van grasvlak
+const LUCHT_H = GAME_HEIGHT * 0.5; // hoogte lucht
+
+let speler, cursors, jumpRequested = false, canJump = true;
 let obstacles = [], wings = [];
-let speed = 0.8; // nóg rustiger!
-let canJump = true;
+let speed = 1; // heel rustig!
 let spelBlokkeren = false;
+let sceneRef;
 
 const config = {
   type: Phaser.AUTO,
   width: GAME_WIDTH,
   height: GAME_HEIGHT,
   parent: 'spelcontainer',
-  physics: { default: 'arcade', arcade: { gravity: { y: 1200 }, debug: false } },
+  physics: {
+    default: 'arcade',
+    arcade: { gravity: { y: 1600 }, debug: false }
+  },
   scene: { preload, create, update }
 };
 
@@ -69,78 +59,82 @@ new Phaser.Game(config);
 function preload() {}
 
 function create() {
-  // Achtergrond: lucht en gras
-  this.add.rectangle(GAME_WIDTH/2, GAME_HEIGHT/4, GAME_WIDTH, GAME_HEIGHT/2, 0xaee7ff); // lucht
-  this.add.rectangle(GAME_WIDTH/2, GAME_HEIGHT*0.75, GAME_WIDTH, GAME_HEIGHT/2, 0x8bc34a); // gras
+  sceneRef = this;
+  // Achtergrond
+  this.add.rectangle(GAME_WIDTH/2, LUCHT_H/2, GAME_WIDTH, LUCHT_H, 0xaee7ff); // lucht
+  this.add.rectangle(GAME_WIDTH/2, GRAS_Y - (GAME_HEIGHT-LUCHT_H)/2, GAME_WIDTH, GAME_HEIGHT-LUCHT_H, 0x8bc34a); // gras
 
-  // Emoji-mannetje, gespiegeld (kijkt naar rechts)
+  // Emoji-mannetje (gespiegeld, kijkt naar rechts)
   const spelerGrootte = GAME_HEIGHT * 0.4;
-  speler = this.add.text(110, GAME_HEIGHT - spelerGrootte/2 - 5, "🏃‍♂️", {
+  speler = this.add.text(130, GRAS_Y - 12, "🏃‍♂️", {
     fontFamily: 'Segoe UI Emoji, Arial',
     fontSize: Math.round(spelerGrootte) + 'px'
   });
-  speler.setOrigin(0.5, 0.5);
+  speler.setOrigin(0.5, 1);
   speler.setScale(-1, 1);
 
   // Physics
   this.physics.add.existing(speler);
   speler.body.setCollideWorldBounds(true);
-  speler.body.setGravityY(1200);
+  speler.body.setGravityY(1600);
+  speler.body.setBounce(0.05);
 
-  // Springen
+  // Onzichtbare grond
+  let ground = this.add.rectangle(GAME_WIDTH/2, GRAS_Y+8, GAME_WIDTH, 24, 0x000000, 0);
+  this.physics.add.existing(ground, true);
+  this.physics.add.collider(speler, ground);
+
+  // Controls
   cursors = this.input.keyboard.createCursorKeys();
   this.input.keyboard.on('keydown-SPACE', () => { jumpRequested = true; });
+  this.input.keyboard.on('keydown-UP', () => { jumpRequested = true; });
+  this.input.on('pointerdown', () => { jumpRequested = true; }); // klik/tap
 
-  // Obstakels en vleugel  - maximaal 2 totaal in beeld
-  createObstacle(this, GAME_WIDTH+50, GAME_HEIGHT-30, "💀", 0.95);
-  createWing(this, GAME_WIDTH+250, 75, "🪽", 1);
+  // Obstakel (💀) en vleugel (🪽)
+  createObstacle(this, GAME_WIDTH + 60, GRAS_Y-10, "💀", 1.15);
+  createWing(this, GAME_WIDTH + 300, LUCHT_H/2+35, "🪽", 1.1);
 
-  // Timer om obstakels en vleugels te verplaatsen
+  // Traag bewegen
   this.time.addEvent({
-    delay: 10, loop: true, callback: () => {
+    delay: 12, loop: true, callback: () => {
       if (spelBlokkeren) return;
-      // Obstakels
       obstacles.forEach(o => {
         o.x -= speed;
         if (o.x < -60) resetObstacle(o);
       });
-      // Vleugeltjes
       wings.forEach(w => {
         w.x -= speed;
         if (w.x < -60) resetWing(w);
       });
-      // Controleer aantal obstakels/vleugels
-      while (obstacles.length < 1) createObstacle(this, GAME_WIDTH+50+Math.random()*250, GAME_HEIGHT-30, "💀", 0.95);
-      while (wings.length < 1) createWing(this, GAME_WIDTH+200+Math.random()*350, 70+Math.random()*90, "🪽", 1);
     }
   });
 }
 
 function update() {
-  if (spelBlokkeren) {
-    speler.body.setVelocityX(0);
-    return;
-  }
-  // Springen enkel als op de grond en niet al in sprong
+  if (spelBlokkeren) return;
+
+  // Springen alleen als op de grond, niet in lucht
   if (jumpRequested && speler.body.touching.down && canJump) {
-    speler.body.setVelocityY(-540);
+    speler.body.setVelocityY(-750);
     jumpRequested = false;
     canJump = false;
-    setTimeout(() => canJump = true, 420);
+    setTimeout(() => canJump = true, 450);
   }
-  // Obstakel-botsing: vraag tonen
+
+  // Botsing doodshoofd = vraag
   obstacles.forEach(o => {
     if (!spelBlokkeren && Phaser.Geom.Intersects.RectangleToRectangle(speler.getBounds(), o.getBounds()) && !o.hit) {
       o.hit = true;
       stelVraag();
     }
   });
+
   // Vleugeltje pakken
   wings.forEach(w => {
     if (!spelBlokkeren && Phaser.Geom.Intersects.RectangleToRectangle(speler.getBounds(), w.getBounds()) && !w.collected) {
       w.collected = true;
       w.setVisible(false);
-      // hier evt. score verhogen
+      // evt. score verhogen, vleugel-effect etc.
     }
   });
 }
@@ -148,7 +142,7 @@ function update() {
 function createObstacle(scene, x, y, emoji, scale=1) {
   let obst = scene.add.text(x, y, emoji, {
     fontFamily: 'Segoe UI Emoji, Arial',
-    fontSize: Math.round(44*scale)+'px'
+    fontSize: Math.round(56*scale)+'px'
   });
   obst.setOrigin(0.5, 1);
   obst.hit = false;
@@ -158,7 +152,7 @@ function createObstacle(scene, x, y, emoji, scale=1) {
 function createWing(scene, x, y, emoji, scale=1) {
   let wing = scene.add.text(x, y, emoji, {
     fontFamily: 'Segoe UI Emoji, Arial',
-    fontSize: Math.round(44*scale)+'px'
+    fontSize: Math.round(54*scale)+'px'
   });
   wing.setOrigin(0.5, 0.5);
   wing.collected = false;
@@ -166,11 +160,11 @@ function createWing(scene, x, y, emoji, scale=1) {
   return wing;
 }
 function resetObstacle(obst) {
-  obst.x = GAME_WIDTH + 60 + Math.random() * 150;
+  obst.x = GAME_WIDTH + 80 + Math.random() * 250;
   obst.hit = false;
 }
 function resetWing(wing) {
-  wing.x = GAME_WIDTH + 150 + Math.random()*200;
+  wing.x = GAME_WIDTH + 220 + Math.random()*350;
   wing.collected = false;
   wing.setVisible(true);
 }
@@ -183,7 +177,7 @@ function stelVraag() {
     <div class="vraag-overlay">
       <div class="vraag-box">
         <h3>Vraag:</h3>
-        <div style="margin-bottom:12px">${v.q}</div>
+        <div style="margin-bottom:14px">${v.q}</div>
         ${v.a.map((ans, i) => `<button class="vraag-antw-btn" onclick="beantwoordVraag(${i},${v.correct})">${ans}</button>`).join("")}
       </div>
     </div>
