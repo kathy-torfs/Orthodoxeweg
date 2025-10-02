@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <title>Springspel – Orthodoxe Kinderpagina</title>
-  <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
-  <script src="vragen.js"></script>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
   <style>
-    body { background: #e2f6ff; }
+    body { background: #e2f6ff; margin:0; }
     #spelcontainer { margin: 32px auto; width: 900px; }
     .vraag-overlay {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0;
@@ -26,20 +26,30 @@
       padding: 8px 14px; width: 96%; cursor: pointer; display: block;
     }
     .vraag-antw-btn:hover { background: #488f12; }
+    @media (max-width:1000px) { #spelcontainer{width:99vw;} }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+  <script src="vragen.js"></script>
 </head>
 <body>
+<!-- KINDER HEADER & MENUBALK -->
+<div id="kinder-header"></div>
+<script src="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/common/layout.js"></script>
+
 <div id="spelcontainer"></div>
 <div id="vraag-overlay" style="display:none"></div>
 <script>
 const GAME_WIDTH = 900, GAME_HEIGHT = 600;
 const LUCHT_H = GAME_HEIGHT * 0.5;
+
 const lichtvragen = vragen.filter(q => q.difficulty !== "zonde");
 const zondevragen = vragen.filter(q => q.difficulty === "zonde");
 
-// ---- Nieuw: kleine hitboxes ----
-const HITBOX_SIZE_MAN = 30; // px
-const HITBOX_SIZE_OBS = 26; // px
+// Hitbox instellingen
+const HITBOX_SIZE_MAN_FEET = 28;  // kleine blok bij voeten voor doodshoofd
+const HITBOX_SIZE_MAN_HEAD = 60;  // groter blok rond hoofd voor vleugel
+const HITBOX_SIZE_OBS = 22;       // klein punt doodshoofd
+const HITBOX_SIZE_WING = 50;      // groot punt vleugel
 
 let speler, cursors, jumpRequested = false, canJump = true;
 let obstacles = [], wings = [];
@@ -57,7 +67,7 @@ const config = {
   parent: 'spelcontainer',
   physics: {
     default: 'arcade',
-    arcade: { gravity: { y: 1100 }, debug: false }
+    arcade: { gravity: { y: 1120 }, debug: false }
   },
   scene: { preload, create, update }
 };
@@ -114,7 +124,7 @@ function create() {
 
   this.physics.add.existing(speler);
   speler.body.setCollideWorldBounds(true);
-  speler.body.setGravityY(1100);
+  speler.body.setGravityY(1120);
   speler.body.setBounce(0.0);
 
   let ground = this.add.rectangle(GAME_WIDTH/2, GAME_HEIGHT - 2, GAME_WIDTH, 8, 0x000000, 0);
@@ -153,24 +163,24 @@ function create() {
 
 function update() {
   if (spelBlokkeren) return;
-  // Springen
+  // **SPRONG NU HOGER EN LANGER**
   if (jumpRequested && speler.body.blocked.down && canJump) {
-    speler.body.setVelocityY(-850);
+    speler.body.setVelocityY(-1020);  // SPRONG HOOGTE GROTER
     jumpRequested = false;
     canJump = false;
-    setTimeout(() => canJump = true, 670);
+    setTimeout(() => canJump = true, 740); // Langer niet opnieuw springen
   }
 
-  // Botsing doodshoofd: alleen met puntje onderin mannetje & midden van doodshoofd
+  // Botsing doodshoofd: klein blokje bij voeten
   obstacles.forEach(o => {
-    if (!spelBlokkeren && botstPuntje(speler, o) && !o.hit) {
+    if (!spelBlokkeren && botstDoodshoofd(speler, o) && !o.hit) {
       o.hit = true;
       stelVraag(zondevragen);
     }
   });
-  // Botsing vleugeltje: zelfde, maar met lichtvragen
+  // Botsing vleugel: grote blok headbox van mannetje & grotere vleugel hitbox
   wings.forEach(w => {
-    if (!spelBlokkeren && botstPuntje(speler, w) && !w.collected) {
+    if (!spelBlokkeren && botstVleugel(speler, w) && !w.collected) {
       w.collected = true;
       w.setVisible(false);
       stelVraag(lichtvragen);
@@ -178,26 +188,42 @@ function update() {
   });
 }
 
-// Puntje van obstakel & blokje van mannetje
-function botstPuntje(m, o) {
-  // Puntje obstakel: exact midden onderaan
+// Nieuwe, kleine hitbox bij voeten (voor 💀)
+function botstDoodshoofd(m, o) {
   let ob = o.getBounds();
   let obsX = ob.centerX;
   let obsY = ob.centerY + ob.height*0.15;
-  // Mini blokje mannetje: onderin (bij de voeten)
   let mb = m.getBounds();
   let manBox = {
-    x: mb.centerX - HITBOX_SIZE_MAN/2,
-    y: mb.bottom - HITBOX_SIZE_MAN,
-    w: HITBOX_SIZE_MAN,
-    h: HITBOX_SIZE_MAN
+    x: mb.centerX - HITBOX_SIZE_MAN_FEET/2,
+    y: mb.bottom - HITBOX_SIZE_MAN_FEET,
+    w: HITBOX_SIZE_MAN_FEET,
+    h: HITBOX_SIZE_MAN_FEET
   };
-  // Test: zit het puntje in het blokje?
   return (
     obsX > manBox.x &&
     obsX < manBox.x + manBox.w &&
     obsY > manBox.y &&
     obsY < manBox.y + manBox.h
+  );
+}
+
+// Grotere hitbox bij hoofd (voor 🪽)
+function botstVleugel(m, w) {
+  let wb = w.getBounds();
+  let wingX = wb.centerX, wingY = wb.centerY;
+  let mb = m.getBounds();
+  let headBox = {
+    x: mb.centerX - HITBOX_SIZE_MAN_HEAD/2,
+    y: mb.top,
+    w: HITBOX_SIZE_MAN_HEAD,
+    h: Math.max(42, mb.height/2)
+  };
+  return (
+    wingX > headBox.x &&
+    wingX < headBox.x + headBox.w &&
+    wingY > headBox.y &&
+    wingY < headBox.y + headBox.h
   );
 }
 
@@ -231,6 +257,7 @@ function resetWing(wing) {
   wing.setVisible(true);
 }
 
+// Vraag tonen in overlay
 function stelVraag(vragenLijst) {
   let v = vragenLijst[Math.floor(Math.random()*vragenLijst.length)];
   const overlay = document.getElementById('vraag-overlay');
