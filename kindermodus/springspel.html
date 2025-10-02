@@ -3,967 +3,160 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Springspel – Orthodoxe Kinderpagina</title>
+  <title>Photeinos Springspel – Orthodoxe Kinderpagina</title>
   <link rel="icon" href="images/kruis.png" />
   <style>
-    body { margin:0; font-family:'Comic Sans MS', Arial, sans-serif; background:#fff6e5;}
-    #spelkaart {
-      max-width: 600px; margin: 40px auto; padding: 32px 20px 16px 20px;
-      background: #f7fff3; border-radius: 20px; box-shadow: 0 6px 30px #bfd6b2a8;
-      text-align: center;
-    }
-    #spelcontainer {
-      position: relative; margin: 0 auto; width: 500px; height: 350px;
-      background: linear-gradient(to bottom, #aee7ff 0% 55%, #8bc34a 55% 100%);
-      border-radius: 8px; box-shadow: 0 8px 18px #b7e2e2b4; overflow: hidden;
-      touch-action: none;
-    }
-    .emoji { position: absolute; user-select: none; pointer-events: none; }
-    #controls {
-      box-sizing: border-box; background-color: #3B96E5; padding: 6px;
-      position: fixed; bottom: 0; left: 0; width: 100vw; z-index: 10;
-    }
-    #controls button { color: #fff; font-family: inherit; font-weight: 500;
-      padding: 6px 12px; font-size: 16px; cursor: pointer; background-color: transparent;
-      border: none; }
-    #controls button:hover { background-color: rgba(0,0,0,0.2);}
-    #score { color: #fff; float: right; padding: 6px 12px; }
-    #gameover { font-size: 2rem; color: #e53935; margin-top: 20px; font-weight: bold; }
-    #herstartBtn {
-      background: #7bb235; color:#fff; padding:10px 22px;
-      border-radius: 8px; font-size:1.2rem; border:none; margin-top:16px;
-      cursor:pointer; font-family:inherit;
-    }
-    /* Quiz Overlay */
-    #quizoverlay {
-      display:none; position:fixed; z-index:30; left:0; top:0; width:100vw; height:100vh;
-      background:rgba(0,0,0,0.27); align-items:center; justify-content:center;
-    }
-    #quizbox {
-      background:#fff8e5; border-radius:15px; box-shadow:0 4px 20px #ccc;
-      max-width:410px; width:95vw; margin:auto; padding:24px 16px;
-      text-align:left; font-size:1.15rem;
-    }
-    #quizbox h3 {margin:0 0 18px 0; color:#2276b9;}
-    .quizans { display:block; width:100%; background:#e7f8ff; color:#3B96E5;
-      border-radius:9px; border:none; font-family:inherit; font-size:1.1rem; padding:10px;
-      margin-bottom:12px; text-align:left; cursor:pointer;
-      transition:background 0.18s;
-    }
-    .quizans:hover { background:#b8e4fa;}
-    .quizgoed { background: #c1ebc1!important; color: #236620!important;}
-    .quizfout { background: #ffd0d0!important; color: #af1919!important;}
-    #quizfoutje {color:#c62828; font-weight:bold;}
+    body { margin:0; background:var(--pastel1,#fff6e5); font-family:'Comic Sans MS', Arial, sans-serif;}
+    #spelkaart { max-width: 650px; margin: 30px auto 0 auto; background: #f7fff3; border-radius: 20px; box-shadow: 0 6px 30px #bfd6b2a8; text-align: center; }
+    h1 { color: #2276b9; font-weight: bold; font-size: 2.2rem;}
+    #spelcontainer { position: relative; width: 500px; height: 400px; margin: 0 auto; background: #aee7ff; border-radius: 18px; overflow: hidden; box-shadow: 0 8px 18px #b7e2e2b4;}
+    #score { color: #29518c; font-size: 1.1rem; font-weight: bold; margin-bottom: 10px;}
+    #controls { margin: 10px 0 0 0;}
+    button { background:#3B96E5; color:#fff; border:none; border-radius:10px; padding:8px 18px; font-size:17px; cursor:pointer; font-family:inherit; font-weight:bold;}
   </style>
-  <script defer src="common/layout.js"></script>
 </head>
 <body>
-  <div id="kinder-header" data-header-src="common/header.html"></div>
   <div id="spelkaart">
     <h1>Photeinos Springspel</h1>
-    <h2>Spring om vleugeltjes te pakken, ontwijk de doodskoppen!</h2>
+    <div id="score">Score: 0</div>
     <div id="spelcontainer"></div>
-    <div id="gameover" style="display:none;"></div>
-    <button id="herstartBtn" style="display:none;">Opnieuw spelen</button>
+    <div id="controls"><button id="springBtn">Spring!</button></div>
   </div>
-  <div id="controls">
-    <button id="jumpBtn">Spring!</button>
-    <span id="score">Score: 0</span>
-  </div>
-  <!-- Quiz overlay -->
-  <div id="quizoverlay">
-    <div id="quizbox">
-      <h3 id="quizvraag"></h3>
-      <div id="quizanswers"></div>
-      <div id="quizfoutje"></div>
-      <button id="quizdoorgaan" style="display:none;margin-top:8px;">Verder</button>
-    </div>
-  </div>
-
   <script>
-    // ====== VRAAGBLOK: (plak jouw volledige vragenlijst hier) ======
-    const vragen = [
-  // Moeilijkheid 1 (Level 1)
-  {
-    difficulty: 1,
-    q: "Wat doe je als je 's morgens wakker wordt?",
-    a: ["Een kort gebedje bidden", "Zonder God te groeten uit bed springen", "Eerst op je gsm kijken", "Snel verder slapen"],
-    correct: 0
-  },
-  {
-    difficulty: 1,
-    q: "Wat betekent het kruisteken?",
-    a: ["Je begint en eindigt er je gebed mee", "Een magisch gebaar", "Een groet voor vrienden", "Een teken dat je klaar bent"],
-    correct: 0
-  },
-  {
-    difficulty: 1,
-    q: "Wat betekent 'Amen'?",
-    a: ["Ik geloof het / zo is het", "Einde van het verhaal", "Klaar en gedaan", "Een geheim woord"],
-    correct: 0
-  },
-  {
-    difficulty: 1,
-    q: "Wat doe je op zondag als je kan?",
-    a: ["Naar de kerk gaan", "Uitslapen", "Televisie kijken", "Buiten spelen zonder kerk"],
-    correct: 0
-  },
-  {
-    difficulty: 1,
-    q: "Wat is bidden?",
-    a: ["Praten met God", "Alleen iets vragen als je iets wil", "Zingen zonder aandacht", "Stilzitten zonder woorden"],
-    correct: 0
-  },
-  {
-    difficulty: 1,
-    q: "Wat doe je als iemand honger heeft?",
-    a: ["Je deelt je eten", "Je doet alsof je het niet ziet", "Je neemt het eten zelf", "Je lacht ermee"],
-    correct: 0
-  },
-  {
-    difficulty: 1,
-    q: "Wat past het meest bij Jezus?",
-    a: ["Troosten en luisteren", "Zeggen dat het niet erg is en weglopen", "Doe alsof je niets ziet", "Anderen uitlachen"],
-    correct: 0
-  },
-  {
-    difficulty: 1,
-    q: "Wat doe je als iemand een fout maakt?",
-    a: ["Vergeven en opnieuw proberen", "Boos blijven", "Ermee lachen", "Het aan iedereen vertellen"],
-    correct: 0
-  },
-  {
-    difficulty: 1,
-    q: "Je brak per ongeluk iets. Wat is juist?",
-    a: ["Eerlijk zeggen wat er gebeurde", "Zwijgen zodat niemand het weet", "De schuld op iemand anders steken", "Weglopen"],
-    correct: 0
-  },
-  {
-    difficulty: 1,
-    q: "Wat doe je als de juf een vraag stelt en je weet het niet zeker?",
-    a: ["Eerlijk zijn en je best doen", "Afkijken bij de buur", "Doen alsof je ziek bent", "Roepen wat in je opkomt"],
-    correct: 0
-  },
-  {
-    difficulty: 1,
-    q: "Wat doe je als mama hulp vraagt bij de tafel?",
-    a: ["Je helpt meteen", "Je doet alsof je het niet hoorde", "Je zegt nee", "Je gaat weg"],
-    correct: 0
-  },
-  {
-    difficulty: 1,
-    q: "Hoe toon je respect thuis?",
-    a: ["Met dankjewel en alstublieft", "Door te roepen", "Door te zwijgen", "Door boos te worden"],
-    correct: 0
-  },
-  {
-    difficulty: 1,
-    q: "Je kreeg twee koekjes en je vriend geen. Wat doe je?",
-    a: ["Je deelt er één", "Je eet ze snel allebei op", "Je verstopt ze", "Je lacht ermee"],
-    correct: 0
-  },
-  {
-    difficulty: 1,
-    q: "Wat doe je in de kerk?",
-    a: ["Stil zijn en meebidden", "Rondlopen en praten", "Op je gsm spelen", "Luid zingen zonder aandacht"],
-    correct: 0
-  },
-  {
-    difficulty: 1,
-    q: "Wat lees je in de Bijbel?",
-    a: ["Gods Woord", "Grappige mopjes", "Verhalen over voetbal", "Kookrecepten"],
-    correct: 0
-  },
-  {
-    difficulty: 1,
-    q: "Wat is vasten (simpel uitgelegd)?",
-    a: ["Minder van iets nemen om meer bij God te zijn", "Niet eten om sneller te lopen", "Eten verstoppen", "Een dieet voor mooi te zijn"],
-    correct: 0
-  },
-  {
-    difficulty: 1,
-    q: "Wat doet het doopsel?",
-    a: ["Maakt je kind van God en lid van de Kerk", "Geeft je superkrachten", "Is gewoon water", "Is een feest zonder betekenis"],
-    correct: 0
-  },
-  {
-    difficulty: 1,
-    q: "Wat is de communie?",
-    a: ["Jezus die bij ons komt in de Eucharistie", "Gewoon brood", "Een feestmaal", "Een herinnering zonder Jezus"],
-    correct: 0
-  },
-  {
-    difficulty: 1,
-    q: "Wat vieren we met Pasen?",
-    a: ["De verrijzenis van Jezus", "De lente begint", "Een grote schoonmaak", "Het einde van school"],
-    correct: 0
-  },
-  {
-    difficulty: 1,
-    q: "Wie leerde ons het 'Onze Vader'?",
-    a: ["Jezus", "Petrus", "Paulus", "Maria"],
-    correct: 0
-  },
-  {
-    difficulty: 1,
-    q: "Wat betekent ‘naaste’?",
-    a: ["Iedereen die God op je weg plaatst", "Alleen je beste vriend", "Familie enkel", "De buurman enkel"],
-    correct: 0
-  },
-  {
-    difficulty: 1,
-    q: "Wat doe je met afval buiten?",
-    a: ["In de vuilnisbak gooien", "Op straat gooien", "Verstoppen", "In de rivier gooien"],
-    correct: 0
-  },
-  {
-    difficulty: 1,
-    q: "Hoe ga je om met dieren?",
-    a: ["Zorgzaam en zacht", "Plagen voor de lol", "Negeren", "Opsluiten"],
-    correct: 0
-  },
-  {
-    difficulty: 1,
-    q: "Je vriend is verdrietig. Wat doe je?",
-    a: ["Troosten en luisteren", "Laten doen", "Uitlachen", "Niets zeggen"],
-    correct: 0
-  },
-  {
-    difficulty: 1,
-    q: "Wat is beter?",
-    a: ["Eerlijk en vriendelijk zijn", "Stoer doen en liegen", "Altijd zwijgen", "Iedereen pesten"],
-    correct: 0
-  },
-  {
-    difficulty: 1,
-    q: "Wat doe je met je talenten?",
-    a: ["Je gebruikt ze om goed te doen", "Alleen om beter te zijn dan anderen", "Je verstopt ze", "Je schept erover op"],
-    correct: 0
-  },
-  {
-    difficulty: 1,
-    q: "Je hebt iemand pijn gedaan. Wat doe je?",
-    a: ["Sorry zeggen en goedmaken", "Doen alsof er niets is", "Weglopen", "Ermee lachen"],
-    correct: 0
-  },
-  {
-    difficulty: 1,
-    q: "Wat doe je voor het eten?",
-    a: ["Een gebedje bidden", "Eten zonder iets te zeggen", "Opscheppen", "Ruzie maken"],
-    correct: 0
-  },
-  {
-    difficulty: 1,
-    q: "Wat betekent 'Kerk'?",
-    a: ["Het huis van God en zijn mensen", "Een groot gebouw", "Een school", "Een feestzaal"],
-    correct: 0
-  },
-  {
-    difficulty: 1,
-    q: "Wat is de belangrijkste wet van Jezus?",
-    a: ["Heb God lief en je naaste als jezelf", "Doe wat je wil", "Je mag enkel voor jezelf zorgen", "Denk nooit aan anderen"],
-    correct: 0
-  },
-  {
-    difficulty: 1,
-    q: "Wat doe je voor je gaat slapen?",
-    a: ["Een avondgebedje bidden", "Televisie kijken tot je slaapt", "Niets", "Boos in bed kruipen"],
-    correct: 0
-  },
-  {
-    difficulty: 1,
-    q: "Wat zeg je als iemand je iets geeft?",
-    a: ["Dankjewel", "Geef meer", "Niets", "Ik wil dit niet"],
-    correct: 0
-  },
-  {
-    difficulty: 1,
-    q: "Wat betekent 'Orthodox'?",
-    a: ["Juist geloven en juist eren", "Een speciale taal", "Een groep mensen", "Een oude gewoonte"],
-    correct: 0
-  }
-];
-// Moeilijkheid 2 (Level 2)
-vragen.push(
-  {
-    difficulty: 2,
-    q: "Wat vieren we met Kerstmis?",
-    a: ["De geboorte van Jezus Christus", "Een feest van cadeaus", "De winter begint", "Een gezellig familiefeest zonder Jezus"],
-    correct: 0
-  },
-  {
-    difficulty: 2,
-    q: "Wat vieren we met Pinksteren?",
-    a: ["De komst van de Heilige Geest", "De verrijzenis van Jezus", "De geboorte van Maria", "Het einde van de zomer"],
-    correct: 0
-  },
-  {
-    difficulty: 2,
-    q: "Wat betekent het woord 'Evangelie'?",
-    a: ["Blijde Boodschap", "Oud verhaal", "Heilig Boek", "Gebed"],
-    correct: 0
-  },
-  {
-    difficulty: 2,
-    q: "Hoeveel apostelen koos Jezus?",
-    a: ["12", "7", "10", "40"],
-    correct: 0
-  },
-  {
-    difficulty: 2,
-    q: "Wie was de moeder van Jezus?",
-    a: ["Maria", "Elisabet", "Anna", "Sara"],
-    correct: 0
-  },
-  {
-    difficulty: 2,
-    q: "Wie was de vader van Johannes de Doper?",
-    a: ["Zacharias", "Jozef", "Petrus", "Jakobus"],
-    correct: 0
-  },
-  {
-    difficulty: 2,
-    q: "Wat zei Jezus op het kruis?",
-    a: ["Vader, vergeef het hun", "Ik ben boos", "Ik geef het op", "Laat me met rust"],
-    correct: 0
-  },
-  {
-    difficulty: 2,
-    q: "Wat betekent 'Messias'?",
-    a: ["Gezalfde", "Heilige plaats", "Boodschapper", "Gelovige"],
-    correct: 0
-  },
-  {
-    difficulty: 2,
-    q: "Wat is het grootste gebod?",
-    a: ["God liefhebben en je naaste als jezelf", "Altijd bidden", "Veel weten", "Veel vasten"],
-    correct: 0
-  },
-  {
-    difficulty: 2,
-    q: "Welke apostel verloochende Jezus drie keer?",
-    a: ["Petrus", "Johannes", "Thomas", "Jakobus"],
-    correct: 0
-  },
-  {
-    difficulty: 2,
-    q: "Wie verraadde Jezus?",
-    a: ["Judas Iskariot", "Petrus", "Paulus", "Johannes"],
-    correct: 0
-  },
-  {
-    difficulty: 2,
-    q: "Wat deden de apostelen bij het Laatste Avondmaal?",
-    a: ["Ze aten het brood en de wijn die Jezus Zijn Lichaam en Bloed noemde", "Ze maakten plannen voor later", "Ze sliepen", "Ze vertelden verhalen"],
-    correct: 0
-  },
-  {
-    difficulty: 2,
-    q: "Wat gebeurde er op de berg Tabor?",
-    a: ["De Gedaanteverandering van Jezus", "De Hemelvaart", "De geboorte van Jezus", "De storm op het meer"],
-    correct: 0
-  },
-  {
-    difficulty: 2,
-    q: "Wie werd in de buik van de vis geslikt?",
-    a: ["Jona", "Mozes", "Elia", "Paulus"],
-    correct: 0
-  },
-  {
-    difficulty: 2,
-    q: "Wat gaf God aan Mozes op de Sinaï?",
-    a: ["De Tien Geboden", "Een kroon", "Een staf", "Een ark"],
-    correct: 0
-  },
-  {
-    difficulty: 2,
-    q: "Hoe heet de plaats waar Jezus gekruisigd werd?",
-    a: ["Golgotha", "Nazareth", "Bethlehem", "Jericho"],
-    correct: 0
-  },
-  {
-    difficulty: 2,
-    q: "Wie schreef de meeste brieven in het Nieuwe Testament?",
-    a: ["Paulus", "Petrus", "Johannes", "Jakobus"],
-    correct: 0
-  },
-  {
-    difficulty: 2,
-    q: "Wie werd de eerste martelaar van de Kerk?",
-    a: ["Stefanus", "Jakobus", "Petrus", "Lucas"],
-    correct: 0
-  },
-  {
-    difficulty: 2,
-    q: "Wat is de Ark van Noach?",
-    a: ["Het schip waarin Noach en de dieren gered werden", "Een kerkgebouw", "Een boek", "Een altaar"],
-    correct: 0
-  },
-  {
-    difficulty: 2,
-    q: "Wie voerde het volk Israël uit Egypte?",
-    a: ["Mozes", "Abraham", "David", "Elia"],
-    correct: 0
-  },
-  {
-    difficulty: 2,
-    q: "Wie werd koning nadat Saul stierf?",
-    a: ["David", "Salomo", "Mozes", "Aaron"],
-    correct: 0
-  },
-  {
-    difficulty: 2,
-    q: "Wat vroeg Salomo aan God?",
-    a: ["Wijsheid", "Rijkdom", "Oorlog", "Eten"],
-    correct: 0
-  },
-  {
-    difficulty: 2,
-    q: "Welke zee spleet in twee toen Mozes zijn staf ophief?",
-    a: ["De Rode Zee", "De Jordaan", "De Dode Zee", "De Middellandse Zee"],
-    correct: 0
-  },
-  {
-    difficulty: 2,
-    q: "Wie doodde Goliath?",
-    a: ["David", "Saul", "Jozef", "Mozes"],
-    correct: 0
-  },
-  {
-    difficulty: 2,
-    q: "Wat deed Jezus bij het meer van Galilea?",
-    a: ["Hij riep vissers om Zijn leerlingen te worden", "Hij bouwde een huis", "Hij ging zwemmen", "Hij verdween"],
-    correct: 0
-  },
-  {
-    difficulty: 2,
-    q: "Wie werd in de vuuroven gegooid maar bleef ongedeerd?",
-    a: ["De drie jongemannen", "Mozes", "Jozua", "Samuel"],
-    correct: 0
-  },
-  {
-    difficulty: 2,
-    q: "Wat is het eerste boek van de Bijbel?",
-    a: ["Genesis", "Exodus", "Psalmen", "Handelingen"],
-    correct: 0
-  },
-  {
-    difficulty: 2,
-    q: "Wat betekent 'Eucharistie'?",
-    a: ["Dankzegging", "Brood", "Heiligdom", "Offer"],
-    correct: 0
-  },
-  {
-    difficulty: 2,
-    q: "Wat gebeurde er met Jezus veertig dagen na Zijn verrijzenis?",
-    a: ["Hij voer ten hemel", "Hij stierf", "Hij ging op reis", "Hij werd priester"],
-    correct: 0
-  },
-  {
-    difficulty: 2,
-    q: "Wat betekent 'Orthodoxie'?",
-    a: ["Juist geloven en juist eren", "Een oude traditie", "Een groep mensen", "Een kerkgebouw"],
-    correct: 0
-  },
-  {
-    difficulty: 2,
-    q: "Wat zegt Jezus over kinderen?",
-    a: ["Laat de kinderen tot Mij komen", "Ze zijn te klein", "Ze begrijpen niets", "Ze moeten wachten"],
-    correct: 0
-  },
-  {
-    difficulty: 2,
-    q: "Hoeveel dagen is Jezus dood geweest voor Zijn verrijzenis?",
-    a: ["3 dagen", "1 dag", "7 dagen", "40 dagen"],
-    correct: 0
-  }
-);
-// Moeilijkheid 3 (Level 3, maar ook gebruikt voor Level 4 en 5)
-vragen.push(
-  {
-    difficulty: 3,
-    q: "Wat betekent het woord 'Liturgie'?",
-    a: ["Dienst voor God en Zijn volk", "Een feest", "Een verhaal", "Een lied"],
-    correct: 0
-  },
-  {
-    difficulty: 3,
-    q: "Wat is het doel van vasten in de orthodoxe traditie?",
-    a: ["Dichter bij God komen", "Gewicht verliezen", "Gezond leven", "Gewoon traditie"],
-    correct: 0
-  },
-  {
-    difficulty: 3,
-    q: "Hoeveel sacramenten kent de Orthodoxe Kerk officieel?",
-    a: ["7", "5", "3", "12"],
-    correct: 0
-  },
-  {
-    difficulty: 3,
-    q: "Wat gebeurt er bij de Heilige Communie?",
-    a: ["We ontvangen het Lichaam en Bloed van Christus", "We krijgen gewoon brood en wijn", "We herinneren ons enkel een feest", "We drinken om samen blij te zijn"],
-    correct: 0
-  },
-  {
-    difficulty: 3,
-    q: "Wie schreef veel psalmen in de Bijbel?",
-    a: ["David", "Mozes", "Elia", "Jesaja"],
-    correct: 0
-  },
-  {
-    difficulty: 3,
-    q: "Wat betekent 'Theotokos'?",
-    a: ["Moeder van God", "Heilige plaats", "Engel van God", "Dochter van Israël"],
-    correct: 0
-  },
-  {
-    difficulty: 3,
-    q: "Wie zag een visioen van de hemelse ladder?",
-    a: ["Jakob", "Abraham", "Noach", "Samuel"],
-    correct: 0
-  },
-  {
-    difficulty: 3,
-    q: "Wat gebeurde er op de weg naar Emmaüs?",
-    a: ["Jezus verscheen aan twee leerlingen na Zijn verrijzenis", "Petrus werd geroepen", "Maria ontmoette een engel", "Paulus werd blind"],
-    correct: 0
-  },
-  {
-    difficulty: 3,
-    q: "Wie is de beschermheilige van reizigers?",
-    a: ["Christoforus", "Nicolaas", "Antonius", "Joris"],
-    correct: 0
-  },
-  {
-    difficulty: 3,
-    q: "Wat leert de Bergrede ons vooral?",
-    a: ["De zaligsprekingen en liefde voor de naaste", "Hoe je rijk kan worden", "Hoe je sterk kan zijn", "Hoe je wetten kan breken"],
-    correct: 0
-  },
-  {
-    difficulty: 3,
-    q: "Wie werd door raven gevoed in de woestijn?",
-    a: ["De profeet Elia", "Mozes", "Jesaja", "David"],
-    correct: 0
-  },
-  {
-    difficulty: 3,
-    q: "Wat betekent 'Orthodoxe Kerk' letterlijk?",
-    a: ["Rechtgelovige Kerk", "Oude Kerk", "Traditionele Kerk", "Kerk van het Oosten"],
-    correct: 0
-  },
-  {
-    difficulty: 3,
-    q: "Wat zegt Jezus over vergeven?",
-    a: ["Zevenenzeventig keer", "Slechts één keer", "Alleen vrienden", "Nooit"],
-    correct: 0
-  },
-  {
-    difficulty: 3,
-    q: "Wat symboliseert water in het doopsel?",
-    a: ["Reiniging en nieuw leven", "Gewoon een traditie", "Kracht", "Wijsheid"],
-    correct: 0
-  },
-  {
-    difficulty: 3,
-    q: "Wie schreef het Boek Openbaring?",
-    a: ["Johannes", "Paulus", "Petrus", "Lucas"],
-    correct: 0
-  },
-  {
-    difficulty: 3,
-    q: "Wat betekent 'Eikon' (icoon)?",
-    a: ["Beeld van Christus of de heiligen", "Een tekening", "Een symbool", "Een raam"],
-    correct: 0
-  },
-  {
-    difficulty: 3,
-    q: "Wat betekent 'Kyrie Eleison'?",
-    a: ["Heer, ontferm U", "Heer, zegen ons", "Heer, luister", "Heer, vergeef ons"],
-    correct: 0
-  },
-  {
-    difficulty: 3,
-    q: "Wat is de taak van een priester?",
-    a: ["De sacramenten bedienen", "De kerk schoonmaken", "De kinderen lesgeven", "De koning adviseren"],
-    correct: 0
-  },
-  {
-    difficulty: 3,
-    q: "Wat is het verschil tussen Oude en Nieuwe Testament?",
-    a: ["Oude Testament: vóór Christus, Nieuwe Testament: over Christus en Zijn Kerk", "Oude Testament is fout, Nieuwe juist", "Oude Testament is voor Joden, Nieuwe voor Grieken", "Ze zijn hetzelfde"],
-    correct: 0
-  },
-  {
-    difficulty: 3,
-    q: "Wie was de eerste bisschop van Jeruzalem?",
-    a: ["Jakobus, gekozen door de apostelen", "Petrus", "Paulus", "Johannes"],
-    correct: 0
-  },
-  {
-    difficulty: 3,
-    q: "Wat betekent 'Paaslam' in het Oude Testament?",
-    a: ["Het offer waardoor het volk werd gespaard", "Een gewoon dier", "Een feestmaal", "Een symbool van rijkdom"],
-    correct: 0
-  },
-  {
-    difficulty: 3,
-    q: "Wie schreef de Apocalyps?",
-    a: ["Johannes", "Petrus", "Paulus", "Lucas"],
-    correct: 0
-  },
-  {
-    difficulty: 3,
-    q: "Wat zegt Jezus: 'Ik ben …'?",
-    a: ["… de Weg, de Waarheid en het Leven", "… een profeet", "… een priester", "… een gewoon mens"],
-    correct: 0
-  },
-  {
-    difficulty: 3,
-    q: "Wat betekent 'Katholikos'?",
-    a: ["Algemeen, universeel", "Heilig", "Juist", "Bijzonder"],
-    correct: 0
-  },
-  {
-    difficulty: 3,
-    q: "Wat betekent het Griekse woord 'Christos'?",
-    a: ["Gezalfde", "Zoon", "Heer", "Redder"],
-    correct: 0
-  },
-  {
-    difficulty: 3,
-    q: "Wat is de Eucharistische Anamnese?",
-    a: ["Herinnering aan Christus’ lijden, dood en verrijzenis", "Een lofzang", "Een gebed om genezing", "Een lof op Maria"],
-    correct: 0
-  },
-  {
-    difficulty: 3,
-    q: "Wie is de beschermer van zeelieden?",
-    a: ["Heilige Nicolaas", "Heilige Antonius", "Heilige Joris", "Heilige Andreas"],
-    correct: 0
-  },
-  {
-    difficulty: 3,
-    q: "Wat is een icoon precies?",
-    a: ["Een venster op de hemel", "Een schilderij", "Een foto", "Een herinnering"],
-    correct: 0
-  },
-  {
-    difficulty: 3,
-    q: "Wat symboliseert de duif in de Bijbel?",
-    a: ["De Heilige Geest", "De Kerk", "De vrede", "Het volk Israël"],
-    correct: 0
-  },
-  {
-    difficulty: 3,
-    q: "Wat betekent 'Orthros'?",
-    a: ["Ochtenddienst", "Avonddienst", "Nachtwake", "Middaggebed"],
-    correct: 0
-  },
-  {
-    difficulty: 3,
-    q: "Wat vieren we op Theofanie?",
-    a: ["De Doop van Christus in de Jordaan", "De Verrijzenis", "De Hemelvaart", "De geboorte van Maria"],
-    correct: 0
-  },
-  {
-    difficulty: 3,
-    q: "Wat is de betekenis van het Kruis voor orthodoxen?",
-    a: ["Overwinning op dood en zonde", "Een symbool van lijden zonder hoop", "Een oud ritueel", "Een versiering"],
-    correct: 0
-  }
-);
-// -----------------------------------------------------
-// Zondevragen (difficulty: "zonde")
-// -----------------------------------------------------
-vragen.push(
-  { difficulty: "zonde", q: "God helemaal vergeten en nooit bidden is goed.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Elke dag even aan God denken is juist.", a: ["Ja", "Nee"], correct: 0 },
-  { difficulty: "zonde", q: "Grappen maken over God in de kerk is goed.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "In de kerk eerbiedig zijn is juist.", a: ["Ja", "Nee"], correct: 0 },
+    // SPEL INSTELLINGEN
+    const W = 500, H = 400;
+    const GRAS_Y = H/2; // alles eronder = graszone
+    const PH_SIZE = Math.round(H*0.40);
+    const JUMP_HEIGHT = H/2.1; // tot aan het midden van lucht
+    const OBSTAKEL_SPEED = 2.1; // pixels per frame (rustig!)
+    let score = 0, gameOver = false, obstakels = [];
 
-  { difficulty: "zonde", q: "De Naam van God lelijk gebruiken is toegestaan.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Gods Naam met liefde en eerbied gebruiken is juist.", a: ["Ja", "Nee"], correct: 0 },
+    // ---- CANVAS setup ----
+    const c = document.createElement('canvas');
+    c.width = W; c.height = H;
+    c.style.background = "#aee7ff";
+    c.id = "spelcanvas";
+    document.getElementById("spelcontainer").appendChild(c);
+    const ctx = c.getContext("2d");
 
-  { difficulty: "zonde", q: "De zondag enkel gebruiken om te spelen en nooit aan God te denken is goed.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Naar de kerk gaan op zondag is juist.", a: ["Ja", "Nee"], correct: 0 },
+    // ---- SPELSTATE ----
+    let ph = { x: 70, y: H-PH_SIZE-12, vy: 0, jumping: false };
+    let frames = 0;
 
-  { difficulty: "zonde", q: "Je ouders expres negeren is juist.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Met respect praten tegen ouders en juf is nodig.", a: ["Ja", "Nee"], correct: 0 },
-  { difficulty: "zonde", q: "Je grootouders met liefde helpen is goed.", a: ["Ja", "Nee"], correct: 0 },
-  { difficulty: "zonde", q: "Schelden tegen je ouders mag.", a: ["Ja", "Nee"], correct: 1 },
-
-  { difficulty: "zonde", q: "Iemand pijn doen voor de grap mag.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Een vriend beschermen tegen pesten is juist.", a: ["Ja", "Nee"], correct: 0 },
-  { difficulty: "zonde", q: "Pesten of iemand buitensluiten is goed.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Je boosheid vergeven en vrede maken is goed.", a: ["Ja", "Nee"], correct: 0 },
-
-  { difficulty: "zonde", q: "Over het lichaam van anderen grapjes maken is goed.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Respectvol omgaan met je eigen lichaam is juist.", a: ["Ja", "Nee"], correct: 0 },
-
-  { difficulty: "zonde", q: "Iets meenemen dat niet van jou is mag.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Iets teruggeven dat je vond is goed.", a: ["Ja", "Nee"], correct: 0 },
-  { difficulty: "zonde", q: "Jaloers doen en alles voor jezelf willen is juist.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Tevreden zijn met wat je hebt is goed.", a: ["Ja", "Nee"], correct: 0 },
-
-  { difficulty: "zonde", q: "Liegen om uit de problemen te blijven is toegestaan.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Altijd eerlijk zijn is goed.", a: ["Ja", "Nee"], correct: 0 },
-  { difficulty: "zonde", q: "Roddelen over iemand is juist.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "De waarheid spreken, ook als het moeilijk is, is juist.", a: ["Ja", "Nee"], correct: 0 },
-
-  { difficulty: "zonde", q: "In de kerk hard roepen en rennen mag.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Tijdens gebed stil en aandachtig zijn is goed.", a: ["Ja", "Nee"], correct: 0 },
-  { difficulty: "zonde", q: "Tijdens gebed expres grapjes maken is goed.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Een kaarsje aansteken voor iemand is juist.", a: ["Ja", "Nee"], correct: 0 },
-
-  { difficulty: "zonde", q: "Iemand met honger of verdriet negeren is juist.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Delen met wie niets heeft is goed.", a: ["Ja", "Nee"], correct: 0 },
-  { difficulty: "zonde", q: "Zieken bezoeken is juist.", a: ["Ja", "Nee"], correct: 0 },
-  { difficulty: "zonde", q: "Iemand uitlachen die verdrietig is mag.", a: ["Ja", "Nee"], correct: 1 },
-
-  { difficulty: "zonde", q: "Afval op straat gooien is oké.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Afval in de vuilnisbak gooien is juist.", a: ["Ja", "Nee"], correct: 0 },
-  { difficulty: "zonde", q: "Dieren plagen mag.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Zorgen voor dieren is goed.", a: ["Ja", "Nee"], correct: 0 },
-
-  { difficulty: "zonde", q: "Spieken en valsspelen is toegestaan.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Eerlijk zijn bij een toets is juist.", a: ["Ja", "Nee"], correct: 0 },
-  { difficulty: "zonde", q: "Je beurt afpakken in de rij is goed.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Wachten op je beurt is juist.", a: ["Ja", "Nee"], correct: 0 },
-
-  { difficulty: "zonde", q: "Schelden en lelijke woorden gebruiken is oké.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Vriendelijke woorden spreken is juist.", a: ["Ja", "Nee"], correct: 0 },
-
-  { difficulty: "zonde", q: "Nooit vergeven en altijd boos blijven is juist.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Iemand vergeven die sorry zegt is goed.", a: ["Ja", "Nee"], correct: 0 },
-
-  { difficulty: "zonde", q: "Nooit dankjewel zeggen is goed.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Dankbaar zijn voor kleine dingen is juist.", a: ["Ja", "Nee"], correct: 0 },
-
-  { difficulty: "zonde", q: "Opscheppen en anderen klein maken is juist.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Nederig en vriendelijk zijn is goed.", a: ["Ja", "Nee"], correct: 0 },
-
-  { difficulty: "zonde", q: "Altijd schermtijd kiezen boven gebed of gezin is juist.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Samen bidden met je gezin is goed.", a: ["Ja", "Nee"], correct: 0 },
-
-  { difficulty: "zonde", q: "Een fout verbergen en een ander de schuld geven is toegestaan.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Je eigen fouten toegeven is goed.", a: ["Ja", "Nee"], correct: 0 },
-
-  { difficulty: "zonde", q: "Geld stelen van een arme is toegestaan.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Een deel van je zakgeld geven aan de armen is juist.", a: ["Ja", "Nee"], correct: 0 },
-  { difficulty: "zonde", q: "Een geheim doorvertellen dat iemand jou toevertrouwde is juist.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Een geheim bewaren als iemand je vertrouwt is goed.", a: ["Ja", "Nee"], correct: 0 },
-  { difficulty: "zonde", q: "Je vrienden verraden voor plezier is toegestaan.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Trouwe vriendschap bewaren is juist.", a: ["Ja", "Nee"], correct: 0 },
-  { difficulty: "zonde", q: "Met aandacht luisteren naar het Evangelie is goed.", a: ["Ja", "Nee"], correct: 0 },
-  { difficulty: "zonde", q: "In de kerk bewust storen is juist.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Voor de communie bidden is goed.", a: ["Ja", "Nee"], correct: 0 },
-  { difficulty: "zonde", q: "De communie nemen zonder geloof is juist.", a: ["Ja", "Nee"], correct: 1 },
-
-  { difficulty: "zonde", q: "Elke dag danken voor eten is goed.", a: ["Ja", "Nee"], correct: 0 },
-  { difficulty: "zonde", q: "Eten zonder God te danken is juist.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Je zorgen bij God brengen in gebed is goed.", a: ["Ja", "Nee"], correct: 0 },
-  { difficulty: "zonde", q: "Denken dat God je nooit hoort is juist.", a: ["Ja", "Nee"], correct: 1 },
-
-  { difficulty: "zonde", q: "Je broer of zus expres pijn doen is juist.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Samen spelen en delen is goed.", a: ["Ja", "Nee"], correct: 0 },
-  { difficulty: "zonde", q: "Altijd jaloers zijn op je broer of zus is juist.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Trots zijn op je broer of zus is goed.", a: ["Ja", "Nee"], correct: 0 },
-
-  { difficulty: "zonde", q: "Voor een icoon eerbiedig bidden is goed.", a: ["Ja", "Nee"], correct: 0 },
-  { difficulty: "zonde", q: "Een icoon bespotten is juist.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Een kruisje dragen uit geloof is goed.", a: ["Ja", "Nee"], correct: 0 },
-  { difficulty: "zonde", q: "Het kruisje uitlachen is juist.", a: ["Ja", "Nee"], correct: 1 },
-
-  { difficulty: "zonde", q: "Wraak nemen op iemand die je pijn deed is juist.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Bidden voor je vijanden is goed.", a: ["Ja", "Nee"], correct: 0 },
-  { difficulty: "zonde", q: "Iemand vervloeken is toegestaan.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Iemand zegenen is juist.", a: ["Ja", "Nee"], correct: 0 },
-
-  { difficulty: "zonde", q: "Een nieuwe leerling uitsluiten is juist.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Een nieuwe leerling welkom heten is goed.", a: ["Ja", "Nee"], correct: 0 },
-  { difficulty: "zonde", q: "Een arm kind uitlachen is juist.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Een arm kind helpen is goed.", a: ["Ja", "Nee"], correct: 0 },
-
-  { difficulty: "zonde", q: "De vasten negeren en er grapjes over maken is juist.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "De vasten volgen uit liefde voor God is goed.", a: ["Ja", "Nee"], correct: 0 },
-  { difficulty: "zonde", q: "De Bijbel lezen is goed.", a: ["Ja", "Nee"], correct: 0 },
-  { difficulty: "zonde", q: "De Bijbel belachelijk maken is juist.", a: ["Ja", "Nee"], correct: 1 },
-
-  { difficulty: "zonde", q: "Altijd somber doen en nooit danken is juist.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Hoopvol bidden en danken is goed.", a: ["Ja", "Nee"], correct: 0 },
-
-  { difficulty: "zonde", q: "Een vriend verraden voor geld is juist.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Een vriend trouw blijven is goed.", a: ["Ja", "Nee"], correct: 0 },
-
-  { difficulty: "zonde", q: "Zegenen bij het eten is goed.", a: ["Ja", "Nee"], correct: 0 },
-  { difficulty: "zonde", q: "Vechten en ruzie maken is juist.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Bidden voor zieke mensen is goed.", a: ["Ja", "Nee"], correct: 0 },
-  { difficulty: "zonde", q: "Zieken uitlachen is juist.", a: ["Ja", "Nee"], correct: 1 },
-
-  { difficulty: "zonde", q: "Een kaarsje aansteken voor iemand is goed.", a: ["Ja", "Nee"], correct: 0 },
-  { difficulty: "zonde", q: "Een icoon kapotmaken is juist.", a: ["Ja", "Nee"], correct: 1 },
-  { difficulty: "zonde", q: "Samen zingen voor God is goed.", a: ["Ja", "Nee"], correct: 0 },
-  { difficulty: "zonde", q: "In de kerk expres lawaai maken is juist.", a: ["Ja", "Nee"], correct: 1 }
-);
-
-    // ===== SPELVARIABELEN =====
-    const SPEL_BREEDTE = 500, SPEL_HOOGTE = 350;
-    const GRONDLijn = Math.round(SPEL_HOOGTE * 0.71);
-    const STER_EMOJI = "⭐";
-    const VLEUGEL_EMOJI = "🪽";
-    const DOODSKOP_EMOJI = "💀";
-    const FPS = 60;
-
-    let spelcontainer = document.getElementById('spelcontainer');
-    let score = 0, gameOver = false;
-    let photeinos, velY = 0, springKracht = 14.8, zwaartekracht = 0.83;
-    let obstacles = [];
-    let obstakelSpeed = 1.6; // traag!
-    let obstacleTimer = 0;
-    let minObstacleDelay = 120, maxObstacleDelay = 220;
-    let gameLoop;
-    let jumpRequested = false;
-
-    let gameoverMsg = document.getElementById('gameover');
-    let herstartBtn = document.getElementById('herstartBtn');
-
-    function resetGame() {
-      spelcontainer.innerHTML = "";
-      score = 0; gameOver = false; obstacles = [];
-      velY = 0; obstacleTimer = 0;
-      document.getElementById('score').textContent = "Score: " + score;
-      gameoverMsg.style.display = 'none';
-      herstartBtn.style.display = 'none';
-      // Photeinos
-      photeinos = document.createElement('span');
-      photeinos.className = "emoji";
-      photeinos.style.fontSize = (SPEL_HOOGTE*0.38) + "px";
-      photeinos.textContent = STER_EMOJI;
-      spelcontainer.appendChild(photeinos);
-      photeinos.x = 50;
-      photeinos.y = GRONDLijn;
-      plaatsPhoteinos();
-      // Start
-      if(gameLoop) clearInterval(gameLoop);
-      gameLoop = setInterval(updateGame, 1000/FPS);
+    // ---- ZONES tekenen ----
+    function tekenAchtergrond() {
+      // Lucht
+      ctx.fillStyle = "#aee7ff";
+      ctx.fillRect(0,0,W,H/2);
+      // Gras
+      ctx.fillStyle = "#8bc34a";
+      ctx.fillRect(0,H/2,W,H/2);
     }
-    function plaatsPhoteinos() {
-      photeinos.style.left = photeinos.x + "px";
-      photeinos.style.top = photeinos.y + "px";
+
+    // ---- Photeinos tekenen (emoji) ----
+    function tekenPhoteinos() {
+      ctx.font = PH_SIZE+"px serif";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "top";
+      ctx.fillText("🌟", ph.x, ph.y);
     }
-    function addObstacle() {
-      let soort = Math.random() < 0.5 ? "doodskop" : "vleugel";
-      let el = document.createElement('span');
-      el.className = "emoji";
-      el.textContent = soort==="vleugel" ? VLEUGEL_EMOJI : DOODSKOP_EMOJI;
-      el.soort = soort;
-      el.style.fontSize = (SPEL_HOOGTE*0.14) + "px";
-      el.x = SPEL_BREEDTE + 20;
-      el.y = soort==="doodskop"
-        ? GRONDLijn + 8
-        : Math.round(SPEL_HOOGTE * 0.32);
-      el.style.left = el.x+"px";
-      el.style.top = el.y+"px";
-      spelcontainer.appendChild(el);
-      obstacles.push(el);
-    }
-    function updateGame() {
-      if(gameOver || quizActief) return;
-      // Springen
-      if(jumpRequested && photeinos.y >= GRONDLijn) {
-        velY = -springKracht;
-        jumpRequested = false;
+
+    // ---- Obstakels ----
+    function nieuwObstakel() {
+      // Max 2 tegelijk
+      if (obstakels.length >= 2) return;
+      // Random keuze: doodskop of vleugel
+      let soort = (Math.random()<0.55) ? "doodskop" : "vleugel";
+      let y, emoji;
+      if (soort=="doodskop") { // graszone
+        y = GRAS_Y + Math.random()*(H/2-60);
+        emoji = "💀";
+      } else { // vleugeltje in lucht
+        y = Math.random()*(H/2-60) + 20;
+        emoji = "🪽";
       }
-      // Zwaartekracht
-      velY += zwaartekracht;
-      photeinos.y += velY;
-      if(photeinos.y > GRONDLijn) { photeinos.y = GRONDLijn; velY = 0;}
-      if(photeinos.y < 5) { photeinos.y = 5; velY = 0.2; }
-      plaatsPhoteinos();
+      obstakels.push({ x:W+10, y, emoji, soort });
+    }
 
-      // Obstakels bewegen & botsen
-      for(let i=obstacles.length-1;i>=0;i--) {
-        let ob = obstacles[i];
-        ob.x -= obstakelSpeed;
-        ob.style.left = ob.x+"px";
-        let raak = Math.abs(photeinos.x-ob.x)<44 && Math.abs(photeinos.y-ob.y)<38;
-        if(raak) {
-          if(ob.soort==="vleugel") {
-            toonQuizVraag(ob); // vraag tonen, daarna score verhogen
-            return;
+    // ---- Obstakels tekenen ----
+    function tekenObstakels() {
+      ctx.font = "40px serif";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "top";
+      obstakels.forEach(o => ctx.fillText(o.emoji, o.x, o.y));
+    }
+
+    // ---- Botsingen ----
+    function botsing(o) {
+      // Vereenvoudigde box-botsing
+      return o.x < ph.x+PH_SIZE-8 && o.x+40 > ph.x+12 && o.y < ph.y+PH_SIZE-15 && o.y+38 > ph.y+8;
+    }
+
+    // ---- Hoofdgame loop ----
+    function teken() {
+      ctx.clearRect(0,0,W,H);
+      tekenAchtergrond();
+      tekenPhoteinos();
+      tekenObstakels();
+      // Obstakels bewegen
+      obstakels.forEach(o=>o.x -= OBSTAKEL_SPEED);
+
+      // Check botsingen
+      for (let i=obstakels.length-1; i>=0; i--) {
+        let o = obstakels[i];
+        if (botsing(o)) {
+          if (o.soort=="doodskop") { // GAME OVER!
+            gameOver = true;
+          } else {
+            obstakels.splice(i,1);
+            score++;
+            document.getElementById("score").textContent = "Score: "+score;
           }
-          else if(ob.soort==="doodskop") {
-            endGame();
-            return;
-          }
+        } else if (o.x < -50) {
+          obstakels.splice(i,1);
         }
-        if(ob.x < -30) { ob.remove(); obstacles.splice(i,1);}
       }
-      // Obstakels spawnen langzaam (1-2 tegelijk, niet meer)
-      obstacleTimer--;
-      if(obstacleTimer<=0 && obstacles.length<2) {
-        addObstacle();
-        obstacleTimer = Math.round(minObstacleDelay + Math.random()*(maxObstacleDelay-minObstacleDelay));
+      // Springen/fallen
+      if (ph.jumping) {
+        ph.y += ph.vy;
+        ph.vy += 2.7; // zwaartekracht (lager = trager dalen)
+        if (ph.y >= H-PH_SIZE-12) {
+          ph.y = H-PH_SIZE-12; ph.jumping = false; ph.vy=0;
+        }
       }
-    }
-    function endGame() {
-      gameOver = true;
-      clearInterval(gameLoop);
-      gameoverMsg.innerHTML = "Oei! Je raakte een doodskop!<br>Score: "+score;
-      gameoverMsg.style.display = 'block';
-      herstartBtn.style.display = 'block';
-      setTimeout(()=>{ window.scrollTo({top:0,behavior:'smooth'}); },250);
+
+      // Nieuwe obstakels
+      if (!gameOver && frames%90===0) nieuwObstakel();
+      // Teken game over
+      if (gameOver) {
+        ctx.globalAlpha=0.85;
+        ctx.fillStyle="#fff";
+        ctx.fillRect(0,120,W,160);
+        ctx.globalAlpha=1;
+        ctx.fillStyle="#2276b9";
+        ctx.font="32px Comic Sans MS, Arial";
+        ctx.textAlign="center";
+        ctx.fillText("Game Over!", W/2, H/2-22);
+        ctx.font="18px Arial";
+        ctx.fillText("Score: "+score, W/2, H/2+16);
+        return;
+      }
+      frames++;
+      requestAnimationFrame(teken);
     }
 
-    // ==== Quiz ====
-    let quizActief = false, huidigVraag = null, huidigObstakel = null;
-    function toonQuizVraag(obstakel) {
-      quizActief = true;
-      huidigVraag = vragen[Math.floor(Math.random()*vragen.length)];
-      huidigObstakel = obstakel;
-      document.getElementById("quizvraag").textContent = huidigVraag.q;
-      let qA = document.getElementById("quizanswers");
-      qA.innerHTML = "";
-      huidigVraag.a.forEach((ans, i) => {
-        let btn = document.createElement("button");
-        btn.className = "quizans";
-        btn.innerHTML = ans;
-        btn.onclick = () => kiesQuizAntwoord(i, btn);
-        qA.appendChild(btn);
-      });
-      document.getElementById("quizfoutje").innerHTML = "";
-      document.getElementById("quizdoorgaan").style.display = "none";
-      document.getElementById("quizoverlay").style.display = "flex";
-      // Pauzeer spel, verwijder vleugeltje zodat het niet opnieuw raakt
-      if(huidigObstakel) { huidigObstakel.remove(); obstacles = obstacles.filter(o=>o!==huidigObstakel);}
-    }
-    function kiesQuizAntwoord(i, knop) {
-      let juist = (i === huidigVraag.correct);
-      let alle = document.querySelectorAll(".quizans");
-      alle.forEach(b=>b.disabled=true);
-      knop.classList.add(juist ? "quizgoed" : "quizfout");
-      if(juist) {
-        document.getElementById("quizfoutje").textContent = "Goed zo!";
-        score++; document.getElementById("score").textContent = "Score: " + score;
-      } else {
-        document.getElementById("quizfoutje").textContent = "Niet juist. Volgende keer beter!";
+    // ---- Springfunctie ----
+    function spring() {
+      if (!ph.jumping) {
+        ph.vy = -JUMP_HEIGHT/8.3; // hoe lager, hoe hoger (proefondervindelijk)
+        ph.jumping = true;
       }
-      document.getElementById("quizdoorgaan").style.display = "inline-block";
     }
-    document.getElementById("quizdoorgaan").onclick = function(){
-      document.getElementById("quizoverlay").style.display = "none";
-      quizActief = false;
-    };
+    document.getElementById("springBtn").onclick = spring;
+    window.addEventListener("keydown", e=>{ if (e.code=="Space") spring(); });
 
-    // ==== Controls ====
-    document.getElementById("jumpBtn").onclick = () => { if (!gameOver && !quizActief) jumpRequested = true; };
-    document.addEventListener('keydown', (e) => { if (e.code === "Space" && !gameOver && !quizActief) jumpRequested = true; });
-    spelcontainer.addEventListener('pointerdown', (e) => { if (!gameOver && !quizActief) jumpRequested = true; });
-    document.addEventListener('touchstart', function(e){ if (!gameOver && !quizActief) jumpRequested = true; });
-    herstartBtn.onclick = resetGame;
-
-    window.onload = resetGame;
+    // Start het spel
+    teken();
   </script>
 </body>
 </html>
