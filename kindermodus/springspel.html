@@ -7,7 +7,6 @@
   <link rel="icon" href="images/kruis.png" />
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
   <script src="vragen.js"></script>
-  <!-- Jouw eigen layout.js/kinderlayout.js mag hieronder geladen -->
   <script defer src="common/layout.js"></script>
   <style>
     :root{
@@ -40,9 +39,8 @@
   </style>
 </head>
 <body>
-  <!-- Kinderheader precies zoals op je andere pagina's -->
+  <!-- Kinderheader -->
   <div id="kinder-header" data-header-src="common/header.html"></div>
-
   <div id="spelcontainer"></div>
   <div id="vraag-overlay" style="display:none"></div>
 
@@ -65,7 +63,7 @@
     let spelBlokkeren = false;
     let sceneRef;
 
-    const FOOT_RADIUS = 24; // voetjes kleiner maken zodat ze écht raken
+    const FOOT_RADIUS = 24; // voetje
     const HEAD_RADIUS = 30;
 
     const config = {
@@ -155,28 +153,25 @@
         setTimeout(() => canJump = true, 480);
       }
 
-      // Botsingspunten: hoofd en voeten (voet = alleen als je op de grond bent!)
+      // Botsingspunten: hoofd, voorste voet (enkel voetR telt voor obstakels)
       let bounds = speler.getBounds();
       let hoofd = {x: bounds.centerX, y: bounds.top + 34};
-      let voetL = {x: bounds.centerX - 30, y: bounds.bottom - 8};
       let voetR = {x: bounds.centerX + 28, y: bounds.bottom - 8};
 
-      // === OBSTAKELS: geraakt als je NIET springt, dus op de grond, én 1 van de voeten zit in de cirkel van het obstakel ===
+      // OBSTAKELS: geraakt als je NIET springt, én voorste voet het obstakel raakt
       obstacles.forEach(o => {
         if (!spelBlokkeren && !o.hit) {
           let ox = o.x, oy = o.y - 32; // obstakel middelpunt
-          // alleen op de grond telt als botsing!
           let opGrond = speler.body.blocked.down;
-          let dL = Math.hypot(voetL.x-ox, voetL.y-oy);
           let dR = Math.hypot(voetR.x-ox, voetR.y-oy);
-          if (opGrond && (dL < FOOT_RADIUS+30 || dR < FOOT_RADIUS+30)) {
+          if (opGrond && dR < FOOT_RADIUS+30) {
             o.hit = true;
             stelVraag("zonde");
           }
         }
       });
 
-      // Vleugels: raakvlak = cirkel rond hoofd, springen niet nodig
+      // Vleugels: hoofd raakt vleugel
       wings.forEach(w => {
         if (!spelBlokkeren && !w.collected) {
           let wBounds = w.getBounds();
