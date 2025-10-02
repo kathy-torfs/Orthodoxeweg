@@ -6,82 +6,33 @@
   <title>Springspel – Orthodoxe Kinderpagina</title>
   <link rel="icon" href="images/kruis.png" />
   <style>
-    :root{
-      --primair:#7bb235; --donker:#67510C;
-      --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
-      --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
-      --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
-      --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
-    }
-    body{
-      margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
-      min-height:100vh; background:var(--pastel1); transition:background .6s;
-    }
-    #controls {
-      box-sizing: border-box;
-      background-color: #3B96E5;
-      padding: 6px;
-      position: fixed;
-      bottom: 0; left: 0; width: 100vw;
-      z-index: 10;
-    }
-    #controls button {
-      color: #fff;
-      font-family: inherit;
-      font-weight: 500;
-      padding: 6px 12px;
-      font-size: 16px;
-      cursor: pointer;
-      background-color: transparent;
-      border: none;
-    }
-    #controls button:hover {
-      background-color: rgba(0, 0, 0, 0.3);
-      border-color: rgba(0, 0, 0, 0.3);
-    }
-    #score {
-      color: #fff;
-      float: right;
-      padding: 6px 12px;
-    }
+    body { margin:0; font-family:'Comic Sans MS', Arial, sans-serif; background:#fff6e5;}
     #spelkaart {
-      max-width: 600px; 
-      margin: 40px auto;
-      padding: 32px 20px 16px 20px;
-      background: #f7fff3;
-      border-radius: 20px;
-      box-shadow: 0 6px 30px #bfd6b2a8;
+      max-width: 600px; margin: 40px auto; padding: 32px 20px 16px 20px;
+      background: #f7fff3; border-radius: 20px; box-shadow: 0 6px 30px #bfd6b2a8;
       text-align: center;
     }
     #spelcontainer {
-      position: relative;
-      margin: 0 auto;
-      width: 500px; height: 350px;
-      background: linear-gradient(to bottom, #aee7ff 0% 50%, #8bc34a 50% 100%);
-      border-radius: 8px;
-      box-shadow: 0 8px 18px #b7e2e2b4;
-      overflow: hidden;
+      position: relative; margin: 0 auto; width: 500px; height: 350px;
+      background: linear-gradient(to bottom, #aee7ff 0% 55%, #8bc34a 55% 100%);
+      border-radius: 8px; box-shadow: 0 8px 18px #b7e2e2b4; overflow: hidden;
       touch-action: none;
     }
-    .emoji {
-      position: absolute;
-      user-select: none;
-      pointer-events: none;
+    .emoji { position: absolute; user-select: none; pointer-events: none; }
+    #controls {
+      box-sizing: border-box; background-color: #3B96E5; padding: 6px;
+      position: fixed; bottom: 0; left: 0; width: 100vw; z-index: 10;
     }
-    #gameover {
-      font-size: 2rem;
-      color: #e53935;
-      margin-top: 30px;
-      font-weight: bold;
-    }
+    #controls button { color: #fff; font-family: inherit; font-weight: 500;
+      padding: 6px 12px; font-size: 16px; cursor: pointer; background-color: transparent;
+      border: none; }
+    #controls button:hover { background-color: rgba(0,0,0,0.2);}
+    #score { color: #fff; float: right; padding: 6px 12px; }
+    #gameover { font-size: 2rem; color: #e53935; margin-top: 20px; font-weight: bold; }
     #herstartBtn {
       background: #7bb235; color:#fff; padding:10px 22px;
       border-radius: 8px; font-size:1.2rem; border:none; margin-top:16px;
       cursor:pointer; font-family:inherit;
-    }
-    @media (max-width:650px) {
-      #spelkaart { max-width: 97vw; }
-      #spelcontainer { width:96vw; height:65vw; max-width:100vw; }
     }
   </style>
   <script defer src="common/layout.js"></script>
@@ -105,6 +56,7 @@
   <script>
     // --- Instellingen ---
     const SPEL_BREEDTE = 500, SPEL_HOOGTE = 350;
+    const GRONDLijn = Math.round(SPEL_HOOGTE * 0.71); // waar de ster op staat
     const STER_EMOJI = "⭐";
     const VLEUGEL_EMOJI = "🪽";
     const DOODSKOP_EMOJI = "💀";
@@ -112,37 +64,35 @@
 
     let spelcontainer = document.getElementById('spelcontainer');
     let score = 0, gameOver = false;
-    let photeinos, obstacles = [], velY = 0;
-    let jumpRequested = false, gravity = 0.79, jumpKracht = 12.2;
-    let obstakelSpeed = 2.1;
-
+    let photeinos, velY = 0, springKracht = 13.7, zwaartekracht = 0.85;
+    let obstacles = [];
+    let obstakelSpeed = 1.5; // langzaam
+    let obstacleTimer = 0;
+    let minObstacleDelay = 110, maxObstacleDelay = 200;
     let gameLoop;
+
     let gameoverMsg = document.getElementById('gameover');
     let herstartBtn = document.getElementById('herstartBtn');
 
-    // Initialisatie
     function resetGame() {
       spelcontainer.innerHTML = "";
-      score = 0;
-      gameOver = false;
-      obstacles = [];
-      velY = 0;
+      score = 0; gameOver = false; obstacles = [];
+      velY = 0; obstacleTimer = 0;
       document.getElementById('score').textContent = "Score: " + score;
       gameoverMsg.style.display = 'none';
       herstartBtn.style.display = 'none';
-      // Photeinos aanmaken
+
+      // Photeinos maken
       photeinos = document.createElement('span');
       photeinos.className = "emoji";
       photeinos.style.fontSize = (SPEL_HOOGTE*0.38) + "px";
       photeinos.textContent = STER_EMOJI;
       spelcontainer.appendChild(photeinos);
-      photeinos.x = 52;
-      photeinos.y = SPEL_HOOGTE*0.68; // start laag in gras
+      photeinos.x = 50;
+      photeinos.y = GRONDLijn;
       plaatsPhoteinos();
 
-      // Eerste obstakels
-      for(let i=0;i<2;i++) addObstacle();
-      // Game loop starten
+      // Start loop
       if(gameLoop) clearInterval(gameLoop);
       gameLoop = setInterval(updateGame, 1000/FPS);
     }
@@ -153,18 +103,17 @@
     }
 
     function addObstacle() {
-      // 50% kans doodskop in gras, 50% kans vleugel in lucht
-      let soort = Math.random()<0.5 ? "doodskop" : "vleugel";
+      let soort = Math.random() < 0.5 ? "doodskop" : "vleugel";
       let el = document.createElement('span');
       el.className = "emoji";
-      el.textContent = soort==="vleugel"?VLEUGEL_EMOJI:DOODSKOP_EMOJI;
+      el.textContent = soort==="vleugel" ? VLEUGEL_EMOJI : DOODSKOP_EMOJI;
       el.soort = soort;
-      el.style.fontSize = (SPEL_HOOGTE*0.12) + "px";
-      el.x = SPEL_BREEDTE + 45 + Math.random()*70;
-      if(soort==="doodskop")
-        el.y = SPEL_HOOGTE*0.72 + Math.random()*(SPEL_HOOGTE*0.13); // alleen graszone
-      else
-        el.y = 32 + Math.random()*(SPEL_HOOGTE*0.25); // alleen luchtzone
+      el.style.fontSize = (SPEL_HOOGTE*0.14) + "px";
+      el.x = SPEL_BREEDTE + 20;
+      // Doodskop altijd op grondlijn, vleugel altijd in de lucht
+      el.y = soort==="doodskop"
+        ? GRONDLijn + 8 // net boven de grond
+        : Math.round(SPEL_HOOGTE * 0.32); // vaste hoogte, lucht
       el.style.left = el.x+"px";
       el.style.top = el.y+"px";
       spelcontainer.appendChild(el);
@@ -172,23 +121,26 @@
     }
 
     function updateGame() {
-      if (gameOver) return;
+      if(gameOver) return;
+
       // Springen
-      if(jumpRequested && photeinos.y > 5) {
-        velY = -jumpKracht;
+      if(jumpRequested && photeinos.y >= GRONDLijn) {
+        velY = -springKracht;
         jumpRequested = false;
       }
+
       // Zwaartekracht
-      velY += gravity;
+      velY += zwaartekracht;
       photeinos.y += velY;
+
       // Grond
-      if(photeinos.y > SPEL_HOOGTE*0.68) {
-        photeinos.y = SPEL_HOOGTE*0.68;
+      if(photeinos.y > GRONDLijn) {
+        photeinos.y = GRONDLijn;
         velY = 0;
       }
-      // Bovenkant
-      if(photeinos.y < 1) {
-        photeinos.y = 1;
+      // Bovenkant (limiet)
+      if(photeinos.y < 5) {
+        photeinos.y = 5;
         velY = 0.2;
       }
       plaatsPhoteinos();
@@ -198,27 +150,29 @@
         let ob = obstacles[i];
         ob.x -= obstakelSpeed;
         ob.style.left = ob.x+"px";
-        // Botscontrole
-        let dx = (photeinos.x+SPEL_HOOGTE*0.19)-(ob.x+SPEL_HOOGTE*0.06);
-        let dy = (photeinos.y+SPEL_HOOGTE*0.19)-(ob.y+SPEL_HOOGTE*0.06);
-        let afstand = Math.sqrt(dx*dx+dy*dy);
-        if(afstand < SPEL_HOOGTE*0.15) {
+        // Botscontrole (makkelijk: rechthoekjes)
+        let raak = Math.abs(photeinos.x-ob.x)<44 && Math.abs(photeinos.y-ob.y)<38;
+        if(raak) {
           if(ob.soort==="vleugel") {
-            score++;
+            score++; ob.remove(); obstacles.splice(i,1);
             document.getElementById('score').textContent = "Score: " + score;
-            ob.remove(); obstacles.splice(i,1);
-          } else if(ob.soort==="doodskop") {
+          }
+          else if(ob.soort==="doodskop") {
             endGame();
             return;
           }
         }
-        // Uit beeld = verwijderen
-        if(ob.x < -40) {
+        if(ob.x < -30) {
           ob.remove(); obstacles.splice(i,1);
         }
       }
-      // Max 2 obstakels tegelijk
-      while(obstacles.length < 2) addObstacle();
+
+      // Obstakels spawnen langzaam (1-2 tegelijk, niet meer)
+      obstacleTimer--;
+      if(obstacleTimer<=0 && obstacles.length<2) {
+        addObstacle();
+        obstacleTimer = Math.round(minObstacleDelay + Math.random()*(maxObstacleDelay-minObstacleDelay));
+      }
     }
 
     function endGame() {
@@ -227,9 +181,10 @@
       gameoverMsg.innerHTML = "Oei! Je raakte een doodskop!<br>Score: "+score;
       gameoverMsg.style.display = 'block';
       herstartBtn.style.display = 'block';
+      setTimeout(()=>{ window.scrollTo({top:0,behavior:'smooth'}); },250);
     }
 
-    // Controls
+    let jumpRequested = false;
     document.getElementById("jumpBtn").onclick = () => { if (!gameOver) jumpRequested = true; };
     document.addEventListener('keydown', (e) => { if (e.code === "Space" && !gameOver) jumpRequested = true; });
     spelcontainer.addEventListener('pointerdown', (e) => { if (!gameOver) jumpRequested = true; });
