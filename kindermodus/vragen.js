@@ -1,3 +1,5 @@
+//lichtvragen//
+
 const vragen = [
   // Moeilijkheid 1 (Level 1)
   {
