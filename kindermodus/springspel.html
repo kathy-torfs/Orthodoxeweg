@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <title>Springspel – Orthodoxe Kinderpagina</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+  <script src="vragen.js"></script>
+  <script src="kinderlayout.js"></script> <!-- <-- jouw standaard kinder header/menu -->
   <style>
-    body { background: #e2f6ff; margin:0; }
+    body { background: #e2f6ff; }
     #spelcontainer { margin: 32px auto; width: 900px; }
     .vraag-overlay {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0;
@@ -26,38 +27,25 @@
       padding: 8px 14px; width: 96%; cursor: pointer; display: block;
     }
     .vraag-antw-btn:hover { background: #488f12; }
-    @media (max-width:1000px) { #spelcontainer{width:99vw;} }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
-  <script src="vragen.js"></script>
 </head>
 <body>
-<div id="kinder-header"></div>
-<script src="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/common/layout.js"></script>
-
 <div id="spelcontainer"></div>
 <div id="vraag-overlay" style="display:none"></div>
 <script>
 const GAME_WIDTH = 900, GAME_HEIGHT = 600;
-const LUCHT_H = GAME_HEIGHT * 0.5;
-const lichtvragen = vragen.filter(q => q.difficulty !== "zonde");
-const zondevragen = vragen.filter(q => q.difficulty === "zonde");
-
-// Hitpoints voor voeten en hoofd
-const HEAD_POINT_OFFSET = { x: 0, y: -80 };      // t.o.v. center, hoofd
-const LEFT_FOOT_OFFSET = { x: -28, y: 0 };      // t.o.v. center, linker voet
-const RIGHT_FOOT_OFFSET = { x: 28, y: 0 };      // t.o.v. center, rechter voet
-const OBS_HIT_RADIUS = 22;                      // obstakel: raakstraal
-const WING_HIT_RADIUS = 48;                     // vleugel: raakstraal
+const LUCHT_H = GAME_HEIGHT * 0.5; // hoogte lucht, 300px
+const GRAS_Y = GAME_HEIGHT * 0.75;  // midden van de graszone, 450px
 
 let speler, cursors, jumpRequested = false, canJump = true;
-let obstacles = [], wings = [];
-let speed = 1.18;
+let obstacles = [], wings = [], flowers = [], clouds = [];
+let speed = 1.3;
 let spelBlokkeren = false;
 let sceneRef;
 
-// Parallax elementen
-let grasStroken = [], luchtStroken = [], wolkjes = [], bloemen = [];
+const GRAS_DREMPEL = GAME_HEIGHT - 46; // alles lager dan dit is "op de grond"
+const FOOT_OFFSET = 32; // afstand van het midden naar de voeten
+const HEAD_OFFSET = -60; // hoofd-raakpunt t.o.v. het midden van de emoji
 
 const config = {
   type: Phaser.AUTO,
@@ -66,7 +54,7 @@ const config = {
   parent: 'spelcontainer',
   physics: {
     default: 'arcade',
-    arcade: { gravity: { y: 1120 }, debug: false }
+    arcade: { gravity: { y: 1700 }, debug: false }
   },
   scene: { preload, create, update }
 };
@@ -77,42 +65,16 @@ function preload() {}
 
 function create() {
   sceneRef = this;
-  // Parallax lucht
-  for (let i = 0; i < 2; i++) {
-    let lucht = this.add.rectangle(i * GAME_WIDTH + GAME_WIDTH/2, LUCHT_H/2, GAME_WIDTH, LUCHT_H, 0xaee7ff);
-    luchtStroken.push(lucht);
-  }
-  // Parallax gras
-  for (let i = 0; i < 2; i++) {
-    let gras = this.add.rectangle(i * GAME_WIDTH + GAME_WIDTH/2, LUCHT_H + (GAME_HEIGHT-LUCHT_H)/2, GAME_WIDTH, GAME_HEIGHT-LUCHT_H, 0x8bc34a);
-    grasStroken.push(gras);
-  }
-  // Wolkjes in lucht
-  for (let i=0; i<6; i++) {
-    let cloudX = 80 + Math.random()*(GAME_WIDTH-160);
-    let cloudY = 35 + Math.random()*(LUCHT_H-60);
-    let cloud = this.add.text(cloudX, cloudY, "☁️", {
-      fontFamily: 'Segoe UI Emoji, Arial',
-      fontSize: (60+Math.random()*22)+'px'
-    });
-    cloud.setAlpha(0.75);
-    wolkjes.push(cloud);
-  }
-  // Bloemetjes in gras
-  const bloemenIcons = ["🌸","🌻","🌼","🌺"];
-  for (let i=0; i<16; i++) {
-    let bloemX = 40 + Math.random()*(GAME_WIDTH-80);
-    let bloemY = GAME_HEIGHT - 8 - Math.random()*40;
-    let bloem = this.add.text(bloemX, bloemY, bloemenIcons[Math.floor(Math.random()*bloemenIcons.length)], {
-      fontFamily: 'Segoe UI Emoji, Arial',
-      fontSize: (26+Math.random()*12)+'px'
-    });
-    bloem.setOrigin(0.5,1);
-    bloemen.push(bloem);
-  }
+  // Achtergrond: bewegende gras + lucht, wolkjes en bloemetjes
+  for (let i = 0; i < 7; i++) addCloud(this, Math.random()*GAME_WIDTH, 60+Math.random()*140);
+  for (let i = 0; i < 8; i++) addFlower(this, Math.random()*GAME_WIDTH, GAME_HEIGHT-24);
 
-  // Emoji-mannetje
-  const spelerGrootte = GAME_HEIGHT * 0.37;
+  // Lucht en gras-zones (visueel, bewegen niet)
+  this.add.rectangle(GAME_WIDTH/2, LUCHT_H/2, GAME_WIDTH, LUCHT_H, 0xaee7ff); // lucht
+  this.add.rectangle(GAME_WIDTH/2, LUCHT_H + (GAME_HEIGHT-LUCHT_H)/2, GAME_WIDTH, GAME_HEIGHT-LUCHT_H, 0x8bc34a); // gras
+
+  // Emoji-mannetje (gespiegeld, kijkt naar rechts)
+  const spelerGrootte = GAME_HEIGHT * 0.4;
   const grondNiveau = GAME_HEIGHT - 15;
   speler = this.add.text(130, grondNiveau, "🏃‍♂️", {
     fontFamily: 'Segoe UI Emoji, Arial',
@@ -121,96 +83,105 @@ function create() {
   speler.setOrigin(0.5, 1);
   speler.setScale(-1, 1);
 
+  // Physics voor speler
   this.physics.add.existing(speler);
   speler.body.setCollideWorldBounds(true);
-  speler.body.setGravityY(1120);
+  speler.body.setGravityY(1700);
   speler.body.setBounce(0.0);
 
+  // Onzichtbare grond
   let ground = this.add.rectangle(GAME_WIDTH/2, GAME_HEIGHT - 2, GAME_WIDTH, 8, 0x000000, 0);
   this.physics.add.existing(ground, true);
   this.physics.add.collider(speler, ground);
 
+  // Controls
   cursors = this.input.keyboard.createCursorKeys();
   this.input.keyboard.on('keydown-SPACE', () => { jumpRequested = true; });
   this.input.keyboard.on('keydown-UP', () => { jumpRequested = true; });
   this.input.on('pointerdown', () => { jumpRequested = true; });
 
-  // Obstakels en vleugels
-  createObstacle(this, GAME_WIDTH + 140, GAME_HEIGHT - 10, "💀", 1.11);
-  createWing(this, GAME_WIDTH + 360, LUCHT_H/2 + 45, "🪽", 1.13);
+  // Obstakel (💀) alleen in gras, vleugel (🪽) alleen in lucht
+  createObstacle(this, GAME_WIDTH + 60, GAME_HEIGHT - 14, "💀", 1.15);
+  createWing(this, GAME_WIDTH + 300, LUCHT_H/2 + 40, "🪽", 1.1);
 
-  // Obstakels traag bewegen + alles parallax
+  // Obstakels, vleugels, wolkjes en bloemen bewegen
   this.time.addEvent({
-    delay: 14, loop: true, callback: () => {
+    delay: 13, loop: true, callback: () => {
       if (spelBlokkeren) return;
-      luchtStroken.forEach(l => { l.x -= speed * 0.3; if (l.x < -GAME_WIDTH/2) l.x += GAME_WIDTH*2; });
-      grasStroken.forEach(g => { g.x -= speed * 0.7; if (g.x < -GAME_WIDTH/2) g.x += GAME_WIDTH*2; });
-      wolkjes.forEach(w => { w.x -= speed * 0.40; if (w.x < -50) w.x += GAME_WIDTH+100; });
-      bloemen.forEach(b => { b.x -= speed * 1.1; if (b.x < -40) b.x += GAME_WIDTH+80; });
-
-      obstacles.forEach(o => {
-        o.x -= speed;
-        if (o.x < -60) resetObstacle(o);
-      });
-      wings.forEach(w => {
-        w.x -= speed;
-        if (w.x < -60) resetWing(w);
-      });
+      moveAll(-speed);
     }
+  });
+}
+
+function moveAll(dx) {
+  obstacles.forEach(o => {
+    o.x += dx;
+    if (o.x < -60) resetObstacle(o);
+  });
+  wings.forEach(w => {
+    w.x += dx;
+    if (w.x < -60) resetWing(w);
+  });
+  flowers.forEach(f => {
+    f.x += dx * 1.15;
+    if (f.x < -28) { f.x = GAME_WIDTH + Math.random()*180; }
+  });
+  clouds.forEach(cl => {
+    cl.x += dx * 0.5;
+    if (cl.x < -60) { cl.x = GAME_WIDTH + Math.random()*100; }
   });
 }
 
 function update() {
   if (spelBlokkeren) return;
+
+  // Springen alleen als op de grond, niet in lucht
   if (jumpRequested && speler.body.blocked.down && canJump) {
-    speler.body.setVelocityY(-1020);
+    speler.body.setVelocityY(-1480);
     jumpRequested = false;
     canJump = false;
-    setTimeout(() => canJump = true, 740);
+    setTimeout(() => canJump = true, 480);
   }
 
-  // Obstakel: raakt één van de twee voeten?
+  // 3 botsingspunten: hoofd, linkervoet, rechtervoet
+  let bounds = speler.getBounds();
+  let hoofdPunt = {x: bounds.centerX, y: bounds.top + 18};
+  let voetLinks = {x: bounds.centerX - FOOT_OFFSET, y: bounds.bottom};
+  let voetRechts = {x: bounds.centerX + FOOT_OFFSET, y: bounds.bottom};
+
+  // Botsing Doodskoppen
   obstacles.forEach(o => {
-    if (!spelBlokkeren && (botstObstakelMetVoet(speler, o, 'left') || botstObstakelMetVoet(speler, o, 'right')) && !o.hit) {
-      o.hit = true;
-      stelVraag(zondevragen);
+    if (!spelBlokkeren && !o.hit) {
+      let obsBounds = o.getBounds();
+      let raaktVoetLinks = pointInRect(voetLinks, obsBounds) && voetLinks.y > GRAS_DREMPEL;
+      let raaktVoetRechts = pointInRect(voetRechts, obsBounds) && voetRechts.y > GRAS_DREMPEL;
+      let raaktHoofd = pointInRect(hoofdPunt, obsBounds) && hoofdPunt.y > LUCHT_H;
+
+      // Je MOET springen: enkel géén botsing als géén van de punten in obstakel is
+      if (raaktVoetLinks || raaktVoetRechts) {
+        o.hit = true;
+        stelVraag("zonde");
+      }
     }
   });
-  // Vleugel: raakt het hoofd?
+
+  // Botsing Vleugeltjes (hoofd)
   wings.forEach(w => {
-    if (!spelBlokkeren && botstVleugelMetHoofd(speler, w) && !w.collected) {
-      w.collected = true;
-      w.setVisible(false);
-      stelVraag(lichtvragen);
+    if (!spelBlokkeren && !w.collected) {
+      let wBounds = w.getBounds();
+      // Raakvlak mag ruimer zijn (ovale cirkel rond hoofdpunt)
+      let dx = hoofdPunt.x - wBounds.centerX;
+      let dy = hoofdPunt.y - wBounds.centerY;
+      if (Math.sqrt(dx*dx + dy*dy) < 52) {
+        w.collected = true;
+        w.setVisible(false);
+        stelVraag("licht");
+      }
     }
   });
 }
 
-// Botsing met één voet (left/right)
-function botstObstakelMetVoet(m, o, side='left') {
-  let mb = m.getBounds();
-  let foot = {
-    x: mb.centerX + (side === 'left' ? LEFT_FOOT_OFFSET.x : RIGHT_FOOT_OFFSET.x),
-    y: mb.bottom + LEFT_FOOT_OFFSET.y
-  };
-  let ob = o.getBounds();
-  let obsX = ob.centerX, obsY = ob.centerY + ob.height*0.15;
-  let dist = Math.sqrt((obsX-foot.x)**2 + (obsY-foot.y)**2);
-  return dist < OBS_HIT_RADIUS;
-}
-// Botsing met hoofd (vleugeltje)
-function botstVleugelMetHoofd(m, w) {
-  let mb = m.getBounds();
-  let head = {
-    x: mb.centerX + HEAD_POINT_OFFSET.x,
-    y: mb.top + 12 + HEAD_POINT_OFFSET.y // kleine correctie
-  };
-  let wb = w.getBounds();
-  let wingX = wb.centerX, wingY = wb.centerY;
-  let dist = Math.sqrt((wingX-head.x)**2 + (wingY-head.y)**2);
-  return dist < WING_HIT_RADIUS;
-}
-
+// Helpers
 function createObstacle(scene, x, y, emoji, scale=1) {
   let obst = scene.add.text(x, y, emoji, {
     fontFamily: 'Segoe UI Emoji, Arial',
@@ -231,18 +202,47 @@ function createWing(scene, x, y, emoji, scale=1) {
   wings.push(wing);
   return wing;
 }
+function addCloud(scene, x, y) {
+  let cloud = scene.add.text(x, y, "☁️", {
+    fontFamily: 'Segoe UI Emoji, Arial',
+    fontSize: '62px'
+  });
+  cloud.setOrigin(0.5, 0.5);
+  clouds.push(cloud);
+  return cloud;
+}
+function addFlower(scene, x, y) {
+  let bloemIcons = ["🌸","🌻","🌼","🌺","🌷","🌹"];
+  let bloem = scene.add.text(x, y, bloemIcons[Math.floor(Math.random()*bloemIcons.length)], {
+    fontFamily: 'Segoe UI Emoji, Arial',
+    fontSize: '38px'
+  });
+  bloem.setOrigin(0.5, 1);
+  flowers.push(bloem);
+  return bloem;
+}
 function resetObstacle(obst) {
-  obst.x = GAME_WIDTH + 110 + Math.random() * 270;
+  obst.x = GAME_WIDTH + 80 + Math.random() * 250;
   obst.hit = false;
 }
 function resetWing(wing) {
-  wing.x = GAME_WIDTH + 210 + Math.random()*320;
+  wing.x = GAME_WIDTH + 220 + Math.random()*350;
   wing.collected = false;
   wing.setVisible(true);
 }
 
-function stelVraag(vragenLijst) {
-  let v = vragenLijst[Math.floor(Math.random()*vragenLijst.length)];
+// Vraag tonen in overlay (specifiek soort: "licht" of "zonde")
+function stelVraag(type = "") {
+  let v;
+  if (type === "licht") {
+    let lichtvragen = vragen.filter(q => q.difficulty !== "zonde");
+    v = lichtvragen[Math.floor(Math.random()*lichtvragen.length)];
+  } else if (type === "zonde") {
+    let zondevragen = vragen.filter(q => q.difficulty === "zonde");
+    v = zondevragen[Math.floor(Math.random()*zondevragen.length)];
+  } else {
+    v = vragen[Math.floor(Math.random()*vragen.length)];
+  }
   const overlay = document.getElementById('vraag-overlay');
   overlay.innerHTML = `
     <div class="vraag-overlay">
@@ -268,6 +268,10 @@ window.sluitVraag = function() {
   document.getElementById('vraag-overlay').style.display = 'none';
   spelBlokkeren = false;
 };
+// Punt in rechthoek test
+function pointInRect(p, r) {
+  return p.x > r.left && p.x < r.right && p.y > r.top && p.y < r.bottom;
+}
 </script>
 </body>
 </html>
