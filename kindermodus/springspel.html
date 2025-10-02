@@ -36,15 +36,15 @@ const GAME_WIDTH = 900, GAME_HEIGHT = 600;
 const LUCHT_H = GAME_HEIGHT * 0.5;
 const GRAS_Y = GAME_HEIGHT * 0.75;
 
+// Vragen splitsen
+const lichtvragen = vragen.filter(q => q.difficulty !== "zonde");
+const zondevragen = vragen.filter(q => q.difficulty === "zonde");
+
 let speler, cursors, jumpRequested = false, canJump = true;
 let obstacles = [], wings = [];
 let speed = 1.15;
 let spelBlokkeren = false;
 let sceneRef;
-
-// ------ Vraagensplitsing ------ //
-const lichtvragen = vragen.filter(q => q.difficulty !== "zonde");
-const zondevragen = vragen.filter(q => q.difficulty === "zonde");
 
 const config = {
   type: Phaser.AUTO,
@@ -53,7 +53,7 @@ const config = {
   parent: 'spelcontainer',
   physics: {
     default: 'arcade',
-    arcade: { gravity: { y: 1800 }, debug: false }
+    arcade: { gravity: { y: 1100 }, debug: false }  // Gravity lager
   },
   scene: { preload, create, update }
 };
@@ -64,9 +64,33 @@ function preload() {}
 
 function create() {
   sceneRef = this;
+  // Achtergrond: lucht en gras
   this.add.rectangle(GAME_WIDTH/2, LUCHT_H/2, GAME_WIDTH, LUCHT_H, 0xaee7ff); // lucht
   this.add.rectangle(GAME_WIDTH/2, LUCHT_H + (GAME_HEIGHT-LUCHT_H)/2, GAME_WIDTH, GAME_HEIGHT-LUCHT_H, 0x8bc34a); // gras
 
+  // Wolkjes in lucht
+  for (let i=0; i<5; i++) {
+    let cloudX = 80 + Math.random()*(GAME_WIDTH-160);
+    let cloudY = 35 + Math.random()*(LUCHT_H-60);
+    let cloud = this.add.text(cloudX, cloudY, "☁️", {
+      fontFamily: 'Segoe UI Emoji, Arial',
+      fontSize: (60+Math.random()*22)+'px'
+    });
+    cloud.setAlpha(0.80);
+  }
+  // Bloemetjes in gras
+  const bloemen = ["🌸","🌻","🌼","🌺"];
+  for (let i=0; i<12; i++) {
+    let bloemX = 40 + Math.random()*(GAME_WIDTH-80);
+    let bloemY = GAME_HEIGHT - 8 - Math.random()*40;
+    let bloem = this.add.text(bloemX, bloemY, bloemen[Math.floor(Math.random()*bloemen.length)], {
+      fontFamily: 'Segoe UI Emoji, Arial',
+      fontSize: (28+Math.random()*10)+'px'
+    });
+    bloem.setOrigin(0.5,1);
+  }
+
+  // Emoji-mannetje
   const spelerGrootte = GAME_HEIGHT * 0.37;
   const grondNiveau = GAME_HEIGHT - 15;
   speler = this.add.text(130, grondNiveau, "🏃‍♂️", {
@@ -78,7 +102,7 @@ function create() {
 
   this.physics.add.existing(speler);
   speler.body.setCollideWorldBounds(true);
-  speler.body.setGravityY(1800);
+  speler.body.setGravityY(1100); // Gravity lager
   speler.body.setBounce(0.0);
 
   let ground = this.add.rectangle(GAME_WIDTH/2, GAME_HEIGHT - 2, GAME_WIDTH, 8, 0x000000, 0);
@@ -90,7 +114,7 @@ function create() {
   this.input.keyboard.on('keydown-UP', () => { jumpRequested = true; });
   this.input.on('pointerdown', () => { jumpRequested = true; });
 
-  // Obstakels
+  // Obstakels en vleugels
   createObstacle(this, GAME_WIDTH + 140, GAME_HEIGHT - 14, "💀", 1.15);
   createWing(this, GAME_WIDTH + 350, LUCHT_H/2 + 45, "🪽", 1.13);
 
@@ -112,15 +136,13 @@ function create() {
 
 function update() {
   if (spelBlokkeren) return;
-
-  // Springen (hoog en lang genoeg!)
+  // Springen: gravity is lager, sprong iets minder krachtig voor betere hangtime
   if (jumpRequested && speler.body.blocked.down && canJump) {
-    speler.body.setVelocityY(-1620);
+    speler.body.setVelocityY(-850); // Minder heftig omhoog, maar blijft langer "zweven"
     jumpRequested = false;
     canJump = false;
-    setTimeout(() => canJump = true, 590);
+    setTimeout(() => canJump = true, 670);
   }
-
   // Doodshoofd: botsing-check met kleinere hitbox
   obstacles.forEach(o => {
     if (!spelBlokkeren && checkBotst(speler, o) && !o.hit) {
@@ -128,7 +150,6 @@ function update() {
       stelVraag(zondevragen);
     }
   });
-
   // Vleugeltje: botsing-check met kleinere hitbox
   wings.forEach(w => {
     if (!spelBlokkeren && checkBotst(speler, w) && !w.collected) {
@@ -139,8 +160,7 @@ function update() {
   });
 }
 
-// === BOTSBEREKENING: kleinere hitbox ===
-function getSmallBounds(obj, scale=0.66) {
+function getSmallBounds(obj, scale=0.65) {
   let b = obj.getBounds();
   let w = b.width * scale, h = b.height * scale;
   return new Phaser.Geom.Rectangle(b.centerX - w/2, b.centerY - h/2, w, h);
@@ -179,7 +199,6 @@ function resetWing(wing) {
   wing.setVisible(true);
 }
 
-// Vraag tonen in overlay
 function stelVraag(vragenLijst) {
   let v = vragenLijst[Math.floor(Math.random()*vragenLijst.length)];
   const overlay = document.getElementById('vraag-overlay');
