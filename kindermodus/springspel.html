@@ -36,15 +36,17 @@ const GAME_WIDTH = 900, GAME_HEIGHT = 600;
 const LUCHT_H = GAME_HEIGHT * 0.5;
 const GRAS_Y = GAME_HEIGHT * 0.75;
 
-// Vragen splitsen
 const lichtvragen = vragen.filter(q => q.difficulty !== "zonde");
 const zondevragen = vragen.filter(q => q.difficulty === "zonde");
 
 let speler, cursors, jumpRequested = false, canJump = true;
 let obstacles = [], wings = [];
-let speed = 1.15;
+let speed = 1.18;
 let spelBlokkeren = false;
 let sceneRef;
+
+// Parallax elementen
+let grasStroken = [], luchtStroken = [], wolkjes = [], bloemen = [];
 
 const config = {
   type: Phaser.AUTO,
@@ -53,7 +55,7 @@ const config = {
   parent: 'spelcontainer',
   physics: {
     default: 'arcade',
-    arcade: { gravity: { y: 1100 }, debug: false }  // Gravity lager
+    arcade: { gravity: { y: 1100 }, debug: false }
   },
   scene: { preload, create, update }
 };
@@ -64,30 +66,38 @@ function preload() {}
 
 function create() {
   sceneRef = this;
-  // Achtergrond: lucht en gras
-  this.add.rectangle(GAME_WIDTH/2, LUCHT_H/2, GAME_WIDTH, LUCHT_H, 0xaee7ff); // lucht
-  this.add.rectangle(GAME_WIDTH/2, LUCHT_H + (GAME_HEIGHT-LUCHT_H)/2, GAME_WIDTH, GAME_HEIGHT-LUCHT_H, 0x8bc34a); // gras
-
+  // Parallax lucht
+  for (let i = 0; i < 2; i++) {
+    let lucht = this.add.rectangle(i * GAME_WIDTH + GAME_WIDTH/2, LUCHT_H/2, GAME_WIDTH, LUCHT_H, 0xaee7ff);
+    luchtStroken.push(lucht);
+  }
+  // Parallax gras
+  for (let i = 0; i < 2; i++) {
+    let gras = this.add.rectangle(i * GAME_WIDTH + GAME_WIDTH/2, LUCHT_H + (GAME_HEIGHT-LUCHT_H)/2, GAME_WIDTH, GAME_HEIGHT-LUCHT_H, 0x8bc34a);
+    grasStroken.push(gras);
+  }
   // Wolkjes in lucht
-  for (let i=0; i<5; i++) {
+  for (let i=0; i<6; i++) {
     let cloudX = 80 + Math.random()*(GAME_WIDTH-160);
     let cloudY = 35 + Math.random()*(LUCHT_H-60);
     let cloud = this.add.text(cloudX, cloudY, "☁️", {
       fontFamily: 'Segoe UI Emoji, Arial',
       fontSize: (60+Math.random()*22)+'px'
     });
-    cloud.setAlpha(0.80);
+    cloud.setAlpha(0.75);
+    wolkjes.push(cloud);
   }
   // Bloemetjes in gras
-  const bloemen = ["🌸","🌻","🌼","🌺"];
-  for (let i=0; i<12; i++) {
+  const bloemenIcons = ["🌸","🌻","🌼","🌺"];
+  for (let i=0; i<16; i++) {
     let bloemX = 40 + Math.random()*(GAME_WIDTH-80);
     let bloemY = GAME_HEIGHT - 8 - Math.random()*40;
-    let bloem = this.add.text(bloemX, bloemY, bloemen[Math.floor(Math.random()*bloemen.length)], {
+    let bloem = this.add.text(bloemX, bloemY, bloemenIcons[Math.floor(Math.random()*bloemenIcons.length)], {
       fontFamily: 'Segoe UI Emoji, Arial',
-      fontSize: (28+Math.random()*10)+'px'
+      fontSize: (26+Math.random()*12)+'px'
     });
     bloem.setOrigin(0.5,1);
+    bloemen.push(bloem);
   }
 
   // Emoji-mannetje
@@ -102,7 +112,7 @@ function create() {
 
   this.physics.add.existing(speler);
   speler.body.setCollideWorldBounds(true);
-  speler.body.setGravityY(1100); // Gravity lager
+  speler.body.setGravityY(1100);
   speler.body.setBounce(0.0);
 
   let ground = this.add.rectangle(GAME_WIDTH/2, GAME_HEIGHT - 2, GAME_WIDTH, 8, 0x000000, 0);
@@ -115,13 +125,19 @@ function create() {
   this.input.on('pointerdown', () => { jumpRequested = true; });
 
   // Obstakels en vleugels
-  createObstacle(this, GAME_WIDTH + 140, GAME_HEIGHT - 14, "💀", 1.15);
-  createWing(this, GAME_WIDTH + 350, LUCHT_H/2 + 45, "🪽", 1.13);
+  createObstacle(this, GAME_WIDTH + 140, GAME_HEIGHT - 10, "💀", 1.11);
+  createWing(this, GAME_WIDTH + 360, LUCHT_H/2 + 45, "🪽", 1.13);
 
   // Obstakels traag bewegen
   this.time.addEvent({
     delay: 14, loop: true, callback: () => {
       if (spelBlokkeren) return;
+      // Parallax bewegen
+      luchtStroken.forEach(l => { l.x -= speed * 0.3; if (l.x < -GAME_WIDTH/2) l.x += GAME_WIDTH*2; });
+      grasStroken.forEach(g => { g.x -= speed * 0.7; if (g.x < -GAME_WIDTH/2) g.x += GAME_WIDTH*2; });
+      wolkjes.forEach(w => { w.x -= speed * 0.40; if (w.x < -50) w.x += GAME_WIDTH+100; });
+      bloemen.forEach(b => { b.x -= speed * 1.1; if (b.x < -40) b.x += GAME_WIDTH+80; });
+
       obstacles.forEach(o => {
         o.x -= speed;
         if (o.x < -60) resetObstacle(o);
@@ -136,21 +152,21 @@ function create() {
 
 function update() {
   if (spelBlokkeren) return;
-  // Springen: gravity is lager, sprong iets minder krachtig voor betere hangtime
+  // Springen
   if (jumpRequested && speler.body.blocked.down && canJump) {
-    speler.body.setVelocityY(-850); // Minder heftig omhoog, maar blijft langer "zweven"
+    speler.body.setVelocityY(-850);
     jumpRequested = false;
     canJump = false;
     setTimeout(() => canJump = true, 670);
   }
-  // Doodshoofd: botsing-check met kleinere hitbox
+  // Doodshoofd: botsing-check met smallere hitbox, alleen onderaan
   obstacles.forEach(o => {
-    if (!spelBlokkeren && checkBotst(speler, o) && !o.hit) {
+    if (!spelBlokkeren && checkBotstOnder(speler, o) && !o.hit) {
       o.hit = true;
       stelVraag(zondevragen);
     }
   });
-  // Vleugeltje: botsing-check met kleinere hitbox
+  // Vleugeltje: botsing-check met smallere hitbox
   wings.forEach(w => {
     if (!spelBlokkeren && checkBotst(speler, w) && !w.collected) {
       w.collected = true;
@@ -160,13 +176,20 @@ function update() {
   });
 }
 
+// Hitbox: alleen onderste 35% van het mannetje telt voor obstakels!
+function checkBotstOnder(a, b) {
+  let ab = a.getBounds(), bb = b.getBounds();
+  ab.height = ab.height*0.38; // enkel onderkant van het mannetje
+  ab.y = ab.y + a.getBounds().height*0.62;
+  return Phaser.Geom.Intersects.RectangleToRectangle(ab, getSmallBounds(b, 0.60));
+}
+function checkBotst(a, b) {
+  return Phaser.Geom.Intersects.RectangleToRectangle(getSmallBounds(a, 0.65), getSmallBounds(b, 0.65));
+}
 function getSmallBounds(obj, scale=0.65) {
   let b = obj.getBounds();
   let w = b.width * scale, h = b.height * scale;
   return new Phaser.Geom.Rectangle(b.centerX - w/2, b.centerY - h/2, w, h);
-}
-function checkBotst(a, b) {
-  return Phaser.Geom.Intersects.RectangleToRectangle(getSmallBounds(a, 0.65), getSmallBounds(b, 0.65));
 }
 
 function createObstacle(scene, x, y, emoji, scale=1) {
