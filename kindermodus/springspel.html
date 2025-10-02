@@ -38,13 +38,13 @@ const GRAS_Y = GAME_HEIGHT * 0.75;
 
 let speler, cursors, jumpRequested = false, canJump = true;
 let obstacles = [], wings = [];
-let speed = 1;
+let speed = 1.15;
 let spelBlokkeren = false;
 let sceneRef;
 
-// ---- FILTER VRAGEN ----
-const lichtvragen = vragen.filter(v => v.difficulty !== "zonde");
-const zondevragen = vragen.filter(v => v.difficulty === "zonde");
+// ------ Vraagensplitsing ------ //
+const lichtvragen = vragen.filter(q => q.difficulty !== "zonde");
+const zondevragen = vragen.filter(q => q.difficulty === "zonde");
 
 const config = {
   type: Phaser.AUTO,
@@ -53,7 +53,7 @@ const config = {
   parent: 'spelcontainer',
   physics: {
     default: 'arcade',
-    arcade: { gravity: { y: 1700 }, debug: false }
+    arcade: { gravity: { y: 1800 }, debug: false }
   },
   scene: { preload, create, update }
 };
@@ -64,12 +64,10 @@ function preload() {}
 
 function create() {
   sceneRef = this;
-  // Achtergrond tekenen
   this.add.rectangle(GAME_WIDTH/2, LUCHT_H/2, GAME_WIDTH, LUCHT_H, 0xaee7ff); // lucht
   this.add.rectangle(GAME_WIDTH/2, LUCHT_H + (GAME_HEIGHT-LUCHT_H)/2, GAME_WIDTH, GAME_HEIGHT-LUCHT_H, 0x8bc34a); // gras
 
-  // Emoji-mannetje (gespiegeld, kijkt naar rechts)
-  const spelerGrootte = GAME_HEIGHT * 0.4;
+  const spelerGrootte = GAME_HEIGHT * 0.37;
   const grondNiveau = GAME_HEIGHT - 15;
   speler = this.add.text(130, grondNiveau, "🏃‍♂️", {
     fontFamily: 'Segoe UI Emoji, Arial',
@@ -78,26 +76,23 @@ function create() {
   speler.setOrigin(0.5, 1);
   speler.setScale(-1, 1);
 
-  // Physics voor speler
   this.physics.add.existing(speler);
   speler.body.setCollideWorldBounds(true);
-  speler.body.setGravityY(1700);
+  speler.body.setGravityY(1800);
   speler.body.setBounce(0.0);
 
-  // Onzichtbare grond
   let ground = this.add.rectangle(GAME_WIDTH/2, GAME_HEIGHT - 2, GAME_WIDTH, 8, 0x000000, 0);
   this.physics.add.existing(ground, true);
   this.physics.add.collider(speler, ground);
 
-  // Controls
   cursors = this.input.keyboard.createCursorKeys();
   this.input.keyboard.on('keydown-SPACE', () => { jumpRequested = true; });
   this.input.keyboard.on('keydown-UP', () => { jumpRequested = true; });
   this.input.on('pointerdown', () => { jumpRequested = true; });
 
-  // Obstakel (💀) alleen in gras, vleugel (🪽) alleen in lucht
-  createObstacle(this, GAME_WIDTH + 60, GAME_HEIGHT - 14, "💀", 1.15);
-  createWing(this, GAME_WIDTH + 300, LUCHT_H/2 + 40, "🪽", 1.1);
+  // Obstakels
+  createObstacle(this, GAME_WIDTH + 140, GAME_HEIGHT - 14, "💀", 1.15);
+  createWing(this, GAME_WIDTH + 350, LUCHT_H/2 + 45, "🪽", 1.13);
 
   // Obstakels traag bewegen
   this.time.addEvent({
@@ -115,56 +110,43 @@ function create() {
   });
 }
 
-// ----------- NIEUW: KLEINERE HITBOX FUNCTIE ----------
-function kleineRect(rect, marge = 60) {
-  return new Phaser.Geom.Rectangle(
-    rect.x + marge/2,
-    rect.y + marge/2,
-    rect.width - marge,
-    rect.height - marge
-  );
-}
-
 function update() {
   if (spelBlokkeren) return;
 
+  // Springen (hoog en lang genoeg!)
   if (jumpRequested && speler.body.blocked.down && canJump) {
-    speler.body.setVelocityY(-1400);
+    speler.body.setVelocityY(-1620);
     jumpRequested = false;
     canJump = false;
-    setTimeout(() => canJump = true, 480);
+    setTimeout(() => canJump = true, 590);
   }
 
-  // Botsing doodshoofd (zondevraag)
+  // Doodshoofd: botsing-check met kleinere hitbox
   obstacles.forEach(o => {
-    if (
-      !spelBlokkeren &&
-      Phaser.Geom.Intersects.RectangleToRectangle(
-        kleineRect(speler.getBounds(), 72),
-        kleineRect(o.getBounds(), 32)
-      ) &&
-      !o.hit
-    ) {
+    if (!spelBlokkeren && checkBotst(speler, o) && !o.hit) {
       o.hit = true;
-      stelVraag('zonde');
+      stelVraag(zondevragen);
     }
   });
 
-  // Botsing vleugel (lichtvraag)
+  // Vleugeltje: botsing-check met kleinere hitbox
   wings.forEach(w => {
-    if (
-      !spelBlokkeren &&
-      Phaser.Geom.Intersects.RectangleToRectangle(
-        kleineRect(speler.getBounds(), 72),
-        kleineRect(w.getBounds(), 32)
-      ) &&
-      !w.collected
-    ) {
+    if (!spelBlokkeren && checkBotst(speler, w) && !w.collected) {
       w.collected = true;
       w.setVisible(false);
-      stelVraag('licht');
+      stelVraag(lichtvragen);
     }
   });
+}
+
+// === BOTSBEREKENING: kleinere hitbox ===
+function getSmallBounds(obj, scale=0.66) {
+  let b = obj.getBounds();
+  let w = b.width * scale, h = b.height * scale;
+  return new Phaser.Geom.Rectangle(b.centerX - w/2, b.centerY - h/2, w, h);
+}
+function checkBotst(a, b) {
+  return Phaser.Geom.Intersects.RectangleToRectangle(getSmallBounds(a, 0.65), getSmallBounds(b, 0.65));
 }
 
 function createObstacle(scene, x, y, emoji, scale=1) {
@@ -188,23 +170,18 @@ function createWing(scene, x, y, emoji, scale=1) {
   return wing;
 }
 function resetObstacle(obst) {
-  obst.x = GAME_WIDTH + 80 + Math.random() * 250;
+  obst.x = GAME_WIDTH + 110 + Math.random() * 270;
   obst.hit = false;
 }
 function resetWing(wing) {
-  wing.x = GAME_WIDTH + 220 + Math.random()*350;
+  wing.x = GAME_WIDTH + 210 + Math.random()*320;
   wing.collected = false;
   wing.setVisible(true);
 }
 
-// ------------ VRAGEN LOGICA -------------
-function stelVraag(type) {
-  let v;
-  if (type === 'zonde') {
-    v = zondevragen[Math.floor(Math.random()*zondevragen.length)];
-  } else {
-    v = lichtvragen[Math.floor(Math.random()*lichtvragen.length)];
-  }
+// Vraag tonen in overlay
+function stelVraag(vragenLijst) {
+  let v = vragenLijst[Math.floor(Math.random()*vragenLijst.length)];
   const overlay = document.getElementById('vraag-overlay');
   overlay.innerHTML = `
     <div class="vraag-overlay">
