@@ -33,14 +33,18 @@
 <div id="vraag-overlay" style="display:none"></div>
 <script>
 const GAME_WIDTH = 900, GAME_HEIGHT = 600;
-const LUCHT_H = GAME_HEIGHT * 0.5; // hoogte lucht, 300px
-const GRAS_Y = GAME_HEIGHT * 0.75;  // midden van de graszone, 450px
+const LUCHT_H = GAME_HEIGHT * 0.5;
+const GRAS_Y = GAME_HEIGHT * 0.75;
 
 let speler, cursors, jumpRequested = false, canJump = true;
 let obstacles = [], wings = [];
-let speed = 1; // rustig!
+let speed = 1;
 let spelBlokkeren = false;
 let sceneRef;
+
+// ---- FILTER VRAGEN ----
+const lichtvragen = vragen.filter(v => v.difficulty !== "zonde");
+const zondevragen = vragen.filter(v => v.difficulty === "zonde");
 
 const config = {
   type: Phaser.AUTO,
@@ -66,7 +70,7 @@ function create() {
 
   // Emoji-mannetje (gespiegeld, kijkt naar rechts)
   const spelerGrootte = GAME_HEIGHT * 0.4;
-  const grondNiveau = GAME_HEIGHT - 15; // 15px marge onderaan
+  const grondNiveau = GAME_HEIGHT - 15;
   speler = this.add.text(130, grondNiveau, "🏃‍♂️", {
     fontFamily: 'Segoe UI Emoji, Arial',
     fontSize: Math.round(spelerGrootte) + 'px'
@@ -80,7 +84,7 @@ function create() {
   speler.body.setGravityY(1700);
   speler.body.setBounce(0.0);
 
-  // Onzichtbare grond precies op de overgang gras/onderkant
+  // Onzichtbare grond
   let ground = this.add.rectangle(GAME_WIDTH/2, GAME_HEIGHT - 2, GAME_WIDTH, 8, 0x000000, 0);
   this.physics.add.existing(ground, true);
   this.physics.add.collider(speler, ground);
@@ -92,8 +96,8 @@ function create() {
   this.input.on('pointerdown', () => { jumpRequested = true; });
 
   // Obstakel (💀) alleen in gras, vleugel (🪽) alleen in lucht
-  createObstacle(this, GAME_WIDTH + 60, GAME_HEIGHT - 14, "💀", 1.15);         // vlak op gras
-  createWing(this, GAME_WIDTH + 300, LUCHT_H/2 + 40, "🪽", 1.1);               // in de lucht
+  createObstacle(this, GAME_WIDTH + 60, GAME_HEIGHT - 14, "💀", 1.15);
+  createWing(this, GAME_WIDTH + 300, LUCHT_H/2 + 40, "🪽", 1.1);
 
   // Obstakels traag bewegen
   this.time.addEvent({
@@ -111,10 +115,19 @@ function create() {
   });
 }
 
+// ----------- NIEUW: KLEINERE HITBOX FUNCTIE ----------
+function kleineRect(rect, marge = 60) {
+  return new Phaser.Geom.Rectangle(
+    rect.x + marge/2,
+    rect.y + marge/2,
+    rect.width - marge,
+    rect.height - marge
+  );
+}
+
 function update() {
   if (spelBlokkeren) return;
 
-  // Springen alleen als op de grond, niet in lucht
   if (jumpRequested && speler.body.blocked.down && canJump) {
     speler.body.setVelocityY(-1400);
     jumpRequested = false;
@@ -122,20 +135,34 @@ function update() {
     setTimeout(() => canJump = true, 480);
   }
 
-  // Botsing doodshoofd = vraag
+  // Botsing doodshoofd (zondevraag)
   obstacles.forEach(o => {
-    if (!spelBlokkeren && Phaser.Geom.Intersects.RectangleToRectangle(speler.getBounds(), o.getBounds()) && !o.hit) {
+    if (
+      !spelBlokkeren &&
+      Phaser.Geom.Intersects.RectangleToRectangle(
+        kleineRect(speler.getBounds(), 72),
+        kleineRect(o.getBounds(), 32)
+      ) &&
+      !o.hit
+    ) {
       o.hit = true;
-      stelVraag();
+      stelVraag('zonde');
     }
   });
 
-  // Vleugeltje pakken
+  // Botsing vleugel (lichtvraag)
   wings.forEach(w => {
-    if (!spelBlokkeren && Phaser.Geom.Intersects.RectangleToRectangle(speler.getBounds(), w.getBounds()) && !w.collected) {
+    if (
+      !spelBlokkeren &&
+      Phaser.Geom.Intersects.RectangleToRectangle(
+        kleineRect(speler.getBounds(), 72),
+        kleineRect(w.getBounds(), 32)
+      ) &&
+      !w.collected
+    ) {
       w.collected = true;
       w.setVisible(false);
-      // evt. score verhogen, vleugel-effect etc.
+      stelVraag('licht');
     }
   });
 }
@@ -170,9 +197,14 @@ function resetWing(wing) {
   wing.setVisible(true);
 }
 
-// Vraag tonen in overlay
-function stelVraag() {
-  let v = vragen[Math.floor(Math.random()*vragen.length)];
+// ------------ VRAGEN LOGICA -------------
+function stelVraag(type) {
+  let v;
+  if (type === 'zonde') {
+    v = zondevragen[Math.floor(Math.random()*zondevragen.length)];
+  } else {
+    v = lichtvragen[Math.floor(Math.random()*lichtvragen.length)];
+  }
   const overlay = document.getElementById('vraag-overlay');
   overlay.innerHTML = `
     <div class="vraag-overlay">
