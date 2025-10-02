@@ -33,12 +33,12 @@
 <div id="vraag-overlay" style="display:none"></div>
 <script>
 const GAME_WIDTH = 900, GAME_HEIGHT = 600;
-const GRAS_Y = GAME_HEIGHT * 0.75; // onderrand van grasvlak
-const LUCHT_H = GAME_HEIGHT * 0.5; // hoogte lucht
+const LUCHT_H = GAME_HEIGHT * 0.5; // hoogte lucht, 300px
+const GRAS_Y = GAME_HEIGHT * 0.75;  // midden van de graszone, 450px
 
 let speler, cursors, jumpRequested = false, canJump = true;
 let obstacles = [], wings = [];
-let speed = 1; // heel rustig!
+let speed = 1; // rustig!
 let spelBlokkeren = false;
 let sceneRef;
 
@@ -49,7 +49,7 @@ const config = {
   parent: 'spelcontainer',
   physics: {
     default: 'arcade',
-    arcade: { gravity: { y: 1600 }, debug: false }
+    arcade: { gravity: { y: 1700 }, debug: false }
   },
   scene: { preload, create, update }
 };
@@ -60,27 +60,28 @@ function preload() {}
 
 function create() {
   sceneRef = this;
-  // Achtergrond
+  // Achtergrond tekenen
   this.add.rectangle(GAME_WIDTH/2, LUCHT_H/2, GAME_WIDTH, LUCHT_H, 0xaee7ff); // lucht
-  this.add.rectangle(GAME_WIDTH/2, GRAS_Y - (GAME_HEIGHT-LUCHT_H)/2, GAME_WIDTH, GAME_HEIGHT-LUCHT_H, 0x8bc34a); // gras
+  this.add.rectangle(GAME_WIDTH/2, LUCHT_H + (GAME_HEIGHT-LUCHT_H)/2, GAME_WIDTH, GAME_HEIGHT-LUCHT_H, 0x8bc34a); // gras
 
   // Emoji-mannetje (gespiegeld, kijkt naar rechts)
   const spelerGrootte = GAME_HEIGHT * 0.4;
-  speler = this.add.text(130, GRAS_Y - 12, "🏃‍♂️", {
+  const grondNiveau = GAME_HEIGHT - 15; // 15px marge onderaan
+  speler = this.add.text(130, grondNiveau, "🏃‍♂️", {
     fontFamily: 'Segoe UI Emoji, Arial',
     fontSize: Math.round(spelerGrootte) + 'px'
   });
   speler.setOrigin(0.5, 1);
   speler.setScale(-1, 1);
 
-  // Physics
+  // Physics voor speler
   this.physics.add.existing(speler);
   speler.body.setCollideWorldBounds(true);
-  speler.body.setGravityY(1600);
-  speler.body.setBounce(0.05);
+  speler.body.setGravityY(1700);
+  speler.body.setBounce(0.0);
 
-  // Onzichtbare grond
-  let ground = this.add.rectangle(GAME_WIDTH/2, GRAS_Y+8, GAME_WIDTH, 24, 0x000000, 0);
+  // Onzichtbare grond precies op de overgang gras/onderkant
+  let ground = this.add.rectangle(GAME_WIDTH/2, GAME_HEIGHT - 2, GAME_WIDTH, 8, 0x000000, 0);
   this.physics.add.existing(ground, true);
   this.physics.add.collider(speler, ground);
 
@@ -88,15 +89,15 @@ function create() {
   cursors = this.input.keyboard.createCursorKeys();
   this.input.keyboard.on('keydown-SPACE', () => { jumpRequested = true; });
   this.input.keyboard.on('keydown-UP', () => { jumpRequested = true; });
-  this.input.on('pointerdown', () => { jumpRequested = true; }); // klik/tap
+  this.input.on('pointerdown', () => { jumpRequested = true; });
 
-  // Obstakel (💀) en vleugel (🪽)
-  createObstacle(this, GAME_WIDTH + 60, GRAS_Y-10, "💀", 1.15);
-  createWing(this, GAME_WIDTH + 300, LUCHT_H/2+35, "🪽", 1.1);
+  // Obstakel (💀) alleen in gras, vleugel (🪽) alleen in lucht
+  createObstacle(this, GAME_WIDTH + 60, GAME_HEIGHT - 14, "💀", 1.15);         // vlak op gras
+  createWing(this, GAME_WIDTH + 300, LUCHT_H/2 + 40, "🪽", 1.1);               // in de lucht
 
-  // Traag bewegen
+  // Obstakels traag bewegen
   this.time.addEvent({
-    delay: 12, loop: true, callback: () => {
+    delay: 14, loop: true, callback: () => {
       if (spelBlokkeren) return;
       obstacles.forEach(o => {
         o.x -= speed;
@@ -114,11 +115,11 @@ function update() {
   if (spelBlokkeren) return;
 
   // Springen alleen als op de grond, niet in lucht
-  if (jumpRequested && speler.body.touching.down && canJump) {
-    speler.body.setVelocityY(-750);
+  if (jumpRequested && speler.body.blocked.down && canJump) {
+    speler.body.setVelocityY(-830);
     jumpRequested = false;
     canJump = false;
-    setTimeout(() => canJump = true, 450);
+    setTimeout(() => canJump = true, 480);
   }
 
   // Botsing doodshoofd = vraag
