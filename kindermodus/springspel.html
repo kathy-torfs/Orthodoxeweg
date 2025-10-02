@@ -1,135 +1,121 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Springspel Basisdemo</title>
-  <style>
-    body { margin:0; background: #e7f8ff; }
-    #spelcontainer { margin: 30px auto 0 auto; width: 100vw; max-width: 900px; }
-    #kinder-header { margin-bottom: 8px; }
-  </style>
-  <!-- Phaser.js CDN -->
+  <meta charset="UTF-8">
+  <title>Springspel met Emoji-mannetje</title>
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+  <script src="vragen.js"></script> <!-- Jouw aparte vragenbestand -->
+  <style>
+    body { background: #e2f6ff; }
+    #spelcontainer { margin: 20px auto; width: 520px; }
+  </style>
 </head>
 <body>
-  <div id="kinder-header"></div>
-  <div id="spelcontainer"></div>
-  <script>
-    // Spelparameters
-    const GAME_WIDTH = 800, GAME_HEIGHT = 400;
+<div id="spelcontainer"></div>
+<script>
+const GAME_WIDTH = 500, GAME_HEIGHT = 350;
+let speler, cursors, jumpRequested = false;
+let obstacles = [], wings = [];
 
-    // --- Phaser-configuratie ---
-    const config = {
-      type: Phaser.AUTO,
-      width: GAME_WIDTH,
-      height: GAME_HEIGHT,
-      backgroundColor: "#e7f8ff",
-      parent: "spelcontainer",
-      physics: {
-        default: "arcade",
-        arcade: {
-          gravity: { y: 1400 },
-          debug: false
-        }
-      },
-      scene: { preload, create, update }
-    };
+const config = {
+  type: Phaser.AUTO,
+  width: GAME_WIDTH,
+  height: GAME_HEIGHT,
+  parent: 'spelcontainer',
+  physics: { default: 'arcade', arcade: { gravity: { y: 1200 }, debug: false } },
+  scene: { preload, create, update }
+};
 
-    let photeinos, cursors, jumpBtn, ground;
-    let obstacles = [];
-    let nextObstacle = 0;
+new Phaser.Game(config);
 
-    function preload() {
-      // Je eigen sprite (werkt altijd als png online staat)
-      this.load.image('photeinos', 'https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.png');
-      // Emoji als fallback (ster)
-      this.load.image('obstacle', 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Emoji_u1f47b.svg/240px-Emoji_u1f47b.svg.png');
-    }
+function preload() {}
 
-    function create() {
-      // Lucht (bovenste helft)
-      this.add.rectangle(GAME_WIDTH/2, GAME_HEIGHT/4, GAME_WIDTH, GAME_HEIGHT/2, 0xaee7ff);
-      // Gras (onderste helft)
-      this.add.rectangle(GAME_WIDTH/2, GAME_HEIGHT*0.75, GAME_WIDTH, GAME_HEIGHT/2, 0x8bc34a);
+function create() {
+  // Lucht & gras
+  this.add.rectangle(GAME_WIDTH/2, GAME_HEIGHT/4, GAME_WIDTH, GAME_HEIGHT/2, 0xaee7ff); // lucht
+  this.add.rectangle(GAME_WIDTH/2, GAME_HEIGHT*0.75, GAME_WIDTH, GAME_HEIGHT/2, 0x8bc34a); // gras
 
-      // Grond-platform (onzichtbaar, fysiek)
-      ground = this.physics.add.staticGroup();
-      ground.create(GAME_WIDTH/2, GAME_HEIGHT-28, 'ground')
-        .setDisplaySize(GAME_WIDTH, 56)
-        .setVisible(false)
-        .refreshBody();
+  // Emoji-mannetje als speler
+  const spelerGrootte = GAME_HEIGHT * 0.4;
+  speler = this.add.text(60, GAME_HEIGHT - spelerGrootte/2 - 5, "🏃‍♂️", {
+    fontFamily: 'Segoe UI Emoji, Arial',
+    fontSize: Math.round(spelerGrootte) + 'px'
+  });
+  speler.setOrigin(0.5, 0.5);
 
-      // Photeinos: 40% van schermhoogte (start onderaan)
-      const P_SIZE = Math.round(GAME_HEIGHT * 0.4);
-      photeinos = this.physics.add.sprite(110, GAME_HEIGHT-28-P_SIZE/2, 'photeinos')
-        .setDisplaySize(P_SIZE, P_SIZE)
-        .setCollideWorldBounds(true);
+  // Fysica toevoegen via een "zone" voor eenvoud (voor botsingen)
+  this.physics.add.existing(speler);
+  speler.body.setCollideWorldBounds(true);
+  speler.body.setGravityY(1200);
 
-      // Collisie met grond
-      this.physics.add.collider(photeinos, ground);
+  // Springen: knop/spatie
+  cursors = this.input.keyboard.createCursorKeys();
+  this.input.keyboard.on('keydown-SPACE', () => { jumpRequested = true; });
 
-      // Hindernissen array (leeg, worden straks aangemaakt)
-      obstacles = [];
+  // Obstakel (💀) & vleugel (🪽)
+  createObstacle(this, 360, GAME_HEIGHT - 45, "💀", 0.9);
+  createWing(this, 250, 60, "🪽", 0.7);
 
-      // Controls
-      cursors = this.input.keyboard.createCursorKeys();
-      this.input.keyboard.on('keydown-SPACE', jump);
-      // Extra: tik of klik
-      this.input.on('pointerdown', jump);
+  // Beweging van obstakels/vleugels
+  this.time.addEvent({ delay: 10, loop: true, callback: () => {
+    obstacles.forEach(o => o.x -= 2);
+    wings.forEach(w => w.x -= 2);
+  }});
+}
 
-      // Eens om de 1.8-2.5 seconden nieuwe hindernis
-      nextObstacle = 0;
-    }
+function update() {
+  // Simpele springlogica (enkel als op de grond)
+  if (jumpRequested && speler.body.touching.down) {
+    speler.body.setVelocityY(-500);
+    jumpRequested = false;
+  }
 
-    function update(time, delta) {
-      // Springen (enkel als op de grond)
-      if ((cursors.up.isDown || cursors.space.isDown) && photeinos.body.blocked.down) {
-        jump();
-      }
-
-      // Nieuwe hindernis? (max. 2 tegelijk)
-      nextObstacle -= delta;
-      if (nextObstacle < 0 && obstacles.length < 2) {
-        spawnObstacle(this);
-        nextObstacle = 1800 + Math.random() * 700; // 1.8-2.5s
-      }
-
-      // Hindernissen laten bewegen en verwijderen
-      for (let i = obstacles.length-1; i >= 0; i--) {
-        let ob = obstacles[i];
-        ob.x -= 2.1; // Rustige snelheid
-        if (ob.x < -60) {
-          ob.destroy();
-          obstacles.splice(i, 1);
-        }
+  // Obstakel-botsing: vraag tonen
+  obstacles.forEach(o => {
+    if (Phaser.Geom.Intersects.RectangleToRectangle(speler.getBounds(), o.getBounds())) {
+      if (!o.hit) {
+        o.hit = true;
+        stelVraag();
       }
     }
+  });
 
-    function jump() {
-      if (photeinos.body && photeinos.body.blocked.down) {
-        photeinos.setVelocityY(-560); // Springhoogte
+  // Vleugel pakken: score++
+  wings.forEach(w => {
+    if (Phaser.Geom.Intersects.RectangleToRectangle(speler.getBounds(), w.getBounds())) {
+      if (!w.collected) {
+        w.collected = true;
+        w.setVisible(false);
+        // hier score verhogen
       }
     }
+  });
+}
 
-    // Maakt hindernis in gras of lucht
-    function spawnObstacle(scene) {
-      // 50% kans: in lucht ("vleugeltje") – anders in gras ("doodskop")
-      const isLucht = Math.random() > 0.5;
-      const y = isLucht
-        ? GAME_HEIGHT/4 // lucht (centraal)
-        : GAME_HEIGHT-66; // gras
+function createObstacle(scene, x, y, emoji, scale=1) {
+  let obst = scene.add.text(x, y, emoji, {
+    fontFamily: 'Segoe UI Emoji, Arial',
+    fontSize: Math.round(44*scale)+'px'
+  });
+  obst.setOrigin(0.5, 1);
+  obstacles.push(obst);
+  return obst;
+}
 
-      const emoji = isLucht ? 'obstacle' : 'obstacle'; // Hier kun je andere plaatjes nemen!
-      const ob = scene.add.image(GAME_WIDTH+30, y, emoji)
-        .setDisplaySize(50, 50)
-        .setDepth(2);
+function createWing(scene, x, y, emoji, scale=1) {
+  let wing = scene.add.text(x, y, emoji, {
+    fontFamily: 'Segoe UI Emoji, Arial',
+    fontSize: Math.round(44*scale)+'px'
+  });
+  wing.setOrigin(0.5, 0.5);
+  wings.push(wing);
+  return wing;
+}
 
-      obstacles.push(ob);
-    }
-
-    // Start het spel!
-    new Phaser.Game(config);
-  </script>
+function stelVraag() {
+  let v = vragen[Math.floor(Math.random()*vragen.length)];
+  alert(v.q + "\n" + v.a.map((ans, i) => `${i+1}. ${ans}`).join('\n'));
+}
+</script>
 </body>
 </html>
