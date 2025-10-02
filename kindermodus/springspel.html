@@ -5,9 +5,10 @@
   <title>Springspel – Orthodoxe Kinderpagina</title>
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
   <script src="vragen.js"></script>
-  <script src="kinderlayout.js"></script> <!-- <-- jouw standaard kinder header/menu -->
+  <!-- Kinder header/layout zoals op AL je kinderpagina's -->
+  <script src="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/common/kinderlayout.js"></script>
   <style>
-    body { background: #e2f6ff; }
+    body { background: #e2f6ff; margin:0; }
     #spelcontainer { margin: 32px auto; width: 900px; }
     .vraag-overlay {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0;
@@ -30,12 +31,23 @@
   </style>
 </head>
 <body>
+<!-- Kinderheader bovenaan zoals overal -->
+<div id="kinder-header"></div>
+
 <div id="spelcontainer"></div>
 <div id="vraag-overlay" style="display:none"></div>
+
 <script>
+// Laad de kindermodus layout zoals op alle andere kinderpagina's!
+window.addEventListener('DOMContentLoaded', function() {
+  if (typeof laadKinderLayout === 'function') {
+    laadKinderLayout();
+  }
+});
+
 const GAME_WIDTH = 900, GAME_HEIGHT = 600;
-const LUCHT_H = GAME_HEIGHT * 0.5; // hoogte lucht, 300px
-const GRAS_Y = GAME_HEIGHT * 0.75;  // midden van de graszone, 450px
+const LUCHT_H = GAME_HEIGHT * 0.5;
+const GRAS_Y = GAME_HEIGHT * 0.75;
 
 let speler, cursors, jumpRequested = false, canJump = true;
 let obstacles = [], wings = [], flowers = [], clouds = [];
@@ -43,9 +55,9 @@ let speed = 1.3;
 let spelBlokkeren = false;
 let sceneRef;
 
-const GRAS_DREMPEL = GAME_HEIGHT - 46; // alles lager dan dit is "op de grond"
-const FOOT_OFFSET = 32; // afstand van het midden naar de voeten
-const HEAD_OFFSET = -60; // hoofd-raakpunt t.o.v. het midden van de emoji
+const GRAS_DREMPEL = GAME_HEIGHT - 46;
+const FOOT_OFFSET = 32;
+const HEAD_OFFSET = -60;
 
 const config = {
   type: Phaser.AUTO,
@@ -65,15 +77,12 @@ function preload() {}
 
 function create() {
   sceneRef = this;
-  // Achtergrond: bewegende gras + lucht, wolkjes en bloemetjes
   for (let i = 0; i < 7; i++) addCloud(this, Math.random()*GAME_WIDTH, 60+Math.random()*140);
   for (let i = 0; i < 8; i++) addFlower(this, Math.random()*GAME_WIDTH, GAME_HEIGHT-24);
 
-  // Lucht en gras-zones (visueel, bewegen niet)
   this.add.rectangle(GAME_WIDTH/2, LUCHT_H/2, GAME_WIDTH, LUCHT_H, 0xaee7ff); // lucht
   this.add.rectangle(GAME_WIDTH/2, LUCHT_H + (GAME_HEIGHT-LUCHT_H)/2, GAME_WIDTH, GAME_HEIGHT-LUCHT_H, 0x8bc34a); // gras
 
-  // Emoji-mannetje (gespiegeld, kijkt naar rechts)
   const spelerGrootte = GAME_HEIGHT * 0.4;
   const grondNiveau = GAME_HEIGHT - 15;
   speler = this.add.text(130, grondNiveau, "🏃‍♂️", {
@@ -83,28 +92,23 @@ function create() {
   speler.setOrigin(0.5, 1);
   speler.setScale(-1, 1);
 
-  // Physics voor speler
   this.physics.add.existing(speler);
   speler.body.setCollideWorldBounds(true);
   speler.body.setGravityY(1700);
   speler.body.setBounce(0.0);
 
-  // Onzichtbare grond
   let ground = this.add.rectangle(GAME_WIDTH/2, GAME_HEIGHT - 2, GAME_WIDTH, 8, 0x000000, 0);
   this.physics.add.existing(ground, true);
   this.physics.add.collider(speler, ground);
 
-  // Controls
   cursors = this.input.keyboard.createCursorKeys();
   this.input.keyboard.on('keydown-SPACE', () => { jumpRequested = true; });
   this.input.keyboard.on('keydown-UP', () => { jumpRequested = true; });
   this.input.on('pointerdown', () => { jumpRequested = true; });
 
-  // Obstakel (💀) alleen in gras, vleugel (🪽) alleen in lucht
   createObstacle(this, GAME_WIDTH + 60, GAME_HEIGHT - 14, "💀", 1.15);
   createWing(this, GAME_WIDTH + 300, LUCHT_H/2 + 40, "🪽", 1.1);
 
-  // Obstakels, vleugels, wolkjes en bloemen bewegen
   this.time.addEvent({
     delay: 13, loop: true, callback: () => {
       if (spelBlokkeren) return;
@@ -135,7 +139,6 @@ function moveAll(dx) {
 function update() {
   if (spelBlokkeren) return;
 
-  // Springen alleen als op de grond, niet in lucht
   if (jumpRequested && speler.body.blocked.down && canJump) {
     speler.body.setVelocityY(-1480);
     jumpRequested = false;
@@ -143,33 +146,34 @@ function update() {
     setTimeout(() => canJump = true, 480);
   }
 
-  // 3 botsingspunten: hoofd, linkervoet, rechtervoet
+  // Botsingspunten: hoofd en twee voeten
   let bounds = speler.getBounds();
   let hoofdPunt = {x: bounds.centerX, y: bounds.top + 18};
   let voetLinks = {x: bounds.centerX - FOOT_OFFSET, y: bounds.bottom};
   let voetRechts = {x: bounds.centerX + FOOT_OFFSET, y: bounds.bottom};
 
-  // Botsing Doodskoppen
+  // === OBSTAKELS: geraakt als je NIET springt! ===
   obstacles.forEach(o => {
     if (!spelBlokkeren && !o.hit) {
       let obsBounds = o.getBounds();
+
+      // Beneden = niet springen, op de grond
+      let opGrond = speler.body.blocked.down;
       let raaktVoetLinks = pointInRect(voetLinks, obsBounds) && voetLinks.y > GRAS_DREMPEL;
       let raaktVoetRechts = pointInRect(voetRechts, obsBounds) && voetRechts.y > GRAS_DREMPEL;
-      let raaktHoofd = pointInRect(hoofdPunt, obsBounds) && hoofdPunt.y > LUCHT_H;
 
-      // Je MOET springen: enkel géén botsing als géén van de punten in obstakel is
-      if (raaktVoetLinks || raaktVoetRechts) {
+      // Nu wordt het obstakel geraakt als je OP DE GROND bent EN de voeten raken het obstakel
+      if (opGrond && (raaktVoetLinks || raaktVoetRechts)) {
         o.hit = true;
         stelVraag("zonde");
       }
     }
   });
 
-  // Botsing Vleugeltjes (hoofd)
+  // Vleugels: grote cirkel rond hoofd, springen niet nodig
   wings.forEach(w => {
     if (!spelBlokkeren && !w.collected) {
       let wBounds = w.getBounds();
-      // Raakvlak mag ruimer zijn (ovale cirkel rond hoofdpunt)
       let dx = hoofdPunt.x - wBounds.centerX;
       let dy = hoofdPunt.y - wBounds.centerY;
       if (Math.sqrt(dx*dx + dy*dy) < 52) {
@@ -181,7 +185,7 @@ function update() {
   });
 }
 
-// Helpers
+// Helper functies
 function createObstacle(scene, x, y, emoji, scale=1) {
   let obst = scene.add.text(x, y, emoji, {
     fontFamily: 'Segoe UI Emoji, Arial',
@@ -231,7 +235,7 @@ function resetWing(wing) {
   wing.setVisible(true);
 }
 
-// Vraag tonen in overlay (specifiek soort: "licht" of "zonde")
+// Vraag tonen in overlay
 function stelVraag(type = "") {
   let v;
   if (type === "licht") {
