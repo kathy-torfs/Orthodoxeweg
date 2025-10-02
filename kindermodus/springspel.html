@@ -32,7 +32,6 @@
   <script src="vragen.js"></script>
 </head>
 <body>
-<!-- KINDER HEADER & MENUBALK -->
 <div id="kinder-header"></div>
 <script src="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/common/layout.js"></script>
 
@@ -41,15 +40,15 @@
 <script>
 const GAME_WIDTH = 900, GAME_HEIGHT = 600;
 const LUCHT_H = GAME_HEIGHT * 0.5;
-
 const lichtvragen = vragen.filter(q => q.difficulty !== "zonde");
 const zondevragen = vragen.filter(q => q.difficulty === "zonde");
 
-// Hitbox instellingen
-const HITBOX_SIZE_MAN_FEET = 28;  // kleine blok bij voeten voor doodshoofd
-const HITBOX_SIZE_MAN_HEAD = 60;  // groter blok rond hoofd voor vleugel
-const HITBOX_SIZE_OBS = 22;       // klein punt doodshoofd
-const HITBOX_SIZE_WING = 50;      // groot punt vleugel
+// Hitpoints voor voeten en hoofd
+const HEAD_POINT_OFFSET = { x: 0, y: -80 };      // t.o.v. center, hoofd
+const LEFT_FOOT_OFFSET = { x: -28, y: 0 };      // t.o.v. center, linker voet
+const RIGHT_FOOT_OFFSET = { x: 28, y: 0 };      // t.o.v. center, rechter voet
+const OBS_HIT_RADIUS = 22;                      // obstakel: raakstraal
+const WING_HIT_RADIUS = 48;                     // vleugel: raakstraal
 
 let speler, cursors, jumpRequested = false, canJump = true;
 let obstacles = [], wings = [];
@@ -163,24 +162,23 @@ function create() {
 
 function update() {
   if (spelBlokkeren) return;
-  // **SPRONG NU HOGER EN LANGER**
   if (jumpRequested && speler.body.blocked.down && canJump) {
-    speler.body.setVelocityY(-1020);  // SPRONG HOOGTE GROTER
+    speler.body.setVelocityY(-1020);
     jumpRequested = false;
     canJump = false;
-    setTimeout(() => canJump = true, 740); // Langer niet opnieuw springen
+    setTimeout(() => canJump = true, 740);
   }
 
-  // Botsing doodshoofd: klein blokje bij voeten
+  // Obstakel: raakt één van de twee voeten?
   obstacles.forEach(o => {
-    if (!spelBlokkeren && botstDoodshoofd(speler, o) && !o.hit) {
+    if (!spelBlokkeren && (botstObstakelMetVoet(speler, o, 'left') || botstObstakelMetVoet(speler, o, 'right')) && !o.hit) {
       o.hit = true;
       stelVraag(zondevragen);
     }
   });
-  // Botsing vleugel: grote blok headbox van mannetje & grotere vleugel hitbox
+  // Vleugel: raakt het hoofd?
   wings.forEach(w => {
-    if (!spelBlokkeren && botstVleugel(speler, w) && !w.collected) {
+    if (!spelBlokkeren && botstVleugelMetHoofd(speler, w) && !w.collected) {
       w.collected = true;
       w.setVisible(false);
       stelVraag(lichtvragen);
@@ -188,43 +186,29 @@ function update() {
   });
 }
 
-// Nieuwe, kleine hitbox bij voeten (voor 💀)
-function botstDoodshoofd(m, o) {
-  let ob = o.getBounds();
-  let obsX = ob.centerX;
-  let obsY = ob.centerY + ob.height*0.15;
+// Botsing met één voet (left/right)
+function botstObstakelMetVoet(m, o, side='left') {
   let mb = m.getBounds();
-  let manBox = {
-    x: mb.centerX - HITBOX_SIZE_MAN_FEET/2,
-    y: mb.bottom - HITBOX_SIZE_MAN_FEET,
-    w: HITBOX_SIZE_MAN_FEET,
-    h: HITBOX_SIZE_MAN_FEET
+  let foot = {
+    x: mb.centerX + (side === 'left' ? LEFT_FOOT_OFFSET.x : RIGHT_FOOT_OFFSET.x),
+    y: mb.bottom + LEFT_FOOT_OFFSET.y
   };
-  return (
-    obsX > manBox.x &&
-    obsX < manBox.x + manBox.w &&
-    obsY > manBox.y &&
-    obsY < manBox.y + manBox.h
-  );
+  let ob = o.getBounds();
+  let obsX = ob.centerX, obsY = ob.centerY + ob.height*0.15;
+  let dist = Math.sqrt((obsX-foot.x)**2 + (obsY-foot.y)**2);
+  return dist < OBS_HIT_RADIUS;
 }
-
-// Grotere hitbox bij hoofd (voor 🪽)
-function botstVleugel(m, w) {
+// Botsing met hoofd (vleugeltje)
+function botstVleugelMetHoofd(m, w) {
+  let mb = m.getBounds();
+  let head = {
+    x: mb.centerX + HEAD_POINT_OFFSET.x,
+    y: mb.top + 12 + HEAD_POINT_OFFSET.y // kleine correctie
+  };
   let wb = w.getBounds();
   let wingX = wb.centerX, wingY = wb.centerY;
-  let mb = m.getBounds();
-  let headBox = {
-    x: mb.centerX - HITBOX_SIZE_MAN_HEAD/2,
-    y: mb.top,
-    w: HITBOX_SIZE_MAN_HEAD,
-    h: Math.max(42, mb.height/2)
-  };
-  return (
-    wingX > headBox.x &&
-    wingX < headBox.x + headBox.w &&
-    wingY > headBox.y &&
-    wingY < headBox.y + headBox.h
-  );
+  let dist = Math.sqrt((wingX-head.x)**2 + (wingY-head.y)**2);
+  return dist < WING_HIT_RADIUS;
 }
 
 function createObstacle(scene, x, y, emoji, scale=1) {
@@ -257,7 +241,6 @@ function resetWing(wing) {
   wing.setVisible(true);
 }
 
-// Vraag tonen in overlay
 function stelVraag(vragenLijst) {
   let v = vragenLijst[Math.floor(Math.random()*vragenLijst.length)];
   const overlay = document.getElementById('vraag-overlay');
