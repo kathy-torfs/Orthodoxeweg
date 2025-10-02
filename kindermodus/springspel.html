@@ -3,160 +3,200 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Photeinos Springspel – Orthodoxe Kinderpagina</title>
+  <title>Springspel – Orthodoxe Kinderpagina</title>
   <link rel="icon" href="images/kruis.png" />
   <style>
-    body { margin:0; background:var(--pastel1,#fff6e5); font-family:'Comic Sans MS', Arial, sans-serif;}
-    #spelkaart { max-width: 650px; margin: 30px auto 0 auto; background: #f7fff3; border-radius: 20px; box-shadow: 0 6px 30px #bfd6b2a8; text-align: center; }
-    h1 { color: #2276b9; font-weight: bold; font-size: 2.2rem;}
-    #spelcontainer { position: relative; width: 500px; height: 400px; margin: 0 auto; background: #aee7ff; border-radius: 18px; overflow: hidden; box-shadow: 0 8px 18px #b7e2e2b4;}
-    #score { color: #29518c; font-size: 1.1rem; font-weight: bold; margin-bottom: 10px;}
-    #controls { margin: 10px 0 0 0;}
-    button { background:#3B96E5; color:#fff; border:none; border-radius:10px; padding:8px 18px; font-size:17px; cursor:pointer; font-family:inherit; font-weight:bold;}
+    :root{
+      --primair:#7bb235; --donker:#67510C;
+      --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
+      --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
+      --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
+      --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
+    }
+    body{
+      margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
+      min-height:100vh; background:var(--pastel1); transition:background .6s;
+    }
+    #controls {
+      box-sizing: border-box;
+      background-color: #3B96E5;
+      padding: 6px;
+      width:100vw;
+      position:fixed;
+      bottom:0;
+      left:0;
+      z-index:99;
+    }
+    #controls button {
+      color: #fff;
+      font-family: inherit;
+      font-weight: 500;
+      padding: 6px 12px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #2276b9;
+      border: none;
+      border-radius: 6px;
+    }
+    #controls button:hover {
+      background-color: #14548c;
+    }
+    #score {
+      color: #fff;
+      float: right;
+      padding: 6px 12px;
+    }
+    #spel-container {
+      max-width: 640px;
+      max-width: 700px;
+      margin: 48px auto 32px auto;
+      background: #f8fbe7;
+      border-radius: 18px;
+      box-shadow: 0 4px 20px #bbb7;
+      padding: 32px 0 10px 0;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      min-height:520px;
+    }
+    @media (max-width:800px) {
+      #spel-container { max-width:97vw; padding:6px 0; }
+    }
+    canvas {
+      display:block;
+      margin:0 auto;
+      background:transparent;
+      border-radius: 10px;
+      box-shadow:0 2px 10px #aaa6;
+    }
   </style>
+  <!-- Header + menubalk + beveiliging -->
+  <script defer src="common/layout.js"></script>
+  <!-- Phaser.js -->
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
 </head>
 <body>
-  <div id="spelkaart">
-    <h1>Photeinos Springspel</h1>
-    <div id="score">Score: 0</div>
-    <div id="spelcontainer"></div>
-    <div id="controls"><button id="springBtn">Spring!</button></div>
+  <!-- Header & menubalk automatisch -->
+  <div id="kinder-header" data-header-src="common/header.html"></div>
+
+  <div id="spel-container">
+    <div style="margin-bottom:16px;">
+      <h2 style="margin:0;font-size:28px;color:#2276b9;text-align:center;">Photeinos Springspel</h2>
+      <p style="color:#29518c;text-align:center;margin:2px 0 10px 0;">Spring om vleugeltjes te pakken, ontwijk de doodskoppen!</p>
+    </div>
+    <div id="phaser-container"></div>
   </div>
-  <script>
-    // SPEL INSTELLINGEN
-    const W = 500, H = 400;
-    const GRAS_Y = H/2; // alles eronder = graszone
-    const PH_SIZE = Math.round(H*0.40);
-    const JUMP_HEIGHT = H/2.1; // tot aan het midden van lucht
-    const OBSTAKEL_SPEED = 2.1; // pixels per frame (rustig!)
-    let score = 0, gameOver = false, obstakels = [];
 
-    // ---- CANVAS setup ----
-    const c = document.createElement('canvas');
-    c.width = W; c.height = H;
-    c.style.background = "#aee7ff";
-    c.id = "spelcanvas";
-    document.getElementById("spelcontainer").appendChild(c);
-    const ctx = c.getContext("2d");
+  <div id="controls">
+    <button id="jumpBtn">Spring!</button>
+    <span id="score">Score: 0</span>
+  </div>
 
-    // ---- SPELSTATE ----
-    let ph = { x: 70, y: H-PH_SIZE-12, vy: 0, jumping: false };
-    let frames = 0;
+<script>
+const GAME_WIDTH = 600, GAME_HEIGHT = 360; // liggend scherm
+const GAME_WIDTH = 600, GAME_HEIGHT = 360;
+let cursors, player, score = 0;
 
-    // ---- ZONES tekenen ----
-    function tekenAchtergrond() {
-      // Lucht
-      ctx.fillStyle = "#aee7ff";
-      ctx.fillRect(0,0,W,H/2);
-      // Gras
-      ctx.fillStyle = "#8bc34a";
-      ctx.fillRect(0,H/2,W,H/2);
-    }
+const GRASS_Y = GAME_HEIGHT / 2;
 
-    // ---- Photeinos tekenen (emoji) ----
-    function tekenPhoteinos() {
-      ctx.font = PH_SIZE+"px serif";
-      ctx.textAlign = "left";
-      ctx.textBaseline = "top";
-      ctx.fillText("🌟", ph.x, ph.y);
-    }
+const config = {
+  type: Phaser.AUTO,
+  width: GAME_WIDTH,
+  height: GAME_HEIGHT,
+  backgroundColor: '#b3e3fa',
+  parent: 'phaser-container',
+  physics: {
+    default: 'arcade',
+    arcade: { gravity: { y: 790 }, debug: false }
+    arcade: { gravity: { y: 850 }, debug: false }
+  },
+  scene: {
+    preload: preload,
+    create: create,
+    update: update
+  }
+};
 
-    // ---- Obstakels ----
-    function nieuwObstakel() {
-      // Max 2 tegelijk
-      if (obstakels.length >= 2) return;
-      // Random keuze: doodskop of vleugel
-      let soort = (Math.random()<0.55) ? "doodskop" : "vleugel";
-      let y, emoji;
-      if (soort=="doodskop") { // graszone
-        y = GRAS_Y + Math.random()*(H/2-60);
-        emoji = "💀";
-      } else { // vleugeltje in lucht
-        y = Math.random()*(H/2-60) + 20;
-        emoji = "🪽";
-      }
-      obstakels.push({ x:W+10, y, emoji, soort });
-    }
+let game = new Phaser.Game(config);
 
-    // ---- Obstakels tekenen ----
-    function tekenObstakels() {
-      ctx.font = "40px serif";
-      ctx.textAlign = "left";
-      ctx.textBaseline = "top";
-      obstakels.forEach(o => ctx.fillText(o.emoji, o.x, o.y));
-    }
+function preload() {
+  // Gras en lucht tekenen we zelf (rectangle)
+  this.load.image('photeinos', 'https://kathy-torfs.github.io/Orthodoxeweg/images/photeinos_walk.png');
+  // Voor demo: we laten obstakels voorlopig weg, eerst Photeinos tonen.
+}
 
-    // ---- Botsingen ----
-    function botsing(o) {
-      // Vereenvoudigde box-botsing
-      return o.x < ph.x+PH_SIZE-8 && o.x+40 > ph.x+12 && o.y < ph.y+PH_SIZE-15 && o.y+38 > ph.y+8;
-    }
+function create() {
+  // Bovenste helft lucht, onderste helft gras
+  // Lucht (bovenste helft)
+  this.add.rectangle(GAME_WIDTH/2, GAME_HEIGHT/4, GAME_WIDTH, GAME_HEIGHT/2, 0xb3e3fa);
+  // Gras (onderste helft)
+  this.add.rectangle(GAME_WIDTH/2, 3*GAME_HEIGHT/4, GAME_WIDTH, GAME_HEIGHT/2, 0x8BC34A);
 
-    // ---- Hoofdgame loop ----
-    function teken() {
-      ctx.clearRect(0,0,W,H);
-      tekenAchtergrond();
-      tekenPhoteinos();
-      tekenObstakels();
-      // Obstakels bewegen
-      obstakels.forEach(o=>o.x -= OBSTAKEL_SPEED);
+  // Voeg Photeinos toe, schaal en positie netjes onderaan op gras
+  player = this.physics.add.sprite(110, GAME_HEIGHT-65, 'photeinos')
+    .setScale(0.44) // Aanpassen tot goed!
+  // PHOTEINOS: netjes boven gras
+  player = this.physics.add.sprite(100, GAME_HEIGHT - 60, 'photeinos')
+    .setScale(0.22) // Dit werkt perfect voor jouw sprite (pas aan indien nodig)
+    .setCollideWorldBounds(true);
 
-      // Check botsingen
-      for (let i=obstakels.length-1; i>=0; i--) {
-        let o = obstakels[i];
-        if (botsing(o)) {
-          if (o.soort=="doodskop") { // GAME OVER!
-            gameOver = true;
-          } else {
-            obstakels.splice(i,1);
-            score++;
-            document.getElementById("score").textContent = "Score: "+score;
-          }
-        } else if (o.x < -50) {
-          obstakels.splice(i,1);
-        }
-      }
-      // Springen/fallen
-      if (ph.jumping) {
-        ph.y += ph.vy;
-        ph.vy += 2.7; // zwaartekracht (lager = trager dalen)
-        if (ph.y >= H-PH_SIZE-12) {
-          ph.y = H-PH_SIZE-12; ph.jumping = false; ph.vy=0;
-        }
-      }
+  // Zorgen dat hij niet omvalt of draait
+  player.body.setAllowGravity(true);
+  player.body.setSize(160,160,true); // aanpassing indien sprite veel witruimte heeft
+  // Collisions met een denkbeeldige graslijn (bodem)
+  player.setBounce(0);
+  player.jumping = false;
 
-      // Nieuwe obstakels
-      if (!gameOver && frames%90===0) nieuwObstakel();
-      // Teken game over
-      if (gameOver) {
-        ctx.globalAlpha=0.85;
-        ctx.fillStyle="#fff";
-        ctx.fillRect(0,120,W,160);
-        ctx.globalAlpha=1;
-        ctx.fillStyle="#2276b9";
-        ctx.font="32px Comic Sans MS, Arial";
-        ctx.textAlign="center";
-        ctx.fillText("Game Over!", W/2, H/2-22);
-        ctx.font="18px Arial";
-        ctx.fillText("Score: "+score, W/2, H/2+16);
-        return;
-      }
-      frames++;
-      requestAnimationFrame(teken);
-    }
+  cursors = this.input.keyboard.createCursorKeys();
 
-    // ---- Springfunctie ----
-    function spring() {
-      if (!ph.jumping) {
-        ph.vy = -JUMP_HEIGHT/8.3; // hoe lager, hoe hoger (proefondervindelijk)
-        ph.jumping = true;
-      }
-    }
-    document.getElementById("springBtn").onclick = spring;
-    window.addEventListener("keydown", e=>{ if (e.code=="Space") spring(); });
+  // Button Spring!
+  // Springknop en spatiebalk
+  document.getElementById("jumpBtn").onclick = () => jumpPlayer();
+  this.input.keyboard.on('keydown-SPACE', jumpPlayer);
 
-    // Start het spel
-    teken();
-  </script>
+  // Score resetten
+  score = 0;
+  updateScore();
+  // Zodat je altijd kunt springen als je op de bodem bent
+  player.body.onWorldBounds = true;
+}
+
+function update() {
+  // Grond detectie (zodat je niet blijft springen)
+  if (player.body.blocked.down || player.y > GAME_HEIGHT-75) {
+    player.setVelocityY(0);
+    player.y = GAME_HEIGHT-65; // zet voetjes netjes op gras
+  // ZORG dat Photeinos op het gras blijft na sprong
+  if (player.y >= (GAME_HEIGHT - 60)) {
+    player.y = GAME_HEIGHT - 60;
+    player.body.velocity.y = 0;
+    player.jumping = false;
+  }
+
+  // Keyboard input
+  if (cursors.up.isDown || cursors.space.isDown) {
+  // Springen met toetsenbord
+  if ((cursors.up.isDown || cursors.space.isDown) && !player.jumping) {
+    jumpPlayer();
+  }
+}
+
+function jumpPlayer() {
+  // Alleen springen als je NIET springt!
+  if (player && !player.jumping && player.body.blocked.down) {
+    player.setVelocityY(-320); // springkracht, aanpassen indien nodig
+  // Alleen springen als je NIET springt en onderaan staat!
+  if (!player.jumping && player.y >= (GAME_HEIGHT - 60)) {
+    player.setVelocityY(-330); // springkracht
+    player.jumping = true;
+  }
+}
+
+// Score display
+function updateScore() {
+  document.getElementById("score").innerText = "Score: " + score;
+}
+
+</script>
 </body>
 </html>
