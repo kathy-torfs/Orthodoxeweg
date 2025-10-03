@@ -5,13 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Springspel – Orthodoxe Kinderpagina</title>
   <link rel="icon" href="images/kruis.png" />
-  <!-- Firebase integratie zoals op al je andere pagina's -->
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
-  <script src="common/firebase-init.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
   <script src="vragen.js"></script>
   <script defer src="common/layout.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
   <style>
     :root{
       --primair:#7bb235; --donker:#67510C;
@@ -35,21 +31,18 @@
       position: fixed; top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(0,0,0,0.18); z-index: 9999; display: flex;
       align-items: center; justify-content: center;
-      pointer-events: none;
     }
     .vraag-box {
       background: #fffde6; padding: 32px 28px 20px 28px;
       border-radius: 18px; box-shadow: 0 2px 24px #8bc34ab0;
       max-width: 96vw; width: 420px; font-family: 'Comic Sans MS', Arial, sans-serif;
       color: #2276b9; font-size: 20px;
-      opacity: 0.97;
     }
     .vraag-box h3 { margin: 0 0 16px 0; font-size: 1.1em; font-weight: bold; color: #67510C;}
     .vraag-antw-btn {
       margin: 10px 0; background: #7bb235; color: white;
       border: none; border-radius: 8px; font-size: 17px;
       padding: 8px 14px; width: 96%; cursor: pointer; display: block;
-      pointer-events: all;
     }
     .vraag-antw-btn:hover { background: #488f12; }
     #startBtn{
@@ -83,20 +76,21 @@
       document.body.style.background=p[Math.floor(Math.random()*p.length)];
     })();
 
-    // Header/menubalk laden
+    // Header/menubalk laden, active-tab is 'spelletjes'
     (function boot(){
       if (!(window.KinderLayout)) return setTimeout(boot,120);
       const el=document.getElementById('kinder-header');
       window.KinderLayout.mountHeader({ rootId:'kinder-header', headerSrc:el.dataset.headerSrc, active:'spelletjes' });
     })();
 
-    // FIREBASE punten uit kind-account (zoals elders)
+    // ======= Firebase helpers (pas aan op je project) ==========
     async function haalPunten() {
-      const doc = await firebase.firestore().collection("kinderen").doc(window.CurrentChildId).get();
-      return doc.exists ? (doc.data().punten || 0) : 0;
+      // return (await firebase.firestore().collection("kinderen").doc(window.CurrentChildId).get()).data().punten ?? 0;
+      return parseInt(localStorage.getItem("kinderpunten")||'100',10);
     }
     async function zetPunten(nieuw) {
-      await firebase.firestore().collection("kinderen").doc(window.CurrentChildId).update({punten: nieuw});
+      // await firebase.firestore().collection("kinderen").doc(window.CurrentChildId).update({punten: nieuw});
+      localStorage.setItem("kinderpunten",nieuw);
     }
     async function wijzigPunten(delta) {
       let huidig = await haalPunten();
@@ -113,8 +107,10 @@
     let obstacles = [], wings = [], flowers = [], clouds = [];
     let speed = 1.2, level = 1, vleugels = 0, levelsMax = 5;
     let spelBlokkeren = false, spelGestart = false;
+
     const GAME_WIDTH = 900, GAME_HEIGHT = 600, LUCHT_H = GAME_HEIGHT * 0.5;
     const FOOT_RADIUS = 28, HEAD_RADIUS = 30;
+
     let gameInstance;
 
     document.getElementById("startBtn").onclick = async function(){
@@ -325,7 +321,7 @@
       setTimeout(startGame,300);
     }
 
-    // Vraag tonen: spel hervat direct na keuze
+    // Vraag tonen in overlay
     function stelVraag(type = "") {
       let v;
       if (type === "licht") {
@@ -351,9 +347,9 @@
       spelBlokkeren = true;
     }
     window.beantwoordVraag = function(given, correct) {
-      document.getElementById('vraag-overlay').style.display = 'none';
+      const overlay = document.getElementById('vraag-overlay');
+      overlay.style.display = 'none';
       spelBlokkeren = false;
-      // geen extra feedback, gewoon door!
     };
   </script>
 </body>
