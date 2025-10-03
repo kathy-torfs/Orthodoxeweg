@@ -154,7 +154,7 @@
         parent: 'spelcontainer',
         physics: {
           default: 'arcade',
-          arcade: { gravity: { y: 1200 }, debug: false }
+          arcade: { gravity: { y: 950 }, debug: false }
         },
         scene: { preload, create, update }
       });
@@ -182,7 +182,7 @@
 
       this.physics.add.existing(speler);
       speler.body.setCollideWorldBounds(true);
-      speler.body.setGravityY(1200);
+      speler.body.setGravityY(900); // trager terugvallen
       speler.body.setBounce(0);
 
       let ground = this.add.rectangle(GAME_WIDTH/2, GAME_HEIGHT - 2, GAME_WIDTH, 8, 0x000000, 0);
@@ -208,7 +208,6 @@
       });
     }
 
-    // ENKEL DEZE FUNCTIE AANGEPAST!
     function moveAll(dx) {
       // Obstakels (schedels) - max 2 tegelijk zichtbaar
       let schedelsInBeeld = 0;
@@ -242,11 +241,10 @@
       });
     }
 
-    // ENKEL DEZE FUNCTIE AANGEPAST!
     function update() {
       if (spelBlokkeren) return;
       if (jumpRequested && speler.body.blocked.down && canJump) {
-        speler.body.setVelocityY(-1350); // Hoger/trager springen
+        speler.body.setVelocityY(-1300); // Hoger/trager springen
         jumpRequested = false;
         canJump = false;
         setTimeout(() => canJump = true, 490); // Niet te snel na elkaar
@@ -254,23 +252,27 @@
       let bounds = speler.getBounds();
       let hoofd = {x: bounds.centerX, y: bounds.top + 34};
       let voetR = {x: bounds.centerX + 30, y: bounds.bottom - 8};
+      let isSpringend = !speler.body.blocked.down;
+
+      // Schedels: Raken mag ENKEL als je op de grond bent (niet springend!)
       obstacles.forEach(o => {
         if (!spelBlokkeren && !o.hit) {
           let ox = o.x, oy = o.y - 38;
           let opGrond = speler.body.blocked.down;
           let dR = Math.hypot(voetR.x-ox, voetR.y-oy);
-          if (opGrond && dR < 44) {
+          if (dR < 44 && opGrond) {
             o.hit = true;
             stelVraag("zonde");
           }
         }
       });
+      // Vleugeltjes: Raken mag ENKEL als je springt (in de lucht!)
       wings.forEach(w => {
         if (!spelBlokkeren && !w.collected) {
           let wBounds = w.getBounds();
           let dx = hoofd.x - wBounds.centerX;
           let dy = hoofd.y - wBounds.centerY;
-          if (Math.sqrt(dx*dx + dy*dy) < 60) {
+          if (Math.sqrt(dx*dx + dy*dy) < 60 && isSpringend) {
             w.collected = true;
             w.setVisible(false);
             vleugels++;
