@@ -8,61 +8,40 @@
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
   <script src="vragen.js"></script>
   <script defer src="common/layout.js"></script>
-  <!-- Firebase SDKs (zet jouw versie en config erin!) -->
-  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.1/firebase-firestore-compat.js"></script>
-  <script>
-    // Zet je Firebase config hieronder!
-    const firebaseConfig = {
-      apiKey: "YOUR-API-KEY",
-      authDomain: "YOUR-DOMAIN",
-      projectId: "YOUR-PROJECT-ID",
-      // ... (rest van config)
-    };
-    firebase.initializeApp(firebaseConfig);
-  </script>
   <style>
-    :root{
-      --primair:#7bb235; --donker:#67510C;
-      --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
-      --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
-      --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
-      --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
-    }
+    :root{ --primair:#7bb235; --donker:#67510C; }
     body{
-      margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
-      min-height:100vh; background:var(--pastel1); transition:background .6s;
+      margin:0; font-family:'Comic Sans MS', Arial, sans-serif;
+      background:#fff6e5; color:#333;
     }
     main{ max-width:1000px; margin:20px auto; padding:0 16px; text-align:center }
-
-    #infoBar {
-      width:700px; max-width:98vw; margin:30px auto 0 auto; display:flex; justify-content:space-between;
-      font-size:22px; background:#fffde6; border-radius:12px; padding:8px 32px; box-shadow:0 2px 12px #bedbe880;
-      font-weight:bold; letter-spacing:0.5px;
+    #spelcontainer{ margin:24px auto; width:900px; height:600px; }
+    #infoBar{
+      width:900px; max-width:96vw; margin:10px auto 0 auto;
+      display:flex; justify-content:space-between;
+      font-size:18px; background:#fffde6;
+      border-radius:12px; padding:6px 16px; font-weight:bold;
     }
-    #spelcontainer { margin: 26px auto 0 auto; width: 640px; }
-
-    .vraag-overlay {
-      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.18); z-index: 9999; display: flex;
-      align-items: center; justify-content: center;
+    .vraag-overlay{
+      position:fixed; top:0; left:0; right:0; bottom:0;
+      background:rgba(0,0,0,0.22); display:flex;
+      align-items:center; justify-content:center;
+      z-index:9999;
     }
-    .vraag-box {
-      background: #fffde6; padding: 32px 28px 20px 28px;
-      border-radius: 18px; box-shadow: 0 2px 24px #8bc34ab0;
-      max-width: 96vw; width: 420px; font-family: 'Comic Sans MS', Arial, sans-serif;
-      color: #2276b9; font-size: 21px;
+    .vraag-box{
+      background:#fffde6; padding:24px;
+      border-radius:16px; box-shadow:0 2px 18px rgba(0,0,0,0.2);
+      max-width:90vw; width:420px; font-size:18px; color:#333;
     }
-    .vraag-box h3 { margin: 0 0 16px 0; font-size: 1.2em; font-weight: bold; color: #67510C;}
-    .vraag-antw-btn {
-      margin: 10px 0; background: #7bb235; color: white;
-      border: none; border-radius: 8px; font-size: 18px;
-      padding: 8px 14px; width: 96%; cursor: pointer; display: block;
+    .vraag-antw-btn{
+      display:block; width:100%; margin:6px 0;
+      padding:8px; border:none; border-radius:8px;
+      background:#7bb235; color:white; font-weight:bold; cursor:pointer;
     }
-    .vraag-antw-btn:hover { background: #488f12; }
+    .vraag-antw-btn:hover{ background:#4c8617 }
     #startBtn{
       background: var(--primair); color: #fff; border:none; border-radius: 10px;
-      padding: 8px 18px; font-size: 20px; font-weight: bold; margin: 14px auto 0 auto; display:block;
+      padding: 8px 18px; font-size: 19px; font-weight: bold; margin: 14px auto 0 auto; display:block;
       box-shadow: 0 2px 10px #9eceb3a0;
     }
     #startBtn[disabled]{ opacity:0.5; pointer-events:none;}
@@ -72,265 +51,291 @@
   <div id="kinder-header" data-header-src="common/header.html"></div>
   <main>
     <h1>Springspel 🏃‍♂️🪽</h1>
-    <div id="infoBar" style="display:flex;">
+    <button id="startBtn">Start Springspel (20 punten)</button>
+    <div id="infoBar" style="display:none">
       <span id="levelInfo">Level 1</span>
       <span id="vleugelInfo">Vleugels: 0/10</span>
       <span id="puntenInfo">Punten: ...</span>
     </div>
-    <button id="startBtn">Start Springspel (20 punten)</button>
     <div id="spelcontainer"></div>
     <div id="vraag-overlay" style="display:none"></div>
   </main>
-  <script>
-    // Pastel achtergrond
-    (function(){
-      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
-      document.body.style.background=p[Math.floor(Math.random()*p.length)];
-    })();
+<script>
+// Header / menubalk laden, active-tab is 'spelletjes'
+(function boot(){
+  if (!(window.KinderLayout)) return setTimeout(boot,120);
+  const el=document.getElementById('kinder-header');
+  window.KinderLayout.mountHeader({ rootId:'kinder-header', headerSrc:el.dataset.headerSrc, active:'spelletjes' });
+})();
 
-    // Header laden, active-tab = spelletjes
-    (function boot(){
-      if (!(window.KinderLayout)) return setTimeout(boot,120);
-      const el=document.getElementById('kinder-header');
-      window.KinderLayout.mountHeader({ rootId:'kinder-header', headerSrc:el.dataset.headerSrc, active:'spelletjes' });
-    })();
+// ======= Firebase helpers (pas aan op je project) ==========
+async function haalPunten() {
+  // return (await firebase.firestore().collection("kinderen").doc(window.CurrentChildId).get()).data().punten ?? 0;
+  // Vervang bovenste door Firestore-code indien live!
+  return parseInt(localStorage.getItem("kinderpunten")||'100',10);
+}
+async function zetPunten(nieuw) {
+  // await firebase.firestore().collection("kinderen").doc(window.CurrentChildId).update({punten: nieuw});
+  localStorage.setItem("kinderpunten",nieuw);
+}
+async function wijzigPunten(delta) {
+  let huidig = await haalPunten();
+  let nieuw = Math.max(0, huidig + delta);
+  await zetPunten(nieuw);
+  toonPunten(nieuw);
+}
+async function toonPunten(nieuw) {
+  document.getElementById('puntenInfo').textContent = "Punten: " + nieuw;
+}
 
-    // Firebase punten
-    async function getUserPoints(){
-      const db=firebase.firestore();
-      const parochieId=localStorage.getItem("ingelogdeParochie");
-      const ouderLogin=localStorage.getItem("loginKeuze");
-      const kindId=localStorage.getItem("ingelogdKindId");
-      if(!parochieId||!ouderLogin||!kindId)return 0;
-      const ref=db.collection("parochies").doc(parochieId).collection("leden").doc(ouderLogin).collection("kinderen").doc(kindId);
-      const snap=await ref.get(); return snap.exists?(snap.data().punten||0):0;
-    }
-    async function setUserPoints(nieuw){
-      const db=firebase.firestore();
-      const parochieId=localStorage.getItem("ingelogdeParochie");
-      const ouderLogin=localStorage.getItem("loginKeuze");
-      const kindId=localStorage.getItem("ingelogdKindId");
-      if(!parochieId||!ouderLogin||!kindId)return;
-      const ref=db.collection("parochies").doc(parochieId).collection("leden").doc(ouderLogin).collection("kinderen").doc(kindId);
-      await ref.update({punten:nieuw});
-    }
-    async function addUserPoints(delta){
-      let huidig = await getUserPoints();
-      let nieuw = Math.max(0, huidig + delta);
-      await setUserPoints(nieuw);
-      toonPunten(nieuw);
-    }
-    async function toonPunten(nieuw){
-      document.getElementById('puntenInfo').textContent = "Punten: " + nieuw;
-    }
+// ------------ GAME ------------
+let speler, cursors, jumpRequested=false, canJump=true;
+let obstacles=[], wings=[];
+let level=1, vleugels=0, maxLevels=5, speed=1.1, gravityY=1050;
+let spelBlokkeren=false, spelGestart=false, gameInstance;
 
-    // ---------------- GAME LOGICA ---------------
-    let speler, cursors, jumpRequested=false, canJump=true;
-    let obstacles=[], wings=[], speed=1.05, level=1, vleugels=0, levelsMax=5;
-    let spelGestart=false, spelBlokkeren=false, gameInstance;
-    const GAME_WIDTH=640, GAME_HEIGHT=420, LUCHT_H=GAME_HEIGHT*0.55;
-    const FOOT_RADIUS=24, HEAD_RADIUS=28;
+const GAME_WIDTH=900, GAME_HEIGHT=600;
+const GROUND_Y=GAME_HEIGHT-14;
+const SPELER_SIZE=Math.round(GAME_HEIGHT*0.4);
 
-    // Start knop
-    document.getElementById("startBtn").onclick = async function(){
-      const points=await getUserPoints();
-      if(points<20){ alert("Niet genoeg punten om te spelen!"); return; }
-      await addUserPoints(-20);
-      document.getElementById('startBtn').style.display='none';
-      spelGestart=true; vleugels=0; level=1; speed=1.05;
-      document.getElementById("levelInfo").textContent="Level 1";
-      document.getElementById("vleugelInfo").textContent="Vleugels: 0/10";
-      toonPunten(await getUserPoints());
-      startGame();
-    };
+// Levelkleuren/emoji's
+const bgLevels=[
+  { kleur:'#b2e5f5', emoji:'🌤️' },
+  { kleur:'#d7f5b2', emoji:'🌻' },
+  { kleur:'#ffeec9', emoji:'☀️' },
+  { kleur:'#e7ddf7', emoji:'🌈' },
+  { kleur:'#f2b2f5', emoji:'🌞' },
+];
 
-    async function startGame(){
-      if(gameInstance) { gameInstance.destroy(true); }
-      obstacles=[]; wings=[];
-      gameInstance=new Phaser.Game({
-        type: Phaser.AUTO, width: GAME_WIDTH, height: GAME_HEIGHT,
-        parent: 'spelcontainer',
-        physics: { default: 'arcade', arcade: { gravity: { y: 1250 }, debug: false } },
-        scene: { preload, create, update }
-      });
-    }
+document.getElementById("startBtn").onclick = async function(){
+  let punten = await haalPunten();
+  if(punten<20){
+    alert("Je hebt minstens 20 punten nodig om dit spel te starten.");
+    return;
+  }
+  await wijzigPunten(-20);
+  document.getElementById('startBtn').style.display='none';
+  document.getElementById('infoBar').style.display='';
+  spelGestart=true;
+  startGame();
+};
 
-    function preload() {}
+async function startGame(){
+  vleugels=0; speed=1.1+(level-1)*.16; spelBlokkeren=false;
+  document.getElementById("levelInfo").textContent = "Level "+level;
+  document.getElementById("vleugelInfo").textContent = "Vleugels: 0/10";
+  toonPunten(await haalPunten());
+  if(gameInstance) { gameInstance.destroy(true); }
+  gameInstance = new Phaser.Game({
+    type: Phaser.AUTO,
+    width: GAME_WIDTH,
+    height: GAME_HEIGHT,
+    parent: 'spelcontainer',
+    physics: {
+      default: 'arcade',
+      arcade: { gravity: { y: gravityY+(level-1)*80 }, debug: false }
+    },
+    scene: { preload, create, update }
+  });
+}
 
-    function create() {
-      // lucht + gras
-      this.add.rectangle(GAME_WIDTH/2, LUCHT_H/2, GAME_WIDTH, LUCHT_H, 0xaee7ff);
-      this.add.rectangle(GAME_WIDTH/2, LUCHT_H + (GAME_HEIGHT-LUCHT_H)/2, GAME_WIDTH, GAME_HEIGHT-LUCHT_H, 0x8bc34a);
+function preload() {}
+function create() {
+  // Achtergrondkleur + emoji
+  this.cameras.main.setBackgroundColor(bgLevels[level-1].kleur);
+  for(let i=0;i<3;i++) this.add.text(90+Math.random()*700,80+Math.random()*260,bgLevels[level-1].emoji,{fontSize:'56px'}).setAlpha(0.35);
 
-      // Obstakels (max 2 in beeld)
-      for(let i=0;i<2;i++) createObstacle(this, GAME_WIDTH+120*i+180, GAME_HEIGHT-4, "💀");
-      // Vleugels (per level 10 nodig, in het begin 3 zichtbaar)
-      for(let i=0;i<3;i++) createWing(this, GAME_WIDTH+200*i+160, LUCHT_H/3, "🪽");
+  // Grasveld
+  this.add.rectangle(GAME_WIDTH/2,GAME_HEIGHT-22,GAME_WIDTH,70,0xbde5a0);
 
-      // Speler
-      const spelerGrootte=GAME_HEIGHT*0.42, grondNiveau=GAME_HEIGHT-7;
-      speler=this.add.text(100, grondNiveau, "🏃‍♂️", { fontFamily:'Segoe UI Emoji,Arial', fontSize:Math.round(spelerGrootte)+'px' });
-      speler.setOrigin(0.5,1);
-      speler.setScale(-1,1); // gespiegeld!
-      this.physics.add.existing(speler);
-      speler.body.setCollideWorldBounds(true);
-      speler.body.setGravityY(1250);
-      speler.body.setBounce(0.0);
+  // Bloemen (verschuiven langzaam)
+  this.flowers=[];
+  let bloemIcons=["🌸","🌻","🌼","🌺","🌷","🌹"];
+  for(let i=0;i<8;i++){
+    let f=this.add.text(Math.random()*GAME_WIDTH,GAME_HEIGHT-22,bloemIcons[Math.floor(Math.random()*bloemIcons.length)],{fontSize:'34px'});
+    f.setOrigin(0.5,1);
+    this.flowers.push(f);
+  }
 
-      // Grond
-      let ground=this.add.rectangle(GAME_WIDTH/2, GAME_HEIGHT, GAME_WIDTH, 12, 0x000000, 0);
-      this.physics.add.existing(ground, true);
-      this.physics.add.collider(speler, ground);
+  // Speler
+  speler = this.add.text(GAME_WIDTH*0.18,GROUND_Y,"🏃‍♂️",{
+    fontFamily:'Segoe UI Emoji, Arial',
+    fontSize: SPELER_SIZE+'px'
+  });
+  speler.setOrigin(0.5,1);
+  speler.setScale(-1,1); // Spiegelen naar rechts!
+  this.physics.add.existing(speler);
+  speler.body.setCollideWorldBounds(true);
+  speler.body.setGravityY(gravityY+(level-1)*80);
+  speler.body.setBounce(0.0);
 
-      // Controls
-      cursors=this.input.keyboard.createCursorKeys();
-      this.input.keyboard.on('keydown-SPACE',()=>{ jumpRequested=true; });
-      this.input.keyboard.on('keydown-UP',()=>{ jumpRequested=true; });
-      this.input.on('pointerdown',()=>{ jumpRequested=true; });
+  // Grond
+  let ground = this.add.rectangle(GAME_WIDTH/2, GAME_HEIGHT-2, GAME_WIDTH, 8, 0x000, 0);
+  this.physics.add.existing(ground,true);
+  this.physics.add.collider(speler, ground);
 
-      // Main loop (alles beweegt)
-      this.time.addEvent({
-        delay:15, loop:true, callback:()=>{ if(!spelBlokkeren) moveAll(-speed); }
-      });
-    }
+  // Obstakels (schedels en vleugels), max 2 tegelijk!
+  obstacles=[]; wings=[];
+  cursors = this.input.keyboard.createCursorKeys();
+  this.input.keyboard.on('keydown-SPACE',()=>{jumpRequested=true;});
+  this.input.keyboard.on('keydown-UP',()=>{jumpRequested=true;});
+  this.input.on('pointerdown',()=>{jumpRequested=true;});
 
-    function createObstacle(scene, x, y, emoji) {
-      let o=scene.add.text(x, y-22, emoji, { fontFamily:'Segoe UI Emoji,Arial', fontSize:'65px' });
-      o.setOrigin(0.5,1); o.hit=false;
-      obstacles.push(o); return o;
-    }
-    function createWing(scene, x, y, emoji) {
-      let w=scene.add.text(x, y, emoji, { fontFamily:'Segoe UI Emoji,Arial', fontSize:'53px' });
-      w.setOrigin(0.5,0.5); w.collected=false;
-      wings.push(w); return w;
-    }
+  // Start 2 van elk (max 2 on screen)
+  for(let i=0;i<2;i++) createObstacle(this,GAME_WIDTH+220*i+60,GROUND_Y,"💀");
+  for(let i=0;i<2;i++) createWing(this,GAME_WIDTH+190*i+120,GAME_HEIGHT*0.25,"🪽");
 
-    function moveAll(dx) {
-      // Beweeg obstakels (max 2 on screen)
-      let activeObstacles=obstacles.filter(o=>o.x>0 && o.x<GAME_WIDTH);
-      obstacles.forEach(o=>{
-        o.x+=dx;
-        if(o.x<-60) resetObstacle(o,activeObstacles);
-      });
-      // Vleugels
-      wings.forEach(w=>{
-        w.x+=dx;
-        if(w.x<-60) resetWing(w);
-      });
-    }
-    function resetObstacle(o,activeObstacles) {
-      // nooit meer dan 2 tegelijk on screen
-      let count=obstacles.filter(ob=>ob!==o && ob.x>0 && ob.x<GAME_WIDTH).length;
-      if(count>=1) o.x = GAME_WIDTH + 250 + Math.random()*150;
-      else o.x = GAME_WIDTH + 100 + Math.random()*150;
-      o.hit=false;
-    }
-    function resetWing(w) {
-      w.x = GAME_WIDTH + 240 + Math.random()*250;
-      w.collected = false; w.setVisible(true);
-    }
-
-    function update() {
+  this.time.addEvent({
+    delay:22, loop:true, callback:()=>{
       if(spelBlokkeren) return;
-      // springen
-      if(jumpRequested && speler.body.blocked.down && canJump){
-        speler.body.setVelocityY(-1220); // zachtere sprong
-        jumpRequested=false; canJump=false;
-        setTimeout(()=>canJump=true,470);
-      }
-      let bounds=speler.getBounds();
-      let hoofd={x:bounds.centerX, y:bounds.top+34};
-      let voet={x:bounds.centerX, y:bounds.bottom-6};
-
-      // Obstakels: alleen hitten als NIET springen (dus op grond)
-      obstacles.forEach(o=>{
-        if(!spelBlokkeren && !o.hit && speler.body.blocked.down && Math.abs(voet.x-o.x)<46 && Math.abs(voet.y-o.y)<46){
-          o.hit=true;
-          stelVraag("zonde");
-        }
-      });
-
-      // Vleugels: alleen verzamelen als niet al collected
-      wings.forEach(w=>{
-        if(!spelBlokkeren && !w.collected){
-          let dx=hoofd.x-w.x, dy=hoofd.y-w.y;
-          if(Math.sqrt(dx*dx+dy*dy)<49){
-            w.collected=true; w.setVisible(false);
-            vleugels++;
-            document.getElementById("vleugelInfo").textContent = `Vleugels: ${vleugels}/10`;
-            if(vleugels>=10) volgendLevel();
-            else stelVraag("licht");
-          }
-        }
+      // Laat alles langzaam bewegen
+      moveAll.call(this, -speed);
+      // Bloemen/carrousel
+      this.flowers.forEach(f=>{
+        f.x+=-speed*1.07;
+        if(f.x<-24) f.x=GAME_WIDTH+Math.random()*140;
       });
     }
+  });
+}
 
-    async function volgendLevel(){
-      level++;
-      if(level>levelsMax){
-        await addUserPoints(10);
-        alert("Gefeliciteerd, je hebt ALLE levels uitgespeeld!\nJe krijgt 10 punten als beloning!");
-        document.getElementById('startBtn').style.display='';
-        spelGestart=false;
-        vleugels=0; level=1;
-        if(gameInstance) gameInstance.destroy(true);
-        return;
+function moveAll(dx){
+  // Houd altijd max 2 on screen per soort
+  let activeSkulls=obstacles.filter(o=>o.x>-60);
+  let activeWings=wings.filter(w=>w.x>-60);
+  // Obstakels
+  obstacles.forEach((o,i)=>{
+    o.x+=dx;
+    if(o.x<-60){
+      // Reset pas als minder dan 2 zichtbaar
+      if(activeSkulls.length<2){
+        o.x = GAME_WIDTH+200+Math.random()*250;
+        o.hit = false;
       }
-      vleugels=0; speed+=0.17;
-      document.getElementById("levelInfo").textContent = "Level "+level;
-      document.getElementById("vleugelInfo").textContent = "Vleugels: 0/10";
-      if(gameInstance) gameInstance.destroy(true);
-      setTimeout(startGame,350);
     }
-
-    // VRAAG LOGICA
-    function stelVraag(type="") {
-      let v;
-      if(type==="licht"){
-        let diff=level<3?level:3;
-        let lichtvragen = vragen.filter(q=>q.difficulty==diff);
-        v = lichtvragen[Math.floor(Math.random()*lichtvragen.length)];
-      } else if(type==="zonde"){
-        let zondevragen = vragen.filter(q=>q.difficulty==="zonde");
-        v = zondevragen[Math.floor(Math.random()*zondevragen.length)];
-      } else {
-        v = vragen[Math.floor(Math.random()*vragen.length)];
+  });
+  // Vleugels
+  wings.forEach((w,i)=>{
+    w.x+=dx;
+    if(w.x<-60){
+      if(activeWings.length<2){
+        w.x = GAME_WIDTH+170+Math.random()*210;
+        w.collected = false;
+        w.setVisible(true);
       }
-      const overlay=document.getElementById('vraag-overlay');
-      overlay.innerHTML=`
-        <div class="vraag-overlay">
-          <div class="vraag-box">
-            <h3>Vraag:</h3>
-            <div style="margin-bottom:14px">${v.q}</div>
-            ${v.a.map((ans,i)=>`<button class="vraag-antw-btn" onclick="beantwoordVraag(${i},${v.correct},'${type}')">${ans}</button>`).join("")}
-          </div>
-        </div>
-      `;
-      overlay.style.display='';
-      spelBlokkeren=true;
     }
-    window.beantwoordVraag=function(given, correct, type){
-      const overlay=document.getElementById('vraag-overlay');
-      overlay.style.display='none';
-      if(type==="zonde" && given!=correct){
-        alert("Oei, dat was fout! Je gaf een zondig antwoord... Probeer nog eens!");
-        document.getElementById('startBtn').style.display='';
-        spelGestart=false; vleugels=0; level=1;
-        if(gameInstance) gameInstance.destroy(true);
-        return;
-      }
-      if(type==="licht" && given!=correct){
-        // feedback maar geen gameover
-        overlay.innerHTML = `<div class="vraag-overlay"><div class="vraag-box" style="font-size:24px;color:#e53935">Dat was fout!</div></div>`;
-        overlay.style.display = '';
-        setTimeout(()=>{ overlay.style.display='none'; spelBlokkeren=false; }, 700);
-        return;
-      }
-      spelBlokkeren=false;
-    };
+  });
+}
 
-    // INIT: punten tonen
-    getUserPoints().then(toonPunten);
-  </script>
+function update(){
+  if(spelBlokkeren) return;
+  // Springen (langzaam naar beneden)
+  if(jumpRequested && speler.body.blocked.down && canJump){
+    speler.body.setVelocityY(-900-(level-1)*80); // iets lager springen!
+    jumpRequested=false; canJump=false;
+    setTimeout(()=>canJump=true,600);
+  }
+  let bounds=speler.getBounds();
+  let hoofd={x:bounds.centerX, y:bounds.top+30};
+  let voet={x:bounds.centerX+30, y:bounds.bottom-8};
+
+  // Schedelbotsing (alleen als op grond!)
+  obstacles.forEach(o=>{
+    if(!spelBlokkeren && !o.hit){
+      let ox=o.x, oy=o.y-24;
+      let opGrond=speler.body.blocked.down;
+      let dR=Math.hypot(voet.x-ox, voet.y-oy);
+      if(opGrond && dR<62){
+        o.hit=true; stelVraag("zonde");
+      }
+    }
+  });
+  // Vleugel pakken (in de lucht)
+  wings.forEach(w=>{
+    if(!spelBlokkeren && !w.collected){
+      let wBounds=w.getBounds();
+      let dx=hoofd.x-wBounds.centerX, dy=hoofd.y-wBounds.centerY;
+      if(Math.sqrt(dx*dx+dy*dy)<60){
+        w.collected=true; w.setVisible(false);
+        vleugels++; document.getElementById("vleugelInfo").textContent="Vleugels: "+vleugels+"/10";
+        stelVraag("licht");
+        if(vleugels>=10) volgendLevel();
+      }
+    }
+  });
+}
+
+function createObstacle(scene, x, y, emoji){
+  let o=scene.add.text(x, y, emoji, {
+    fontFamily: 'Segoe UI Emoji, Arial',
+    fontSize: '85px'
+  });
+  o.setOrigin(0.5, 1); o.hit=false; obstacles.push(o); return o;
+}
+function createWing(scene, x, y, emoji){
+  let w=scene.add.text(x, y, emoji, {
+    fontFamily: 'Segoe UI Emoji, Arial',
+    fontSize: '72px'
+  });
+  w.setOrigin(0.5, 0.5); w.collected=false; wings.push(w); return w;
+}
+
+// ===== Vraaglogica =====
+function stelVraag(type){
+  let pool;
+  if(type==="licht"){
+    if(level===1) pool=vragen.filter(q=>q.difficulty===1);
+    else if(level===2) pool=vragen.filter(q=>q.difficulty===2);
+    else pool=vragen.filter(q=>q.difficulty===3);
+  } else if(type==="zonde"){
+    pool=vragen.filter(q=>q.difficulty==="zonde");
+  }
+  if(!pool||!pool.length)return;
+  const v=pool[Math.floor(Math.random()*pool.length)];
+  const overlay=document.getElementById("vraag-overlay");
+  overlay.innerHTML=`
+    <div class="vraag-overlay">
+      <div class="vraag-box">
+        <h3>Vraag:</h3>
+        <div style="margin-bottom:14px">${v.q}</div>
+        ${v.a.map((ans,i)=>`<button class="vraag-antw-btn" onclick="beantwoordVraag(${i},${v.correct},'${type}')">${ans}</button>`).join("")}
+      </div>
+    </div>`;
+  overlay.style.display=""; spelBlokkeren=true;
+}
+
+window.beantwoordVraag=function(given,correct,type){
+  const overlay=document.getElementById("vraag-overlay");
+  if(given===correct){
+    overlay.style.display="none"; spelBlokkeren=false;
+  }else{
+    if(type==="zonde"){
+      alert("Fout! Je bent tegen een zonde gelopen. Game Over.");
+      location.reload();
+    }else{
+      overlay.innerHTML=`<div class="vraag-overlay"><div class="vraag-box">Dat was fout!</div></div>`;
+      setTimeout(()=>{ overlay.style.display="none"; spelBlokkeren=false; },500);
+    }
+  }
+};
+
+async function volgendLevel(){
+  level++;
+  if(level>maxLevels){
+    await wijzigPunten(10);
+    alert("Gefeliciteerd, je hebt alle levels uitgespeeld!\nJe krijgt 10 punten als beloning!");
+    document.getElementById('startBtn').style.display='';
+    document.getElementById('infoBar').style.display='none';
+    spelGestart=false; vleugels=0; level=1;
+    if(gameInstance) gameInstance.destroy(true);
+    return;
+  }
+  vleugels=0;
+  document.getElementById("levelInfo").textContent="Level "+level;
+  document.getElementById("vleugelInfo").textContent="Vleugels: 0/10";
+  if(gameInstance) gameInstance.destroy(true);
+  setTimeout(startGame,350);
+};
+</script>
 </body>
 </html>
