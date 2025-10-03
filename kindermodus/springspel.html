@@ -208,11 +208,22 @@
       });
     }
 
+    // ENKEL DEZE FUNCTIE AANGEPAST!
     function moveAll(dx) {
-      // Obstakels (schedels)
+      // Obstakels (schedels) - max 2 tegelijk zichtbaar
+      let schedelsInBeeld = 0;
       obstacles.forEach(o => {
         o.x += dx;
-        if (o.x < -60) resetObstacle(o);
+        if (o.x > -60 && o.x < GAME_WIDTH+60) {
+          schedelsInBeeld++;
+        }
+      });
+      obstacles.forEach(o => {
+        if (o.x < -60 && schedelsInBeeld < 2) {
+          o.x = GAME_WIDTH + 140 + Math.random() * 290;
+          o.hit = false;
+          schedelsInBeeld++;
+        }
       });
       // Wings
       wings.forEach(w => {
@@ -231,10 +242,11 @@
       });
     }
 
+    // ENKEL DEZE FUNCTIE AANGEPAST!
     function update() {
       if (spelBlokkeren) return;
       if (jumpRequested && speler.body.blocked.down && canJump) {
-        speler.body.setVelocityY(-900); // Rustig omhoog
+        speler.body.setVelocityY(-1350); // Hoger/trager springen
         jumpRequested = false;
         canJump = false;
         setTimeout(() => canJump = true, 490); // Niet te snel na elkaar
