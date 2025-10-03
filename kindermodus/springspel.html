@@ -126,9 +126,17 @@ function startGame(){
 function preload(){}
 
 function create(){
+  // achtergrond
+  this.bg=this.add.tileSprite(0,0,GAME_WIDTH,GAME_HEIGHT,"").setOrigin(0);
   this.add.rectangle(GAME_WIDTH/2,LUCHT_H/2,GAME_WIDTH,LUCHT_H,0xaee7ff);
   this.add.rectangle(GAME_WIDTH/2,LUCHT_H+(GAME_HEIGHT-LUCHT_H)/2,GAME_WIDTH,GAME_HEIGHT-LUCHT_H,0x8bc34a);
 
+  // zon & wolkjes
+  this.add.text(100,100,"☀️",{fontSize:"80px"});
+  this.add.text(300,80,"☁️",{fontSize:"60px"});
+  this.add.text(600,120,"☁️",{fontSize:"50px"});
+
+  // speler
   speler=this.add.text(130,GAME_HEIGHT-15,"🏃‍♂️",{fontSize:"240px"});
   speler.setOrigin(0.5,1);
   this.physics.add.existing(speler);
@@ -144,7 +152,7 @@ function create(){
   this.input.on("pointerdown",()=>jumpRequested=true);
 
   for(let i=0;i<2;i++) createObstacle(this,GAME_WIDTH+200*i,GAME_HEIGHT-14,"💀");
-  for(let i=0;i<3;i++) createWing(this,GAME_WIDTH+180*i+120,LUCHT_H/2+40,"🪽");
+  for(let i=0;i<2;i++) createWing(this,GAME_WIDTH+180*i+120,LUCHT_H/2+40,"🪽");
 
   this.time.addEvent({ delay:15, loop:true, callback:()=>{ if(!spelBlokkeren) moveAll(-speed);} });
 }
@@ -153,21 +161,28 @@ function update(){
   if(spelBlokkeren) return;
   if(jumpRequested && speler.body.blocked.down && canJump){
     speler.body.setVelocityY(-1500);
-    jumpRequested=false; canJump=false; setTimeout(()=>canJump=true,480);
+    jumpRequested=false; canJump=false; setTimeout(()=>canJump=true,500);
   }
+
   let bounds=speler.getBounds();
   let hoofd={x:bounds.centerX,y:bounds.top+34};
   let voet={x:bounds.centerX+28,y:bounds.bottom-8};
 
+  // 💀 skulls: enkel hit als speler op de grond staat
   obstacles.forEach(o=>{
     if(!o.hit && Math.hypot(voet.x-o.x,voet.y-o.y)<60){
-      o.hit=true; stelVraag("zonde");
+      if(speler.body.blocked.down){
+        o.hit=true; stelVraag("zonde");
+      }
     }
   });
+
+  // 🪽 vleugels
   wings.forEach(w=>{
     if(!w.collected && Math.hypot(hoofd.x-w.x,hoofd.y-w.y)<70){
       w.collected=true; w.setVisible(false);
-      vleugels++; document.getElementById("vleugelInfo").textContent="Vleugels: "+vleugels+"/10";
+      vleugels++;
+      document.getElementById("vleugelInfo").textContent="Vleugels: "+vleugels+"/10";
       stelVraag("licht");
       if(vleugels>=10) volgendLevel();
     }
@@ -181,10 +196,17 @@ function createWing(scene,x,y,emoji){
   let w=scene.add.text(x,y,emoji,{fontSize:"70px"}); w.setOrigin(0.5,0.5); w.collected=false; wings.push(w); return w;
 }
 function moveAll(dx){
-  obstacles.forEach(o=>{ o.x+=dx; if(o.x<-60){o.x=GAME_WIDTH+Math.random()*300;o.hit=false;} });
-  wings.forEach(w=>{ w.x+=dx; if(w.x<-60){w.x=GAME_WIDTH+200+Math.random()*300;w.setVisible(true);w.collected=false;} });
+  obstacles.forEach(o=>{
+    o.x+=dx; 
+    if(o.x<-60){o.x=GAME_WIDTH+200+Math.random()*300;o.hit=false;}
+  });
+  wings.forEach(w=>{
+    w.x+=dx; 
+    if(w.x<-60){w.x=GAME_WIDTH+200+Math.random()*300;w.setVisible(true);w.collected=false;}
+  });
 }
 
+// ===== Volgend level =====
 async function volgendLevel(){
   level++; vleugels=0; speed+=0.2;
   if(level>maxLevels){ 
