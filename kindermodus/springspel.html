@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Springspel – Orthodoxe Kinderpagina</title>
   <link rel="icon" href="images/kruis.png" />
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
   <script src="vragen.js"></script>
   <script defer src="common/layout.js"></script>
@@ -67,7 +69,7 @@
     <div id="vraag-overlay" style="display:none"></div>
   </main>
   <script>
-    // Achtergrond wisselen
+    // ===== Achtergrond =====
     (function(){
       const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)',
                'var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)',
@@ -76,20 +78,20 @@
       document.body.style.background=p[Math.floor(Math.random()*p.length)];
     })();
 
+    // ===== Header laden =====
     (function boot(){
       if (!(window.KinderLayout)) return setTimeout(boot,120);
       const el=document.getElementById('kinder-header');
       window.KinderLayout.mountHeader({ rootId:'kinder-header', headerSrc:el.dataset.headerSrc, active:'spelletjes' });
     })();
 
-    // ======= Firebase helpers (pas aan op je project) ==========
+    // ===== Firebase puntenbeheer =====
     async function haalPunten() {
-      // return (await firebase.firestore().collection("kinderen").doc(window.CurrentChildId).get()).data().punten ?? 0;
-      return parseInt(localStorage.getItem("kinderpunten")||'100',10);
+      const doc = await firebase.firestore().collection("kinderen").doc(window.CurrentChildId).get();
+      return doc.exists ? (doc.data().punten||0) : 0;
     }
     async function zetPunten(nieuw) {
-      // await firebase.firestore().collection("kinderen").doc(window.CurrentChildId).update({punten: nieuw});
-      localStorage.setItem("kinderpunten",nieuw);
+      await firebase.firestore().collection("kinderen").doc(window.CurrentChildId).update({punten: nieuw});
     }
     async function wijzigPunten(delta) {
       let huidig = await haalPunten();
@@ -101,15 +103,16 @@
       document.getElementById('puntenInfo').textContent = "Punten: " + nieuw;
     }
 
-    // ------------- GAME ----------------
+    // ===== Game variabelen =====
     let speler, cursors, jumpRequested = false, canJump = true;
     let obstacles = [], wings = [], flowers = [], clouds = [];
     let speed = 1.2, level = 1, vleugels = 0, levelsMax = 5;
-    let spelBlokkeren = false, spelGestart = false;
-    const GAME_WIDTH = 900, GAME_HEIGHT = 600, LUCHT_H = GAME_HEIGHT * 0.5;
-    const FOOT_RADIUS = 28;
-    let gameInstance;
+    let spelBlokkeren = false, gameInstance;
 
+    const GAME_WIDTH = 900, GAME_HEIGHT = 600, LUCHT_H = GAME_HEIGHT * 0.5;
+    const FOOT_RADIUS = 28, HEAD_RADIUS = 30;
+
+    // ===== Startknop =====
     document.getElementById("startBtn").onclick = async function(){
       let punten = await haalPunten();
       if(punten<20){
@@ -120,7 +123,6 @@
       document.getElementById('startBtn').disabled = true;
       document.getElementById('startBtn').style.display='none';
       document.getElementById('infoBar').style.display = '';
-      spelGestart=true;
       startGame();
     };
 
@@ -130,26 +132,19 @@
       document.getElementById("vleugelInfo").textContent = "Vleugels: 0/10";
       toonPunten(await haalPunten());
       if(gameInstance) { gameInstance.destroy(true); }
-      setTimeout(() => {
-        gameInstance = new Phaser.Game({
-          type: Phaser.AUTO,
-          width: GAME_WIDTH,
-          height: GAME_HEIGHT,
-          parent: 'spelcontainer',
-          physics: {
-            default: 'arcade',
-            arcade: { gravity: { y: 1520 }, debug: false }
-          },
-          scene: { preload, create, update }
-        });
-      }, 60);
+      gameInstance = new Phaser.Game({
+        type: Phaser.AUTO,
+        width: GAME_WIDTH,
+        height: GAME_HEIGHT,
+        parent: 'spelcontainer',
+        physics: { default: 'arcade', arcade: { gravity: { y: 1700 }, debug: false }},
+        scene: { preload, create, update }
+      });
     }
 
+    // ===== Phaser functies (preload, create, update) =====
     function preload() {}
-
     function create() {
-      // Bij elk level opnieuw alles leegmaken
-      obstacles = []; wings = []; flowers = []; clouds = [];
       for (let i = 0; i < 7+level; i++) addCloud(this, Math.random()*GAME_WIDTH, 60+Math.random()*140);
       for (let i = 0; i < 8+level*2; i++) addFlower(this, Math.random()*GAME_WIDTH, GAME_HEIGHT-24);
 
@@ -167,8 +162,7 @@
 
       this.physics.add.existing(speler);
       speler.body.setCollideWorldBounds(true);
-      speler.body.setGravityY(1520);
-      speler.body.setBounce(0.0);
+      speler.body.setGravityY(1700);
 
       let ground = this.add.rectangle(GAME_WIDTH/2, GAME_HEIGHT - 2, GAME_WIDTH, 8, 0x000000, 0);
       this.physics.add.existing(ground, true);
@@ -179,70 +173,43 @@
       this.input.keyboard.on('keydown-UP', () => { jumpRequested = true; });
       this.input.on('pointerdown', () => { jumpRequested = true; });
 
-      // Altijd maar 2 obstakels!
-      for(let i=0; i<2; i++)
-        createObstacle(this, GAME_WIDTH + 300*i + 80, GAME_HEIGHT - 14, "💀", 1.15);
-      for(let i=0; i<2+level; i++)
-        createWing(this, GAME_WIDTH + 180*i + 220, LUCHT_H/2 + 40, "🪽", 1.1);
+      for(let i=0; i<2; i++) createObstacle(this, GAME_WIDTH + 160*i + 60, GAME_HEIGHT - 14, "💀", 1.15);
+      for(let i=0; i<2+level; i++) createWing(this, GAME_WIDTH + 150*i + 200, LUCHT_H/2 + 40, "🪽", 1.1);
 
       this.time.addEvent({
-        delay: 13, loop: true, callback: () => {
-          if (spelBlokkeren) return;
-          moveAll(-speed);
-        }
-      });
-    }
-
-    function moveAll(dx) {
-      obstacles.forEach(o => {
-        o.x += dx;
-        if (o.x < -60) resetObstacle(o);
-      });
-      wings.forEach(w => {
-        w.x += dx;
-        if (w.x < -60) resetWing(w);
-      });
-      flowers.forEach(f => {
-        f.x += dx * 1.15;
-        if (f.x < -28) { f.x = GAME_WIDTH + Math.random()*180; }
-      });
-      clouds.forEach(cl => {
-        cl.x += dx * 0.5;
-        if (cl.x < -60) { cl.x = GAME_WIDTH + Math.random()*100; }
+        delay: 14, loop: true, callback: () => { if (!spelBlokkeren) moveAll(-speed); }
       });
     }
 
     function update() {
       if (spelBlokkeren) return;
       if (jumpRequested && speler.body.blocked.down && canJump) {
-        speler.body.setVelocityY(-1460);
-        jumpRequested = false;
-        canJump = false;
-        setTimeout(() => canJump = true, 520);
+        speler.body.setVelocityY(-1500);
+        jumpRequested = false; canJump = false;
+        setTimeout(() => canJump = true, 480);
       }
       let bounds = speler.getBounds();
       let hoofd = {x: bounds.centerX, y: bounds.top + 34};
       let voetR = {x: bounds.centerX + 28, y: bounds.bottom - 8};
 
       obstacles.forEach(o => {
-        if (!spelBlokkeren && !o.hit) {
+        if (!o.hit) {
           let ox = o.x, oy = o.y - 32;
           let opGrond = speler.body.blocked.down;
           let dR = Math.hypot(voetR.x-ox, voetR.y-oy);
-          if (opGrond && dR < FOOT_RADIUS+22) {
+          if (opGrond && dR < FOOT_RADIUS+24) {
             o.hit = true;
             stelVraag("zonde");
           }
         }
       });
       wings.forEach(w => {
-        if (!spelBlokkeren && !w.collected) {
+        if (!w.collected) {
           let wBounds = w.getBounds();
           let dx = hoofd.x - wBounds.centerX;
           let dy = hoofd.y - wBounds.centerY;
           if (Math.sqrt(dx*dx + dy*dy) < 58) {
-            w.collected = true;
-            w.setVisible(false);
+            w.collected = true; w.setVisible(false);
             vleugels++;
             document.getElementById("vleugelInfo").textContent = `Vleugels: ${vleugels}/10`;
             if(vleugels >= 10) volgendLevel();
@@ -252,88 +219,58 @@
       });
     }
 
+    // ===== Object helpers =====
     function createObstacle(scene, x, y, emoji, scale=1) {
-      let obst = scene.add.text(x, y, emoji, {
-        fontFamily: 'Segoe UI Emoji, Arial',
-        fontSize: Math.round(56*scale)+'px'
-      });
-      obst.setOrigin(0.5, 1);
-      obst.hit = false;
-      obstacles.push(obst);
-      return obst;
+      let obst = scene.add.text(x, y, emoji, {fontFamily:'Segoe UI Emoji, Arial', fontSize: Math.round(56*scale)+'px'});
+      obst.setOrigin(0.5, 1); obst.hit = false; obstacles.push(obst); return obst;
     }
     function createWing(scene, x, y, emoji, scale=1) {
-      let wing = scene.add.text(x, y, emoji, {
-        fontFamily: 'Segoe UI Emoji, Arial',
-        fontSize: Math.round(54*scale)+'px'
-      });
-      wing.setOrigin(0.5, 0.5);
-      wing.collected = false;
-      wings.push(wing);
-      return wing;
+      let wing = scene.add.text(x, y, emoji, {fontFamily:'Segoe UI Emoji, Arial', fontSize: Math.round(54*scale)+'px'});
+      wing.setOrigin(0.5, 0.5); wing.collected = false; wings.push(wing); return wing;
     }
     function addCloud(scene, x, y) {
-      let cloud = scene.add.text(x, y, "☁️", {
-        fontFamily: 'Segoe UI Emoji, Arial',
-        fontSize: '62px'
-      });
-      cloud.setOrigin(0.5, 0.5);
-      clouds.push(cloud);
-      return cloud;
+      let cloud = scene.add.text(x, y, "☁️", {fontFamily:'Segoe UI Emoji, Arial', fontSize:'62px'});
+      cloud.setOrigin(0.5, 0.5); clouds.push(cloud); return cloud;
     }
     function addFlower(scene, x, y) {
       let bloemIcons = ["🌸","🌻","🌼","🌺","🌷","🌹"];
-      let bloem = scene.add.text(x, y, bloemIcons[Math.floor(Math.random()*bloemIcons.length)], {
-        fontFamily: 'Segoe UI Emoji, Arial',
-        fontSize: '38px'
-      });
-      bloem.setOrigin(0.5, 1);
-      flowers.push(bloem);
-      return bloem;
+      let bloem = scene.add.text(x, y, bloemIcons[Math.floor(Math.random()*bloemIcons.length)], {fontFamily:'Segoe UI Emoji, Arial', fontSize:'38px'});
+      bloem.setOrigin(0.5, 1); flowers.push(bloem); return bloem;
     }
-    function resetObstacle(obst) {
-      obst.x = GAME_WIDTH + 250 + Math.random() * 200;
-      obst.hit = false;
+    function moveAll(dx) {
+      obstacles.forEach(o => { o.x += dx; if (o.x < -60) resetObstacle(o); });
+      wings.forEach(w => { w.x += dx; if (w.x < -60) resetWing(w); });
+      flowers.forEach(f => { f.x += dx*1.15; if (f.x < -28) f.x = GAME_WIDTH + Math.random()*180; });
+      clouds.forEach(cl => { cl.x += dx*0.5; if (cl.x < -60) cl.x = GAME_WIDTH + Math.random()*100; });
     }
-    function resetWing(wing) {
-      wing.x = GAME_WIDTH + 320 + Math.random()*220;
-      wing.collected = false;
-      wing.setVisible(true);
-    }
+    function resetObstacle(obst) { obst.x = GAME_WIDTH + 80 + Math.random()*250; obst.hit = false; }
+    function resetWing(wing) { wing.x = GAME_WIDTH + 220 + Math.random()*350; wing.collected = false; wing.setVisible(true); }
 
+    // ===== Levels en punten =====
     async function volgendLevel(){
       level++;
       if(level>levelsMax){
         await wijzigPunten(10);
-        alert("Gefeliciteerd, je hebt alle levels uitgespeeld!\nJe krijgt 10 punten als beloning!");
+        alert("Gefeliciteerd! Je hebt alle levels uitgespeeld.\nJe krijgt 10 punten terug.");
         document.getElementById('startBtn').disabled=false;
         document.getElementById('startBtn').style.display='';
         document.getElementById('infoBar').style.display='none';
-        spelGestart=false;
-        vleugels=0;
-        level=1;
-        if(gameInstance) gameInstance.destroy(true);
+        vleugels=0; level=1; if(gameInstance) gameInstance.destroy(true);
         return;
       }
-      vleugels = 0;
-      speed += 0.18;
+      vleugels = 0; speed += 0.18;
       document.getElementById("levelInfo").textContent = "Level "+level;
       document.getElementById("vleugelInfo").textContent = `Vleugels: 0/10`;
       if(gameInstance) gameInstance.destroy(true);
       setTimeout(startGame,300);
     }
 
+    // ===== Vraag overlay =====
     function stelVraag(type = "") {
       let v;
-      if (type === "licht") {
-        let lichtvragen = vragen.filter(q => q.difficulty !== "zonde");
-        v = lichtvragen[Math.floor(Math.random()*lichtvragen.length)];
-      } else if (type === "zonde") {
-        let zondevragen = vragen.filter(q => q.difficulty === "zonde");
-        v = zondevragen[Math.floor(Math.random()*zondevragen.length)];
-      } else {
-        v = vragen[Math.floor(Math.random()*vragen.length)];
-      }
+      if (type === "licht") { let lichtvragen = vragen.filter(q => q.difficulty !== "zonde"); v = lichtvragen[Math.floor(Math.random()*lichtvragen.length)]; }
+      else if (type === "zonde") { let zondevragen = vragen.filter(q => q.difficulty === "zonde"); v = zondevragen[Math.floor(Math.random()*zondevragen.length)]; }
+      else { v = vragen[Math.floor(Math.random()*vragen.length)]; }
       const overlay = document.getElementById('vraag-overlay');
       overlay.innerHTML = `
         <div class="vraag-overlay">
@@ -342,23 +279,12 @@
             <div style="margin-bottom:14px">${v.q}</div>
             ${v.a.map((ans, i) => `<button class="vraag-antw-btn" onclick="beantwoordVraag(${i},${v.correct})">${ans}</button>`).join("")}
           </div>
-        </div>
-      `;
-      overlay.style.display = '';
-      spelBlokkeren = true;
+        </div>`;
+      overlay.style.display = ''; spelBlokkeren = true;
     }
-    // Feedback zonder extra klik!
     window.beantwoordVraag = function(given, correct) {
-      const overlay = document.getElementById('vraag-overlay');
-      if (given === correct) {
-        overlay.innerHTML = `<div class="vraag-overlay"><div class="vraag-box"><b>Goed zo!</b></div></div>`;
-      } else {
-        overlay.innerHTML = `<div class="vraag-overlay"><div class="vraag-box"><b>Helaas, niet juist.</b></div></div>`;
-      }
-      setTimeout(() => {
-        overlay.style.display = 'none';
-        spelBlokkeren = false;
-      }, 1200);
+      document.getElementById('vraag-overlay').style.display = 'none';
+      spelBlokkeren = false;
     };
   </script>
 </body>
