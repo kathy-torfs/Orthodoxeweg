@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Engeltjes vs Duiveltjes</title>
+<title>Engeltjes vs Duiveltjes – Orthodoxe Kinderpagina</title>
+<link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
 <style>
 body{
   background:#2d7a2d;
@@ -61,14 +62,14 @@ h1{color:white;margin-bottom:10px;}
 .speler .hoofd{
   font-size:32px;
   display:block;
-  margin-bottom:-6px; /* dichter bij het shirt */
+  margin-bottom:-6px;
 }
 .shirt{
   width:50px;height:35px;
   border-radius:6px;
   font-weight:bold;
   line-height:35px;
-  color:black;          /* zwarte nummers */
+  color:black;
   box-shadow:0 0 4px rgba(0,0,0,0.4);
 }
 .shirt.engel{background:#57b8f3;}
@@ -106,7 +107,7 @@ button:hover{background:#689c2e;}
   z-index:10;
 }
 #popup-content{
-  background:#7fd8d7; /* appelblauw-zeegroen */
+  background:#7fd8d7;
   border-radius:12px;
   padding:20px;
   width:90%;max-width:420px;
@@ -120,7 +121,7 @@ button:hover{background:#689c2e;}
   margin:8px 0;padding:12px;
   border:none;border-radius:8px;
   background:white;
-  color:black;          /* tekst zwart */
+  color:black;
   cursor:pointer;font-size:16px;
   box-shadow:0 2px 4px rgba(0,0,0,0.2);
 }
@@ -129,18 +130,24 @@ button:hover{background:#689c2e;}
 </head>
 <body>
 
+<!-- Header -->
+<div id="kinder-header"></div>
+<script src="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/common/layout.js"></script>
+
 <h1>Engeltjes vs Duiveltjes</h1>
 <div id="levelinfo">Level 1</div>
 
 <div id="veld">
   <div class="goal left">😇</div>
   <div class="goal right">😈</div>
-
   <div id="spelers"></div>
   <div id="bal">⚽</div>
 </div>
 
-<button id="vraagBtn">Volgende vraag</button>
+<!-- Startknop -->
+<button id="startknop">Start het spel</button>
+
+<button id="vraagBtn" style="display:none;">Volgende vraag</button>
 
 <div id="popup">
   <div id="popup-content">
@@ -157,6 +164,7 @@ const spelersDiv=document.getElementById('spelers');
 const bal=document.getElementById('bal');
 const popup=document.getElementById('popup');
 const vraagBtn=document.getElementById('vraagBtn');
+const startknop=document.getElementById('startknop');
 const vraagtekst=document.getElementById('vraagtekst');
 const antwoordenDiv=document.getElementById('antwoorden');
 const sluitBtn=document.getElementById('sluit');
@@ -167,11 +175,7 @@ let vragenPerLevel=[];
 let gebruikteVragen=[];
 let engelIndex=0;
 let duivelIndex=0;
-
-/* geluiden */
-const geluidJuist=new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_1b829d3b6a.mp3");
-const geluidFout=new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_13cda6fef2.mp3");
-const geluidGoal=new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_7396db4f46.mp3");
+let spelGestart=false;
 
 function randomPos(baseX,baseY,spread){
   return {x:baseX+(Math.random()*spread-spread/2),
@@ -230,6 +234,7 @@ vraagBtn.onclick=()=>toonVraag();
 sluitBtn.onclick=()=>popup.style.display="none";
 
 function toonVraag(){
+  if(!spelGestart) return;
   popup.style.display="flex";
   let resterende=vragenPerLevel.filter((v,i)=>!gebruikteVragen.includes(i));
   if(resterende.length===0){volgendeLevel();return;}
@@ -266,21 +271,19 @@ function moveBalTo(team,index){
 function controleerAntwoord(isJuist){
   popup.style.display="none";
   if(isJuist){
-    geluidJuist.play();
     engelIndex++;
     if(engelIndex<=5){
       moveBalTo("engel",engelIndex);
       if(engelIndex===5){
-        setTimeout(()=>{geluidGoal.play();goal("engel");},900);
+        setTimeout(()=>goal("engel"),900);
       }
     }
   }else{
-    geluidFout.play();
     duivelIndex++;
     if(duivelIndex<=5){
       moveBalTo("duivel",duivelIndex);
       if(duivelIndex===5){
-        setTimeout(()=>{geluidGoal.play();goal("duivel");},900);
+        setTimeout(()=>goal("duivel"),900);
       }
     }
   }
@@ -311,7 +314,12 @@ function volgendeLevel(){
   }
 }
 
-window.onload=()=>{laadLevel(1);};
+startknop.onclick=()=>{
+  spelGestart=true;
+  startknop.style.display="none";
+  vraagBtn.style.display="inline-block";
+  laadLevel(1);
+};
 </script>
 </body>
 </html>
