@@ -29,6 +29,7 @@
       );
       border: 4px solid white;
       border-radius: 12px;
+      overflow:hidden;
     }
     .goal {
       position: absolute;
@@ -49,7 +50,9 @@
       position: absolute;
       text-align: center;
       transform: translate(-50%, -50%);
+      transition: transform 0.3s;
     }
+    .speler.spring { transform: translate(-50%, -60%); }
     .hoofd {
       font-size: 28px;
       display: block;
@@ -146,6 +149,13 @@
     let engelPos = 0, duivelPos = 0;
     let huidigTeam = "engel";
 
+    // Geluidsbestanden
+    const geluiden = {
+      juist: new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_1b829d3b6a.mp3"),
+      fout: new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_13cda6fef2.mp3"),
+      goal: new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_7396db4f46.mp3")
+    };
+
     const posities = {
       engel: [
         {x:500,y:200},{x:450,y:100},{x:550,y:120},{x:520,y:300},{x:640,y:200}
@@ -176,7 +186,6 @@
       document.getElementById("vraag").textContent=q.q;
       const antwDiv = document.getElementById("antwoorden");
       antwDiv.innerHTML="";
-      // shuffle
       const opties = q.a.map((a,i)=>({txt:a,correct:i===q.correct}));
       opties.sort(()=>Math.random()-0.5);
       opties.forEach(opt=>{
@@ -184,12 +193,14 @@
         btn.className="antw-btn";
         btn.textContent=opt.txt;
         btn.onclick=()=>{
+          sluitPopup();
           if(opt.correct){
+            geluiden.juist.play();
             beweegBal(true);
           } else {
+            geluiden.fout.play();
             beweegBal(false);
           }
-          sluitPopup();
         };
         antwDiv.appendChild(btn);
       });
@@ -199,22 +210,39 @@
 
     function beweegBal(correct){
       let team=huidigTeam;
+      const spelers=document.querySelectorAll(".speler");
       if(correct){
         if(team==="engel"){
-          if(engelPos<4){ engelPos++; } 
-          else { engelScore++; resetBal(); }
+          if(engelPos<4){ engelPos++; springSpeler(spelers, team, engelPos); updateBal(); toonVraag(); }
+          else { // Goal maken
+            geluiden.goal.play();
+            bal.style.left="700px";
+            setTimeout(()=>{ engelScore++; resetBal(); updateScore(); toonVraag(); }, 1200);
+          }
         } else {
-          if(duivelPos<4){ duivelPos++; }
-          else { duivelScore++; resetBal(); }
+          if(duivelPos<4){ duivelPos++; springSpeler(spelers, team, duivelPos); updateBal(); toonVraag(); }
+          else {
+            geluiden.goal.play();
+            bal.style.left="0px";
+            setTimeout(()=>{ duivelScore++; resetBal(); updateScore(); toonVraag(); }, 1200);
+          }
         }
       } else {
+        // Bal naar andere team
         team = (team==="engel")?"duivel":"engel";
         huidigTeam=team;
-        if(team==="engel"){ engelPos=0; }
-        else { duivelPos=0; }
+        if(team==="engel"){ engelPos=0; } else { duivelPos=0; }
+        updateBal();
+        toonVraag();
       }
-      updateBal();
       updateScore();
+    }
+
+    function springSpeler(spelers, team, pos){
+      const index = (team==="engel"? pos+5 : pos); // eerste 5 = duivel, laatste 5 = engel in DOM
+      const speler = spelers[index];
+      speler.classList.add("spring");
+      setTimeout(()=>speler.classList.remove("spring"),300);
     }
 
     function updateBal(){
@@ -232,7 +260,7 @@
     }
 
     function updateScore(){
-      scoreboard.textContent=`Engelen ${engelScore} – ${duivelScore} Duivels`;
+      scoreboard.textContent=`😇 ${engelScore} – ${duivelScore} 😈`;
     }
 
     document.getElementById("start-btn").onclick=()=>{
