@@ -52,11 +52,11 @@
     const EMOJI_OBSTACLES = ["🌵","🪨","🚧","⚡️","💣"];
     const STAR = "⭐️";
     let canvas, ctx, W=1280, H=480;
-    let star = { x:190, y:410, vy:0, size:120, jumping:false };
+    let star = { x:190, y:430, vy:0, size:120, jumping:false };
     let obstacles = [];
-    let score = 0, alive = true, gravity=1.10, jumpVel=-28.5; // LANGZAMER
-    let speed = 1.59; // trager!
-    let groundY = 410;
+    let score = 0, alive = true, gravity=0.86, jumpVel=-24.2; // LANGZAMER, hoger
+    let speed = 1.43; // trager!
+    let groundY = 430;
     let bgFrame=0;
     let running = false;
     let requestId = null;
@@ -68,7 +68,7 @@
       star.y = groundY;
       star.vy = 0;
       star.jumping = false;
-      speed = 1.59;
+      speed = 1.43;
       document.getElementById("score").textContent = "Score: 0";
     }
 
@@ -94,7 +94,7 @@
       const size = 102 + Math.random()*13;
       obstacles.push({
         x: W+80,
-        y: groundY,
+        y: groundY+8, // iets lager!
         size: size,
         emoji: EMOJI_OBSTACLES[Math.floor(Math.random()*EMOJI_OBSTACLES.length)]
       });
@@ -134,12 +134,12 @@
           if(Math.random()>0.97 || obstacles.length===0) addObstacle();
         }
 
-        // Botsing, RUIME VEILIGE BOX!
+        // Botsing, GROTERE VEILIGE BOX!
         for(let obs of obstacles){
           let safeBox = (
-            star.x + star.size*0.20 > obs.x - obs.size*0.30 &&
-            star.x - star.size*0.20 < obs.x + obs.size*0.30 &&
-            star.y > obs.y - obs.size*0.85
+            star.x + star.size*0.18 > obs.x - obs.size*0.36 &&
+            star.x - star.size*0.18 < obs.x + obs.size*0.36 &&
+            star.y > obs.y - obs.size*0.67
           );
           if(safeBox){
             alive=false;
@@ -151,7 +151,7 @@
         obstacles = obstacles.filter(obs=>obs.x > -250);
         score++;
         document.getElementById("score").textContent = "Score: "+score;
-        if(score%1000===0 && speed<5.2){ speed+=0.32; }
+        if(score%1000===0 && speed<4.1){ speed+=0.20; }
       } else {
         ctx.font = "58px Comic Sans MS, Arial";
         ctx.fillStyle = "#e84040";
