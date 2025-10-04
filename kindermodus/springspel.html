@@ -6,7 +6,7 @@
   <title>Springspel – Orthodoxe Kinderpagina</title>
   <link rel="icon" href="images/kruis.png" />
   <script defer src="common/layout.js"></script>
-  <!-- Firebase (nodig voor punten) -->
+  <!-- Firebase (voor puntenlogica) -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <style>
@@ -32,7 +32,7 @@
     <h1>Springspel ⭐️</h1>
     <div id="game-container">
       <div id="score" style="display:none">Score: 0</div>
-      <button id="restartBtn">Opnieuw</button>
+      <button id="restartBtn">Opnieuw (5 punten)</button>
       <button id="startBtn">Start Springspel (5 punten)</button>
     </div>
     <div style="margin-top:24px;font-size:17px;color:#888">Druk op spatie of tik/klik om te springen!</div>
@@ -70,10 +70,10 @@
       const ouderLogin = localStorage.getItem("loginKeuze");
       const kindId = localStorage.getItem("ingelogdKindId");
       if(!parochieId||!ouderLogin||!kindId)return false;
+      let ok = false;
       const ref = db.collection("parochies").doc(parochieId)
         .collection("leden").doc(ouderLogin)
         .collection("kinderen").doc(kindId);
-      let ok = false;
       await db.runTransaction(async tx=>{
         const snap = await tx.get(ref);
         if(!snap.exists) return;
@@ -220,12 +220,11 @@
       if(e.code==='Space') jump();
     });
     document.getElementById('game-container').addEventListener('pointerdown', jump);
-    document.getElementById('restartBtn').onclick = ()=>{
-      running = true;
-      alive = true;
-      startGame();
-    };
+
+    // BELANGRIJK: beide knoppen starten via dezelfde punten-check!
+    document.getElementById('restartBtn').onclick = startGameWithPoints;
     document.getElementById('startBtn').onclick = startGameWithPoints;
+
     // Startknop toont spel pas NA klik
     window.onload = ()=>{
       resetGameVars();
