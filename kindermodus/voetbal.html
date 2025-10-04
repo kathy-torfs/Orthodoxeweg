@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Engeltjes vs Duiveltjes – Voetbalwedstrijd</title>
+<title>Engeltjes vs Duiveltjes</title>
 <style>
 body{
   background:#2d7a2d;
@@ -44,26 +44,45 @@ h1{color:white;margin-bottom:10px;}
 }
 .goal{
   position:absolute;
-  top:35%;height:30%;width:40px;
+  top:35%;height:30%;width:60px;
   border:2px solid white;
+  background:repeating-linear-gradient(45deg,rgba(255,255,255,0.3) 0 5px,transparent 5px 10px);
   display:flex;align-items:center;justify-content:center;
-  font-size:28px;
-  background:rgba(255,255,255,0.15);
+  font-size:28px;color:white;
 }
 .goal.left{left:0;}
 .goal.right{right:0;}
 
 .speler{
   position:absolute;
-  font-size:40px;
-  z-index:2;
+  text-align:center;
+  transform:translate(-50%,-50%);
+}
+.shirt{
+  width:50px;height:35px;
+  border-radius:6px;
+  color:white;font-weight:bold;
+  line-height:35px;
+  box-shadow:0 0 4px rgba(0,0,0,0.4);
+  margin-top:35px;
+}
+.shirt.engel{background:#57b8f3;}
+.shirt.duivel{background:#d93838;}
+.hoofd{font-size:32px;line-height:1;}
+.spring{
+  animation:jump 0.6s ease;
+}
+@keyframes jump{
+  0%{transform:translate(-50%,-50%) scale(1);}
+  40%{transform:translate(-50%,-60%) scale(1.15);}
+  100%{transform:translate(-50%,-50%) scale(1);}
 }
 #bal{
   position:absolute;
   font-size:34px;
   transition:all 0.9s cubic-bezier(.35,1.2,.4,1);
   transform:translate(-50%,-50%);
-  z-index:5;
+  z-index:10;
 }
 
 /* knoppen & popup */
@@ -84,21 +103,24 @@ button:hover{background:#689c2e;}
   z-index:10;
 }
 #popup-content{
-  background:white;
+  background:#7fd8d7; /* appelblauw-zeegroen */
   border-radius:12px;
   padding:20px;
-  width:90%;max-width:400px;
+  width:90%;max-width:420px;
   text-align:center;
+  color:black;
+  box-shadow:0 0 15px rgba(0,0,0,0.4);
 }
-#popup-content h2{margin-top:0;color:#7a5f35}
+#popup-content h2{margin-top:0;font-size:20px;}
 .antw-btn{
   display:block;width:100%;
-  margin:6px 0;padding:10px;
+  margin:8px 0;padding:12px;
   border:none;border-radius:8px;
-  background:#f3eac2;
-  cursor:pointer;font-size:15px;
+  background:white;
+  cursor:pointer;font-size:16px;
+  box-shadow:0 2px 4px rgba(0,0,0,0.2);
 }
-.antw-btn:hover{background:#f0da8f;}
+.antw-btn:hover{background:#dff8f7;}
 </style>
 </head>
 <body>
@@ -107,25 +129,10 @@ button:hover{background:#689c2e;}
 <div id="levelinfo">Level 1</div>
 
 <div id="veld">
-  <!-- doelen -->
   <div class="goal left">😇</div>
   <div class="goal right">😈</div>
 
-  <!-- duiveltjes -->
-  <div class="speler" style="top:20%;left:15%;">😈</div>
-  <div class="speler" style="top:40%;left:22%;">😈</div>
-  <div class="speler" style="top:60%;left:18%;">😈</div>
-  <div class="speler" style="top:75%;left:26%;">😈</div>
-  <div class="speler" style="top:50%;left:10%;">😈</div>
-
-  <!-- engeltjes -->
-  <div class="speler" style="top:25%;right:15%;">😇</div>
-  <div class="speler" style="top:45%;right:20%;">😇</div>
-  <div class="speler" style="top:65%;right:18%;">😇</div>
-  <div class="speler" style="top:80%;right:25%;">😇</div>
-  <div class="speler" style="top:50%;right:8%;">😇</div>
-
-  <!-- bal -->
+  <div id="spelers"></div>
   <div id="bal">⚽</div>
 </div>
 
@@ -135,12 +142,14 @@ button:hover{background:#689c2e;}
   <div id="popup-content">
     <h2 id="vraagtekst">Vraag</h2>
     <div id="antwoorden"></div>
-    <button id="sluit">Annuleer</button>
+    <button id="sluit">Sluit</button>
   </div>
 </div>
 
 <script src="vragen.js"></script>
 <script>
+const veld=document.getElementById('veld');
+const spelersDiv=document.getElementById('spelers');
 const bal=document.getElementById('bal');
 const popup=document.getElementById('popup');
 const vraagBtn=document.getElementById('vraagBtn');
@@ -153,32 +162,48 @@ let huidigLevel=1;
 let juisteAntwoorden=0;
 let vragenPerLevel=[];
 let gebruikteVragen=[];
-
-/* Posities van bal – percentages van het veld */
-const engelPad=[
-  {x:50,y:50}, // midden
-  {x:65,y:35},
-  {x:72,y:55},
-  {x:78,y:40},
-  {x:85,y:60},
-  {x:92,y:50}, // doel rechts
-];
-const duivelPad=[
-  {x:50,y:50}, // midden
-  {x:35,y:35},
-  {x:28,y:55},
-  {x:22,y:40},
-  {x:15,y:60},
-  {x:8,y:50}, // doel links
-];
 let engelIndex=0;
 let duivelIndex=0;
 
-/* helper */
+/* geluiden */
+const geluidJuist=new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_1b829d3b6a.mp3");
+const geluidFout=new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_13cda6fef2.mp3");
+const geluidGoal=new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_7396db4f46.mp3");
+
+function randomPos(baseX,baseY,spread){
+  return {x:baseX+(Math.random()*spread-spread/2),
+          y:baseY+(Math.random()*spread-spread/2)};
+}
+
+function tekenSpelers(level){
+  spelersDiv.innerHTML="";
+  const engelBasis=[
+    {x:55,y:30},{x:60,y:55},{x:70,y:40},{x:65,y:70},{x:88,y:50}];
+  const duivelBasis=[
+    {x:45,y:30},{x:40,y:55},{x:30,y:40},{x:35,y:70},{x:12,y:50}];
+  engelBasis.forEach((p,i)=>{ if(i<4){ Object.assign(p,randomPos(p.x,p.y,5)); } });
+  duivelBasis.forEach((p,i)=>{ if(i<4){ Object.assign(p,randomPos(p.x,p.y,5)); } });
+  for(let i=0;i<5;i++){
+    maakSpeler("engel",i+1,engelBasis[i]);
+    maakSpeler("duivel",i+1,duivelBasis[i]);
+  }
+}
+function maakSpeler(team,num,pos){
+  const el=document.createElement("div");
+  el.className="speler";
+  el.id=team+num;
+  el.style.left=pos.x+"%";
+  el.style.top=pos.y+"%";
+  el.innerHTML=`<div class="hoofd">${team==="engel"?"😇":"😈"}</div>
+                <div class="shirt ${team}">${num}</div>`;
+  spelersDiv.appendChild(el);
+}
+
 function setBal(xPerc,yPerc){
   bal.style.left=xPerc+"%";
   bal.style.top=yPerc+"%";
 }
+
 function shuffle(arr){
   for(let i=arr.length-1;i>0;i--){
     const j=Math.floor(Math.random()*(i+1));
@@ -187,13 +212,13 @@ function shuffle(arr){
   return arr;
 }
 
-/* game logica */
 function laadLevel(level){
   huidigLevel=level;
   levelinfo.textContent="Level "+level;
   juisteAntwoorden=0;
   gebruikteVragen=[];
   engelIndex=0;duivelIndex=0;
+  tekenSpelers(level);
   setBal(50,50);
   vragenPerLevel=vragen.filter(v=>v.difficulty===level);
   alert("Welkom bij level "+level+"!");
@@ -224,22 +249,48 @@ function toonVraag(){
   });
 }
 
+function moveBalTo(team,index){
+  const speler=document.getElementById(team+index);
+  const shirt=speler.querySelector(".shirt");
+  const rect=shirt.getBoundingClientRect();
+  const veldRect=veld.getBoundingClientRect();
+  const x=((rect.left+rect.width/2)-veldRect.left)/veldRect.width*100;
+  const y=((rect.top+rect.height/2)-veldRect.top)/veldRect.height*100;
+  setBal(x,y);
+  speler.classList.add("spring");
+  setTimeout(()=>speler.classList.remove("spring"),600);
+}
+
 function controleerAntwoord(isJuist){
   popup.style.display="none";
   if(isJuist){
-    if(engelIndex<engelPad.length-1) engelIndex++;
-    const p=engelPad[engelIndex];
-    setBal(p.x,p.y);
-    if(engelIndex===engelPad.length-1){ // goal
-      setTimeout(()=>{alert("⚽️ Engelen scoren!");volgendeLevel();},700);
+    geluidJuist.play();
+    engelIndex++;
+    if(engelIndex<=5){
+      moveBalTo("engel",engelIndex);
+      if(engelIndex===5){
+        setTimeout(()=>{geluidGoal.play();goal("engel");},900);
+      }
     }
   }else{
-    if(duivelIndex<duivelPad.length-1) duivelIndex++;
-    const p=duivelPad[duivelIndex];
-    setBal(p.x,p.y);
-    if(duivelIndex===duivelPad.length-1){
-      setTimeout(()=>{alert("😈 Duiveltjes scoren!");resetLevel();},700);
+    geluidFout.play();
+    duivelIndex++;
+    if(duivelIndex<=5){
+      moveBalTo("duivel",duivelIndex);
+      if(duivelIndex===5){
+        setTimeout(()=>{geluidGoal.play();goal("duivel");},900);
+      }
     }
+  }
+}
+
+function goal(team){
+  if(team==="engel"){
+    setBal(96,50);
+    setTimeout(()=>{alert("⚽️ Engelen scoren!");volgendeLevel();},900);
+  }else{
+    setBal(4,50);
+    setTimeout(()=>{alert("😈 Duiveltjes scoren!");resetLevel();},900);
   }
 }
 
@@ -258,7 +309,7 @@ function volgendeLevel(){
   }
 }
 
-window.onload=()=>{laadLevel(1);setBal(50,50);};
+window.onload=()=>{laadLevel(1);};
 </script>
 </body>
 </html>
