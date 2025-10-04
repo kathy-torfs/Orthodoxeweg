@@ -15,10 +15,10 @@
       margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
       min-height:100vh; background:var(--pastel1); transition:background .6s;
     }
-    main{ max-width:900px; margin:24px auto; padding:0 2vw; text-align:center }
-    #game-container { position:relative; width:860px; height:240px; background:#fffde6; margin:34px auto 0 auto; border-radius:20px; box-shadow:0 4px 32px #bedbe888; overflow:hidden; }
-    #score { font-size:22px; font-weight:bold; background:rgba(255,255,255,0.85); border-radius:10px; padding:4px 18px; position:absolute; left:18px; top:12px; box-shadow:0 2px 8px #dbecc299; }
-    #restartBtn, #startBtn { position:absolute; left:50%; top:54%; transform:translate(-50%,-50%); background:#7bb235; color:white; font-size:20px; border:none; border-radius:12px; padding:12px 34px; box-shadow:0 2px 12px #a9dea670; cursor:pointer; font-family:'Comic Sans MS',Arial,sans-serif; }
+    main{ max-width:1200px; margin:32px auto; padding:0 2vw; text-align:center }
+    #game-container { position:relative; width:1020px; height:340px; background:#fffde6; margin:44px auto 0 auto; border-radius:24px; box-shadow:0 4px 32px #bedbe888; overflow:hidden; }
+    #score { font-size:34px; font-weight:bold; background:rgba(255,255,255,0.88); border-radius:12px; padding:8px 36px; position:absolute; left:36px; top:16px; box-shadow:0 2px 8px #dbecc299; }
+    #restartBtn, #startBtn { position:absolute; left:50%; top:54%; transform:translate(-50%,-50%); background:#7bb235; color:white; font-size:28px; border:none; border-radius:14px; padding:18px 60px; box-shadow:0 2px 12px #a9dea670; cursor:pointer; font-family:'Comic Sans MS',Arial,sans-serif; }
     #restartBtn { display:none; }
     #startBtn { display:block; }
   </style>
@@ -32,7 +32,7 @@
       <button id="restartBtn">Opnieuw</button>
       <button id="startBtn">Start Springspel</button>
     </div>
-    <div style="margin-top:24px;font-size:17px;color:#888">Druk op spatie of tik/klik om te springen!</div>
+    <div style="margin-top:32px;font-size:22px;color:#888">Druk op spatie of tik/klik om te springen!</div>
   </main>
   <script>
     // ===== Achtergrond wisselen =====
@@ -51,12 +51,13 @@
     // ===== Gamecode =====
     const EMOJI_OBSTACLES = ["🌵","🪨","🚧","⚡️","💣"];
     const STAR = "⭐️";
-    let canvas, ctx, W=860, H=240;
-    let star = { x:80, y:190, vy:0, size:44, jumping:false };
+    let canvas, ctx, W=1020, H=340;
+    // GROTERE ster en obstakels, lager op het veld:
+    let star = { x:120, y:290, vy:0, size:86, jumping:false };
     let obstacles = [];
-    let score = 0, alive = true, gravity=1.65, jumpVel=-19;
-    let speed = 5;
-    let groundY = 194;
+    let score = 0, alive = true, gravity=2.1, jumpVel=-29;
+    let speed = 3.2; // **TRAGER BIJ START**
+    let groundY = 294; // **lager, bijna onderaan canvas**
     let bgFrame=0;
     let running = false;
     let requestId = null;
@@ -68,7 +69,7 @@
       star.y = groundY;
       star.vy = 0;
       star.jumping = false;
-      speed = 5;
+      speed = 3.2;
       document.getElementById("score").textContent = "Score: 0";
     }
 
@@ -91,9 +92,9 @@
       loop();
     }
     function addObstacle() {
-      const size = 44 + Math.random()*6;
+      const size = 86 + Math.random()*14;
       obstacles.push({
-        x: W+10,
+        x: W+12,
         y: groundY,
         size: size,
         emoji: EMOJI_OBSTACLES[Math.floor(Math.random()*EMOJI_OBSTACLES.length)]
@@ -129,25 +130,25 @@
         // Obstakels bewegen
         for(let obs of obstacles){ obs.x -= speed; }
         // Obstakels toevoegen: max 2 tegelijk
-        if(obstacles.length===0 || (obstacles[obstacles.length-1].x < W-320 && obstacles.length<2)){
-          if(Math.random()>0.85 || obstacles.length===0) addObstacle();
+        if(obstacles.length===0 || (obstacles[obstacles.length-1].x < W-360 && obstacles.length<2)){
+          if(Math.random()>0.88 || obstacles.length===0) addObstacle();
         }
         // Botsing?
         for(let obs of obstacles){
-          if( Math.abs(star.x-obs.x)<obs.size*0.55 && Math.abs(star.y-obs.y)<star.size*0.45 ){
+          if( Math.abs(star.x-obs.x)<obs.size*0.54 && Math.abs(star.y-obs.y)<star.size*0.44 ){
             alive=false;
             document.getElementById("restartBtn").style.display = "block";
             running = false;
           }
         }
         // Score & cleanup
-        obstacles = obstacles.filter(obs=>obs.x > -60);
+        obstacles = obstacles.filter(obs=>obs.x > -100);
         score++;
         document.getElementById("score").textContent = "Score: "+score;
         // Snelheid traag verhogen
-        if(score%300===0 && speed<14){ speed+=0.7; }
+        if(score%500===0 && speed<9){ speed+=0.55; }
       } else {
-        ctx.font = "40px Comic Sans MS, Arial";
+        ctx.font = "48px Comic Sans MS, Arial";
         ctx.fillStyle = "#e84040";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
