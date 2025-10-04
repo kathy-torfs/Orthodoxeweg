@@ -2,17 +2,17 @@
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Engeltjes vs Duiveltjes</title>
 <style>
   body{
-    font-family:Arial, sans-serif;
+    font-family:Arial,sans-serif;
     background:#fdf6e3;
     text-align:center;
-    margin:0;
-    padding:20px;
+    margin:0;padding:20px;
   }
   h1{color:#7bb235;margin-bottom:20px;}
+  #levelinfo{font-weight:bold;color:#67510C;margin-top:8px;}
 
   #spelbord{
     display:flex;
@@ -30,12 +30,10 @@
     background:#fffdf7;
     box-shadow:0 0 6px rgba(0,0,0,0.15);
   }
-  #bal{
-    font-size:36px;
-    transition: all 0.4s ease;
-  }
+  #bal{transition:all 0.4s ease;font-size:36px;}
+
   button{
-    margin-top:40px;
+    margin-top:30px;
     padding:10px 18px;
     font-size:16px;
     border:none;border-radius:8px;
@@ -47,26 +45,40 @@
   /* Popup */
   #popup{
     position:fixed;
-    top:0;left:0;right:0;bottom:0;
+    inset:0;
     background:rgba(0,0,0,0.4);
     display:none;
     justify-content:center;align-items:center;
+    z-index:10;
   }
   #popup-content{
     background:white;
     border-radius:12px;
     padding:20px;
-    max-width:300px;
+    width:90%;
+    max-width:400px;
     box-shadow:0 4px 20px rgba(0,0,0,0.3);
+    text-align:center;
   }
   #popup-content h2{margin-top:0;color:#7a5f35}
-  #popup-content input{width:100%;padding:8px;margin:10px 0;}
-  #popup-content button{margin:6px;}
+  .antw-btn{
+    display:block;
+    width:100%;
+    margin:6px 0;
+    padding:10px;
+    border:none;
+    border-radius:8px;
+    background:#f3eac2;
+    cursor:pointer;
+    font-size:15px;
+  }
+  .antw-btn:hover{background:#f0da8f;}
 </style>
 </head>
 <body>
 
 <h1>Engeltjes vs Duiveltjes</h1>
+<div id="levelinfo">Level 1</div>
 
 <div id="spelbord"></div>
 <button id="vraagBtn">Volgende vraag</button>
@@ -74,85 +86,150 @@
 <!-- popup -->
 <div id="popup">
   <div id="popup-content">
-    <h2 id="vraagtekst">Vraag hier</h2>
-    <input type="text" id="antwoord" placeholder="Jouw antwoord">
-    <div>
-      <button id="controleer">Beantwoord</button>
-      <button id="sluit">Annuleer</button>
-    </div>
+    <h2 id="vraagtekst">Vraag</h2>
+    <div id="antwoorden"></div>
+    <button id="sluit">Annuleer</button>
   </div>
 </div>
 
+<!-- laad je vragen -->
+<script src="vragen.js"></script>
+
 <script>
-const spelbord = document.getElementById('spelbord');
-const popup = document.getElementById('popup');
-const vraagBtn = document.getElementById('vraagBtn');
-const vraagtekst = document.getElementById('vraagtekst');
-const controleerBtn = document.getElementById('controleer');
-const sluitBtn = document.getElementById('sluit');
-const antwoordInput = document.getElementById('antwoord');
+/* ========== BASIS ========== */
+const spelbord=document.getElementById('spelbord');
+const popup=document.getElementById('popup');
+const vraagBtn=document.getElementById('vraagBtn');
+const vraagtekst=document.getElementById('vraagtekst');
+const antwoordenDiv=document.getElementById('antwoorden');
+const sluitBtn=document.getElementById('sluit');
+const levelinfo=document.getElementById('levelinfo');
 
-// 5 duivels + 5 engelen
-let posities = ["😈","😈","😈","😈","😈","⚽","😇","😇","😇","😇","😇"];
-let balIndex = 5;
+let posities=["😈","😈","😈","😈","😈","⚽","😇","😇","😇","😇","😇"];
+let balIndex=5;
+let huidigLevel=1;
+let juisteAntwoorden=0;
+let vragenPerLevel=[];
+let gebruikteVragen=[];
 
-// voorbeeldvragen (later vervangen door vragen.js)
-const vragen = [
-  {vraag:"Wat is 2 + 2?", antwoord:"4"},
-  {vraag:"Welke kleur heeft de hemel?", antwoord:"blauw"},
-  {vraag:"Hoeveel dagen heeft een week?", antwoord:"7"},
-  {vraag:"Wie schiep de wereld?", antwoord:"God"}
-];
-
+/* ========== HELPERFUNCTIES ========== */
 function toonBord(){
   spelbord.innerHTML="";
   posities.forEach((sym,i)=>{
     const vak=document.createElement("div");
     vak.className="vak";
-    if(i===balIndex){vak.id="bal";}
+    if(i===balIndex) vak.id="bal";
     vak.textContent=sym;
     spelbord.appendChild(vak);
   });
 }
-toonBord();
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
 
+/* ========== VRAGEN LADEN PER LEVEL ========== */
+function laadLevel(level){
+  huidigLevel=level;
+  levelinfo.textContent="Level "+level;
+  gebruikteVragen=[];
+  juisteAntwoorden=0;
+  balIndex=5;
+  toonBord();
+  vragenPerLevel=vragen.filter(v=>v.difficulty===level);
+  alert("Welkom bij level "+level+"!");
+}
+
+/* ========== VRAGEN POPUP ========== */
 vraagBtn.onclick=()=>{
-  popup.style.display="flex";
-  let v = vragen[Math.floor(Math.random()*vragen.length)];
-  vraagtekst.textContent=v.vraag;
-  controleerBtn.onclick=()=>{
-    let antwoord=antwoordInput.value.trim().toLowerCase();
-    if(antwoord===v.antwoord.toLowerCase()){
-      // juist
-      if(balIndex<10) balIndex++;
-    } else {
-      // fout
-      if(balIndex>0) balIndex--;
-    }
-    controleerWinnaar();
-    antwoordInput.value="";
-    popup.style.display="none";
-    toonBord();
-  };
+  toonVraag();
 };
-
 sluitBtn.onclick=()=>popup.style.display="none";
+
+function toonVraag(){
+  if(vragenPerLevel.length===0){
+    alert("Geen vragen beschikbaar voor dit level.");
+    return;
+  }
+  popup.style.display="flex";
+  // kies een willekeurige vraag die nog niet gebruikt is
+  let resterende=vragenPerLevel.filter((v,i)=>!gebruikteVragen.includes(i));
+  if(resterende.length===0){
+    volgendeLevel();
+    return;
+  }
+  let randomIndex=Math.floor(Math.random()*resterende.length);
+  let echteIndex=vragenPerLevel.indexOf(resterende[randomIndex]);
+  gebruikteVragen.push(echteIndex);
+
+  const v=vragenPerLevel[echteIndex];
+  vraagtekst.textContent=v.q;
+
+  // antwoorden in willekeurige volgorde
+  const opties=[...v.a.keys()];
+  shuffle(opties);
+  antwoordenDiv.innerHTML="";
+  opties.forEach(i=>{
+    const btn=document.createElement("button");
+    btn.className="antw-btn";
+    btn.textContent=v.a[i];
+    btn.onclick=()=>{
+      controleerAntwoord(i===v.correct);
+    };
+    antwoordenDiv.appendChild(btn);
+  });
+}
+
+function controleerAntwoord(isJuist){
+  popup.style.display="none";
+  if(isJuist){
+    if(balIndex<10) balIndex++;
+    juisteAntwoorden++;
+  }else{
+    if(balIndex>0) balIndex--;
+  }
+  toonBord();
+  controleerWinnaar();
+}
 
 function controleerWinnaar(){
   if(balIndex===10){
     alert("🎉 De engelen scoren een doelpunt!");
-    resetSpel();
-  }
-  if(balIndex===0){
+    juisteAntwoorden++;
+    if(juisteAntwoorden>=5){
+      volgendeLevel();
+    }else{
+      resetBal();
+    }
+  }else if(balIndex===0){
     alert("😈 De duiveltjes scoren! Probeer opnieuw!");
-    resetSpel();
+    resetBal();
   }
 }
 
-function resetSpel(){
+function resetBal(){
   balIndex=5;
   toonBord();
 }
+
+function volgendeLevel(){
+  if(huidigLevel<3){
+    alert("Proficiat! Je mag nu naar level "+(huidigLevel+1)+"!");
+    laadLevel(huidigLevel+1);
+  }else{
+    alert("🎊 Fantastisch! Je hebt alle levels uitgespeeld!");
+    laadLevel(1);
+  }
+}
+
+/* ========== START ========== */
+window.onload=()=>{
+  toonBord();
+  laadLevel(1);
+};
 </script>
 </body>
 </html>
