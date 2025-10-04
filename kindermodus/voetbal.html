@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Engeltjes vs Duiveltjes</title>
+<style>
+  body{
+    font-family:Arial, sans-serif;
+    background:#fdf6e3;
+    text-align:center;
+    margin:0;
+    padding:20px;
+  }
+  h1{color:#7bb235;margin-bottom:20px;}
+
+  #spelbord{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:18px;
+    font-size:40px;
+    margin-top:40px;
+    user-select:none;
+  }
+  .vak{
+    width:60px;height:60px;
+    display:flex;justify-content:center;align-items:center;
+    border-radius:12px;
+    background:#fffdf7;
+    box-shadow:0 0 6px rgba(0,0,0,0.15);
+  }
+  #bal{
+    font-size:36px;
+    transition: all 0.4s ease;
+  }
+  button{
+    margin-top:40px;
+    padding:10px 18px;
+    font-size:16px;
+    border:none;border-radius:8px;
+    background:#7bb235;color:white;
+    cursor:pointer;
+  }
+  button:hover{background:#689c2e;}
+
+  /* Popup */
+  #popup{
+    position:fixed;
+    top:0;left:0;right:0;bottom:0;
+    background:rgba(0,0,0,0.4);
+    display:none;
+    justify-content:center;align-items:center;
+  }
+  #popup-content{
+    background:white;
+    border-radius:12px;
+    padding:20px;
+    max-width:300px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.3);
+  }
+  #popup-content h2{margin-top:0;color:#7a5f35}
+  #popup-content input{width:100%;padding:8px;margin:10px 0;}
+  #popup-content button{margin:6px;}
+</style>
+</head>
+<body>
+
+<h1>Engeltjes vs Duiveltjes</h1>
+
+<div id="spelbord"></div>
+<button id="vraagBtn">Volgende vraag</button>
+
+<!-- popup -->
+<div id="popup">
+  <div id="popup-content">
+    <h2 id="vraagtekst">Vraag hier</h2>
+    <input type="text" id="antwoord" placeholder="Jouw antwoord">
+    <div>
+      <button id="controleer">Beantwoord</button>
+      <button id="sluit">Annuleer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const spelbord = document.getElementById('spelbord');
+const popup = document.getElementById('popup');
+const vraagBtn = document.getElementById('vraagBtn');
+const vraagtekst = document.getElementById('vraagtekst');
+const controleerBtn = document.getElementById('controleer');
+const sluitBtn = document.getElementById('sluit');
+const antwoordInput = document.getElementById('antwoord');
+
+// 5 duivels + 5 engelen
+let posities = ["😈","😈","😈","😈","😈","⚽","😇","😇","😇","😇","😇"];
+let balIndex = 5;
+
+// voorbeeldvragen (later vervangen door vragen.js)
+const vragen = [
+  {vraag:"Wat is 2 + 2?", antwoord:"4"},
+  {vraag:"Welke kleur heeft de hemel?", antwoord:"blauw"},
+  {vraag:"Hoeveel dagen heeft een week?", antwoord:"7"},
+  {vraag:"Wie schiep de wereld?", antwoord:"God"}
+];
+
+function toonBord(){
+  spelbord.innerHTML="";
+  posities.forEach((sym,i)=>{
+    const vak=document.createElement("div");
+    vak.className="vak";
+    if(i===balIndex){vak.id="bal";}
+    vak.textContent=sym;
+    spelbord.appendChild(vak);
+  });
+}
+toonBord();
+
+vraagBtn.onclick=()=>{
+  popup.style.display="flex";
+  let v = vragen[Math.floor(Math.random()*vragen.length)];
+  vraagtekst.textContent=v.vraag;
+  controleerBtn.onclick=()=>{
+    let antwoord=antwoordInput.value.trim().toLowerCase();
+    if(antwoord===v.antwoord.toLowerCase()){
+      // juist
+      if(balIndex<10) balIndex++;
+    } else {
+      // fout
+      if(balIndex>0) balIndex--;
+    }
+    controleerWinnaar();
+    antwoordInput.value="";
+    popup.style.display="none";
+    toonBord();
+  };
+};
+
+sluitBtn.onclick=()=>popup.style.display="none";
+
+function controleerWinnaar(){
+  if(balIndex===10){
+    alert("🎉 De engelen scoren een doelpunt!");
+    resetSpel();
+  }
+  if(balIndex===0){
+    alert("😈 De duiveltjes scoren! Probeer opnieuw!");
+    resetSpel();
+  }
+}
+
+function resetSpel(){
+  balIndex=5;
+  toonBord();
+}
+</script>
+</body>
+</html>
