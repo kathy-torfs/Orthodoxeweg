@@ -6,54 +6,21 @@
   <title>Springspel – Orthodoxe Kinderpagina</title>
   <link rel="icon" href="images/kruis.png" />
   <script defer src="common/layout.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <style>
     :root{
-      --primair:#7bb235; --donker:#67510C;
       --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
-      --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
-      --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
-      --pastel13:#ecffe9; --pastel14:#f7fff3; --pastel15:#eafffa; --pastel16:#fff4ea;
+      --primair:#7bb235;
     }
     body{
       margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
-      min-height:100vh; background:var(--pastel1); transition:background .7s;
+      min-height:100vh; background:var(--pastel1); transition:background .6s;
     }
-    main{ max-width:900px; margin:32px auto; padding:0 2vw; text-align:center }
-    #game-container {
-      position:relative;
-      width:880px; height:350px;
-      background:var(--pastel2);
-      margin:36px auto 0 auto;
-      border-radius:22px;
-      box-shadow:0 4px 38px #bedbe866;
-      overflow:hidden;
-    }
-    #score {
-      font-size:22px;
-      font-weight:bold;
-      background:rgba(255,255,255,0.85);
-      border-radius:12px;
-      padding:6px 28px;
-      position:absolute;
-      left:28px; top:14px;
-      box-shadow:0 2px 8px #dbecc299;
-      letter-spacing:1.1px;
-    }
-    #startBtn, #restartBtn {
-      position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
-      background:var(--primair); color:white; font-size:21px; border:none;
-      border-radius:14px; padding:16px 38px;
-      box-shadow:0 2px 14px #a9dea680; cursor:pointer;
-      font-family:'Comic Sans MS',Arial,sans-serif;
-      display:none;
-    }
+    main{ max-width:900px; margin:24px auto; padding:0 2vw; text-align:center }
+    #game-container { position:relative; width:860px; height:240px; background:#fffde6; margin:34px auto 0 auto; border-radius:20px; box-shadow:0 4px 32px #bedbe888; overflow:hidden; }
+    #score { font-size:22px; font-weight:bold; background:rgba(255,255,255,0.85); border-radius:10px; padding:4px 18px; position:absolute; left:18px; top:12px; box-shadow:0 2px 8px #dbecc299; }
+    #restartBtn, #startBtn { position:absolute; left:50%; top:54%; transform:translate(-50%,-50%); background:#7bb235; color:white; font-size:20px; border:none; border-radius:12px; padding:12px 34px; box-shadow:0 2px 12px #a9dea670; cursor:pointer; font-family:'Comic Sans MS',Arial,sans-serif; }
+    #restartBtn { display:none; }
     #startBtn { display:block; }
-    #howto { margin-top:20px; font-size:17px; color:#888;}
-    @media (max-width:940px){
-      #game-container { width:98vw; min-width:320px; max-width:99vw; }
-    }
   </style>
 </head>
 <body>
@@ -61,148 +28,92 @@
   <main>
     <h1>Springspel ⭐️</h1>
     <div id="game-container">
-      <div id="score">Score: 0</div>
-      <button id="startBtn">Start springspel (20 punten)</button>
-      <button id="restartBtn">Opnieuw spelen</button>
-      <!-- Canvas wordt aangemaakt via JS -->
+      <div id="score" style="display:none">Score: 0</div>
+      <button id="restartBtn">Opnieuw</button>
+      <button id="startBtn">Start Springspel</button>
     </div>
-    <div id="howto">Druk op spatie of klik/tik om te springen!</div>
+    <div style="margin-top:24px;font-size:17px;color:#888">Druk op spatie of tik/klik om te springen!</div>
   </main>
   <script>
-    // Pastel achtergrond cyclisch wisselen
-    let pastelList = [
-      'var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)',
-      'var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)',
-      'var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)',
-      'var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'
-    ];
-    let pastelIdx = Math.floor(Math.random()*pastelList.length);
-    setInterval(()=>{
-      pastelIdx = (pastelIdx+1)%pastelList.length;
-      document.body.style.background = pastelList[pastelIdx];
-    }, 3500);
-
-    // Header/menubalk laden
+    // ===== Achtergrond wisselen =====
+    (function(){
+      const p=[
+        'var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)'];
+      document.body.style.background = p[Math.floor(Math.random()*p.length)];
+    })();
+    // ===== Header/menubalk laden, active-tab is 'spelletjes' =====
     (function boot(){
       if (!(window.KinderLayout)) return setTimeout(boot,120);
       const el=document.getElementById('kinder-header');
       window.KinderLayout.mountHeader({ rootId:'kinder-header', headerSrc:el.dataset.headerSrc, active:'spelletjes' });
     })();
 
-    // Firestore punten
-    async function getUserPoints(){
-      const db=firebase.firestore();
-      const parochieId=localStorage.getItem("ingelogdeParochie");
-      const ouderLogin=localStorage.getItem("loginKeuze");
-      const kindId=localStorage.getItem("ingelogdKindId");
-      if(!parochieId||!ouderLogin||!kindId)return 0;
-      const ref=db.collection("parochies").doc(parochieId)
-        .collection("leden").doc(ouderLogin)
-        .collection("kinderen").doc(kindId);
-      const snap=await ref.get(); 
-      return snap.exists?(snap.data().punten||0):0;
-    }
-    async function deductPoints(amount){
-      const db=firebase.firestore();
-      const parochieId=localStorage.getItem("ingelogdeParochie");
-      const ouderLogin=localStorage.getItem("loginKeuze");
-      const kindId=localStorage.getItem("ingelogdKindId");
-      if(!parochieId||!ouderLogin||!kindId)return false;
-      const ref=db.collection("parochies").doc(parochieId)
-        .collection("leden").doc(ouderLogin)
-        .collection("kinderen").doc(kindId);
-      let ok=false;
-      await db.runTransaction(async tx=>{
-        const snap=await tx.get(ref);
-        if(!snap.exists)return;
-        const current=snap.data().punten||0;
-        if(current>=amount){ tx.update(ref,{punten:current-amount}); ok=true; }
-      });
-      return ok;
-    }
-
-    // ==== Game-code ====
-    const EMOJI_OBSTACLES = ["💀","🪨","💣","🌵","⚡️","🚧","🦔","🧱"];
+    // ===== Gamecode =====
+    const EMOJI_OBSTACLES = ["🌵","🪨","🚧","⚡️","💣"];
     const STAR = "⭐️";
-    let canvas, ctx, W=860, H=350;
-    let star, obstacles, score, alive, gravity, jumpVel, speed, groundY, animationId, jumpApex, jumping, jumpProgress, jumpMaxY;
+    let canvas, ctx, W=860, H=240;
+    let star = { x:80, y:190, vy:0, size:44, jumping:false };
+    let obstacles = [];
+    let score = 0, alive = true, gravity=1.65, jumpVel=-19;
+    let speed = 5;
+    let groundY = 194;
+    let bgFrame=0;
+    let running = false;
+    let requestId = null;
 
-    function resetGameVars(){
-      // Zet de ster net boven de grond, zodat obstakels een echte bedreiging vormen
-      groundY = 302; // iets hoger zodat alles altijd zichtbaar blijft
-      star = { x:88, y:groundY, vy:0, size:54 };
+    function resetGameVars() {
       obstacles = [];
       score = 0;
       alive = true;
-      gravity=2.1;
-      jumpVel=-18;
-      speed = 5.2;
-      jumping = false;
-      jumpApex = groundY - 90; // hoe hoog de ster kan springen
-      jumpProgress = 0;
-      jumpMaxY = groundY - 92;
+      star.y = groundY;
+      star.vy = 0;
+      star.jumping = false;
+      speed = 5;
+      document.getElementById("score").textContent = "Score: 0";
     }
-    function showStartBtn(){
-      document.getElementById("startBtn").style.display="block";
-      document.getElementById("restartBtn").style.display="none";
-      document.getElementById("score").textContent="Score: 0";
-      if(canvas) ctx.clearRect(0,0,W,H);
-    }
-    function showRestartBtn(){
-      document.getElementById("restartBtn").style.display="block";
-    }
-    function ensureCanvas(){
+
+    function startGame() {
+      resetGameVars();
+      document.getElementById("score").style.display = "";
+      document.getElementById("restartBtn").style.display = "none";
+      document.getElementById("startBtn").style.display = "none";
       if(!canvas){
         canvas = document.createElement("canvas");
         canvas.width = W;
         canvas.height = H;
         canvas.style.display = "block";
         canvas.style.margin = "0 auto";
-        canvas.style.background = "#f6fbf6";
+        canvas.style.background = "#f2faf5";
         document.getElementById("game-container").appendChild(canvas);
         ctx = canvas.getContext("2d");
       }
-    }
-    function startGame(){
-      resetGameVars();
-      ensureCanvas();
-      document.getElementById("startBtn").style.display="none";
-      document.getElementById("restartBtn").style.display="none";
-      document.getElementById("score").textContent = "Score: 0";
+      running = true;
       loop();
     }
-    function addObstacle(){
-      const size = 48 + Math.random()*14;
+    function addObstacle() {
+      const size = 44 + Math.random()*6;
       obstacles.push({
-        x: W+18,
+        x: W+10,
         y: groundY,
         size: size,
         emoji: EMOJI_OBSTACLES[Math.floor(Math.random()*EMOJI_OBSTACLES.length)]
       });
     }
-    function loop(){
+    function loop() {
       ctx.clearRect(0,0,W,H);
-      // Achtergrond
-      ctx.fillStyle = ["#cfe8ff","#f2faf5","#ffe8ec","#e0ffe3"][score%4];
+      // Achtergrond (eenvoudig)
+      ctx.fillStyle = ["#cfe8ff","#f2faf5","#ffe8ec","#e0ffe3"][bgFrame%4];
       ctx.fillRect(0,0,W,H);
-      ctx.fillStyle = "#e0efce";
+      ctx.fillStyle = "#c2e3b5";
       ctx.fillRect(0,groundY+star.size/2,W, H-groundY);
 
-      // Extra: eenvoudige streep als grond
-      ctx.strokeStyle = "#a9be93";
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(0,groundY+3);
-      ctx.lineTo(W,groundY+3);
-      ctx.stroke();
-
-      // Sterretje
+      // Sterretje tekenen
       ctx.font = star.size + "px Segoe UI Emoji, Arial";
       ctx.textAlign = "center";
       ctx.textBaseline = "bottom";
       ctx.fillText(STAR, star.x, star.y);
 
-      // Obstakels
+      // Obstakels tekenen
       for(let obs of obstacles){
         ctx.font = obs.size+"px Segoe UI Emoji, Arial";
         ctx.textAlign = "center";
@@ -210,80 +121,66 @@
         ctx.fillText(obs.emoji, obs.x, obs.y);
       }
 
-      // Speler physics: parabool sprong
+      // Fysica ster
       if(alive){
-        // Jump physics
-        if(jumping){
-          jumpProgress += 1.1;
-          let jumpFrac = jumpProgress/24;
-          if(jumpFrac < 0.5){
-            // Omhoog (parabool)
-            star.y = groundY - (jumpFrac*2)*(jumpMaxY-groundY);
-          } else {
-            // Omlaag
-            star.y = jumpMaxY + ((jumpFrac-0.5)*2)*(groundY-jumpMaxY);
-          }
-          if(jumpProgress >= 24){
-            star.y = groundY;
-            jumping = false;
-            jumpProgress = 0;
-          }
-        }
+        star.vy += gravity;
+        star.y += star.vy;
+        if(star.y > groundY){ star.y=groundY; star.vy=0; star.jumping=false; }
         // Obstakels bewegen
         for(let obs of obstacles){ obs.x -= speed; }
-        // Nieuwe obstakel toevoegen?
-        if(obstacles.length===0 || (obstacles[obstacles.length-1].x < W-222 && obstacles.length<2)){
-          if(Math.random()>0.84 || obstacles.length===0) addObstacle();
+        // Obstakels toevoegen: max 2 tegelijk
+        if(obstacles.length===0 || (obstacles[obstacles.length-1].x < W-320 && obstacles.length<2)){
+          if(Math.random()>0.85 || obstacles.length===0) addObstacle();
         }
         // Botsing?
         for(let obs of obstacles){
-          if( Math.abs(star.x-obs.x)<obs.size*0.72 && Math.abs(star.y-obs.y)<star.size*0.65 ){
+          if( Math.abs(star.x-obs.x)<obs.size*0.55 && Math.abs(star.y-obs.y)<star.size*0.45 ){
             alive=false;
-            showRestartBtn();
-            break;
+            document.getElementById("restartBtn").style.display = "block";
+            running = false;
           }
         }
-        // Score verhogen
-        obstacles = obstacles.filter(obs=>obs.x > -80);
+        // Score & cleanup
+        obstacles = obstacles.filter(obs=>obs.x > -60);
         score++;
-        // Spel versnelt langzaam!
-        if(score % 200 === 0 && speed < 14) speed += 0.7;
         document.getElementById("score").textContent = "Score: "+score;
+        // Snelheid traag verhogen
+        if(score%300===0 && speed<14){ speed+=0.7; }
       } else {
-        ctx.font = "44px Comic Sans MS, Arial";
+        ctx.font = "40px Comic Sans MS, Arial";
         ctx.fillStyle = "#e84040";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText("Game Over!", W/2, H/2-18);
+        ctx.fillText("Game Over!", W/2, H/2-22);
       }
-      animationId = requestAnimationFrame(loop);
+      bgFrame++;
+      if(running) requestId = requestAnimationFrame(loop);
     }
     // Springen
     function jump(){
       if(!alive) return;
-      if(!jumping && star.y >= groundY){
-        jumping = true;
-        jumpProgress = 0;
+      if(!star.jumping){
+        star.vy = jumpVel;
+        star.jumping = true;
       }
     }
-    // Controls
     window.addEventListener('keydown', e=>{
-      if(e.code==='Space'){ e.preventDefault(); jump(); }
+      if(e.code==='Space') jump();
     });
     document.getElementById('game-container').addEventListener('pointerdown', jump);
     document.getElementById('restartBtn').onclick = ()=>{
-      cancelAnimationFrame(animationId);
+      running = true;
+      alive = true;
       startGame();
     };
-    document.getElementById('startBtn').onclick = async function(){
-      const ok = await deductPoints(20);
-      if(!ok){
-        alert("Je hebt minstens 20 punten nodig om te spelen!");
-        return;
-      }
-      startGame();
-    };
-    window.onload = showStartBtn;
+    document.getElementById('startBtn').onclick = startGame;
+    // Startknop toont spel pas NA klik
+    window.onload = ()=>{
+      resetGameVars();
+      document.getElementById("score").style.display = "none";
+      document.getElementById("restartBtn").style.display = "none";
+      document.getElementById("startBtn").style.display = "block";
+    }
   </script>
 </body>
 </html>
