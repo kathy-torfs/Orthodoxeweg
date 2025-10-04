@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Molenspel – Orthodoxe Kinderpagina</title>
   <link rel="icon" href="images/kruis.png" />
-
   <style>
     :root{
       --primair:#7bb235; --donker:#67510C;
@@ -19,51 +18,29 @@
       min-height:100vh; background:var(--pastel1); transition:background .6s;
     }
     main{ max-width:1000px; margin:20px auto; padding:0 16px; text-align:center }
-
     #boardWrapper{
-      display:inline-block;
-      margin-top:12px;
-      background:#eee;
-      padding:10px;
-      border-radius:12px;
-      box-shadow:0 4px 10px rgba(0,0,0,0.25);
+      display:inline-block; margin-top:12px; background:#eee;
+      padding:10px; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.25);
     }
     svg{ width:90vmin; height:90vmin; max-width:600px; max-height:600px }
-
-    .point{
-      fill:#fff;
-      stroke:#333;
-      stroke-width:2;
-      cursor:pointer;
-    }
+    .point{ fill:#fff; stroke:#333; stroke-width:2; cursor:pointer; }
     .point.player{ fill:#e53935; }
     .point.computer{ fill:#fbc02d; }
     .point.selected{ stroke:#000; stroke-width:4; }
     .point.highlight{ stroke:#000; stroke-width:4; animation: blink 0.6s linear infinite; }
-
-    @keyframes blink {
-      0%, 50%, 100% { filter: brightness(1.2); }
-      25%, 75% { filter: brightness(0.6); }
-    }
-
+    @keyframes blink { 0%, 50%, 100% { filter: brightness(1.2); } 25%, 75% { filter: brightness(0.6); } }
     #status{ margin-top:12px; font-weight:bold }
     .btn{
       background:var(--primair); color:#fff; border:none; border-radius:8px;
-      padding:8px 14px; font-weight:bold; cursor:pointer;
-      margin:4px;
+      padding:8px 14px; font-weight:bold; cursor:pointer; margin:4px;
     }
   </style>
-
   <script defer src="common/layout.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
   <div id="kinder-header" data-header-src="common/header.html"></div>
-
   <main>
     <h1>Molenspel</h1>
-
     <div>
       Moeilijkheid:
       <select id="difficulty">
@@ -72,12 +49,10 @@
         <option value="hard">Moeilijk</option>
       </select>
     </div>
-
     <div>
       <button id="startBtn" class="btn">Spel starten (20 punten)</button>
       <button id="resetBtn" class="btn" style="display:none;">Opnieuw spelen</button>
     </div>
-
     <div id="boardWrapper" style="display:none;">
       <svg id="board" viewBox="0 0 600 600">
         <!-- 3 vierkanten -->
@@ -93,13 +68,12 @@
     </div>
     <div id="status"></div>
   </main>
-
   <script>
     // Achtergrond
     (function(){
       const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)',
-               'var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)',
-               'var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
+        'var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)',
+        'var(--pastel11)','var(--pastel12)','var(--pastel13)','var(--pastel14)','var(--pastel15)','var(--pastel16)'];
       document.body.style.background=p[Math.floor(Math.random()*p.length)];
     })();
 
@@ -121,11 +95,10 @@
     const mills=[[0,1,2],[3,4,5],[6,7,8],[15,16,17],[18,19,20],[21,22,23],
       [0,9,21],[3,10,18],[6,11,15],[1,4,7],[16,19,22],[8,12,17],
       [5,13,20],[2,14,23],[9,10,11],[12,13,14]];
-
     const boardSvg=document.getElementById('board');
     let stones={}, placed={player:0,computer:0}, current="player", gameOver=false;
     let selected=null, phase="placing"; let mustRemove=null;
-    let difficulty="normal"; // default
+    let difficulty="normal";
 
     document.getElementById("difficulty").addEventListener("change",e=>{
       difficulty=e.target.value;
@@ -151,7 +124,6 @@
         current="computer"; status("Computer is aan zet..."); setTimeout(computerMove,600);
         return;
       }
-
       if(phase==="placing"){
         if(stones[id])return;
         stones[id]="player"; placed.player++;
@@ -224,6 +196,8 @@
     }
 
     function computerMove(){
+      if(gameOver) return;
+      // Eerst: verwijderen als er net een molen was (computerRemove)
       if(mustRemove==="computerRemove"){
         const targets=Object.keys(stones).filter(k=>stones[k]==="player");
         if(targets.length){
@@ -232,12 +206,10 @@
           updateBoard();
           status("De computer heeft een molen en neemt jouw steen weg!");
         }
-        mustRemove=null; updateBoard();
+        mustRemove=null;
         if(gameOver) return;
-        current="player"; status("Jij bent aan zet");
-        return;
+        current="player"; status("Jij bent aan zet"); return;
       }
-
       if(phase==="placing"){
         let choice;
         if(difficulty==="easy"){
@@ -253,10 +225,14 @@
         }
         stones[choice]="computer"; placed.computer++;
         updateBoard(); if(gameOver) return;
+        // Na zetten: check of computer een molen maakt
         if(checkMill("computer",choice)){
+          // NIET meteen verwijderen! Eerst mustRemove="computerRemove" zetten.
           if(Object.values(stones).filter(s=>s==="player").length>0){
             mustRemove="computerRemove";
-            status("De computer heeft een molen!");
+            status("De computer heeft een molen!"); 
+            // Player mag NIETS doen tot de computer zijn steen verwijderd heeft (volgende beurt)
+            setTimeout(computerMove,700); // triggert verwijderen in volgende beurt
             return;
           }
         }
@@ -270,7 +246,6 @@
           const from=own[Math.floor(Math.random()*own.length)];
           const opts=adj[from].filter(n=>!stones[n]);
           if(!opts.length) continue;
-
           let to;
           if(difficulty==="easy"){
             to=opts[Math.floor(Math.random()*opts.length)];
@@ -282,13 +257,13 @@
               to=pickBestMove(from,opts) || to;
             }
           }
-
           stones[to]="computer"; stones[from]=null;
           updateBoard(); if(gameOver) return;
           if(checkMill("computer",to)){
             if(Object.values(stones).filter(s=>s==="player").length>0){
               mustRemove="computerRemove";
               status("De computer heeft een molen!");
+              setTimeout(computerMove,700); // triggert verwijderen in volgende beurt
               return;
             }
           }
@@ -311,8 +286,7 @@
         c.classList.remove("player","computer","selected","highlight");
         if(stones[id]) c.classList.add(stones[id]);
       });
-      // WIN alleen checken als NIET in molen-verwijderfase!
-      if(!mustRemove) checkWin();
+      checkWin();
       if(gameOver) return;
     }
 
@@ -367,7 +341,6 @@
       drawPoints(); status("Jij mag beginnen");
     });
     document.getElementById("resetBtn").addEventListener("click",()=>location.reload());
-
     drawPoints();
   </script>
 </body>
