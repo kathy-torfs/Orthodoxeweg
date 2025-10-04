@@ -223,7 +223,6 @@
       return best;
     }
 
-    // --- HIER IS DE BUGFIX TOEGEVOEGD ---
     function computerMove(){
       if(mustRemove==="computerRemove"){
         const targets=Object.keys(stones).filter(k=>stones[k]==="player");
@@ -258,7 +257,7 @@
           if(Object.values(stones).filter(s=>s==="player").length>0){
             mustRemove="computerRemove";
             status("De computer heeft een molen!");
-            return; // <<== Na het verwijderen van een steen is het opnieuw de beurt van de speler
+            return;
           }
         }
         if(placed.player>=9 && placed.computer>=9){ phase="moving"; status("Alle stenen geplaatst, verschuiven!"); }
@@ -290,7 +289,7 @@
             if(Object.values(stones).filter(s=>s==="player").length>0){
               mustRemove="computerRemove";
               status("De computer heeft een molen!");
-              return; // <<== Na het verwijderen van een steen is het opnieuw de beurt van de speler
+              return;
             }
           }
           moved=true;
@@ -298,7 +297,6 @@
         current="player"; status("Jij bent aan zet");
       }
     }
-    // --- EINDE BUGFIX ---
 
     function checkMill(who,lastId){
       return mills.some(set=>{
@@ -313,7 +311,8 @@
         c.classList.remove("player","computer","selected","highlight");
         if(stones[id]) c.classList.add(stones[id]);
       });
-      checkWin();
+      // WIN alleen checken als NIET in molen-verwijderfase!
+      if(!mustRemove) checkWin();
       if(gameOver) return;
     }
 
