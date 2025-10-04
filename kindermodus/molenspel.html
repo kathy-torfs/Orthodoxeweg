@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
@@ -55,6 +55,8 @@
   </style>
 
   <script defer src="common/layout.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
   <div id="kinder-header" data-header-src="common/header.html"></div>
@@ -255,12 +257,6 @@
           if(Object.values(stones).filter(s=>s==="player").length>0){
             mustRemove="computerRemove";
             status("De computer heeft een molen!"); return;
-          const targets=Object.keys(stones).filter(k=>stones[k]==="player");
-          if(targets.length){
-            const pick=targets[Math.floor(Math.random()*targets.length)];
-            stones[pick]=null;
-            updateBoard();
-            status("De computer heeft een molen en neemt jouw steen weg!");
           }
         }
         if(placed.player>=9 && placed.computer>=9){ phase="moving"; status("Alle stenen geplaatst, verschuiven!"); }
@@ -293,12 +289,6 @@
             if(Object.values(stones).filter(s=>s==="player").length>0){
               mustRemove="computerRemove";
               status("De computer heeft een molen!"); return;
-            const targets=Object.keys(stones).filter(k=>stones[k]==="player");
-            if(targets.length){
-              const pick=targets[Math.floor(Math.random()*targets.length)];
-              stones[pick]=null;
-              updateBoard();
-              status("De computer heeft een molen en neemt jouw steen weg!");
             }
           }
           moved=true;
