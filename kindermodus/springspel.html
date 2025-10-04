@@ -33,109 +33,112 @@
     <div style="margin-top:22px;font-size:16px;color:#888">Druk op spatie of klik/tik om te springen</div>
   </main>
   <script>
-    // Variabelen
-    let ctx, interval, alive, star, obs, score, groundY;
-    const W = 700, H = 270;
-    const starSize = 48;
-    const obsWidth = 38, obsHeight = 58;
-    const jumpStrength = -17.2;   // Aanpasbaar
-    const gravity = 1.07;         // Aanpasbaar
-    const gameSpeed = 4.8;        // Aanpasbaar
+    window.onload = function() {
+      // Variabelen
+      let ctx, interval, alive, star, obs, score;
+      const W = 700, H = 270;
+      const starSize = 48;
+      const obsWidth = 38, obsHeight = 58;
+      const jumpStrength = -17.2;   // Aanpasbaar
+      const gravity = 1.07;         // Aanpasbaar
+      const gameSpeed = 4.8;        // Aanpasbaar
 
-    function resetGame() {
-      star = { x: 110, y: H-70, vy: 0, jumping: false };
-      obs = { x: W+50, y: H-68, width: obsWidth, height: obsHeight };
-      score = 0; alive = true;
-      document.getElementById('score').textContent = 'Score: 0';
-      draw();
-    }
+      const canvas = document.getElementById('game');
+      ctx = canvas.getContext('2d');
 
-    function draw() {
-      ctx.clearRect(0,0,W,H);
-      // Grond
-      ctx.fillStyle = "#d6eab7";
-      ctx.fillRect(0, H-32, W, 40);
-      // Ster
-      ctx.font = starSize+"px Segoe UI Emoji, Arial";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "bottom";
-      ctx.fillText("⭐️", star.x, star.y);
-      // Blok/obstakel
-      ctx.fillStyle = "#bc6c25";
-      ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
-      // Score
-      ctx.fillStyle = "#333";
-      ctx.font = "22px Comic Sans MS, Arial";
-      ctx.fillText("Score: "+score, 110, 38);
-      // Game over overlay
-      if(!alive){
-        ctx.font = "46px Comic Sans MS, Arial";
-        ctx.fillStyle = "#e84040";
+      function resetGame() {
+        star = { x: 110, y: H-70, vy: 0, jumping: false };
+        obs = { x: W+50, y: H-68, width: obsWidth, height: obsHeight };
+        score = 0; alive = true;
+        document.getElementById('score').textContent = 'Score: 0';
+        draw();
+      }
+
+      function draw() {
+        ctx.clearRect(0,0,W,H);
+        // Grond
+        ctx.fillStyle = "#d6eab7";
+        ctx.fillRect(0, H-32, W, 40);
+        // Ster
+        ctx.font = starSize+"px Segoe UI Emoji, Arial";
         ctx.textAlign = "center";
-        ctx.fillText("Game Over!", W/2, H/2);
+        ctx.textBaseline = "bottom";
+        ctx.fillText("⭐️", star.x, star.y);
+        // Blok/obstakel
+        ctx.fillStyle = "#bc6c25";
+        ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+        // Score
+        ctx.fillStyle = "#333";
+        ctx.font = "22px Comic Sans MS, Arial";
+        ctx.fillText("Score: "+score, 110, 38);
+        // Game over overlay
+        if(!alive){
+          ctx.font = "46px Comic Sans MS, Arial";
+          ctx.fillStyle = "#e84040";
+          ctx.textAlign = "center";
+          ctx.fillText("Game Over!", W/2, H/2);
+        }
       }
-    }
 
-    function gameLoop() {
-      if(!alive) return;
-      // Ster fysica
-      star.vy += gravity;
-      star.y += star.vy;
-      if(star.y > H-70){
-        star.y = H-70;
-        star.vy = 0;
-        star.jumping = false;
+      function gameLoop() {
+        if(!alive) return;
+        // Ster fysica
+        star.vy += gravity;
+        star.y += star.vy;
+        if(star.y > H-70){
+          star.y = H-70;
+          star.vy = 0;
+          star.jumping = false;
+        }
+        // Obstakel beweegt
+        obs.x -= gameSpeed;
+        // Nieuw obstakel?
+        if(obs.x < -obs.width){
+          obs.x = W + Math.random()*120;
+          score++;
+          document.getElementById('score').textContent = "Score: "+score;
+        }
+        // Botsing
+        if(
+          obs.x+obs.width > star.x-18 && obs.x < star.x+18 &&
+          star.y > obs.y-10 && star.y < obs.y+obs.height-10
+        ){
+          alive = false;
+          document.getElementById('restartBtn').style.display = "block";
+          clearInterval(interval);
+        }
+        draw();
       }
-      // Obstakel beweegt
-      obs.x -= gameSpeed;
-      // Nieuw obstakel?
-      if(obs.x < -obs.width){
-        obs.x = W + Math.random()*120;
-        score++;
-        document.getElementById('score').textContent = "Score: "+score;
+
+      function jump(){
+        if(!alive) return;
+        if(!star.jumping){
+          star.vy = jumpStrength;
+          star.jumping = true;
+        }
       }
-      // Botsing
-      if(
-        obs.x+obs.width > star.x-18 && obs.x < star.x+18 &&
-        star.y > obs.y-10 && star.y < obs.y+obs.height-10
-      ){
-        alive = false;
-        document.getElementById('restartBtn').style.display = "block";
-        clearInterval(interval);
-      }
+
+      document.getElementById('startBtn').onclick = function(){
+        resetGame();
+        interval = setInterval(gameLoop, 22);
+        this.style.display = "none";
+        document.getElementById('restartBtn').style.display = "none";
+      };
+      document.getElementById('restartBtn').onclick = function(){
+        resetGame();
+        alive = true;
+        interval = setInterval(gameLoop, 22);
+        this.style.display = "none";
+      };
+      document.addEventListener('keydown', function(e){
+        if(e.code === "Space" || e.code === "ArrowUp") jump();
+      });
+      document.getElementById('game-container').addEventListener('pointerdown', jump);
+
+      // Init: eerst enkel drawen, pas starten na klik op startBtn
+      resetGame();
       draw();
-    }
-
-    function jump(){
-      if(!alive) return;
-      if(!star.jumping){
-        star.vy = jumpStrength;
-        star.jumping = true;
-      }
-    }
-
-    // Setup
-    ctx = document.getElementById('game').getContext('2d');
-    document.getElementById('startBtn').onclick = function(){
-      resetGame();
-      interval = setInterval(gameLoop, 22); // 45 fps
-      this.style.display = "none";
-      document.getElementById('restartBtn').style.display = "none";
     };
-    document.getElementById('restartBtn').onclick = function(){
-      resetGame();
-      alive = true;
-      interval = setInterval(gameLoop, 22);
-      this.style.display = "none";
-    };
-    document.addEventListener('keydown', function(e){
-      if(e.code === "Space" || e.code === "ArrowUp") jump();
-    });
-    document.getElementById('game-container').addEventListener('pointerdown', jump);
-
-    // Init
-    resetGame();
-    draw();
   </script>
 </body>
 </html>
