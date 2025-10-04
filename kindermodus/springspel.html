@@ -1,144 +1,186 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Jump Game – Orthodoxe Kinderpagina</title>
+  <title>Springspel – Orthodoxe Kinderpagina</title>
   <link rel="icon" href="images/kruis.png" />
+  <script defer src="common/layout.js"></script>
   <style>
-    body { background: #e0f7fa; margin: 0; font-family: 'Comic Sans MS', Arial, sans-serif;}
-    main { max-width: 900px; margin: 30px auto; text-align: center; }
-    #game-container {
-      width: 700px; height: 270px; margin: 40px auto 0 auto; background: #fffde6;
-      border-radius: 20px; box-shadow: 0 4px 32px #bedbe888; position: relative;
-      overflow: hidden; border: 2.5px solid #d2c088;
+    :root{
+      --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
+      --primair:#7bb235;
     }
-    #score { font-size: 28px; font-weight: bold; margin: 8px 0 0 24px; text-align: left;}
-    #startBtn, #restartBtn {
-      display: block; margin: 22px auto 0 auto; font-size: 22px; font-family: 'Comic Sans MS', Arial;
-      background: #7bb235; color: #fff; border: none; border-radius: 10px; padding: 9px 34px; box-shadow: 0 2px 10px #9eceb3a0; cursor:pointer;
+    body{
+      margin:0; font-family:'Comic Sans MS', Arial, sans-serif; color:#333;
+      min-height:100vh; background:var(--pastel1); transition:background .6s;
     }
-    #restartBtn { display: none; }
+    main{ max-width:900px; margin:24px auto; padding:0 2vw; text-align:center }
+    #game-container { position:relative; width:860px; height:240px; background:#fffde6; margin:34px auto 0 auto; border-radius:20px; box-shadow:0 4px 32px #bedbe888; overflow:hidden; }
+    #score { font-size:22px; font-weight:bold; background:rgba(255,255,255,0.85); border-radius:10px; padding:4px 18px; position:absolute; left:18px; top:12px; box-shadow:0 2px 8px #dbecc299; }
+    #restartBtn, #startBtn { position:absolute; left:50%; top:54%; transform:translate(-50%,-50%); background:#7bb235; color:white; font-size:20px; border:none; border-radius:12px; padding:12px 34px; box-shadow:0 2px 12px #a9dea670; cursor:pointer; font-family:'Comic Sans MS',Arial,sans-serif; }
+    #restartBtn { display:none; }
+    #startBtn { display:block; }
   </style>
 </head>
 <body>
+  <div id="kinder-header" data-header-src="common/header.html"></div>
   <main>
-    <h1>Spring over het blokje!</h1>
+    <h1>Springspel ⭐️</h1>
     <div id="game-container">
-      <canvas id="game" width="700" height="270"></canvas>
-      <div id="score">Score: 0</div>
-      <button id="startBtn">Start spel</button>
+      <div id="score" style="display:none">Score: 0</div>
       <button id="restartBtn">Opnieuw</button>
+      <button id="startBtn">Start Springspel</button>
     </div>
-    <div style="margin-top:22px;font-size:16px;color:#888">Druk op spatie of klik/tik om te springen</div>
+    <div style="margin-top:24px;font-size:17px;color:#888">Druk op spatie of tik/klik om te springen!</div>
   </main>
   <script>
-    window.onload = function() {
-      // Variabelen
-      let ctx, interval, alive, star, obs, score;
-      const W = 700, H = 270;
-      const starSize = 48;
-      const obsWidth = 38, obsHeight = 58;
-      const jumpStrength = -17.2;   // Aanpasbaar
-      const gravity = 1.07;         // Aanpasbaar
-      const gameSpeed = 4.8;        // Aanpasbaar
+    // ===== Achtergrond wisselen =====
+    (function(){
+      const p=[
+        'var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)'];
+      document.body.style.background = p[Math.floor(Math.random()*p.length)];
+    })();
+    // ===== Header/menubalk laden, active-tab is 'spelletjes' =====
+    (function boot(){
+      if (!(window.KinderLayout)) return setTimeout(boot,120);
+      const el=document.getElementById('kinder-header');
+      window.KinderLayout.mountHeader({ rootId:'kinder-header', headerSrc:el.dataset.headerSrc, active:'spelletjes' });
+    })();
 
-      const canvas = document.getElementById('game');
-      ctx = canvas.getContext('2d');
+    // ===== Gamecode =====
+    const EMOJI_OBSTACLES = ["🌵","🪨","🚧","⚡️","💣"];
+    const STAR = "⭐️";
+    let canvas, ctx, W=860, H=240;
+    let star = { x:80, y:190, vy:0, size:44, jumping:false };
+    let obstacles = [];
+    let score = 0, alive = true, gravity=1.65, jumpVel=-19;
+    let speed = 5;
+    let groundY = 194;
+    let bgFrame=0;
+    let running = false;
+    let requestId = null;
 
-      function resetGame() {
-        star = { x: 110, y: H-70, vy: 0, jumping: false };
-        obs = { x: W+50, y: H-68, width: obsWidth, height: obsHeight };
-        score = 0; alive = true;
-        document.getElementById('score').textContent = 'Score: 0';
-        draw();
+    function resetGameVars() {
+      obstacles = [];
+      score = 0;
+      alive = true;
+      star.y = groundY;
+      star.vy = 0;
+      star.jumping = false;
+      speed = 5;
+      document.getElementById("score").textContent = "Score: 0";
+    }
+
+    function startGame() {
+      resetGameVars();
+      document.getElementById("score").style.display = "";
+      document.getElementById("restartBtn").style.display = "none";
+      document.getElementById("startBtn").style.display = "none";
+      if(!canvas){
+        canvas = document.createElement("canvas");
+        canvas.width = W;
+        canvas.height = H;
+        canvas.style.display = "block";
+        canvas.style.margin = "0 auto";
+        canvas.style.background = "#f2faf5";
+        document.getElementById("game-container").appendChild(canvas);
+        ctx = canvas.getContext("2d");
       }
+      running = true;
+      loop();
+    }
+    function addObstacle() {
+      const size = 44 + Math.random()*6;
+      obstacles.push({
+        x: W+10,
+        y: groundY,
+        size: size,
+        emoji: EMOJI_OBSTACLES[Math.floor(Math.random()*EMOJI_OBSTACLES.length)]
+      });
+    }
+    function loop() {
+      ctx.clearRect(0,0,W,H);
+      // Achtergrond (eenvoudig)
+      ctx.fillStyle = ["#cfe8ff","#f2faf5","#ffe8ec","#e0ffe3"][bgFrame%4];
+      ctx.fillRect(0,0,W,H);
+      ctx.fillStyle = "#c2e3b5";
+      ctx.fillRect(0,groundY+star.size/2,W, H-groundY);
 
-      function draw() {
-        ctx.clearRect(0,0,W,H);
-        // Grond
-        ctx.fillStyle = "#d6eab7";
-        ctx.fillRect(0, H-32, W, 40);
-        // Ster
-        ctx.font = starSize+"px Segoe UI Emoji, Arial";
+      // Sterretje tekenen
+      ctx.font = star.size + "px Segoe UI Emoji, Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "bottom";
+      ctx.fillText(STAR, star.x, star.y);
+
+      // Obstakels tekenen
+      for(let obs of obstacles){
+        ctx.font = obs.size+"px Segoe UI Emoji, Arial";
         ctx.textAlign = "center";
         ctx.textBaseline = "bottom";
-        ctx.fillText("⭐️", star.x, star.y);
-        // Blok/obstakel
-        ctx.fillStyle = "#bc6c25";
-        ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
-        // Score
-        ctx.fillStyle = "#333";
-        ctx.font = "22px Comic Sans MS, Arial";
-        ctx.fillText("Score: "+score, 110, 38);
-        // Game over overlay
-        if(!alive){
-          ctx.font = "46px Comic Sans MS, Arial";
-          ctx.fillStyle = "#e84040";
-          ctx.textAlign = "center";
-          ctx.fillText("Game Over!", W/2, H/2);
-        }
+        ctx.fillText(obs.emoji, obs.x, obs.y);
       }
 
-      function gameLoop() {
-        if(!alive) return;
-        // Ster fysica
+      // Fysica ster
+      if(alive){
         star.vy += gravity;
         star.y += star.vy;
-        if(star.y > H-70){
-          star.y = H-70;
-          star.vy = 0;
-          star.jumping = false;
+        if(star.y > groundY){ star.y=groundY; star.vy=0; star.jumping=false; }
+        // Obstakels bewegen
+        for(let obs of obstacles){ obs.x -= speed; }
+        // Obstakels toevoegen: max 2 tegelijk
+        if(obstacles.length===0 || (obstacles[obstacles.length-1].x < W-320 && obstacles.length<2)){
+          if(Math.random()>0.85 || obstacles.length===0) addObstacle();
         }
-        // Obstakel beweegt
-        obs.x -= gameSpeed;
-        // Nieuw obstakel?
-        if(obs.x < -obs.width){
-          obs.x = W + Math.random()*120;
-          score++;
-          document.getElementById('score').textContent = "Score: "+score;
+        // Botsing?
+        for(let obs of obstacles){
+          if( Math.abs(star.x-obs.x)<obs.size*0.55 && Math.abs(star.y-obs.y)<star.size*0.45 ){
+            alive=false;
+            document.getElementById("restartBtn").style.display = "block";
+            running = false;
+          }
         }
-        // Botsing
-        if(
-          obs.x+obs.width > star.x-18 && obs.x < star.x+18 &&
-          star.y > obs.y-10 && star.y < obs.y+obs.height-10
-        ){
-          alive = false;
-          document.getElementById('restartBtn').style.display = "block";
-          clearInterval(interval);
-        }
-        draw();
+        // Score & cleanup
+        obstacles = obstacles.filter(obs=>obs.x > -60);
+        score++;
+        document.getElementById("score").textContent = "Score: "+score;
+        // Snelheid traag verhogen
+        if(score%300===0 && speed<14){ speed+=0.7; }
+      } else {
+        ctx.font = "40px Comic Sans MS, Arial";
+        ctx.fillStyle = "#e84040";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("Game Over!", W/2, H/2-22);
       }
-
-      function jump(){
-        if(!alive) return;
-        if(!star.jumping){
-          star.vy = jumpStrength;
-          star.jumping = true;
-        }
+      bgFrame++;
+      if(running) requestId = requestAnimationFrame(loop);
+    }
+    // Springen
+    function jump(){
+      if(!alive) return;
+      if(!star.jumping){
+        star.vy = jumpVel;
+        star.jumping = true;
       }
-
-      document.getElementById('startBtn').onclick = function(){
-        resetGame();
-        interval = setInterval(gameLoop, 22);
-        this.style.display = "none";
-        document.getElementById('restartBtn').style.display = "none";
-      };
-      document.getElementById('restartBtn').onclick = function(){
-        resetGame();
-        alive = true;
-        interval = setInterval(gameLoop, 22);
-        this.style.display = "none";
-      };
-      document.addEventListener('keydown', function(e){
-        if(e.code === "Space" || e.code === "ArrowUp") jump();
-      });
-      document.getElementById('game-container').addEventListener('pointerdown', jump);
-
-      // Init: eerst enkel drawen, pas starten na klik op startBtn
-      resetGame();
-      draw();
+    }
+    window.addEventListener('keydown', e=>{
+      if(e.code==='Space') jump();
+    });
+    document.getElementById('game-container').addEventListener('pointerdown', jump);
+    document.getElementById('restartBtn').onclick = ()=>{
+      running = true;
+      alive = true;
+      startGame();
     };
+    document.getElementById('startBtn').onclick = startGame;
+    // Startknop toont spel pas NA klik
+    window.onload = ()=>{
+      resetGameVars();
+      document.getElementById("score").style.display = "none";
+      document.getElementById("restartBtn").style.display = "none";
+      document.getElementById("startBtn").style.display = "block";
+    }
   </script>
 </body>
 </html>
