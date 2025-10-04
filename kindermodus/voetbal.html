@@ -2,7 +2,8 @@
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
-<title>Engeltjes vs Duiveltjes</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Engeltjes vs Duiveltjes – Voetbalveld</title>
 <style>
   body{
     background:#2d7a2d;
@@ -10,21 +11,22 @@
     font-family:Arial,sans-serif;
     text-align:center;
   }
-  h1{color:white;}
+  h1{color:white;margin-bottom:10px;}
+  #levelinfo{color:white;font-weight:bold;margin-bottom:20px;}
 
   #veld{
     position:relative;
     width:90%;
-    max-width:800px;
+    max-width:900px;
     height:500px;
-    margin:20px auto;
+    margin:0 auto 20px auto;
     background:repeating-linear-gradient(90deg,#3fa33f 0 40px,#2d7a2d 40px 80px);
     border:5px solid white;
     border-radius:12px;
     overflow:hidden;
   }
 
-  /* middenlijn en cirkel */
+  /* middenlijn + cirkel */
   #veld::before{
     content:"";
     position:absolute;
@@ -49,12 +51,11 @@
   .bal{
     position:absolute;
     font-size:34px;
+    transition:all 0.6s ease;
     top:50%;left:50%;
     transform:translate(-50%,-50%);
-    transition:all 0.4s ease;
   }
 
-  /* goals */
   .goal{
     position:absolute;
     top:30%;height:40%;width:40px;
@@ -65,34 +66,196 @@
   }
   .goal.left{left:0;}
   .goal.right{right:0;}
+
+  button{
+    margin-top:15px;
+    padding:10px 18px;
+    font-size:16px;
+    border:none;border-radius:8px;
+    background:#7bb235;color:white;
+    cursor:pointer;
+  }
+  button:hover{background:#689c2e;}
+
+  /* popup */
+  #popup{
+    position:fixed;inset:0;
+    background:rgba(0,0,0,0.4);
+    display:none;
+    justify-content:center;align-items:center;
+    z-index:10;
+  }
+  #popup-content{
+    background:white;
+    border-radius:12px;
+    padding:20px;
+    width:90%;max-width:400px;
+    text-align:center;
+  }
+  #popup-content h2{margin-top:0;color:#7a5f35}
+  .antw-btn{
+    display:block;width:100%;
+    margin:6px 0;padding:10px;
+    border:none;border-radius:8px;
+    background:#f3eac2;
+    cursor:pointer;font-size:15px;
+  }
+  .antw-btn:hover{background:#f0da8f;}
 </style>
 </head>
 <body>
 
 <h1>Engeltjes vs Duiveltjes</h1>
+<div id="levelinfo">Level 1</div>
 
 <div id="veld">
-  <!-- Goals -->
+  <!-- goals -->
   <div class="goal left">😇</div>
   <div class="goal right">😈</div>
 
-  <!-- Duiveltjes links -->
+  <!-- duiveltjes links -->
   <div class="speler" style="top:10%;left:15%;">😈</div>
   <div class="speler" style="top:30%;left:20%;">😈</div>
   <div class="speler" style="top:50%;left:10%;">😈</div>
   <div class="speler" style="top:70%;left:22%;">😈</div>
   <div class="speler" style="top:85%;left:15%;">😈</div>
 
-  <!-- Engeltjes rechts -->
+  <!-- engeltjes rechts -->
   <div class="speler" style="top:10%;right:15%;">😇</div>
   <div class="speler" style="top:30%;right:20%;">😇</div>
   <div class="speler" style="top:50%;right:10%;">😇</div>
   <div class="speler" style="top:70%;right:22%;">😇</div>
   <div class="speler" style="top:85%;right:15%;">😇</div>
 
-  <!-- Bal -->
+  <!-- bal -->
   <div id="bal" class="bal">⚽</div>
 </div>
 
+<button id="vraagBtn">Volgende vraag</button>
+
+<!-- popup -->
+<div id="popup">
+  <div id="popup-content">
+    <h2 id="vraagtekst">Vraag</h2>
+    <div id="antwoorden"></div>
+    <button id="sluit">Annuleer</button>
+  </div>
+</div>
+
+<!-- laad je vragen -->
+<script src="vragen.js"></script>
+
+<script>
+const bal=document.getElementById('bal');
+const popup=document.getElementById('popup');
+const vraagBtn=document.getElementById('vraagBtn');
+const vraagtekst=document.getElementById('vraagtekst');
+const antwoordenDiv=document.getElementById('antwoorden');
+const sluitBtn=document.getElementById('sluit');
+const levelinfo=document.getElementById('levelinfo');
+
+let huidigLevel=1;
+let juisteAntwoorden=0;
+let vragenPerLevel=[];
+let gebruikteVragen=[];
+let positie=0; // -5 (goal links) ... 0 (midden) ... +5 (goal rechts)
+
+function setBal(){
+  // verplaats bal volgens positie (-5 .. +5)
+  const veld=document.getElementById('veld');
+  const w=veld.clientWidth;
+  const h=veld.clientHeight;
+  let x=(w/2)+(positie*(w/12)); 
+  let y=h/2;
+  bal.style.left=x+"px";
+  bal.style.top=y+"px";
+}
+
+function laadLevel(level){
+  huidigLevel=level;
+  levelinfo.textContent="Level "+level;
+  juisteAntwoorden=0;
+  gebruikteVragen=[];
+  positie=0;
+  setBal();
+  vragenPerLevel=vragen.filter(v=>v.difficulty===level);
+  alert("Welkom bij level "+level+"!");
+}
+
+vraagBtn.onclick=()=>toonVraag();
+sluitBtn.onclick=()=>popup.style.display="none";
+
+function toonVraag(){
+  popup.style.display="flex";
+  let resterende=vragenPerLevel.filter((v,i)=>!gebruikteVragen.includes(i));
+  if(resterende.length===0){
+    volgendeLevel();
+    return;
+  }
+  let randomIndex=Math.floor(Math.random()*resterende.length);
+  let echteIndex=vragenPerLevel.indexOf(resterende[randomIndex]);
+  gebruikteVragen.push(echteIndex);
+
+  const v=vragenPerLevel[echteIndex];
+  vraagtekst.textContent=v.q;
+
+  const opties=[...v.a.keys()];
+  shuffle(opties);
+  antwoordenDiv.innerHTML="";
+  opties.forEach(i=>{
+    const btn=document.createElement("button");
+    btn.className="antw-btn";
+    btn.textContent=v.a[i];
+    btn.onclick=()=>controleerAntwoord(i===v.correct);
+    antwoordenDiv.appendChild(btn);
+  });
+}
+
+function controleerAntwoord(isJuist){
+  popup.style.display="none";
+  if(isJuist){
+    if(positie<5) positie++;
+    juisteAntwoorden++;
+  }else{
+    if(positie>-5) positie--;
+  }
+  setBal();
+  controleerWinnaar();
+}
+
+function controleerWinnaar(){
+  if(positie===5){
+    alert("🎉 Engelen scoren!");
+    if(juisteAntwoorden>=5) volgendeLevel();
+    else positie=0,setBal();
+  }else if(positie===-5){
+    alert("😈 Duivels scoren!");
+    positie=0;setBal();
+  }
+}
+
+function volgendeLevel(){
+  if(huidigLevel<3){
+    alert("Proficiat! Level "+huidigLevel+" afgerond!");
+    laadLevel(huidigLevel+1);
+  }else{
+    alert("🎊 Je hebt alle levels uitgespeeld!");
+    laadLevel(1);
+  }
+}
+
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
+window.onload=()=>{
+  laadLevel(1);
+  setBal();
+};
+</script>
 </body>
 </html>
