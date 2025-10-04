@@ -52,12 +52,11 @@
     const EMOJI_OBSTACLES = ["🌵","🪨","🚧","⚡️","💣"];
     const STAR = "⭐️";
     let canvas, ctx, W=1020, H=340;
-    // GROTERE ster en obstakels, lager op het veld:
     let star = { x:120, y:290, vy:0, size:86, jumping:false };
     let obstacles = [];
     let score = 0, alive = true, gravity=2.1, jumpVel=-29;
-    let speed = 3.2; // **TRAGER BIJ START**
-    let groundY = 294; // **lager, bijna onderaan canvas**
+    let speed = 2.1; // **Start nog trager**
+    let groundY = 294;
     let bgFrame=0;
     let running = false;
     let requestId = null;
@@ -69,7 +68,7 @@
       star.y = groundY;
       star.vy = 0;
       star.jumping = false;
-      speed = 3.2;
+      speed = 2.1;
       document.getElementById("score").textContent = "Score: 0";
     }
 
@@ -94,7 +93,7 @@
     function addObstacle() {
       const size = 86 + Math.random()*14;
       obstacles.push({
-        x: W+12,
+        x: W+22,
         y: groundY,
         size: size,
         emoji: EMOJI_OBSTACLES[Math.floor(Math.random()*EMOJI_OBSTACLES.length)]
@@ -102,19 +101,16 @@
     }
     function loop() {
       ctx.clearRect(0,0,W,H);
-      // Achtergrond (eenvoudig)
       ctx.fillStyle = ["#cfe8ff","#f2faf5","#ffe8ec","#e0ffe3"][bgFrame%4];
       ctx.fillRect(0,0,W,H);
       ctx.fillStyle = "#c2e3b5";
       ctx.fillRect(0,groundY+star.size/2,W, H-groundY);
 
-      // Sterretje tekenen
       ctx.font = star.size + "px Segoe UI Emoji, Arial";
       ctx.textAlign = "center";
       ctx.textBaseline = "bottom";
       ctx.fillText(STAR, star.x, star.y);
 
-      // Obstakels tekenen
       for(let obs of obstacles){
         ctx.font = obs.size+"px Segoe UI Emoji, Arial";
         ctx.textAlign = "center";
@@ -122,18 +118,16 @@
         ctx.fillText(obs.emoji, obs.x, obs.y);
       }
 
-      // Fysica ster
       if(alive){
         star.vy += gravity;
         star.y += star.vy;
         if(star.y > groundY){ star.y=groundY; star.vy=0; star.jumping=false; }
-        // Obstakels bewegen
         for(let obs of obstacles){ obs.x -= speed; }
-        // Obstakels toevoegen: max 2 tegelijk
-        if(obstacles.length===0 || (obstacles[obstacles.length-1].x < W-360 && obstacles.length<2)){
-          if(Math.random()>0.88 || obstacles.length===0) addObstacle();
+        // Obstakels: meer ruimte tussen, max 2 tegelijk
+        if(obstacles.length===0 || (obstacles[obstacles.length-1].x < W-420 && obstacles.length<2)){
+          if(Math.random()>0.93 || obstacles.length===0) addObstacle();
         }
-        // Botsing?
+        // Botsing
         for(let obs of obstacles){
           if( Math.abs(star.x-obs.x)<obs.size*0.54 && Math.abs(star.y-obs.y)<star.size*0.44 ){
             alive=false;
@@ -141,12 +135,11 @@
             running = false;
           }
         }
-        // Score & cleanup
-        obstacles = obstacles.filter(obs=>obs.x > -100);
+        obstacles = obstacles.filter(obs=>obs.x > -140);
         score++;
         document.getElementById("score").textContent = "Score: "+score;
-        // Snelheid traag verhogen
-        if(score%500===0 && speed<9){ speed+=0.55; }
+        // Versnel nog langzamer (pas na 900 punten)
+        if(score%900===0 && speed<7.5){ speed+=0.38; }
       } else {
         ctx.font = "48px Comic Sans MS, Arial";
         ctx.fillStyle = "#e84040";
@@ -157,7 +150,6 @@
       bgFrame++;
       if(running) requestId = requestAnimationFrame(loop);
     }
-    // Springen
     function jump(){
       if(!alive) return;
       if(!star.jumping){
@@ -175,7 +167,6 @@
       startGame();
     };
     document.getElementById('startBtn').onclick = startGame;
-    // Startknop toont spel pas NA klik
     window.onload = ()=>{
       resetGameVars();
       document.getElementById("score").style.display = "none";
