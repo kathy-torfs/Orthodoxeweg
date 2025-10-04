@@ -208,26 +208,35 @@
       });
     }
 
+    // --------- ENKEL DEZE FUNCTIE GEWIJZIGD ----------
     function moveAll(dx) {
-      // Obstakels (schedels) - max 2 tegelijk zichtbaar
-      let schedelsInBeeld = 0;
+      // Maximaal 2 obstakels (schedels + vleugels) tegelijk zichtbaar
+      let obstakelsInBeeld = 0;
       obstacles.forEach(o => {
         o.x += dx;
-        if (o.x > -60 && o.x < GAME_WIDTH+60) {
-          schedelsInBeeld++;
-        }
+        if (o.x > -60 && o.x < GAME_WIDTH+60) obstakelsInBeeld++;
       });
-      obstacles.forEach(o => {
-        if (o.x < -60 && schedelsInBeeld < 2) {
-          o.x = GAME_WIDTH + 140 + Math.random() * 290;
-          o.hit = false;
-          schedelsInBeeld++;
-        }
-      });
-      // Wings
       wings.forEach(w => {
         w.x += dx;
-        if (w.x < -60) resetWing(w);
+        if (w.x > -60 && w.x < GAME_WIDTH+60) obstakelsInBeeld++;
+      });
+
+      // Obstakels
+      obstacles.forEach(o => {
+        if (o.x < -60 && obstakelsInBeeld < 2) {
+          o.x = GAME_WIDTH + 140 + Math.random() * 290;
+          o.hit = false;
+          obstakelsInBeeld++;
+        }
+      });
+      // Vleugels
+      wings.forEach(w => {
+        if (w.x < -60 && obstakelsInBeeld < 2) {
+          w.x = GAME_WIDTH + 140 + Math.random()*390;
+          w.collected = false;
+          w.setVisible(true);
+          obstakelsInBeeld++;
+        }
       });
       // Flowers
       flowers.forEach(f => {
@@ -240,6 +249,7 @@
         if (cl.x < -60) { cl.x = GAME_WIDTH + Math.random()*100; }
       });
     }
+    // -------- EINDE WIJZIGING ---------
 
     function update() {
       if (spelBlokkeren) return;
