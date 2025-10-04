@@ -3,104 +3,102 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Engeltjes vs Duiveltjes – Voetbalveld</title>
+<title>Engeltjes vs Duiveltjes – Voetbalwedstrijd</title>
 <style>
-  body{
-    background:#2d7a2d;
-    margin:0;padding:20px;
-    font-family:Arial,sans-serif;
-    text-align:center;
-  }
-  h1{color:white;margin-bottom:10px;}
-  #levelinfo{color:white;font-weight:bold;margin-bottom:20px;}
+body{
+  background:#2d7a2d;
+  margin:0;padding:20px;
+  font-family:Arial,sans-serif;
+  text-align:center;
+  overflow-x:hidden;
+}
+h1{color:white;margin-bottom:10px;}
+#levelinfo{color:white;font-weight:bold;margin-bottom:20px;}
 
-  #veld{
-    position:relative;
-    width:90%;
-    max-width:900px;
-    height:500px;
-    margin:0 auto 20px auto;
-    background:repeating-linear-gradient(90deg,#3fa33f 0 40px,#2d7a2d 40px 80px);
-    border:5px solid white;
-    border-radius:12px;
-    overflow:hidden;
-  }
+#veld{
+  position:relative;
+  width:90%;
+  max-width:900px;
+  height:500px;
+  margin:0 auto 20px auto;
+  background:repeating-linear-gradient(90deg,#3fa33f 0 40px,#2d7a2d 40px 80px);
+  border:5px solid white;
+  border-radius:12px;
+  overflow:hidden;
+}
+#veld::before{
+  content:"";
+  position:absolute;
+  top:0;left:50%;
+  width:2px;height:100%;
+  background:white;
+}
+#veld::after{
+  content:"";
+  position:absolute;
+  top:50%;left:50%;
+  width:120px;height:120px;
+  border:2px solid white;
+  border-radius:50%;
+  transform:translate(-50%,-50%);
+}
+.goal{
+  position:absolute;
+  top:35%;height:30%;width:40px;
+  border:2px solid white;
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;
+  background:rgba(255,255,255,0.15);
+}
+.goal.left{left:0;}
+.goal.right{right:0;}
 
-  /* middenlijn + cirkel */
-  #veld::before{
-    content:"";
-    position:absolute;
-    top:0;left:50%;
-    width:2px;height:100%;
-    background:white;
-  }
-  #veld::after{
-    content:"";
-    position:absolute;
-    top:50%;left:50%;
-    width:120px;height:120px;
-    border:2px solid white;
-    border-radius:50%;
-    transform:translate(-50%,-50%);
-  }
+.speler{
+  position:absolute;
+  font-size:40px;
+  z-index:2;
+}
+#bal{
+  position:absolute;
+  font-size:34px;
+  transition:all 0.9s cubic-bezier(.35,1.2,.4,1);
+  transform:translate(-50%,-50%);
+  z-index:5;
+}
 
-  .speler{
-    position:absolute;
-    font-size:40px;
-  }
-  .bal{
-    position:absolute;
-    font-size:34px;
-    transition:all 0.6s ease;
-    top:50%;left:50%;
-    transform:translate(-50%,-50%);
-  }
-
-  .goal{
-    position:absolute;
-    top:30%;height:40%;width:40px;
-    border:2px solid white;
-    display:flex;align-items:center;justify-content:center;
-    font-size:28px;
-    background:rgba(255,255,255,0.1);
-  }
-  .goal.left{left:0;}
-  .goal.right{right:0;}
-
-  button{
-    margin-top:15px;
-    padding:10px 18px;
-    font-size:16px;
-    border:none;border-radius:8px;
-    background:#7bb235;color:white;
-    cursor:pointer;
-  }
-  button:hover{background:#689c2e;}
-
-  /* popup */
-  #popup{
-    position:fixed;inset:0;
-    background:rgba(0,0,0,0.4);
-    display:none;
-    justify-content:center;align-items:center;
-    z-index:10;
-  }
-  #popup-content{
-    background:white;
-    border-radius:12px;
-    padding:20px;
-    width:90%;max-width:400px;
-    text-align:center;
-  }
-  #popup-content h2{margin-top:0;color:#7a5f35}
-  .antw-btn{
-    display:block;width:100%;
-    margin:6px 0;padding:10px;
-    border:none;border-radius:8px;
-    background:#f3eac2;
-    cursor:pointer;font-size:15px;
-  }
-  .antw-btn:hover{background:#f0da8f;}
+/* knoppen & popup */
+button{
+  margin-top:15px;
+  padding:10px 18px;
+  font-size:16px;
+  border:none;border-radius:8px;
+  background:#7bb235;color:white;
+  cursor:pointer;
+}
+button:hover{background:#689c2e;}
+#popup{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.4);
+  display:none;
+  justify-content:center;align-items:center;
+  z-index:10;
+}
+#popup-content{
+  background:white;
+  border-radius:12px;
+  padding:20px;
+  width:90%;max-width:400px;
+  text-align:center;
+}
+#popup-content h2{margin-top:0;color:#7a5f35}
+.antw-btn{
+  display:block;width:100%;
+  margin:6px 0;padding:10px;
+  border:none;border-radius:8px;
+  background:#f3eac2;
+  cursor:pointer;font-size:15px;
+}
+.antw-btn:hover{background:#f0da8f;}
 </style>
 </head>
 <body>
@@ -109,31 +107,30 @@
 <div id="levelinfo">Level 1</div>
 
 <div id="veld">
-  <!-- goals -->
+  <!-- doelen -->
   <div class="goal left">😇</div>
   <div class="goal right">😈</div>
 
-  <!-- duiveltjes links -->
-  <div class="speler" style="top:10%;left:15%;">😈</div>
-  <div class="speler" style="top:30%;left:20%;">😈</div>
+  <!-- duiveltjes -->
+  <div class="speler" style="top:20%;left:15%;">😈</div>
+  <div class="speler" style="top:40%;left:22%;">😈</div>
+  <div class="speler" style="top:60%;left:18%;">😈</div>
+  <div class="speler" style="top:75%;left:26%;">😈</div>
   <div class="speler" style="top:50%;left:10%;">😈</div>
-  <div class="speler" style="top:70%;left:22%;">😈</div>
-  <div class="speler" style="top:85%;left:15%;">😈</div>
 
-  <!-- engeltjes rechts -->
-  <div class="speler" style="top:10%;right:15%;">😇</div>
-  <div class="speler" style="top:30%;right:20%;">😇</div>
-  <div class="speler" style="top:50%;right:10%;">😇</div>
-  <div class="speler" style="top:70%;right:22%;">😇</div>
-  <div class="speler" style="top:85%;right:15%;">😇</div>
+  <!-- engeltjes -->
+  <div class="speler" style="top:25%;right:15%;">😇</div>
+  <div class="speler" style="top:45%;right:20%;">😇</div>
+  <div class="speler" style="top:65%;right:18%;">😇</div>
+  <div class="speler" style="top:80%;right:25%;">😇</div>
+  <div class="speler" style="top:50%;right:8%;">😇</div>
 
   <!-- bal -->
-  <div id="bal" class="bal">⚽</div>
+  <div id="bal">⚽</div>
 </div>
 
 <button id="vraagBtn">Volgende vraag</button>
 
-<!-- popup -->
 <div id="popup">
   <div id="popup-content">
     <h2 id="vraagtekst">Vraag</h2>
@@ -142,9 +139,7 @@
   </div>
 </div>
 
-<!-- laad je vragen -->
 <script src="vragen.js"></script>
-
 <script>
 const bal=document.getElementById('bal');
 const popup=document.getElementById('popup');
@@ -158,26 +153,48 @@ let huidigLevel=1;
 let juisteAntwoorden=0;
 let vragenPerLevel=[];
 let gebruikteVragen=[];
-let positie=0; // -5 (goal links) ... 0 (midden) ... +5 (goal rechts)
 
-function setBal(){
-  // verplaats bal volgens positie (-5 .. +5)
-  const veld=document.getElementById('veld');
-  const w=veld.clientWidth;
-  const h=veld.clientHeight;
-  let x=(w/2)+(positie*(w/12)); 
-  let y=h/2;
-  bal.style.left=x+"px";
-  bal.style.top=y+"px";
+/* Posities van bal – percentages van het veld */
+const engelPad=[
+  {x:50,y:50}, // midden
+  {x:65,y:35},
+  {x:72,y:55},
+  {x:78,y:40},
+  {x:85,y:60},
+  {x:92,y:50}, // doel rechts
+];
+const duivelPad=[
+  {x:50,y:50}, // midden
+  {x:35,y:35},
+  {x:28,y:55},
+  {x:22,y:40},
+  {x:15,y:60},
+  {x:8,y:50}, // doel links
+];
+let engelIndex=0;
+let duivelIndex=0;
+
+/* helper */
+function setBal(xPerc,yPerc){
+  bal.style.left=xPerc+"%";
+  bal.style.top=yPerc+"%";
+}
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
 }
 
+/* game logica */
 function laadLevel(level){
   huidigLevel=level;
   levelinfo.textContent="Level "+level;
   juisteAntwoorden=0;
   gebruikteVragen=[];
-  positie=0;
-  setBal();
+  engelIndex=0;duivelIndex=0;
+  setBal(50,50);
   vragenPerLevel=vragen.filter(v=>v.difficulty===level);
   alert("Welkom bij level "+level+"!");
 }
@@ -188,14 +205,10 @@ sluitBtn.onclick=()=>popup.style.display="none";
 function toonVraag(){
   popup.style.display="flex";
   let resterende=vragenPerLevel.filter((v,i)=>!gebruikteVragen.includes(i));
-  if(resterende.length===0){
-    volgendeLevel();
-    return;
-  }
+  if(resterende.length===0){volgendeLevel();return;}
   let randomIndex=Math.floor(Math.random()*resterende.length);
   let echteIndex=vragenPerLevel.indexOf(resterende[randomIndex]);
   gebruikteVragen.push(echteIndex);
-
   const v=vragenPerLevel[echteIndex];
   vraagtekst.textContent=v.q;
 
@@ -214,24 +227,25 @@ function toonVraag(){
 function controleerAntwoord(isJuist){
   popup.style.display="none";
   if(isJuist){
-    if(positie<5) positie++;
-    juisteAntwoorden++;
+    if(engelIndex<engelPad.length-1) engelIndex++;
+    const p=engelPad[engelIndex];
+    setBal(p.x,p.y);
+    if(engelIndex===engelPad.length-1){ // goal
+      setTimeout(()=>{alert("⚽️ Engelen scoren!");volgendeLevel();},700);
+    }
   }else{
-    if(positie>-5) positie--;
+    if(duivelIndex<duivelPad.length-1) duivelIndex++;
+    const p=duivelPad[duivelIndex];
+    setBal(p.x,p.y);
+    if(duivelIndex===duivelPad.length-1){
+      setTimeout(()=>{alert("😈 Duiveltjes scoren!");resetLevel();},700);
+    }
   }
-  setBal();
-  controleerWinnaar();
 }
 
-function controleerWinnaar(){
-  if(positie===5){
-    alert("🎉 Engelen scoren!");
-    if(juisteAntwoorden>=5) volgendeLevel();
-    else positie=0,setBal();
-  }else if(positie===-5){
-    alert("😈 Duivels scoren!");
-    positie=0;setBal();
-  }
+function resetLevel(){
+  engelIndex=0;duivelIndex=0;
+  setBal(50,50);
 }
 
 function volgendeLevel(){
@@ -239,23 +253,12 @@ function volgendeLevel(){
     alert("Proficiat! Level "+huidigLevel+" afgerond!");
     laadLevel(huidigLevel+1);
   }else{
-    alert("🎊 Je hebt alle levels uitgespeeld!");
+    alert("🎉 Je hebt alle levels uitgespeeld!");
     laadLevel(1);
   }
 }
 
-function shuffle(arr){
-  for(let i=arr.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [arr[i],arr[j]]=[arr[j],arr[i]];
-  }
-  return arr;
-}
-
-window.onload=()=>{
-  laadLevel(1);
-  setBal();
-};
+window.onload=()=>{laadLevel(1);setBal(50,50);};
 </script>
 </body>
 </html>
