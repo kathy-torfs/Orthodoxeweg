@@ -69,7 +69,7 @@
     <div id="howto">Druk op spatie of klik/tik om te springen!</div>
   </main>
   <script>
-    // ==== Pastel achtergrond cyclisch laten wisselen (vloeiend) ====
+    // Pastel achtergrond cyclisch wisselen
     let pastelList = [
       'var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)',
       'var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)',
@@ -82,14 +82,14 @@
       document.body.style.background = pastelList[pastelIdx];
     }, 3500);
 
-    // ==== Header/menubalk laden ====
+    // Header/menubalk laden
     (function boot(){
       if (!(window.KinderLayout)) return setTimeout(boot,120);
       const el=document.getElementById('kinder-header');
       window.KinderLayout.mountHeader({ rootId:'kinder-header', headerSrc:el.dataset.headerSrc, active:'spelletjes' });
     })();
 
-    // ==== Firestore punten ====
+    // Firestore punten
     async function getUserPoints(){
       const db=firebase.firestore();
       const parochieId=localStorage.getItem("ingelogdeParochie");
@@ -122,21 +122,25 @@
     }
 
     // ==== Game-code ====
-    const EMOJI_OBSTACLES = ["💀","🪨","💣","🌵","⚡️","🚧","🦔","🥕","🦴","🧱","🧃","🍩","🍔","🍦","🛴"];
+    const EMOJI_OBSTACLES = ["💀","🪨","💣","🌵","⚡️","🚧","🦔","🧱"];
     const STAR = "⭐️";
-    let canvas, ctx, W=860, H=340;
-    let star, obstacles, score, alive, gravity, jumpVel, speed, groundY, bgFrame, animationId;
-    const GROUND_COLOR = "#d7eec7";
+    let canvas, ctx, W=860, H=350;
+    let star, obstacles, score, alive, gravity, jumpVel, speed, groundY, animationId, jumpApex, jumping, jumpProgress, jumpMaxY;
+
     function resetGameVars(){
-      star = { x:88, y:268, vy:0, size:54, jumping:false };
+      // Zet de ster net boven de grond, zodat obstakels een echte bedreiging vormen
+      groundY = 302; // iets hoger zodat alles altijd zichtbaar blijft
+      star = { x:88, y:groundY, vy:0, size:54 };
       obstacles = [];
       score = 0;
       alive = true;
-      gravity=2.25;
-      jumpVel=-28;
-      speed = 7.7;
-      groundY = 312;
-      bgFrame=0;
+      gravity=2.1;
+      jumpVel=-18;
+      speed = 5.2;
+      jumping = false;
+      jumpApex = groundY - 90; // hoe hoog de ster kan springen
+      jumpProgress = 0;
+      jumpMaxY = groundY - 92;
     }
     function showStartBtn(){
       document.getElementById("startBtn").style.display="block";
@@ -147,7 +151,6 @@
     function showRestartBtn(){
       document.getElementById("restartBtn").style.display="block";
     }
-    // Canvas init alleen bij eerste keer
     function ensureCanvas(){
       if(!canvas){
         canvas = document.createElement("canvas");
@@ -169,7 +172,7 @@
       loop();
     }
     function addObstacle(){
-      const size = 46 + Math.random()*19;
+      const size = 48 + Math.random()*14;
       obstacles.push({
         x: W+18,
         y: groundY,
@@ -179,23 +182,26 @@
     }
     function loop(){
       ctx.clearRect(0,0,W,H);
-      // Achtergrond scrollende wolken/grond (heel zacht)
-      ctx.fillStyle = ["#cfe8ff","#f2faf5","#ffe8ec","#e0ffe3"][bgFrame%4];
+      // Achtergrond
+      ctx.fillStyle = ["#cfe8ff","#f2faf5","#ffe8ec","#e0ffe3"][score%4];
       ctx.fillRect(0,0,W,H);
-      ctx.fillStyle = GROUND_COLOR;
+      ctx.fillStyle = "#e0efce";
       ctx.fillRect(0,groundY+star.size/2,W, H-groundY);
-      // Decoratieve wolken, elke 40 frames
-      if(bgFrame%40===0){
-        ctx.font = "38px Segoe UI Emoji, Arial";
-        ctx.globalAlpha=0.3;
-        ctx.fillText("☁️", 200+Math.random()*600, 40+Math.random()*120);
-        ctx.globalAlpha=1;
-      }
-      // Sterretje tekenen
+
+      // Extra: eenvoudige streep als grond
+      ctx.strokeStyle = "#a9be93";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(0,groundY+3);
+      ctx.lineTo(W,groundY+3);
+      ctx.stroke();
+
+      // Sterretje
       ctx.font = star.size + "px Segoe UI Emoji, Arial";
       ctx.textAlign = "center";
       ctx.textBaseline = "bottom";
       ctx.fillText(STAR, star.x, star.y);
+
       // Obstakels
       for(let obs of obstacles){
         ctx.font = obs.size+"px Segoe UI Emoji, Arial";
@@ -203,20 +209,35 @@
         ctx.textBaseline = "bottom";
         ctx.fillText(obs.emoji, obs.x, obs.y);
       }
-      // Speler physics
+
+      // Speler physics: parabool sprong
       if(alive){
-        star.vy += gravity;
-        star.y += star.vy;
-        if(star.y >= 268){ star.y=268; star.vy=0; star.jumping=false; }
+        // Jump physics
+        if(jumping){
+          jumpProgress += 1.1;
+          let jumpFrac = jumpProgress/24;
+          if(jumpFrac < 0.5){
+            // Omhoog (parabool)
+            star.y = groundY - (jumpFrac*2)*(jumpMaxY-groundY);
+          } else {
+            // Omlaag
+            star.y = jumpMaxY + ((jumpFrac-0.5)*2)*(groundY-jumpMaxY);
+          }
+          if(jumpProgress >= 24){
+            star.y = groundY;
+            jumping = false;
+            jumpProgress = 0;
+          }
+        }
         // Obstakels bewegen
         for(let obs of obstacles){ obs.x -= speed; }
         // Nieuwe obstakel toevoegen?
         if(obstacles.length===0 || (obstacles[obstacles.length-1].x < W-222 && obstacles.length<2)){
-          if(Math.random()>0.82 || obstacles.length===0) addObstacle();
+          if(Math.random()>0.84 || obstacles.length===0) addObstacle();
         }
         // Botsing?
         for(let obs of obstacles){
-          if( Math.abs(star.x-obs.x)<obs.size*0.68 && Math.abs(star.y-obs.y)<star.size*0.60 ){
+          if( Math.abs(star.x-obs.x)<obs.size*0.72 && Math.abs(star.y-obs.y)<star.size*0.65 ){
             alive=false;
             showRestartBtn();
             break;
@@ -225,6 +246,8 @@
         // Score verhogen
         obstacles = obstacles.filter(obs=>obs.x > -80);
         score++;
+        // Spel versnelt langzaam!
+        if(score % 200 === 0 && speed < 14) speed += 0.7;
         document.getElementById("score").textContent = "Score: "+score;
       } else {
         ctx.font = "44px Comic Sans MS, Arial";
@@ -233,15 +256,14 @@
         ctx.textBaseline = "middle";
         ctx.fillText("Game Over!", W/2, H/2-18);
       }
-      bgFrame++;
       animationId = requestAnimationFrame(loop);
     }
     // Springen
     function jump(){
       if(!alive) return;
-      if(!star.jumping){
-        star.vy = jumpVel;
-        star.jumping = true;
+      if(!jumping && star.y >= groundY){
+        jumping = true;
+        jumpProgress = 0;
       }
     }
     // Controls
@@ -253,7 +275,6 @@
       cancelAnimationFrame(animationId);
       startGame();
     };
-    // ==== Startknop met punten-aftrek ====
     document.getElementById('startBtn').onclick = async function(){
       const ok = await deductPoints(20);
       if(!ok){
@@ -262,7 +283,6 @@
       }
       startGame();
     };
-    // ==== Na laden: alleen startknop tonen ====
     window.onload = showStartBtn;
   </script>
 </body>
