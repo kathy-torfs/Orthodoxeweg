@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Engeltjes vs Duiveltjes – Orthodoxe Kinderpagina</title>
 <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
+
+<!-- 🎉 Confetti library -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+
 <style>
 body{
   background:#2d7a2d;
@@ -104,7 +108,7 @@ button:hover{background:#689c2e;}
   background:rgba(0,0,0,0.4);
   display:none;
   justify-content:center;align-items:center;
-  z-index:10;
+  z-index:20;
 }
 #popup-content{
   background:#7fd8d7;
@@ -126,6 +130,28 @@ button:hover{background:#689c2e;}
   box-shadow:0 2px 4px rgba(0,0,0,0.2);
 }
 .antw-btn:hover{background:#dff8f7;}
+
+/* 🏆 Einde-popup */
+#eindePopup{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.5);
+  display:none;
+  justify-content:center;align-items:center;
+  flex-direction:column;
+  z-index:30;
+  color:white;
+}
+#eindePopup .box{
+  background:#ffffff;
+  color:black;
+  border-radius:16px;
+  padding:30px;
+  text-align:center;
+  width:90%;max-width:420px;
+  box-shadow:0 0 20px rgba(0,0,0,0.5);
+}
+#eindePopup h2{margin-top:0;}
+#eindePopup .emoji{font-size:60px;margin-bottom:10px;}
 </style>
 </head>
 <body>
@@ -144,16 +170,25 @@ button:hover{background:#689c2e;}
   <div id="bal">⚽</div>
 </div>
 
-<!-- Startknop -->
 <button id="startknop">Start het spel</button>
-
 <button id="vraagBtn" style="display:none;">Volgende vraag</button>
 
+<!-- Vraag-popup -->
 <div id="popup">
   <div id="popup-content">
     <h2 id="vraagtekst">Vraag</h2>
     <div id="antwoorden"></div>
     <button id="sluit">Sluit</button>
+  </div>
+</div>
+
+<!-- 🏆 Einde-popup -->
+<div id="eindePopup">
+  <div class="box">
+    <div class="emoji" id="eindeEmoji"></div>
+    <h2 id="eindeTitel"></h2>
+    <p id="eindeTekst"></p>
+    <button id="opnieuwBtn">Speel opnieuw</button>
   </div>
 </div>
 
@@ -169,6 +204,11 @@ const vraagtekst=document.getElementById('vraagtekst');
 const antwoordenDiv=document.getElementById('antwoorden');
 const sluitBtn=document.getElementById('sluit');
 const levelinfo=document.getElementById('levelinfo');
+const eindePopup=document.getElementById('eindePopup');
+const eindeEmoji=document.getElementById('eindeEmoji');
+const eindeTitel=document.getElementById('eindeTitel');
+const eindeTekst=document.getElementById('eindeTekst');
+const opnieuwBtn=document.getElementById('opnieuwBtn');
 
 let huidigLevel=1;
 let vragenPerLevel=[];
@@ -176,6 +216,8 @@ let gebruikteVragen=[];
 let engelIndex=0;
 let duivelIndex=0;
 let spelGestart=false;
+let scoreEngel=0;
+let scoreDuivel=0;
 
 function randomPos(baseX,baseY,spread){
   return {x:baseX+(Math.random()*spread-spread/2),
@@ -184,10 +226,8 @@ function randomPos(baseX,baseY,spread){
 
 function tekenSpelers(level){
   spelersDiv.innerHTML="";
-  const engelBasis=[
-    {x:55,y:30},{x:60,y:55},{x:70,y:40},{x:65,y:70},{x:88,y:50}];
-  const duivelBasis=[
-    {x:45,y:30},{x:40,y:55},{x:30,y:40},{x:35,y:70},{x:12,y:50}];
+  const engelBasis=[{x:55,y:30},{x:60,y:55},{x:70,y:40},{x:65,y:70},{x:88,y:50}];
+  const duivelBasis=[{x:45,y:30},{x:40,y:55},{x:30,y:40},{x:35,y:70},{x:12,y:50}];
   engelBasis.forEach((p,i)=>{ if(i<4){ Object.assign(p,randomPos(p.x,p.y,5)); } });
   duivelBasis.forEach((p,i)=>{ if(i<4){ Object.assign(p,randomPos(p.x,p.y,5)); } });
   for(let i=0;i<5;i++){
@@ -205,12 +245,10 @@ function maakSpeler(team,num,pos){
                 <div class="shirt ${team}">${num}</div>`;
   spelersDiv.appendChild(el);
 }
-
 function setBal(xPerc,yPerc){
   bal.style.left=xPerc+"%";
   bal.style.top=yPerc+"%";
 }
-
 function shuffle(arr){
   for(let i=arr.length-1;i>0;i--){
     const j=Math.floor(Math.random()*(i+1));
@@ -226,7 +264,14 @@ function laadLevel(level){
   engelIndex=0;duivelIndex=0;
   tekenSpelers(level);
   setBal(50,50);
-  vragenPerLevel=vragen.filter(v=>v.difficulty===level);
+
+  // 🔹 1 zondevraag + 5 lichtvragen
+  const zondeVragen = vragen.filter(v => v.difficulty === "zonde");
+  const levelVragen = vragen.filter(v => v.difficulty === level);
+  const randomZonde = zondeVragen[Math.floor(Math.random()*zondeVragen.length)];
+  const vijfLevelVragen = levelVragen.sort(()=>Math.random()-0.5).slice(0,5);
+  vragenPerLevel = [randomZonde, ...vijfLevelVragen];
+
   alert("Welkom bij level "+level+"!");
 }
 
@@ -243,7 +288,6 @@ function toonVraag(){
   gebruikteVragen.push(echteIndex);
   const v=vragenPerLevel[echteIndex];
   vraagtekst.textContent=v.q;
-
   const opties=[...v.a.keys()];
   shuffle(opties);
   antwoordenDiv.innerHTML="";
@@ -292,32 +336,57 @@ function controleerAntwoord(isJuist){
 function goal(team){
   if(team==="engel"){
     setBal(96,50);
+    scoreEngel++;
     setTimeout(()=>{alert("⚽️ Engelen scoren!");volgendeLevel();},900);
   }else{
     setBal(4,50);
+    scoreDuivel++;
     setTimeout(()=>{alert("😈 Duiveltjes scoren!");resetLevel();},900);
   }
 }
-
 function resetLevel(){
   engelIndex=0;duivelIndex=0;
   setBal(50,50);
 }
-
 function volgendeLevel(){
   if(huidigLevel<3){
     alert("Proficiat! Level "+huidigLevel+" afgerond!");
     laadLevel(huidigLevel+1);
   }else{
-    alert("🎉 Je hebt alle levels uitgespeeld!");
-    laadLevel(1);
+    eindeSpel();
   }
 }
-
+function eindeSpel(){
+  // 🎉 Bepaal winnaar
+  eindePopup.style.display="flex";
+  if(scoreEngel>scoreDuivel){
+    eindeEmoji.textContent="🏆😇";
+    eindeTitel.textContent="Proficiat, de engeltjes winnen!";
+    eindeTekst.textContent="Wat een hemelse overwinning!";
+  }else if(scoreDuivel>scoreEngel){
+    eindeEmoji.textContent="😈🎉";
+    eindeTitel.textContent="Oei… de duiveltjes winnen deze keer!";
+    eindeTekst.textContent="Volgende keer beter, engeltjes!";
+  }else{
+    eindeEmoji.textContent="⚖️";
+    eindeTitel.textContent="Gelijkspel!";
+    eindeTekst.textContent="Iedereen deed zijn best!";
+  }
+  confetti({particleCount:200,spread:90,origin:{y:0.6}});
+}
+opnieuwBtn.onclick=()=>{
+  eindePopup.style.display="none";
+  scoreEngel=0;scoreDuivel=0;
+  startknop.style.display="inline-block";
+  vraagBtn.style.display="none";
+  spelGestart=false;
+  setBal(50,50);
+}
 startknop.onclick=()=>{
   spelGestart=true;
   startknop.style.display="none";
   vraagBtn.style.display="inline-block";
+  scoreEngel=0;scoreDuivel=0;
   laadLevel(1);
 };
 </script>
