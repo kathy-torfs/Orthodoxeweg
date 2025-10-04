@@ -223,6 +223,7 @@
       return best;
     }
 
+    // --- HIER IS DE BUGFIX TOEGEVOEGD ---
     function computerMove(){
       if(mustRemove==="computerRemove"){
         const targets=Object.keys(stones).filter(k=>stones[k]==="player");
@@ -233,8 +234,9 @@
           status("De computer heeft een molen en neemt jouw steen weg!");
         }
         mustRemove=null; updateBoard();
-        mustRemove=null; if(gameOver) return;
-        current="player"; status("Jij bent aan zet"); return;
+        if(gameOver) return;
+        current="player"; status("Jij bent aan zet");
+        return;
       }
 
       if(phase==="placing"){
@@ -251,12 +253,12 @@
           }
         }
         stones[choice]="computer"; placed.computer++;
-        updateBoard();
         updateBoard(); if(gameOver) return;
         if(checkMill("computer",choice)){
           if(Object.values(stones).filter(s=>s==="player").length>0){
             mustRemove="computerRemove";
-            status("De computer heeft een molen!"); return;
+            status("De computer heeft een molen!");
+            return; // <<== Na het verwijderen van een steen is het opnieuw de beurt van de speler
           }
         }
         if(placed.player>=9 && placed.computer>=9){ phase="moving"; status("Alle stenen geplaatst, verschuiven!"); }
@@ -283,12 +285,12 @@
           }
 
           stones[to]="computer"; stones[from]=null;
-          updateBoard();
           updateBoard(); if(gameOver) return;
           if(checkMill("computer",to)){
             if(Object.values(stones).filter(s=>s==="player").length>0){
               mustRemove="computerRemove";
-              status("De computer heeft een molen!"); return;
+              status("De computer heeft een molen!");
+              return; // <<== Na het verwijderen van een steen is het opnieuw de beurt van de speler
             }
           }
           moved=true;
@@ -296,6 +298,7 @@
         current="player"; status("Jij bent aan zet");
       }
     }
+    // --- EINDE BUGFIX ---
 
     function checkMill(who,lastId){
       return mills.some(set=>{
@@ -311,7 +314,7 @@
         if(stones[id]) c.classList.add(stones[id]);
       });
       checkWin();
-      checkWin(); if(gameOver) return;
+      if(gameOver) return;
     }
 
     function highlight(id){ document.querySelector(`.point[data-id="${id}"]`).classList.add("selected"); }
