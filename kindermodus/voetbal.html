@@ -58,16 +58,6 @@ h1{color:white;margin-bottom:10px;}
 .goal.left{left:0;}
 .goal.right{right:0;}
 
-/* 👨‍⚖️ scheidsrechter */
-#scheids{
-  position:absolute;
-  left:50%;
-  top:50%;
-  transform:translate(-50%,-50%);
-  font-size:40px;
-  z-index:5;
-}
-
 .speler{ position:absolute; text-align:center; transform:translate(-50%,-50%); }
 .speler .hoofd{ font-size:32px; display:block; margin-bottom:-6px; }
 .shirt{
@@ -139,7 +129,6 @@ button:hover{background:#689c2e;}
   <div class="goal left">😇</div>
   <div class="goal right">😈</div>
   <div id="spelers"></div>
-  <div id="scheids">👨‍⚖️</div>
   <div id="bal">⚽</div>
 </div>
 
@@ -168,12 +157,6 @@ button:hover{background:#689c2e;}
 
 <script src="vragen.js"></script>
 <script>
-/* === GELUIDEN === */
-const applaus = new Audio("crowd-applause-236697.mp3");
-const boe = new Audio("crowd-disappointment-reaction-352718.mp3");
-const cheer = new Audio("crowd-cheer-applause-victory-fanfare-clapping-236698.mp3");
-const fluit = new Audio("referee-whistle-blow-gymnasium-6320.mp3");
-
 /* === DOM refs === */
 const veld=document.getElementById('veld');
 const spelersDiv=document.getElementById('spelers');
@@ -193,11 +176,11 @@ const opnieuwBtn=document.getElementById('opnieuwBtn');
 
 /* === Game state === */
 let huidigLevel=1;
-let vragenQueue=[];            
-let levelPool=[];              
-let vraagIndex=0;              
-let engelIndex=0;              
-let duivelIndex=0;             
+let vragenQueue=[];            // 1 zonde + 5 levelvragen, in volgorde
+let levelPool=[];              // extra levelvragen indien meer nodig
+let vraagIndex=0;              // toont 1e altijd zonde
+let engelIndex=0;              // 0..5 (5 = bij speler 5)
+let duivelIndex=0;             // 0..5
 let spelGestart=false;
 let scoreEngel=0;
 let scoreDuivel=0;
@@ -217,9 +200,6 @@ function tekenSpelers(level){
     maakSpeler("engel",i+1,engelBasis[i]);
     maakSpeler("duivel",i+1,duivelBasis[i]);
   }
-  // Keepers met shirt
-  maakKeeper("engel",92,50);
-  maakKeeper("duivel",8,50);
 }
 function maakSpeler(team,num,pos){
   const el=document.createElement("div");
@@ -231,17 +211,6 @@ function maakSpeler(team,num,pos){
                 <div class="shirt ${team}">${num}</div>`;
   spelersDiv.appendChild(el);
 }
-function maakKeeper(team,x,y){
-  const el=document.createElement("div");
-  el.className="speler";
-  el.id=team+"Keeper";
-  el.style.left=x+"%";
-  el.style.top=y+"%";
-  el.innerHTML=`<div class="hoofd">${team==="engel"?"😇":"😈"}</div>
-                <div class="shirt ${team}"></div>`;
-  spelersDiv.appendChild(el);
-}
-
 function setBal(xPerc,yPerc){ bal.style.left=xPerc+"%"; bal.style.top=yPerc+"%"; }
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 
@@ -249,16 +218,30 @@ function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.rand
 function laadLevel(level){
   huidigLevel=level;
   levelinfo.textContent="Level "+level;
+  // reset progress
   engelIndex=0; duivelIndex=0; vraagIndex=0;
   setBal(50,50);
   tekenSpelers(level);
-  fluit.play();
+
+  // 1 zondevraag + 5 levelvragen (op volgorde)
   const zondeVragen = vragen.filter(v => v.difficulty === "zonde");
   const levelVragen = vragen.filter(v => v.difficulty === level);
   const randomZonde = zondeVragen[Math.floor(Math.random()*zondeVragen.length)];
-  const vijfLevel = shuffle(levelVragen.slice()).slice(0,5);
+  const vijfLevel = shuffle(levelVragen.slice()).slice(0,5);  // kopie en 5 kiezen
   vragenQueue = [randomZonde, ...vijfLevel];
+  // rest van het level als pool voor extra vragen als het nog geen goal is
   levelPool = levelVragen.filter(v => !vijfLevel.includes(v));
+
+  // geen alerts meer; direct klaar voor vraag
+}
+
+function volgendeVraagObject(){
+  if(vraagIndex < vragenQueue.length){
+    return vragenQueue[vraagIndex++]; // eerste is altijd zonde
+  }
+  // na 6 vragen: blijf vragen uit level-pool (of volledige set) tot er gescoord is
+  if(levelPool.length===0) levelPool = vragen.filter(v=>v.difficulty===huidigLevel);
+  return levelPool[Math.floor(Math.random()*levelPool.length)];
 }
 
 /* === Vraag UI === */
@@ -269,6 +252,7 @@ function toonVraag(){
   if(!spelGestart) return;
   const v = volgendeVraagObject();
   vraagtekst.textContent=v.q;
+
   const indices=[...v.a.keys()];
   shuffle(indices);
   antwoordenDiv.innerHTML="";
@@ -279,13 +263,8 @@ function toonVraag(){
     btn.onclick=()=>controleerAntwoord(i===v.correct);
     antwoordenDiv.appendChild(btn);
   });
-  popup.style.display="flex";
-}
 
-function volgendeVraagObject(){
-  if(vraagIndex < vragenQueue.length){ return vragenQueue[vraagIndex++]; }
-  if(levelPool.length===0) levelPool = vragen.filter(v=>v.difficulty===huidigLevel);
-  return levelPool[Math.floor(Math.random()*levelPool.length)];
+  popup.style.display="flex";
 }
 
 function moveBalTo(team,index){
@@ -303,35 +282,46 @@ function moveBalTo(team,index){
 /* === Antwoord-logica === */
 function controleerAntwoord(isJuist){
   popup.style.display="none";
+
   if(isJuist){
-    applaus.play();
-    if(engelIndex < 5){ engelIndex++; moveBalTo("engel",engelIndex); }
-    else goal("engel");
+    if(engelIndex < 5){                // 1 → 5
+      engelIndex++;
+      moveBalTo("engel",engelIndex);
+    }else{                              // al bij 5 → nu scoren
+      goal("engel");
+    }
   }else{
-    boe.play();
-    if(duivelIndex < 5){ duivelIndex++; moveBalTo("duivel",duivelIndex); }
-    else goal("duivel");
+    if(duivelIndex < 5){
+      duivelIndex++;
+      moveBalTo("duivel",duivelIndex);
+    }else{
+      goal("duivel");
+    }
   }
 }
 
 /* === Goals & einde === */
 function goal(team){
-  fluit.play();
   if(team==="engel"){
-    setBal(97,40); // rechter bovenhoek
+    setBal(98,50); // dieper in het net
     scoreEngel++;
-    cheer.play();
     setTimeout(()=>volgendeLevel(),900);
   }else{
-    setBal(3,60); // linker benedenhoek
+    setBal(2,50);
     scoreDuivel++;
-    cheer.play();
-    setTimeout(()=>volgendeLevel(),900);
+    setTimeout(()=>resetLevelOfVolgende(),900);
   }
 }
+function resetLevelOfVolgende(){
+  // voor symmetrie behandelen we hetzelfde: naar volgend level
+  volgendeLevel();
+}
 function volgendeLevel(){
-  if(huidigLevel < 3){ laadLevel(huidigLevel+1); }
-  else eindeSpel();
+  if(huidigLevel < 3){
+    laadLevel(huidigLevel+1);
+  }else{
+    eindeSpel();
+  }
 }
 function eindeSpel(){
   eindePopup.style.display="flex";
@@ -350,7 +340,6 @@ function eindeSpel(){
   }
   confetti({particleCount:240,spread:90,origin:{y:0.6}});
 }
-
 opnieuwBtn.onclick=()=>{
   eindePopup.style.display="none";
   scoreEngel=0; scoreDuivel=0;
