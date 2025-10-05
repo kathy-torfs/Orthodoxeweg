@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Engeltjes vs Duiveltjes – Orthodoxe Kinderpagina</title>
 <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
+
+<!-- 🎉 Confetti -->
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 
 <style>
@@ -16,10 +18,8 @@ body{
   overflow-x:hidden;
 }
 h1{color:white;margin-bottom:10px;}
-#levelinfo{color:white;font-weight:bold;margin-bottom:10px;}
-#scorebord{color:white;font-weight:bold;margin-bottom:20px;font-size:20px;}
+#levelinfo{color:white;font-weight:bold;margin-bottom:20px;}
 
-/* ⚽ Veld */
 #veld{
   position:relative;
   width:90%;
@@ -58,32 +58,35 @@ h1{color:white;margin-bottom:10px;}
 .goal.left{left:0;}
 .goal.right{right:0;}
 
-.speler{position:absolute;text-align:center;transform:translate(-50%,-50%);}
-.speler .hoofd{font-size:32px;display:block;margin-bottom:-6px;}
+.speler{ position:absolute; text-align:center; transform:translate(-50%,-50%); }
+.speler .hoofd{ font-size:32px; display:block; margin-bottom:-6px; }
 .shirt{
-  width:50px;height:35px;border-radius:6px;
-  font-weight:bold;line-height:35px;
+  width:50px;height:35px;border-radius:6px;font-weight:bold;line-height:35px;
   color:black;box-shadow:0 0 4px rgba(0,0,0,0.4);
 }
 .shirt.engel{background:#57b8f3;}
 .shirt.duivel{background:#d93838;}
+
 .spring{animation:jump 0.6s ease;}
 @keyframes jump{
   0%{transform:translate(-50%,-50%) scale(1);}
   40%{transform:translate(-50%,-60%) scale(1.15);}
   100%{transform:translate(-50%,-50%) scale(1);}
 }
+#bal{
+  position:absolute;
+  font-size:34px;
+  transition:all 0.9s cubic-bezier(.35,1.2,.4,1);
+  transform:translate(-50%,-50%);
+  z-index:10;
+}
 
-#scheids{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:40px;}
-#bal{position:absolute;font-size:34px;transition:all 0.9s cubic-bezier(.35,1.2,.4,1);transform:translate(-50%,-50%);z-index:10;}
-
+/* knoppen & popup */
 button{
   margin-top:15px;padding:10px 18px;font-size:16px;border:none;border-radius:8px;
   background:#7bb235;color:white;cursor:pointer;
 }
 button:hover{background:#689c2e;}
-
-/* Popup */
 #popup{
   position:fixed;inset:0;background:rgba(0,0,0,0.4);
   display:none;justify-content:center;align-items:center;z-index:20;
@@ -92,6 +95,7 @@ button:hover{background:#689c2e;}
   background:#7fd8d7;border-radius:12px;padding:20px;width:90%;max-width:420px;
   text-align:center;color:black;box-shadow:0 0 15px rgba(0,0,0,0.4);
 }
+#popup-content h2{margin-top:0;font-size:20px;color:black;}
 .antw-btn{
   display:block;width:100%;margin:8px 0;padding:12px;border:none;border-radius:8px;
   background:white;color:black;cursor:pointer;font-size:16px;
@@ -99,7 +103,7 @@ button:hover{background:#689c2e;}
 }
 .antw-btn:hover{background:#dff8f7;}
 
-/* Einde */
+/* 🏆 Einde-popup */
 #eindePopup{
   position:fixed;inset:0;background:rgba(0,0,0,0.5);
   display:none;justify-content:center;align-items:center;flex-direction:column;z-index:30;color:white;
@@ -114,24 +118,25 @@ button:hover{background:#689c2e;}
 </head>
 <body>
 
+<!-- Header -->
 <div id="kinder-header"></div>
 <script src="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/common/layout.js"></script>
 
 <h1>Engeltjes vs Duiveltjes</h1>
 <div id="levelinfo">Level 1</div>
-<div id="scorebord">😇 0 — 0 😈</div>
 
 <div id="veld">
-  <div class="goal left">😈</div>
-  <div class="goal right">😇</div>
+  <div class="goal left">😇</div>
+  <div class="goal right">😈</div>
   <div id="spelers"></div>
-  <div id="scheids">👨‍⚖️</div>
   <div id="bal">⚽</div>
 </div>
 
+<!-- Startknop -->
 <button id="startknop">Start het spel</button>
 <button id="vraagBtn" style="display:none;">Volgende vraag</button>
 
+<!-- Vraag-popup -->
 <div id="popup">
   <div id="popup-content">
     <h2 id="vraagtekst">Vraag</h2>
@@ -140,6 +145,7 @@ button:hover{background:#689c2e;}
   </div>
 </div>
 
+<!-- 🏆 Einde-popup -->
 <div id="eindePopup">
   <div class="box">
     <div class="emoji" id="eindeEmoji"></div>
@@ -151,6 +157,7 @@ button:hover{background:#689c2e;}
 
 <script src="vragen.js"></script>
 <script>
+/* === DOM refs === */
 const veld=document.getElementById('veld');
 const spelersDiv=document.getElementById('spelers');
 const bal=document.getElementById('bal');
@@ -166,100 +173,104 @@ const eindeEmoji=document.getElementById('eindeEmoji');
 const eindeTitel=document.getElementById('eindeTitel');
 const eindeTekst=document.getElementById('eindeTekst');
 const opnieuwBtn=document.getElementById('opnieuwBtn');
-const scorebord=document.getElementById('scorebord');
 
-/* GELUIDEN */
-const fluit = new Audio("referee-whistle-blow-gymnasium-6320.mp3");
-const applaus = new Audio("crowd-applause-236697.mp3");
-const boe = new Audio("crowd-disappointment-reaction-352718.mp3");
-const cheer = new Audio("crowd-cheer-applause-victory-fanfare-clapping-236698.mp3");
-
+/* === Game state === */
 let huidigLevel=1;
-let vragenQueue=[];let levelPool=[];let vraagIndex=0;
-let engelIndex=0;let duivelIndex=0;
+let vragenQueue=[];            // 1 zonde + 5 levelvragen, in volgorde
+let levelPool=[];              // extra levelvragen indien meer nodig
+let vraagIndex=0;              // toont 1e altijd zonde
+let engelIndex=0;              // 0..5 (5 = bij speler 5)
+let duivelIndex=0;             // 0..5
 let spelGestart=false;
-let scoreEngel=0;let scoreDuivel=0;
+let scoreEngel=0;
+let scoreDuivel=0;
 
-function randomPos(x,y,spread){return {x:x+(Math.random()*spread-spread/2),y:y+(Math.random()*spread-spread/2)};}
-
-function tekenSpelers(){
+/* === Helpers === */
+function randomPos(baseX,baseY,spread){
+  return {x:baseX+(Math.random()*spread-spread/2),
+          y:baseY+(Math.random()*spread-spread/2)};
+}
+function tekenSpelers(level){
   spelersDiv.innerHTML="";
-  
-  // Engeltjes (links)
-  const engelBasis=[{x:20,y:30},{x:25,y:50},{x:30,y:40},{x:28,y:65},{x:38,y:50}];
-  // Duiveltjes (rechts)
-  const duivelBasis=[{x:80,y:30},{x:75,y:50},{x:70,y:40},{x:72,y:65},{x:62,y:50}];
-  
-  engelBasis.forEach((p,i)=>{if(i<4)Object.assign(p,randomPos(p.x,p.y,5));});
-  duivelBasis.forEach((p,i)=>{if(i<4)Object.assign(p,randomPos(p.x,p.y,5));});
-  
-  // Keepers: 1 per ploeg, mét shirt maar geen nummer
-  maakSpeler("duivelKeeper",{x:5,y:50},"😈",true,"");
-  maakSpeler("engelKeeper",{x:95,y:50},"😇",true,"");
-  
-  // 5 veldspelers
+  const engelBasis=[{x:55,y:30},{x:60,y:55},{x:70,y:40},{x:65,y:70},{x:88,y:50}];
+  const duivelBasis=[{x:45,y:30},{x:40,y:55},{x:30,y:40},{x:35,y:70},{x:12,y:50}];
+  engelBasis.forEach((p,i)=>{ if(i<4){ Object.assign(p,randomPos(p.x,p.y,5)); } });
+  duivelBasis.forEach((p,i)=>{ if(i<4){ Object.assign(p,randomPos(p.x,p.y,5)); } });
   for(let i=0;i<5;i++){
-    maakSpeler("engel"+(i+1),engelBasis[i],"😇",true,i+1);
-    maakSpeler("duivel"+(i+1),duivelBasis[i],"😈",true,i+1);
+    maakSpeler("engel",i+1,engelBasis[i]);
+    maakSpeler("duivel",i+1,duivelBasis[i]);
   }
 }
-
-function maakSpeler(id,pos,icoon,shirt=false,num=""){
+function maakSpeler(team,num,pos){
   const el=document.createElement("div");
   el.className="speler";
-  el.id=id;
+  el.id=team+num;
   el.style.left=pos.x+"%";
   el.style.top=pos.y+"%";
-  el.innerHTML=`<div class="hoofd">${icoon}</div>` + 
-               (shirt?`<div class="shirt ${icoon==='😇'?'engel':'duivel'}">${num}</div>`:"");
+  el.innerHTML=`<div class="hoofd">${team==="engel"?"😇":"😈"}</div>
+                <div class="shirt ${team}">${num}</div>`;
   spelersDiv.appendChild(el);
 }
+function setBal(xPerc,yPerc){ bal.style.left=xPerc+"%"; bal.style.top=yPerc+"%"; }
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 
-function setBal(x,y){bal.style.left=x+"%";bal.style.top=y+"%";}
-function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
-
-function laadLevel(lvl){
-  huidigLevel=lvl;
-  engelIndex=0;duivelIndex=0;vraagIndex=0;
+/* === Level / vragen === */
+function laadLevel(level){
+  huidigLevel=level;
+  levelinfo.textContent="Level "+level;
+  // reset progress
+  engelIndex=0; duivelIndex=0; vraagIndex=0;
   setBal(50,50);
-  tekenSpelers();
-  const zondeV=vragen.filter(v=>v.difficulty==="zonde");
-  const lvlV=vragen.filter(v=>v.difficulty===lvl);
-  const randomZonde=zondeV[Math.floor(Math.random()*zondeV.length)];
-  const vijf=shuffle(lvlV.slice()).slice(0,5);
-  vragenQueue=[randomZonde,...vijf];
-  levelPool=lvlV.filter(v=>!vijf.includes(v));
-  fluit.play();
+  tekenSpelers(level);
+
+  // 1 zondevraag + 5 levelvragen (op volgorde)
+  const zondeVragen = vragen.filter(v => v.difficulty === "zonde");
+  const levelVragen = vragen.filter(v => v.difficulty === level);
+  const randomZonde = zondeVragen[Math.floor(Math.random()*zondeVragen.length)];
+  const vijfLevel = shuffle(levelVragen.slice()).slice(0,5);  // kopie en 5 kiezen
+  vragenQueue = [randomZonde, ...vijfLevel];
+  // rest van het level als pool voor extra vragen als het nog geen goal is
+  levelPool = levelVragen.filter(v => !vijfLevel.includes(v));
+
+  // geen alerts meer; direct klaar voor vraag
 }
 
 function volgendeVraagObject(){
-  if(vraagIndex<vragenQueue.length)return vragenQueue[vraagIndex++];
-  if(levelPool.length===0)levelPool=vragen.filter(v=>v.difficulty===huidigLevel);
+  if(vraagIndex < vragenQueue.length){
+    return vragenQueue[vraagIndex++]; // eerste is altijd zonde
+  }
+  // na 6 vragen: blijf vragen uit level-pool (of volledige set) tot er gescoord is
+  if(levelPool.length===0) levelPool = vragen.filter(v=>v.difficulty===huidigLevel);
   return levelPool[Math.floor(Math.random()*levelPool.length)];
 }
 
+/* === Vraag UI === */
 vraagBtn.onclick=()=>toonVraag();
 sluitBtn.onclick=()=>popup.style.display="none";
 
 function toonVraag(){
-  if(!spelGestart)return;
-  const v=volgendeVraagObject();
+  if(!spelGestart) return;
+  const v = volgendeVraagObject();
   vraagtekst.textContent=v.q;
-  const ind=[...v.a.keys()];shuffle(ind);
+
+  const indices=[...v.a.keys()];
+  shuffle(indices);
   antwoordenDiv.innerHTML="";
-  ind.forEach(i=>{
-    const b=document.createElement("button");
-    b.className="antw-btn";b.textContent=v.a[i];
-    b.onclick=()=>controleerAntwoord(i===v.correct);
-    antwoordenDiv.appendChild(b);
+  indices.forEach(i=>{
+    const btn=document.createElement("button");
+    btn.className="antw-btn";
+    btn.textContent=v.a[i];
+    btn.onclick=()=>controleerAntwoord(i===v.correct);
+    antwoordenDiv.appendChild(btn);
   });
+
   popup.style.display="flex";
 }
 
 function moveBalTo(team,index){
   const speler=document.getElementById(team+index);
-  if(!speler)return;
-  const rect=speler.getBoundingClientRect();
+  const shirt=speler.querySelector(".shirt");
+  const rect=shirt.getBoundingClientRect();
   const veldRect=veld.getBoundingClientRect();
   const x=((rect.left+rect.width/2)-veldRect.left)/veldRect.width*100;
   const y=((rect.top+rect.height/2)-veldRect.top)/veldRect.height*100;
@@ -268,70 +279,82 @@ function moveBalTo(team,index){
   setTimeout(()=>speler.classList.remove("spring"),600);
 }
 
-function controleerAntwoord(juist){
+/* === Antwoord-logica === */
+function controleerAntwoord(isJuist){
   popup.style.display="none";
-  if(juist){
-    applaus.play();
-    if(engelIndex<5){engelIndex++;moveBalTo("engel",engelIndex);}
-    else goal("engel");
+
+  if(isJuist){
+    if(engelIndex < 5){                // 1 → 5
+      engelIndex++;
+      moveBalTo("engel",engelIndex);
+    }else{                              // al bij 5 → nu scoren
+      goal("engel");
+    }
   }else{
-    boe.play();
-    if(duivelIndex<5){duivelIndex++;moveBalTo("duivel",duivelIndex);}
-    else goal("duivel");
+    if(duivelIndex < 5){
+      duivelIndex++;
+      moveBalTo("duivel",duivelIndex);
+    }else{
+      goal("duivel");
+    }
   }
 }
 
+/* === Goals & einde === */
 function goal(team){
-  fluit.play();
   if(team==="engel"){
-    setBal(97,70);
+    setBal(98,50); // dieper in het net
     scoreEngel++;
-    cheer.play();
+    setTimeout(()=>volgendeLevel(),900);
   }else{
-    setBal(3,30);
+    setBal(2,50);
     scoreDuivel++;
-    cheer.play();
+    setTimeout(()=>resetLevelOfVolgende(),900);
   }
-  updateScore();
-  setTimeout(()=>volgendeLevel(),1200);
 }
-
-function updateScore(){scorebord.textContent=`😇 ${scoreEngel} — ${scoreDuivel} 😈`;}
-
-/* Level en einde */
-function volgendeLevel(){if(huidigLevel<3)laadLevel(huidigLevel+1);else eindeSpel();}
+function resetLevelOfVolgende(){
+  // voor symmetrie behandelen we hetzelfde: naar volgend level
+  volgendeLevel();
+}
+function volgendeLevel(){
+  if(huidigLevel < 3){
+    laadLevel(huidigLevel+1);
+  }else{
+    eindeSpel();
+  }
+}
 function eindeSpel(){
   eindePopup.style.display="flex";
   if(scoreEngel>scoreDuivel){
     eindeEmoji.textContent="🏆😇";
-    eindeTitel.textContent="De Engeltjes winnen!";
+    eindeTitel.textContent="Proficiat, de engeltjes winnen!";
     eindeTekst.textContent="Hemelse overwinning! 🎉";
   }else if(scoreDuivel>scoreEngel){
     eindeEmoji.textContent="😈🎉";
-    eindeTitel.textContent="De Duiveltjes winnen!";
-    eindeTekst.textContent="Oei, ze waren te sterk deze keer!";
+    eindeTitel.textContent="Oei… de duiveltjes winnen deze keer!";
+    eindeTekst.textContent="Volgende keer beter, engeltjes!";
   }else{
     eindeEmoji.textContent="⚖️";
     eindeTitel.textContent="Gelijkspel!";
-    eindeTekst.textContent="Iedereen speelde hemels goed!";
+    eindeTekst.textContent="Iedereen heeft geweldig gespeeld!";
   }
   confetti({particleCount:240,spread:90,origin:{y:0.6}});
 }
-
 opnieuwBtn.onclick=()=>{
   eindePopup.style.display="none";
-  scoreEngel=0;scoreDuivel=0;updateScore();
+  scoreEngel=0; scoreDuivel=0;
   startknop.style.display="inline-block";
   vraagBtn.style.display="none";
   spelGestart=false;
   setBal(50,50);
 };
 
+/* === Start === */
 startknop.onclick=()=>{
   spelGestart=true;
   startknop.style.display="none";
   vraagBtn.style.display="inline-block";
-  scoreEngel=0;scoreDuivel=0;updateScore();
+  scoreEngel=0; scoreDuivel=0;
   laadLevel(1);
 };
 </script>
