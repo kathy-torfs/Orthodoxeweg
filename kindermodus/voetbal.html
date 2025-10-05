@@ -76,7 +76,6 @@ h1{color:white;margin-bottom:10px;}
 }
 .shirt.engel{background:#57b8f3;}
 .shirt.duivel{background:#d93838;}
-/* neutraal shirtje voor keepers */
 .shirt.keeper{background:#e6e6e6;}
 
 .spring{animation:jump 0.6s ease;}
@@ -142,7 +141,7 @@ button:hover{background:#689c2e;}
   <div class="goal right">😈</div>
   <div id="spelers"></div>
   <!-- scheidsrechter in het midden -->
-  <div id="scheids">🧍‍♂️</div> <!-- icoon aangepast -->
+  <div id="scheids">🧍‍♂️</div>
   <div id="bal">⚽</div>
 </div>
 
@@ -171,13 +170,11 @@ button:hover{background:#689c2e;}
 
 <script src="vragen.js"></script>
 <script>
-/* === GELUIDEN (zet deze .mp3’s naast deze HTML) === */
-const sApplaus = new Audio("crowd-applause-236697.mp3");        // bij engeltjes-goal
-const sBoo     = new Audio("crowd-disappointment-reaction-352718.mp3"); // bij duiveltjes-goal
-const sCheer   = new Audio("crowd-cheer-applause-victory-fanfare-clapping-236698.mp3"); // spel gewonnen
-const sFluit   = new Audio("referee-whistle-blow-gymnasium-6320.mp3"); // start & per level
+const sApplaus = new Audio("crowd-applause-236697.mp3");
+const sBoo     = new Audio("crowd-disappointment-reaction-352718.mp3");
+const sCheer   = new Audio("crowd-cheer-applause-victory-fanfare-clapping-236698.mp3");
+const sFluit   = new Audio("referee-whistle-blow-gymnasium-6320.mp3");
 
-/* === DOM refs === */
 const veld=document.getElementById('veld');
 const spelersDiv=document.getElementById('spelers');
 const bal=document.getElementById('bal');
@@ -194,7 +191,6 @@ const eindeTitel=document.getElementById('eindeTitel');
 const eindeTekst=document.getElementById('eindeTekst');
 const opnieuwBtn=document.getElementById('opnieuwBtn');
 
-/* === Game state === */
 let huidigLevel=1;
 let vragenQueue=[];
 let levelPool=[];
@@ -205,42 +201,32 @@ let spelGestart=false;
 let scoreEngel=0;
 let scoreDuivel=0;
 
-/* === Helpers === */
 function randomPos(baseX,baseY,spread){
   return {x:baseX+(Math.random()*spread-spread/2),
           y:baseY+(Math.random()*spread-spread/2)};
 }
 
-/* toegevoegd: doelen leegmaken */
-function clearGoals(){
-  document.querySelector('.goal.left').textContent="";
-  document.querySelector('.goal.right').textContent="";
-}
-
 function tekenSpelers(level){
   spelersDiv.innerHTML="";
 
-  //NOTA:// hieronder staan de exacte posities van elke speler
-
   //😇 ENGELTJES (rechts)
   const engelBasis=[
-    {x:55,y:30}, //😇 Engel 1 – rechts boven
-    {x:60,y:55}, //😇 Engel 2 – midden rechts
-    {x:70,y:40}, //😇 Engel 3 – iets hoger rechts
-    {x:65,y:70}, //😇 Engel 4 – rechts onder
-    {x:88,y:50}  //😇 Engel 5 – vlak voor keeper
+    {x:55,y:30},
+    {x:60,y:55},
+    {x:70,y:40},
+    {x:65,y:70},
+    {x:88,y:50}
   ];
 
   //😈 DUIVELTJES (links)
   const duivelBasis=[
-    {x:45,y:30}, //😈 Duivel 1 – links boven
-    {x:40,y:55}, //😈 Duivel 2 – midden links
-    {x:30,y:40}, //😈 Duivel 3 – iets hoger links
-    {x:35,y:70}, //😈 Duivel 4 – links onder
-    {x:12,y:50}  //😈 Duivel 5 – vlak voor keeper
+    {x:45,y:30},
+    {x:40,y:55},
+    {x:30,y:40},
+    {x:35,y:70},
+    {x:12,y:50}
   ];
 
-  // kleine spreiding (voor natuurlijke look)
   engelBasis.forEach((p,i)=>{ if(i<4){ Object.assign(p,randomPos(p.x,p.y,5)); } });
   duivelBasis.forEach((p,i)=>{ if(i<4){ Object.assign(p,randomPos(p.x,p.y,5)); } });
 
@@ -249,11 +235,9 @@ function tekenSpelers(level){
     maakSpeler("duivel",i+1,duivelBasis[i]);
   }
 
-  //NOTA:// Keepers krijgen neutraal shirtje (grijs), geen nummer
-  //😈 Duivelkeeper links (x=6%, y=50%)
-  //😇 Engelkeeper rechts (x=94%, y=50%)
-  maakKeeper("duivel",6,50);
-  maakKeeper("engel",94,50);
+  // keepers (omgewisseld)
+  maakKeeper("engel",6,50);   // engelkeeper LINKS
+  maakKeeper("duivel",94,50); // duivelkeeper RECHTS
 }
 
 function maakSpeler(team,num,pos){
@@ -266,6 +250,8 @@ function maakSpeler(team,num,pos){
                 <div class="shirt ${team}">${num}</div>`;
   spelersDiv.appendChild(el);
 }
+
+/* === aangepaste keeper === */
 function maakKeeper(team,xPerc,yPerc){
   const el=document.createElement("div");
   el.className="speler";
@@ -273,19 +259,18 @@ function maakKeeper(team,xPerc,yPerc){
   el.style.left=xPerc+"%";
   el.style.top=yPerc+"%";
   el.innerHTML=`<div class="hoofd">${team==="engel"?"😇":"😈"}</div>
-                <div class="shirt keeper"></div>`;
+                <div class="shirt ${team}">0</div>`;
   spelersDiv.appendChild(el);
 }
 function setBal(xPerc,yPerc){ bal.style.left=xPerc+"%"; bal.style.top=yPerc+"%"; }
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 
-/* === Level / vragen === */
 function laadLevel(level){
   huidigLevel=level;
   levelinfo.textContent="Level "+level;
   engelIndex=0; duivelIndex=0; vraagIndex=0;
   setBal(50,50);
-  clearGoals(); // toegevoegd
+  clearGoals();
   tekenSpelers(level);
 
   try { sFluit.currentTime = 0; sFluit.play(); } catch(e){}
@@ -306,7 +291,6 @@ function volgendeVraagObject(){
   return levelPool[Math.floor(Math.random()*levelPool.length)];
 }
 
-/* === Vraag UI === */
 vraagBtn.onclick=()=>toonVraag();
 sluitBtn.onclick=()=>popup.style.display="none";
 
@@ -340,7 +324,6 @@ function moveBalTo(team,index){
   setTimeout(()=>speler.classList.remove("spring"),600);
 }
 
-/* === Antwoord-logica === */
 function controleerAntwoord(isJuist){
   popup.style.display="none";
 
@@ -361,7 +344,6 @@ function controleerAntwoord(isJuist){
   }
 }
 
-/* === Goals & einde === */
 function goal(team){
   if(team==="engel"){
     setBal(98,50);
@@ -375,15 +357,10 @@ function goal(team){
     setTimeout(()=>resetLevelOfVolgende(),900);
   }
 }
-function resetLevelOfVolgende(){
-  volgendeLevel();
-}
+function resetLevelOfVolgende(){ volgendeLevel(); }
 function volgendeLevel(){
-  if(huidigLevel < 3){
-    laadLevel(huidigLevel+1);
-  }else{
-    eindeSpel();
-  }
+  if(huidigLevel < 3){ laadLevel(huidigLevel+1); }
+  else{ eindeSpel(); }
 }
 function eindeSpel(){
   eindePopup.style.display="flex";
@@ -412,13 +389,12 @@ opnieuwBtn.onclick=()=>{
   setBal(50,50);
 };
 
-/* === Start === */
 startknop.onclick=()=>{
   spelGestart=true;
   startknop.style.display="none";
   vraagBtn.style.display="inline-block";
   scoreEngel=0; scoreDuivel=0;
-  clearGoals(); // toegevoegd
+  clearGoals();
   try { sFluit.currentTime=0; sFluit.play(); } catch(e){}
   laadLevel(1);
 };
