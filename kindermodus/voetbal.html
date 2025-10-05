@@ -58,6 +58,16 @@ h1{color:white;margin-bottom:10px;}
 .goal.left{left:0;}
 .goal.right{right:0;}
 
+/* 👨‍⚖️ scheidsrechter */
+#scheids{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  font-size:40px;
+  z-index:5;
+}
+
 .speler{ position:absolute; text-align:center; transform:translate(-50%,-50%); }
 .speler .hoofd{ font-size:32px; display:block; margin-bottom:-6px; }
 .shirt{
@@ -79,16 +89,6 @@ h1{color:white;margin-bottom:10px;}
   transition:all 0.9s cubic-bezier(.35,1.2,.4,1);
   transform:translate(-50%,-50%);
   z-index:10;
-}
-
-/* 👨‍⚖️ scheidsrechter */
-#scheids{
-  position:absolute;
-  left:50%;
-  top:50%;
-  transform:translate(-50%,-50%);
-  font-size:40px;
-  z-index:5;
 }
 
 /* knoppen & popup */
@@ -169,10 +169,10 @@ button:hover{background:#689c2e;}
 <script src="vragen.js"></script>
 <script>
 /* === GELUIDEN === */
-const applaus = new Audio("crowd-applause-236697.mp3"); // kort applaus
-const boe = new Audio("crowd-disappointment-reaction-352718.mp3"); // boe bij fout
-const cheer = new Audio("crowd-cheer-applause-victory-fanfare-clapping-236698.mp3"); // bij goal
-const fluit = new Audio("referee-whistle-blow-gymnasium-6320.mp3"); // scheidsfluit
+const applaus = new Audio("crowd-applause-236697.mp3");
+const boe = new Audio("crowd-disappointment-reaction-352718.mp3");
+const cheer = new Audio("crowd-cheer-applause-victory-fanfare-clapping-236698.mp3");
+const fluit = new Audio("referee-whistle-blow-gymnasium-6320.mp3");
 
 /* === DOM refs === */
 const veld=document.getElementById('veld');
@@ -217,6 +217,9 @@ function tekenSpelers(level){
     maakSpeler("engel",i+1,engelBasis[i]);
     maakSpeler("duivel",i+1,duivelBasis[i]);
   }
+  // Keepers met shirt
+  maakKeeper("engel",92,50);
+  maakKeeper("duivel",8,50);
 }
 function maakSpeler(team,num,pos){
   const el=document.createElement("div");
@@ -228,6 +231,17 @@ function maakSpeler(team,num,pos){
                 <div class="shirt ${team}">${num}</div>`;
   spelersDiv.appendChild(el);
 }
+function maakKeeper(team,x,y){
+  const el=document.createElement("div");
+  el.className="speler";
+  el.id=team+"Keeper";
+  el.style.left=x+"%";
+  el.style.top=y+"%";
+  el.innerHTML=`<div class="hoofd">${team==="engel"?"😇":"😈"}</div>
+                <div class="shirt ${team}"></div>`;
+  spelersDiv.appendChild(el);
+}
+
 function setBal(xPerc,yPerc){ bal.style.left=xPerc+"%"; bal.style.top=yPerc+"%"; }
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 
@@ -304,12 +318,12 @@ function controleerAntwoord(isJuist){
 function goal(team){
   fluit.play();
   if(team==="engel"){
-    setBal(98,50);
+    setBal(97,40); // rechter bovenhoek
     scoreEngel++;
     cheer.play();
     setTimeout(()=>volgendeLevel(),900);
   }else{
-    setBal(2,50);
+    setBal(3,60); // linker benedenhoek
     scoreDuivel++;
     cheer.play();
     setTimeout(()=>volgendeLevel(),900);
