@@ -3,77 +3,45 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>voetbalspel – Orthodoxe Kinderpagina</title> 
+<title>voetbalspel – Orthodoxe Kinderpagina</title>
 <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
 
-<!-- 🎉 Confetti -->
+<!-- Confetti -->
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 
 <style>
 body{
-  background:#2d7a2d;
-  margin:0;padding:20px;
-  font-family:Arial,sans-serif;
-  text-align:center;
-  overflow-x:hidden;
+  background:#2d7a2d;margin:0;padding:20px;
+  font-family:Arial,sans-serif;text-align:center;overflow-x:hidden;
 }
 h1{color:white;margin-bottom:10px;}
 #levelinfo{color:white;font-weight:bold;margin-bottom:20px;}
 
+/* Veld */
 #veld{
-  position:relative;
-  width:90%;
-  max-width:900px;
-  height:500px;
+  position:relative;width:90%;max-width:900px;height:500px;
   margin:0 auto 20px auto;
   background:repeating-linear-gradient(90deg,#3fa33f 0 40px,#2d7a2d 40px 80px);
-  border:5px solid white;
-  border-radius:12px;
-  overflow:hidden;
+  border:5px solid white;border-radius:12px;overflow:hidden;
 }
-#veld::before{
-  content:"";
-  position:absolute;
-  top:0;left:50%;
-  width:2px;height:100%;
-  background:white;
-}
-#veld::after{
-  content:"";
-  position:absolute;
-  top:50%;left:50%;
-  width:120px;height:120px;
-  border:2px solid white;
-  border-radius:50%;
-  transform:translate(-50%,-50%);
-}
+#veld::before{content:"";position:absolute;top:0;left:50%;width:2px;height:100%;background:white;}
+#veld::after{content:"";position:absolute;top:50%;left:50%;width:120px;height:120px;border:2px solid white;border-radius:50%;transform:translate(-50%,-50%);}
+
+/* Doelen (zonder emoji-inhoud) */
 .goal{
-  position:absolute;
-  top:35%;height:30%;width:60px;
-  border:2px solid white;
+  position:absolute;top:35%;height:30%;width:60px;border:2px solid white;
   background:repeating-linear-gradient(45deg,rgba(255,255,255,0.3) 0 5px,transparent 5px 10px);
-  display:flex;align-items:center;justify-content:center;
-  font-size:28px;color:white;
+  display:flex;align-items:center;justify-content:center;font-size:28px;color:white;
 }
 .goal.left{left:0;}
 .goal.right{right:0;}
 
-/* 👨‍⚖️ scheidsrechter */
-#scheids{
-  position:absolute;
-  left:50%;
-  top:50%;
-  transform:translate(-50%,-50%);
-  font-size:40px;
-  z-index:5;
-}
+/* Scheidsrechter */
+#scheids{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:40px;z-index:5;}
 
-.speler{ position:absolute; text-align:center; transform:translate(-50%,-50%); }
-.speler .hoofd{ font-size:32px; display:block; margin-bottom:-6px; }
-.shirt{
-  width:50px;height:35px;border-radius:6px;font-weight:bold;line-height:35px;
-  color:black;box-shadow:0 0 4px rgba(0,0,0,0.4);
-}
+.speler{position:absolute;text-align:center;transform:translate(-50%,-50%);}
+.speler .hoofd{font-size:32px;display:block;margin-bottom:-6px;}
+.shirt{width:50px;height:35px;border-radius:6px;font-weight:bold;line-height:35px;color:black;box-shadow:0 0 4px rgba(0,0,0,0.4);}
 .shirt.engel{background:#57b8f3;}
 .shirt.duivel{background:#d93838;}
 
@@ -83,45 +51,22 @@ h1{color:white;margin-bottom:10px;}
   40%{transform:translate(-50%,-60%) scale(1.15);}
   100%{transform:translate(-50%,-50%) scale(1);}
 }
-#bal{
-  position:absolute;
-  font-size:34px;
-  transition:all 0.9s cubic-bezier(.35,1.2,.4,1);
-  transform:translate(-50%,-50%);
-  z-index:10;
-}
 
-/* knoppen & popup */
-button{
-  margin-top:15px;padding:10px 18px;font-size:16px;border:none;border-radius:8px;
-  background:#7bb235;color:white;cursor:pointer;
-}
+/* Bal */
+#bal{position:absolute;font-size:34px;transition:all 0.9s cubic-bezier(.35,1.2,.4,1);transform:translate(-50%,-50%);z-index:10;}
+
+/* Knoppen & popup */
+button{margin-top:15px;padding:10px 18px;font-size:16px;border:none;border-radius:8px;background:#7bb235;color:white;cursor:pointer;}
 button:hover{background:#689c2e;}
-#popup{
-  position:fixed;inset:0;background:rgba(0,0,0,0.4);
-  display:none;justify-content:center;align-items:center;z-index:20;
-}
-#popup-content{
-  background:#7fd8d7;border-radius:12px;padding:20px;width:90%;max-width:420px;
-  text-align:center;color:black;box-shadow:0 0 15px rgba(0,0,0,0.4);
-}
+#popup{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:none;justify-content:center;align-items:center;z-index:20;}
+#popup-content{background:#7fd8d7;border-radius:12px;padding:20px;width:90%;max-width:420px;text-align:center;color:black;box-shadow:0 0 15px rgba(0,0,0,0.4);}
 #popup-content h2{margin-top:0;font-size:20px;color:black;}
-.antw-btn{
-  display:block;width:100%;margin:8px 0;padding:12px;border:none;border-radius:8px;
-  background:white;color:black;cursor:pointer;font-size:16px;
-  box-shadow:0 2px 4px rgba(0,0,0,0.2);
-}
+.antw-btn{display:block;width:100%;margin:8px 0;padding:12px;border:none;border-radius:8px;background:white;color:black;cursor:pointer;font-size:16px;box-shadow:0 2px 4px rgba(0,0,0,0.2);}
 .antw-btn:hover{background:#dff8f7;}
 
-/* 🏆 Einde-popup */
-#eindePopup{
-  position:fixed;inset:0;background:rgba(0,0,0,0.5);
-  display:none;justify-content:center;align-items:center;flex-direction:column;z-index:30;color:white;
-}
-#eindePopup .box{
-  background:#ffffff;color:black;border-radius:16px;padding:30px;text-align:center;
-  width:90%;max-width:420px;box-shadow:0 0 20px rgba(0,0,0,0.5);
-}
+/* Einde-popup */
+#eindePopup{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;justify-content:center;align-items:center;flex-direction:column;z-index:30;color:white;}
+#eindePopup .box{background:#ffffff;color:black;border-radius:16px;padding:30px;text-align:center;width:90%;max-width:420px;box-shadow:0 0 20px rgba(0,0,0,0.5);}
 #eindePopup h2{margin-top:0;}
 #eindePopup .emoji{font-size:60px;margin-bottom:10px;}
 </style>
@@ -136,10 +81,10 @@ button:hover{background:#689c2e;}
 <div id="levelinfo">Level 1</div>
 
 <div id="veld">
-  <div class="goal left">😇</div>
-  <div class="goal right">😈</div>
+  <div class="goal left"></div>
+  <div class="goal right"></div>
   <div id="spelers"></div>
-  <div id="scheids">👨‍⚖️</div>
+  <div id="scheids">🧑‍⚖️</div>
   <div id="bal">⚽</div>
 </div>
 
@@ -156,7 +101,7 @@ button:hover{background:#689c2e;}
   </div>
 </div>
 
-<!-- 🏆 Einde-popup -->
+<!-- Einde-popup -->
 <div id="eindePopup">
   <div class="box">
     <div class="emoji" id="eindeEmoji"></div>
@@ -168,11 +113,11 @@ button:hover{background:#689c2e;}
 
 <script src="vragen.js"></script>
 <script>
-/* === GELUIDEN === */
-const applaus = new Audio("crowd-applause-236697.mp3");
-const boe = new Audio("crowd-disappointment-reaction-352718.mp3");
-const cheer = new Audio("crowd-cheer-applause-victory-fanfare-clapping-236698.mp3");
-const fluit = new Audio("referee-whistle-blow-gymnasium-6320.mp3");
+/* === GELUIDEN === (plaats .mp3’s naast deze html) */
+const applaus = new Audio("crowd-applause-236697.mp3");                 // juist antwoord
+const boe     = new Audio("crowd-disappointment-reaction-352718.mp3");  // fout antwoord
+const cheer   = new Audio("crowd-cheer-applause-victory-fanfare-clapping-236698.mp3"); // goal
+const fluit   = new Audio("referee-whistle-blow-gymnasium-6320.mp3");   // fluitsignaal
 
 /* === DOM refs === */
 const veld=document.getElementById('veld');
@@ -193,83 +138,82 @@ const opnieuwBtn=document.getElementById('opnieuwBtn');
 
 /* === Game state === */
 let huidigLevel=1;
-let vragenQueue=[];
-let levelPool=[];
-let vraagIndex=0;
-let engelIndex=0;
-let duivelIndex=0;
+let vragenQueue=[]; let levelPool=[]; let vraagIndex=0;
+let engelIndex=0; let duivelIndex=0;
 let spelGestart=false;
-let scoreEngel=0;
-let scoreDuivel=0;
+let scoreEngel=0; let scoreDuivel=0;
 
-/* === Posities === */
+/* === Posities (vast, in % van veld) ===
+   Engeltjes rechts (5 dichtst bij rechter goal), Duiveltjes links (5 dichtst bij linker goal) */
 const POS = {
   engel: [
-    {x:15, y:28},
-    {x:22, y:72},
-    {x:20, y:45},
-    {x:28, y:60},
-    {x:15, y:50}
+    {x:60, y:30}, // 1
+    {x:60, y:55}, // 2
+    {x:67, y:42}, // 3
+    {x:66, y:70}, // 4
+    {x:88, y:50}  // 5 (bij rechter goal)
   ],
   duivel: [
-    {x:85, y:28},
-    {x:78, y:72},
-    {x:80, y:45},
-    {x:72, y:60},
-    {x:85, y:50}
+    {x:40, y:30}, // 1
+    {x:38, y:58}, // 2
+    {x:33, y:42}, // 3
+    {x:32, y:70}, // 4
+    {x:12, y:50}  // 5 (bij linker goal)
   ],
-  keepers: {
-    duivel: {x:5,  y:50},
-    engel:  {x:95, y:50}
-  }
+  keeperEngel: {x:94, y:50},  // centraal in rechter doel
+  keeperDuivel:{x:6 , y:50}   // centraal in linker doel
 };
 
 /* === Helpers === */
 function tekenSpelers(){
   spelersDiv.innerHTML="";
-  POS.engel.forEach((p,i)=>maakSpeler("engel",i+1,p));
-  POS.duivel.forEach((p,i)=>maakSpeler("duivel",i+1,p));
-  maakKeeper("duivel",POS.keepers.duivel);
-  maakKeeper("engel",POS.keepers.engel);
+  // 5 engeltjes + 5 duiveltjes
+  for(let i=0;i<5;i++){
+    maakSpeler("engel", i+1, POS.engel[i]);
+    maakSpeler("duivel", i+1, POS.duivel[i]);
+  }
+  // Keepers (met shirt, zonder nummer)
+  maakKeeper("engel", POS.keeperEngel.x, POS.keeperEngel.y);
+  maakKeeper("duivel", POS.keeperDuivel.x, POS.keeperDuivel.y);
 }
 function maakSpeler(team,num,pos){
   const el=document.createElement("div");
-  el.className="speler";
-  el.id=team+num;
-  el.style.left=pos.x+"%";
-  el.style.top=pos.y+"%";
-  el.innerHTML=`<div class="hoofd">${team==="engel"?"😇":"😈"}</div>
-                <div class="shirt ${team}">${num}</div>`;
+  el.className="speler"; el.id=team+num;
+  el.style.left=pos.x+"%"; el.style.top=pos.y+"%";
+  el.innerHTML=`<span class="hoofd">${team==="engel"?"😇":"😈"}</span>
+                <span class="shirt ${team}">${num}</span>`;
   spelersDiv.appendChild(el);
 }
-function maakKeeper(team,pos){
+function maakKeeper(team,x,y){
   const el=document.createElement("div");
-  el.className="speler";
-  el.id=team+"Keeper";
-  el.style.left=pos.x+"%";
-  el.style.top=pos.y+"%";
-  el.innerHTML=`<div class="hoofd">${team==="engel"?"😇":"😈"}</div>
-                <div class="shirt ${team}"></div>`;
+  el.className="speler"; el.id=team+"Keeper";
+  el.style.left=x+"%"; el.style.top=y+"%";
+  el.innerHTML=`<span class="hoofd">${team==="engel"?"😇":"😈"}</span>
+                <span class="shirt ${team}"></span>`;
   spelersDiv.appendChild(el);
 }
-
 function setBal(x,y){ bal.style.left=x+"%"; bal.style.top=y+"%"; }
-function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 
-/* === Level === */
+/* === Level/vragen === */
 function laadLevel(level){
-  huidigLevel=level;
-  levelinfo.textContent="Level "+level;
+  huidigLevel=level; levelinfo.textContent="Level "+level;
   engelIndex=0; duivelIndex=0; vraagIndex=0;
   setBal(50,50);
   tekenSpelers();
-  fluit.play();
-  const zondeVragen=vragen.filter(v=>v.difficulty==="zonde");
-  const levelVragen=vragen.filter(v=>v.difficulty===level);
-  const randomZonde=zondeVragen[Math.floor(Math.random()*zondeVragen.length)];
-  const vijfLevel=shuffle(levelVragen.slice()).slice(0,5);
-  vragenQueue=[randomZonde,...vijfLevel];
-  levelPool=levelVragen.filter(v=>!vijfLevel.includes(v));
+  fluit.currentTime=0; fluit.play();
+
+  const zondeV = vragen.filter(v => v.difficulty === "zonde");
+  const lvlV   = vragen.filter(v => v.difficulty === level);
+  const randomZonde = zondeV[Math.floor(Math.random()*zondeV.length)];
+  const vijf = shuffle(lvlV.slice()).slice(0,5);
+  vragenQueue = [randomZonde, ...vijf];
+  levelPool = lvlV.filter(v => !vijf.includes(v));
+}
+function volgendeVraagObject(){
+  if(vraagIndex<vragenQueue.length) return vragenQueue[vraagIndex++];
+  if(levelPool.length===0) levelPool = vragen.filter(v=>v.difficulty===huidigLevel);
+  return levelPool[Math.floor(Math.random()*levelPool.length)];
 }
 
 /* === Vraag UI === */
@@ -280,26 +224,17 @@ function toonVraag(){
   if(!spelGestart) return;
   const v=volgendeVraagObject();
   vraagtekst.textContent=v.q;
-  const indices=[...v.a.keys()];
-  shuffle(indices);
+  const ind=[...v.a.keys()]; shuffle(ind);
   antwoordenDiv.innerHTML="";
-  indices.forEach(i=>{
-    const btn=document.createElement("button");
-    btn.className="antw-btn";
-    btn.textContent=v.a[i];
-    btn.onclick=()=>controleerAntwoord(i===v.correct);
-    antwoordenDiv.appendChild(btn);
+  ind.forEach(i=>{
+    const b=document.createElement("button");
+    b.className="antw-btn"; b.textContent=v.a[i];
+    b.onclick=()=>controleerAntwoord(i===v.correct);
+    antwoordenDiv.appendChild(b);
   });
   popup.style.display="flex";
 }
 
-function volgendeVraagObject(){
-  if(vraagIndex<vragenQueue.length) return vragenQueue[vraagIndex++];
-  if(levelPool.length===0) levelPool=vragen.filter(v=>v.difficulty===huidigLevel);
-  return levelPool[Math.floor(Math.random()*levelPool.length)];
-}
-
-/* === Beweging === */
 function moveBalTo(team,index){
   const speler=document.getElementById(team+index);
   const shirt=speler.querySelector(".shirt");
@@ -312,56 +247,47 @@ function moveBalTo(team,index){
   setTimeout(()=>speler.classList.remove("spring"),600);
 }
 
-/* === Antwoord === */
-function controleerAntwoord(isJuist){
+/* === Antwoord-logica === */
+function controleerAntwoord(juist){
   popup.style.display="none";
-  if(isJuist){
-    applaus.play();
+  if(juist){
+    applaus.currentTime=0; applaus.play();
     if(engelIndex<5){ engelIndex++; moveBalTo("engel",engelIndex); }
     else goal("engel");
   }else{
-    boe.play();
+    boe.currentTime=0; boe.play();
     if(duivelIndex<5){ duivelIndex++; moveBalTo("duivel",duivelIndex); }
     else goal("duivel");
   }
 }
 
-/* === Goals === */
+/* === Goals & einde === */
 function goal(team){
-  fluit.play();
+  fluit.currentTime=0; fluit.play();
   if(team==="engel"){
-    setBal(97,40); // rechter bovenhoek
-    scoreEngel++; cheer.play();
-    setTimeout(()=>volgendeLevel(),900);
+    // Engeltjes scoren in de RECHTER goal (tegenpartij)
+    setBal(96,38); // hoek rechtsboven
   }else{
-    setBal(3,60); // linker benedenhoek
-    scoreDuivel++; cheer.play();
-    setTimeout(()=>volgendeLevel(),900);
+    // Duiveltjes scoren in de LINKER goal (tegenpartij)
+    setBal(4,62);  // hoek linksonder
   }
+  cheer.currentTime=0; cheer.play();
+  setTimeout(()=>volgendeLevel(),1100);
 }
-
-/* === Einde === */
-function volgendeLevel(){ if(huidigLevel<3) laadLevel(huidigLevel+1); else eindeSpel(); }
+function volgendeLevel(){
+  if(huidigLevel<3){ laadLevel(huidigLevel+1); }
+  else eindeSpel();
+}
 function eindeSpel(){
   eindePopup.style.display="flex";
-  if(scoreEngel>scoreDuivel){
-    eindeEmoji.textContent="🏆😇";
-    eindeTitel.textContent="Proficiat, de engeltjes winnen!";
-    eindeTekst.textContent="Hemelse overwinning! 🎉";
-  }else if(scoreDuivel>scoreEngel){
-    eindeEmoji.textContent="😈🎉";
-    eindeTitel.textContent="Oei… de duiveltjes winnen deze keer!";
-    eindeTekst.textContent="Volgende keer beter, engeltjes!";
-  }else{
-    eindeEmoji.textContent="⚖️";
-    eindeTitel.textContent="Gelijkspel!";
-    eindeTekst.textContent="Iedereen heeft geweldig gespeeld!";
-  }
+  // Hier geen stand, want je vroeg om huidige logica te behouden
+  eindeEmoji.textContent="🏆";
+  eindeTitel.textContent="Goed gespeeld!";
+  eindeTekst.textContent="Klaar voor nog een rondje?";
   confetti({particleCount:240,spread:90,origin:{y:0.6}});
 }
 opnieuwBtn.onclick=()=>{
   eindePopup.style.display="none";
-  scoreEngel=0; scoreDuivel=0;
   startknop.style.display="inline-block";
   vraagBtn.style.display="none";
   spelGestart=false;
@@ -373,7 +299,6 @@ startknop.onclick=()=>{
   spelGestart=true;
   startknop.style.display="none";
   vraagBtn.style.display="inline-block";
-  scoreEngel=0; scoreDuivel=0;
   laadLevel(1);
 };
 </script>
