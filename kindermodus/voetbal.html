@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
@@ -18,8 +18,29 @@ body{
   overflow-x:hidden;
 }
 h1{color:white;margin-bottom:10px;}
-#levelinfo{color:white;font-weight:bold;margin-bottom:20px;}
+#levelinfo{color:white;font-weight:bold;margin-bottom:10px;}
 
+/* 🔢 SCOREBORD */
+#scorebord{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:40px;
+  color:white;
+  font-size:24px;
+  font-weight:bold;
+  margin-bottom:15px;
+}
+.scorevak{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.scorevak span{
+  font-size:32px;
+}
+
+/* ===== VELD ===== */
 #veld{
   position:relative;
   width:90%;
@@ -76,7 +97,7 @@ h1{color:white;margin-bottom:10px;}
 }
 .shirt.engel{background:#57b8f3;}
 .shirt.duivel{background:#d93838;}
-.shirt.keeper{background:#e6e6e6;} /* niet meer gebruikt, blijft voor compatibiliteit */
+.shirt.keeper{background:#e6e6e6;}
 
 .spring{animation:jump 0.6s ease;}
 @keyframes jump{
@@ -136,11 +157,16 @@ button:hover{background:#689c2e;}
 <h1>Engeltjes vs Duiveltjes</h1>
 <div id="levelinfo">Level 1</div>
 
+<!-- 🧮 SCOREBORD -->
+<div id="scorebord">
+  <div class="scorevak" id="scoreEngelVak">😇 <span id="scoreEngel">0</span></div>
+  <div class="scorevak" id="scoreDuivelVak">😈 <span id="scoreDuivel">0</span></div>
+</div>
+
 <div id="veld">
   <div class="goal left">😈</div>
   <div class="goal right">😇</div>
   <div id="spelers"></div>
-  <!-- scheidsrechter in het midden -->
   <div id="scheids">🧍‍♂️</div>
   <div id="bal">⚽</div>
 </div>
@@ -191,6 +217,10 @@ const eindeTitel=document.getElementById('eindeTitel');
 const eindeTekst=document.getElementById('eindeTekst');
 const opnieuwBtn=document.getElementById('opnieuwBtn');
 
+/* nieuw: scorebord refs */
+const scoreEngelSpan=document.getElementById('scoreEngel');
+const scoreDuivelSpan=document.getElementById('scoreDuivel');
+
 let huidigLevel=1;
 let vragenQueue=[];
 let levelPool=[];
@@ -201,47 +231,31 @@ let spelGestart=false;
 let scoreEngel=0;
 let scoreDuivel=0;
 
+function updateScorebord(){
+  scoreEngelSpan.textContent=scoreEngel;
+  scoreDuivelSpan.textContent=scoreDuivel;
+}
+
 function randomPos(baseX,baseY,spread){
   return {x:baseX+(Math.random()*spread-spread/2),
           y:baseY+(Math.random()*spread-spread/2)};
 }
 function clearGoals(){
-  document.querySelector('.goal.left').textContent="";
-  document.querySelector('.goal.right').textContent="";
+  document.querySelectorAll('.goal').forEach(g => g.textContent = "");
 }
 
 function tekenSpelers(level){
   spelersDiv.innerHTML="";
-
-  //😇 ENGELTJES (rechts)
-  const engelBasis=[
-    {x:55,y:30},
-    {x:60,y:55},
-    {x:70,y:40},
-    {x:65,y:70},
-    {x:88,y:50}
-  ];
-
-  //😈 DUIVELTJES (links)
-  const duivelBasis=[
-    {x:45,y:30},
-    {x:40,y:55},
-    {x:30,y:40},
-    {x:35,y:70},
-    {x:12,y:50}
-  ];
-
+  const engelBasis=[{x:55,y:30},{x:60,y:55},{x:70,y:40},{x:65,y:70},{x:88,y:50}];
+  const duivelBasis=[{x:45,y:30},{x:40,y:55},{x:30,y:40},{x:35,y:70},{x:12,y:50}];
   engelBasis.forEach((p,i)=>{ if(i<4){ Object.assign(p,randomPos(p.x,p.y,5)); } });
   duivelBasis.forEach((p,i)=>{ if(i<4){ Object.assign(p,randomPos(p.x,p.y,5)); } });
-
   for(let i=0;i<5;i++){
     maakSpeler("engel",i+1,engelBasis[i]);
     maakSpeler("duivel",i+1,duivelBasis[i]);
   }
-
-  // keepers
-  maakKeeper("engel",6,50);  // links
-  maakKeeper("duivel",94,50);  // rechts
+  maakKeeper("engel",6,50);
+  maakKeeper("duivel",94,50);
 }
 
 function maakSpeler(team,num,pos){
@@ -254,8 +268,6 @@ function maakSpeler(team,num,pos){
                 <div class="shirt ${team}">${num}</div>`;
   spelersDiv.appendChild(el);
 }
-
-/* === aangepaste keeper === */
 function maakKeeper(team,xPerc,yPerc){
   const el=document.createElement("div");
   el.className="speler";
@@ -263,15 +275,11 @@ function maakKeeper(team,xPerc,yPerc){
   el.style.left=xPerc+"%";
   el.style.top=yPerc+"%";
   el.innerHTML=`<div class="hoofd">${team==="engel"?"😇":"😈"}</div>
-                <div class="shirt ${team}">0</div>`; // zelfde kleur & nummer 0
+                <div class="shirt ${team}">0</div>`;
   spelersDiv.appendChild(el);
 }
-
 function setBal(xPerc,yPerc){ bal.style.left=xPerc+"%"; bal.style.top=yPerc+"%"; }
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
-function clearGoals(){
-  document.querySelectorAll('.goal').forEach(g => g.textContent = "");
-}
 
 function laadLevel(level){
   huidigLevel=level;
@@ -280,9 +288,8 @@ function laadLevel(level){
   setBal(50,50);
   clearGoals();
   tekenSpelers(level);
-
+  updateScorebord();
   try { sFluit.currentTime = 0; sFluit.play(); } catch(e){}
-
   const zondeVragen = vragen.filter(v => v.difficulty === "zonde");
   const levelVragen = vragen.filter(v => v.difficulty === level);
   const randomZonde = zondeVragen[Math.floor(Math.random()*zondeVragen.length)];
@@ -292,9 +299,7 @@ function laadLevel(level){
 }
 
 function volgendeVraagObject(){
-  if(vraagIndex < vragenQueue.length){
-    return vragenQueue[vraagIndex++];
-  }
+  if(vraagIndex < vragenQueue.length){ return vragenQueue[vraagIndex++]; }
   if(levelPool.length===0) levelPool = vragen.filter(v=>v.difficulty===huidigLevel);
   return levelPool[Math.floor(Math.random()*levelPool.length)];
 }
@@ -306,7 +311,6 @@ function toonVraag(){
   if(!spelGestart) return;
   const v = volgendeVraagObject();
   vraagtekst.textContent=v.q;
-
   const indices=[...v.a.keys()]; shuffle(indices);
   antwoordenDiv.innerHTML="";
   indices.forEach(i=>{
@@ -316,7 +320,6 @@ function toonVraag(){
     btn.onclick=()=>controleerAntwoord(i===v.correct);
     antwoordenDiv.appendChild(btn);
   });
-
   popup.style.display="flex";
 }
 
@@ -334,21 +337,12 @@ function moveBalTo(team,index){
 
 function controleerAntwoord(isJuist){
   popup.style.display="none";
-
   if(isJuist){
-    if(engelIndex < 5){
-      engelIndex++;
-      moveBalTo("engel",engelIndex);
-    }else{
-      goal("engel");
-    }
+    if(engelIndex < 5){ engelIndex++; moveBalTo("engel",engelIndex); }
+    else{ goal("engel"); }
   }else{
-    if(duivelIndex < 5){
-      duivelIndex++;
-      moveBalTo("duivel",duivelIndex);
-    }else{
-      goal("duivel");
-    }
+    if(duivelIndex < 5){ duivelIndex++; moveBalTo("duivel",duivelIndex); }
+    else{ goal("duivel"); }
   }
 }
 
@@ -356,20 +350,25 @@ function goal(team){
   if(team==="engel"){
     setBal(98,50);
     scoreEngel++;
+    updateScorebord();
     try { sApplaus.currentTime=0; sApplaus.play(); } catch(e){}
     setTimeout(()=>volgendeLevel(),900);
   }else{
     setBal(2,50);
     scoreDuivel++;
+    updateScorebord();
     try { sBoo.currentTime=0; sBoo.play(); } catch(e){}
     setTimeout(()=>resetLevelOfVolgende(),900);
   }
 }
+
 function resetLevelOfVolgende(){ volgendeLevel(); }
+
 function volgendeLevel(){
   if(huidigLevel < 3){ laadLevel(huidigLevel+1); }
   else{ eindeSpel(); }
 }
+
 function eindeSpel(){
   eindePopup.style.display="flex";
   if(scoreEngel>scoreDuivel){
@@ -391,6 +390,7 @@ function eindeSpel(){
 opnieuwBtn.onclick=()=>{
   eindePopup.style.display="none";
   scoreEngel=0; scoreDuivel=0;
+  updateScorebord();
   startknop.style.display="inline-block";
   vraagBtn.style.display="none";
   spelGestart=false;
@@ -402,6 +402,7 @@ startknop.onclick=()=>{
   startknop.style.display="none";
   vraagBtn.style.display="inline-block";
   scoreEngel=0; scoreDuivel=0;
+  updateScorebord();
   clearGoals();
   try { sFluit.currentTime=0; sFluit.play(); } catch(e){}
   laadLevel(1);
