@@ -126,8 +126,8 @@ button:hover{background:#689c2e;}
 <div id="levelinfo">Level 1</div>
 
 <div id="veld">
-  <div class="goal left">😈</div>
-  <div class="goal right">😇</div>
+  <div class="goal left">😇</div>
+  <div class="goal right">😈</div>
   <div id="spelers"></div>
   <div id="bal">⚽</div>
 </div>
@@ -157,11 +157,6 @@ button:hover{background:#689c2e;}
 
 <script src="vragen.js"></script>
 <script>
-/* === GELUIDEN === */
-const applaus = new Audio("crowd-applause-236697.mp3");
-const boe = new Audio("crowd-disappointment-reaction-352718.mp3");
-const cheer = new Audio("crowd-cheer-applause-victory-fanfare-clapping-236698.mp3");
-
 /* === DOM refs === */
 const veld=document.getElementById('veld');
 const spelersDiv=document.getElementById('spelers');
@@ -181,34 +176,31 @@ const opnieuwBtn=document.getElementById('opnieuwBtn');
 
 /* === Game state === */
 let huidigLevel=1;
-let vragenQueue=[]; let levelPool=[]; let vraagIndex=0;
-let engelIndex=0; let duivelIndex=0;
+let vragenQueue=[];            // 1 zonde + 5 levelvragen, in volgorde
+let levelPool=[];              // extra levelvragen indien meer nodig
+let vraagIndex=0;              // toont 1e altijd zonde
+let engelIndex=0;              // 0..5 (5 = bij speler 5)
+let duivelIndex=0;             // 0..5
 let spelGestart=false;
-let scoreEngel=0; let scoreDuivel=0;
+let scoreEngel=0;
+let scoreDuivel=0;
 
 /* === Helpers === */
 function randomPos(baseX,baseY,spread){
-  return {x:baseX+(Math.random()*spread-spread/2),y:baseY+(Math.random()*spread-spread/2)};
+  return {x:baseX+(Math.random()*spread-spread/2),
+          y:baseY+(Math.random()*spread-spread/2)};
 }
-
-/* === Spelers (gespiegeld + keeper) === */
-function tekenSpelers(){
+function tekenSpelers(level){
   spelersDiv.innerHTML="";
-  // gespiegeld veld: engeltjes links, duiveltjes rechts
-  const engelBasis=[{x:15,y:30},{x:20,y:55},{x:30,y:40},{x:25,y:70},{x:35,y:50}];
-  const duivelBasis=[{x:85,y:30},{x:80,y:55},{x:70,y:40},{x:75,y:70},{x:65,y:50}];
-  engelBasis.forEach((p,i)=>{if(i<4)Object.assign(p,randomPos(p.x,p.y,5));});
-  duivelBasis.forEach((p,i)=>{if(i<4)Object.assign(p,randomPos(p.x,p.y,5));});
-  // keepers
-  maakKeeper("engel",{x:95,y:50});
-  maakKeeper("duivel",{x:5,y:50});
-  // spelers
+  const engelBasis=[{x:55,y:30},{x:60,y:55},{x:70,y:40},{x:65,y:70},{x:88,y:50}];
+  const duivelBasis=[{x:45,y:30},{x:40,y:55},{x:30,y:40},{x:35,y:70},{x:12,y:50}];
+  engelBasis.forEach((p,i)=>{ if(i<4){ Object.assign(p,randomPos(p.x,p.y,5)); } });
+  duivelBasis.forEach((p,i)=>{ if(i<4){ Object.assign(p,randomPos(p.x,p.y,5)); } });
   for(let i=0;i<5;i++){
     maakSpeler("engel",i+1,engelBasis[i]);
     maakSpeler("duivel",i+1,duivelBasis[i]);
   }
 }
-
 function maakSpeler(team,num,pos){
   const el=document.createElement("div");
   el.className="speler";
@@ -219,37 +211,50 @@ function maakSpeler(team,num,pos){
                 <div class="shirt ${team}">${num}</div>`;
   spelersDiv.appendChild(el);
 }
-function maakKeeper(team,pos){
-  const el=document.createElement("div");
-  el.className="speler";
-  el.id=team+"Keeper";
-  el.style.left=pos.x+"%";
-  el.style.top=pos.y+"%";
-  el.innerHTML=`<div class="hoofd">${team==="engel"?"😇":"😈"}</div>
-                <div class="shirt ${team}"></div>`;
-  spelersDiv.appendChild(el);
-}
-
-function setBal(xPerc,yPerc){bal.style.left=xPerc+"%";bal.style.top=yPerc+"%";}
-function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function setBal(xPerc,yPerc){ bal.style.left=xPerc+"%"; bal.style.top=yPerc+"%"; }
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 
 /* === Level / vragen === */
 function laadLevel(level){
   huidigLevel=level;
   levelinfo.textContent="Level "+level;
+  // reset progress
   engelIndex=0; duivelIndex=0; vraagIndex=0;
   setBal(50,50);
-  tekenSpelers();
+  tekenSpelers(level);
+
+  // 1 zondevraag + 5 levelvragen (op volgorde)
+  const zondeVragen = vragen.filter(v => v.difficulty === "zonde");
+  const levelVragen = vragen.filter(v => v.difficulty === level);
+  const randomZonde = zondeVragen[Math.floor(Math.random()*zondeVragen.length)];
+  const vijfLevel = shuffle(levelVragen.slice()).slice(0,5);  // kopie en 5 kiezen
+  vragenQueue = [randomZonde, ...vijfLevel];
+  // rest van het level als pool voor extra vragen als het nog geen goal is
+  levelPool = levelVragen.filter(v => !vijfLevel.includes(v));
+
+  // geen alerts meer; direct klaar voor vraag
 }
 
+function volgendeVraagObject(){
+  if(vraagIndex < vragenQueue.length){
+    return vragenQueue[vraagIndex++]; // eerste is altijd zonde
+  }
+  // na 6 vragen: blijf vragen uit level-pool (of volledige set) tot er gescoord is
+  if(levelPool.length===0) levelPool = vragen.filter(v=>v.difficulty===huidigLevel);
+  return levelPool[Math.floor(Math.random()*levelPool.length)];
+}
+
+/* === Vraag UI === */
 vraagBtn.onclick=()=>toonVraag();
 sluitBtn.onclick=()=>popup.style.display="none";
 
 function toonVraag(){
   if(!spelGestart) return;
-  const v = vragen[Math.floor(Math.random()*vragen.length)];
+  const v = volgendeVraagObject();
   vraagtekst.textContent=v.q;
-  const indices=[...v.a.keys()];shuffle(indices);
+
+  const indices=[...v.a.keys()];
+  shuffle(indices);
   antwoordenDiv.innerHTML="";
   indices.forEach(i=>{
     const btn=document.createElement("button");
@@ -258,6 +263,7 @@ function toonVraag(){
     btn.onclick=()=>controleerAntwoord(i===v.correct);
     antwoordenDiv.appendChild(btn);
   });
+
   popup.style.display="flex";
 }
 
@@ -273,57 +279,70 @@ function moveBalTo(team,index){
   setTimeout(()=>speler.classList.remove("spring"),600);
 }
 
-/* === Antwoorden === */
+/* === Antwoord-logica === */
 function controleerAntwoord(isJuist){
   popup.style.display="none";
+
   if(isJuist){
-    applaus.play();
-    if(engelIndex < 5){engelIndex++;moveBalTo("engel",engelIndex);}
-    else goal("engel");
+    if(engelIndex < 5){                // 1 → 5
+      engelIndex++;
+      moveBalTo("engel",engelIndex);
+    }else{                              // al bij 5 → nu scoren
+      goal("engel");
+    }
   }else{
-    boe.play();
-    if(duivelIndex < 5){duivelIndex++;moveBalTo("duivel",duivelIndex);}
-    else goal("duivel");
+    if(duivelIndex < 5){
+      duivelIndex++;
+      moveBalTo("duivel",duivelIndex);
+    }else{
+      goal("duivel");
+    }
   }
 }
 
-/* === Goal === */
+/* === Goals & einde === */
 function goal(team){
   if(team==="engel"){
-    setBal(95,65);
-    scoreEngel++;cheer.play();
+    setBal(98,50); // dieper in het net
+    scoreEngel++;
+    setTimeout(()=>volgendeLevel(),900);
   }else{
-    setBal(5,35);
-    scoreDuivel++;cheer.play();
+    setBal(2,50);
+    scoreDuivel++;
+    setTimeout(()=>resetLevelOfVolgende(),900);
   }
-  setTimeout(()=>volgendeLevel(),1200);
 }
-
-/* === Einde === */
+function resetLevelOfVolgende(){
+  // voor symmetrie behandelen we hetzelfde: naar volgend level
+  volgendeLevel();
+}
 function volgendeLevel(){
-  if(huidigLevel < 3){laadLevel(huidigLevel+1);}
-  else eindeSpel();
+  if(huidigLevel < 3){
+    laadLevel(huidigLevel+1);
+  }else{
+    eindeSpel();
+  }
 }
 function eindeSpel(){
   eindePopup.style.display="flex";
   if(scoreEngel>scoreDuivel){
     eindeEmoji.textContent="🏆😇";
-    eindeTitel.textContent="De Engeltjes winnen!";
+    eindeTitel.textContent="Proficiat, de engeltjes winnen!";
     eindeTekst.textContent="Hemelse overwinning! 🎉";
   }else if(scoreDuivel>scoreEngel){
     eindeEmoji.textContent="😈🎉";
-    eindeTitel.textContent="De Duiveltjes winnen!";
-    eindeTekst.textContent="Oei, ze waren te sterk deze keer!";
+    eindeTitel.textContent="Oei… de duiveltjes winnen deze keer!";
+    eindeTekst.textContent="Volgende keer beter, engeltjes!";
   }else{
     eindeEmoji.textContent="⚖️";
     eindeTitel.textContent="Gelijkspel!";
-    eindeTekst.textContent="Iedereen speelde hemels goed!";
+    eindeTekst.textContent="Iedereen heeft geweldig gespeeld!";
   }
   confetti({particleCount:240,spread:90,origin:{y:0.6}});
 }
 opnieuwBtn.onclick=()=>{
   eindePopup.style.display="none";
-  scoreEngel=0;scoreDuivel=0;
+  scoreEngel=0; scoreDuivel=0;
   startknop.style.display="inline-block";
   vraagBtn.style.display="none";
   spelGestart=false;
@@ -335,7 +354,7 @@ startknop.onclick=()=>{
   spelGestart=true;
   startknop.style.display="none";
   vraagBtn.style.display="inline-block";
-  scoreEngel=0;scoreDuivel=0;
+  scoreEngel=0; scoreDuivel=0;
   laadLevel(1);
 };
 </script>
