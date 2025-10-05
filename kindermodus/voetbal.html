@@ -76,7 +76,7 @@ h1{color:white;margin-bottom:10px;}
 }
 .shirt.engel{background:#57b8f3;}
 .shirt.duivel{background:#d93838;}
-.shirt.keeper{background:#e6e6e6;}
+.shirt.keeper{background:#e6e6e6;} /* niet meer gebruikt, blijft voor compatibiliteit */
 
 .spring{animation:jump 0.6s ease;}
 @keyframes jump{
@@ -205,6 +205,10 @@ function randomPos(baseX,baseY,spread){
   return {x:baseX+(Math.random()*spread-spread/2),
           y:baseY+(Math.random()*spread-spread/2)};
 }
+function clearGoals(){
+  document.querySelector('.goal.left').textContent="";
+  document.querySelector('.goal.right').textContent="";
+}
 
 function tekenSpelers(level){
   spelersDiv.innerHTML="";
@@ -235,9 +239,9 @@ function tekenSpelers(level){
     maakSpeler("duivel",i+1,duivelBasis[i]);
   }
 
-  // keepers (omgewisseld)
-  maakKeeper("engel",6,50);   // engelkeeper LINKS
-  maakKeeper("duivel",94,50); // duivelkeeper RECHTS
+  // keepers
+  maakKeeper("duivel",6,50);  // links
+  maakKeeper("engel",94,50);  // rechts
 }
 
 function maakSpeler(team,num,pos){
@@ -259,9 +263,10 @@ function maakKeeper(team,xPerc,yPerc){
   el.style.left=xPerc+"%";
   el.style.top=yPerc+"%";
   el.innerHTML=`<div class="hoofd">${team==="engel"?"😇":"😈"}</div>
-                <div class="shirt ${team}">0</div>`;
+                <div class="shirt ${team}">0</div>`; // zelfde kleur & nummer 0
   spelersDiv.appendChild(el);
 }
+
 function setBal(xPerc,yPerc){ bal.style.left=xPerc+"%"; bal.style.top=yPerc+"%"; }
 function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 
