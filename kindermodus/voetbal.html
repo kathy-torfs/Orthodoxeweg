@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>voetbalspel – Orthodoxe Kinderpagina</title>
+<title>Engeltjes vs Duiveltjes – Orthodoxe Kinderpagina</title>
 <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 
@@ -17,15 +17,9 @@ body{
 }
 h1{color:white;margin-bottom:10px;}
 #levelinfo{color:white;font-weight:bold;margin-bottom:10px;}
+#scorebord{color:white;font-weight:bold;margin-bottom:20px;font-size:20px;}
 
-#scorebord{
-  color:white;
-  font-weight:bold;
-  margin-bottom:20px;
-  font-size:20px;
-}
-
-/* VELD */
+/* ⚽ Veld */
 #veld{
   position:relative;
   width:90%;
@@ -81,21 +75,15 @@ h1{color:white;margin-bottom:10px;}
 }
 
 #scheids{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:40px;}
+#bal{position:absolute;font-size:34px;transition:all 0.9s cubic-bezier(.35,1.2,.4,1);transform:translate(-50%,-50%);z-index:10;}
 
-#bal{
-  position:absolute;
-  font-size:34px;
-  transition:all 0.9s cubic-bezier(.35,1.2,.4,1);
-  transform:translate(-50%,-50%);
-  z-index:10;
-}
-
-/* KNOPPEN EN POPUP */
 button{
   margin-top:15px;padding:10px 18px;font-size:16px;border:none;border-radius:8px;
   background:#7bb235;color:white;cursor:pointer;
 }
 button:hover{background:#689c2e;}
+
+/* Popup */
 #popup{
   position:fixed;inset:0;background:rgba(0,0,0,0.4);
   display:none;justify-content:center;align-items:center;z-index:20;
@@ -111,7 +99,7 @@ button:hover{background:#689c2e;}
 }
 .antw-btn:hover{background:#dff8f7;}
 
-/* EINDE POPUP */
+/* Einde */
 #eindePopup{
   position:fixed;inset:0;background:rgba(0,0,0,0.5);
   display:none;justify-content:center;align-items:center;flex-direction:column;z-index:30;color:white;
@@ -129,7 +117,7 @@ button:hover{background:#689c2e;}
 <div id="kinder-header"></div>
 <script src="https://kathy-torfs.github.io/Orthodoxeweg/kindermodus/common/layout.js"></script>
 
-<h1>Engeltjes vs duiveltjes</h1>
+<h1>Engeltjes vs Duiveltjes</h1>
 <div id="levelinfo">Level 1</div>
 <div id="scorebord">😇 0 — 0 😈</div>
 
@@ -196,19 +184,20 @@ function randomPos(x,y,spread){return {x:x+(Math.random()*spread-spread/2),y:y+(
 
 function tekenSpelers(){
   spelersDiv.innerHTML="";
+  
   // Engeltjes (links)
-  const engelBasis=[{x:20,y:30},{x:25,y:50},{x:30,y:40},{x:28,y:65},{x:35,y:60}];
+  const engelBasis=[{x:20,y:30},{x:25,y:50},{x:30,y:40},{x:28,y:65},{x:38,y:50}];
   // Duiveltjes (rechts)
-  const duivelBasis=[{x:80,y:30},{x:75,y:50},{x:70,y:40},{x:72,y:65},{x:65,y:60}];
+  const duivelBasis=[{x:80,y:30},{x:75,y:50},{x:70,y:40},{x:72,y:65},{x:62,y:50}];
   
   engelBasis.forEach((p,i)=>{if(i<4)Object.assign(p,randomPos(p.x,p.y,5));});
   duivelBasis.forEach((p,i)=>{if(i<4)Object.assign(p,randomPos(p.x,p.y,5));});
   
-  // Keepers
-  maakSpeler("engelKeeper",{x:5,y:50},"😇");
-  maakSpeler("duivelKeeper",{x:95,y:50},"😈");
+  // Keepers: 1 per ploeg, mét shirt maar geen nummer
+  maakSpeler("duivelKeeper",{x:5,y:50},"😈",true,"");
+  maakSpeler("engelKeeper",{x:95,y:50},"😇",true,"");
   
-  // 5 spelers elk
+  // 5 veldspelers
   for(let i=0;i<5;i++){
     maakSpeler("engel"+(i+1),engelBasis[i],"😇",true,i+1);
     maakSpeler("duivel"+(i+1),duivelBasis[i],"😈",true,i+1);
@@ -221,7 +210,8 @@ function maakSpeler(id,pos,icoon,shirt=false,num=""){
   el.id=id;
   el.style.left=pos.x+"%";
   el.style.top=pos.y+"%";
-  el.innerHTML=`<div class="hoofd">${icoon}</div>` + (shirt?`<div class="shirt ${icoon==='😇'?'engel':'duivel'}">${num}</div>`:"");
+  el.innerHTML=`<div class="hoofd">${icoon}</div>` + 
+               (shirt?`<div class="shirt ${icoon==='😇'?'engel':'duivel'}">${num}</div>`:"");
   spelersDiv.appendChild(el);
 }
 
@@ -294,11 +284,11 @@ function controleerAntwoord(juist){
 function goal(team){
   fluit.play();
   if(team==="engel"){
-    setBal(95,65);
+    setBal(97,70);
     scoreEngel++;
     cheer.play();
   }else{
-    setBal(5,35);
+    setBal(3,30);
     scoreDuivel++;
     cheer.play();
   }
@@ -308,11 +298,8 @@ function goal(team){
 
 function updateScore(){scorebord.textContent=`😇 ${scoreEngel} — ${scoreDuivel} 😈`;}
 
-function volgendeLevel(){
-  if(huidigLevel<3)laadLevel(huidigLevel+1);
-  else eindeSpel();
-}
-
+/* Level en einde */
+function volgendeLevel(){if(huidigLevel<3)laadLevel(huidigLevel+1);else eindeSpel();}
 function eindeSpel(){
   eindePopup.style.display="flex";
   if(scoreEngel>scoreDuivel){
