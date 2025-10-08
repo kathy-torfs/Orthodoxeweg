@@ -2,16 +2,9 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Priesterbrieven – Priestermodus</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
-
-  <!-- Lay-out priestermodus -->
-  <script defer src="common/layout.js"></script>
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 
   <style>
     body {
@@ -21,83 +14,228 @@
       color: #4e2710;
     }
     main {
-      max-width: 900px;
+      max-width: 1000px;
       margin: 30px auto;
-      padding: 0 16px;
+      padding: 0 20px 50px;
     }
     h1 {
       text-align: center;
       color: #6f4e1a;
     }
-    p.intro {
-      text-align: center;
-      font-size: 1.1em;
-      margin-bottom: 30px;
-    }
-    button.nieuw {
-      display: block;
-      margin: 0 auto 25px auto;
-      padding: 10px 18px;
-      background: #7bb235;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    .brievenlijst {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 16px;
-    }
-    .brief {
-      background: white;
+    form {
+      background: #fff8eb;
+      border: 2px solid #dab97a;
       border-radius: 12px;
       padding: 16px;
-      border: 1px solid #ead8b6;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 6px rgba(0,0,0,.1);
+      margin-top: 20px;
     }
-    .brief h3 { margin-top: 0; }
-    .brief button {
-      margin-top: 8px;
-      background: #67510C;
-      color: white;
-      border: none;
+    form h2 { margin-top: 0; color: #7a5f35; }
+    label { display: block; margin: 10px 0 4px; }
+    input[type=text], textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #dab97a;
       border-radius: 6px;
-      padding: 6px 10px;
+      background: #fffdf6;
+    }
+    textarea { min-height: 120px; resize: vertical; }
+    button {
+      background: #7bb235;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      margin: 4px 4px 0 0;
+    }
+    button:hover { background: #5e8e29; }
+    .blok {
+      background: #fff;
+      border: 1px solid #dab97a;
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 10px;
+    }
+    .blok h4 { margin: 0 0 6px; color: #7a5f35; }
+    .brief-lijst {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .brief-kaart {
+      background: #fff;
+      border: 2px solid #dab97a;
+      border-radius: 10px;
+      padding: 10px;
       cursor: pointer;
     }
+    .brief-kaart h3 { margin: 0; color: #7a5f35; }
+    .brief-kaart small { color: #8f7437; }
+    img.klein { max-height: 3cm; border-radius: 6px; margin: 6px 0; }
   </style>
 </head>
 
 <body>
+  <!-- Header priestermodus -->
   <div id="priester-header"></div>
+  <script src="https://kathy-torfs.github.io/Orthodoxeweg/priestermodus/common/layout.js" defer></script>
 
   <main>
-    <h1>Priesterbrieven</h1>
-    <p class="intro">Hier kan u catecheselessen voor volwassenen aanmaken, bewerken en delen. U kunt teksten schrijven en afbeeldingen toevoegen of downloaden.</p>
+    <h1>📜 Priesterbrieven</h1>
+    <p style="text-align:center;">Hier kan u catechetische brieven voor volwassenen schrijven en illustreren met afbeeldingen.</p>
 
-    <button class="nieuw" onclick="nieuweBrief()">➕ Nieuwe brief maken</button>
+    <!-- Overzicht -->
+    <div id="brievenOverzicht" class="brief-lijst">Laden…</div>
 
-    <div id="brieven" class="brievenlijst">
-      <!-- brieven uit Firestore komen hier -->
-    </div>
+    <!-- Nieuw / bewerken -->
+    <form id="briefForm">
+      <h2>Nieuwe brief toevoegen / bewerken</h2>
+
+      <label>Titel</label>
+      <input type="text" id="briefTitel" required>
+
+      <label>Inhoud</label>
+      <textarea id="briefInhoud"></textarea>
+
+      <h3>Afbeeldingen</h3>
+      <div id="imgContainer"></div>
+      <button type="button" onclick="voegAfbeeldingToe()">➕ Afbeelding toevoegen</button>
+
+      <div style="margin-top:10px;">
+        <button type="submit">📌 Opslaan</button>
+        <button type="button" onclick="annuleer()">❌ Annuleren</button>
+      </div>
+    </form>
   </main>
 
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
+
   <script>
-    // Firebase setup (dezelfde config als elders)
+    // 🔥 Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
       authDomain: "orthodoxeweg.firebaseapp.com",
       projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.firebasestorage.app"
     };
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    const storage = firebase.storage();
 
-    // Placeholder-functie
-    function nieuweBrief(){
-      alert("Functie om nieuwe brief te maken volgt in stap 2.");
+    const parochieId = localStorage.getItem("ingelogdeParochie") || "onbekend";
+    const overzicht = document.getElementById("brievenOverzicht");
+    const form = document.getElementById("briefForm");
+    const imgContainer = document.getElementById("imgContainer");
+    let editId = null;
+    let origineel = null;
+
+    // ➕ Afbeelding toevoegen
+    function voegAfbeeldingToe(a={}) {
+      const div = document.createElement("div");
+      div.className = "blok";
+      div.innerHTML = `
+        <h4>Afbeelding</h4>
+        <input type="file" class="imgFile" accept="image/*"><br>
+        <input type="hidden" class="bestaandeUrl" value="${a.url||""}">
+        <label>Bijschrift:</label>
+        <textarea class="imgTekst">${(a.tekst||"").replace(/<br>/g,"\n")}</textarea>
+        ${a.url ? `<img src="${a.url}" class="klein">` : ""}
+      `;
+      imgContainer.appendChild(div);
     }
+
+    // 📩 Opslaan
+    form.addEventListener("submit", async(e)=>{
+      e.preventDefault();
+      const titel = form.briefTitel.value.trim();
+      if(!titel) return alert("Titel verplicht!");
+      const docId = titel.toLowerCase().replace(/\s+/g,"-");
+      const data = {
+        titel,
+        inhoud: form.briefInhoud.value.trim().replace(/\n/g,"<br>"),
+        afbeeldingen: [],
+        aangemaaktOp: new Date()
+      };
+
+      for(let blok of imgContainer.querySelectorAll(".blok")){
+        const file = blok.querySelector(".imgFile").files[0];
+        const tekst = blok.querySelector(".imgTekst").value.trim().replace(/\n/g,"<br>");
+        const bestaand = blok.querySelector(".bestaandeUrl").value;
+        if(file){
+          const pad = `priesterbrieven/${parochieId}/${docId}/${Date.now()}_${file.name}`;
+          const snap = await storage.ref(pad).put(file);
+          const url = await snap.ref.getDownloadURL();
+          data.afbeeldingen.push({url,tekst});
+        } else if(bestaand){
+          data.afbeeldingen.push({url:bestaand,tekst});
+        }
+      }
+
+      await db.collection("parochies").doc(parochieId).collection("priesterbrieven").doc(docId).set(data);
+      form.reset(); imgContainer.innerHTML=""; editId=null; origineel=null;
+      laadBrieven();
+    });
+
+    // ❌ Annuleren
+    function annuleer(){
+      if(!editId){
+        form.reset(); imgContainer.innerHTML="";
+      } else if(origineel){
+        const d = origineel;
+        form.briefTitel.value = d.titel;
+        form.briefInhoud.value = (d.inhoud||"").replace(/<br>/g,"\n");
+        imgContainer.innerHTML="";
+        d.afbeeldingen?.forEach(a=>voegAfbeeldingToe(a));
+      }
+    }
+
+    // 📚 Laden
+    async function laadBrieven(){
+      overzicht.innerHTML = "Laden…";
+      const snap = await db.collection("parochies").doc(parochieId).collection("priesterbrieven").get();
+      overzicht.innerHTML = "";
+      if(snap.empty){ overzicht.innerHTML = "<p>Geen brieven gevonden.</p>"; return; }
+      snap.forEach(doc=>{
+        const d = doc.data();
+        const kaart = document.createElement("div");
+        kaart.className = "brief-kaart";
+        kaart.innerHTML = `
+          <h3 onclick="bewerkBrief('${doc.id}')">${d.titel}</h3>
+          <small>${(d.inhoud||"").replace(/<br>/g," ").substring(0,70)}</small>
+          <div><button onclick="verwijderBrief('${doc.id}')">🗑 Verwijderen</button></div>
+        `;
+        overzicht.appendChild(kaart);
+      });
+    }
+
+    // ✏️ Bewerken
+    async function bewerkBrief(id){
+      const docRef = await db.collection("parochies").doc(parochieId).collection("priesterbrieven").doc(id).get();
+      if(!docRef.exists) return;
+      const d = docRef.data();
+      origineel = {id,...d};
+      form.briefTitel.value = d.titel;
+      form.briefInhoud.value = (d.inhoud||"").replace(/<br>/g,"\n");
+      imgContainer.innerHTML="";
+      d.afbeeldingen?.forEach(a=>voegAfbeeldingToe(a));
+      editId = id;
+      window.scrollTo({top:0,behavior:"smooth"});
+    }
+
+    // 🗑 Verwijderen
+    async function verwijderBrief(id){
+      if(!confirm("Weet u zeker dat u deze brief wil verwijderen?")) return;
+      await db.collection("parochies").doc(parochieId).collection("priesterbrieven").doc(id).delete();
+      laadBrieven();
+    }
+
+    laadBrieven();
   </script>
 </body>
 </html>
