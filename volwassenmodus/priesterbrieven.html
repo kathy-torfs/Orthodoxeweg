@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Priesterbrieven – Orthodoxeweg</title>
+<link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
+
+<style>
+  body {
+    background:#f5e9b8;
+    color:#6f4e1a;
+    font-family:Arial,sans-serif;
+    margin:0;
+    padding:0;
+  }
+
+  main {
+    max-width:900px;
+    margin:40px auto 60px auto;
+    padding:0 20px;
+  }
+
+  h1 {
+    text-align:center;
+    color:#4e2710;
+    margin-top:0;
+  }
+
+  .briefkaart {
+    background:#fffaf0;
+    border:2px solid #d4b879;
+    border-radius:14px;
+    padding:18px 20px;
+    margin-bottom:20px;
+    box-shadow:0 3px 10px #0001;
+    cursor:pointer;
+    transition:transform .12s, box-shadow .12s;
+  }
+
+  .briefkaart:hover {
+    transform:scale(1.01);
+    box-shadow:0 6px 14px #0002;
+  }
+
+  .briefkaart h3 {
+    margin:0;
+    color:#6f4e1a;
+  }
+
+  .briefkaart small {
+    color:#8a6d3f;
+  }
+
+  .brief-inhoud {
+    display:none;
+    background:#fffef8;
+    border-top:1px solid #ead7a9;
+    margin-top:12px;
+    padding:12px 10px;
+    border-radius:10px;
+    line-height:1.6;
+  }
+
+  .brief-inhoud img {
+    max-width:100%;
+    border-radius:10px;
+    margin:10px 0;
+  }
+
+  .geen-brieven {
+    text-align:center;
+    font-style:italic;
+    color:#775;
+    margin-top:50px;
+  }
+</style>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<!-- Layout (volwassenmodus) -->
+<script src="common/layout.js" defer></script>
+</head>
+<body>
+
+  <!-- Header -->
+  <div id="volwassen-header"></div>
+
+  <main>
+    <h1>📜 Priesterbrieven</h1>
+    <div id="brievenContainer">Laden...</div>
+  </main>
+
+<script>
+  // // nota // beveiliging
+  if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "volwassene") {
+    window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+  }
+
+  // // nota // Firebase setup
+  const firebaseConfig = {
+    apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+    authDomain: "orthodoxeweg.firebaseapp.com",
+    projectId: "orthodoxeweg",
+    storageBucket: "orthodoxeweg.appspot.com",
+    messagingSenderId: "408582263618",
+    appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
+  };
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  // // nota // brieven laden
+  async function laadPriesterbrieven() {
+    const container = document.getElementById("brievenContainer");
+    container.innerHTML = "Laden...";
+    const parochieId = localStorage.getItem("ingelogdeParochie");
+    if (!parochieId) return;
+
+    const snap = await db.collection("parochies")
+      .doc(parochieId)
+      .collection("priesterbrieven")
+      .orderBy("aangemaaktOp","desc")
+      .get();
+
+    if (snap.empty) {
+      container.innerHTML = "<p class='geen-brieven'>Er zijn nog geen priesterbrieven beschikbaar.</p>";
+      return;
+    }
+
+    container.innerHTML = "";
+    snap.forEach(doc => {
+      const d = doc.data();
+      if (d.zichtbaar === false) return; // verberg onzichtbare brieven
+
+      const kaart = document.createElement("div");
+      kaart.className = "briefkaart";
+      const datum = d.aangemaaktOp?.toDate ? d.aangemaaktOp.toDate().toLocaleDateString("nl-BE") : "";
+      kaart.innerHTML = `
+        <h3>${d.titel || "Naamloze brief"}</h3>
+        <small>${datum}</small>
+        <div class="brief-inhoud">
+          <p>${(d.inhoud || "").replace(/\n/g,"<br>")}</p>
+          ${
+            (d.afbeeldingen || [])
+              .map(a => `<img src="${a.url}" alt=""><p>${a.tekst || ""}</p>`)
+              .join("")
+          }
+        </div>
+      `;
+      kaart.addEventListener("click", () => {
+        const inhoud = kaart.querySelector(".brief-inhoud");
+        inhoud.style.display = (inhoud.style.display === "block") ? "none" : "block";
+      });
+      container.appendChild(kaart);
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", laadPriesterbrieven);
+</script>
+
+</body>
+</html>
