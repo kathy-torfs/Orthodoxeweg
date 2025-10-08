@@ -46,9 +46,7 @@
       transition: transform 0.15s;
     }
 
-    .bord-blok:hover {
-      transform: scale(1.03);
-    }
+    .bord-blok:hover { transform: scale(1.03); }
 
     .bord-titel {
       position: absolute;
@@ -68,6 +66,7 @@
       pointer-events: none;
     }
 
+    /* postit en krant */
     .postit-container, .krant-container {
       position: absolute;
       top: 60px;
@@ -77,14 +76,11 @@
     }
 
     .postit {
-      width: 80px;
-      height: 80px;
+      width: 80px; height: 80px;
       border-radius: 7px;
       box-shadow: 2px 3px 10px #0002;
       position: absolute;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       color: #222;
       font-size: 0.95em;
       font-weight: bold;
@@ -94,8 +90,7 @@
       opacity: 0.96;
       background: #fff86b;
       border: 1.5px solid #e6d600;
-      top: 30%;
-      left: 40%;
+      top: 30%; left: 40%;
       transform: rotate(-6deg);
     }
 
@@ -110,8 +105,7 @@
       color: #3a2c17;
       padding: 10px 12px 8px 12px;
       position: absolute;
-      top: 28%;
-      left: 28%;
+      top: 28%; left: 28%;
       overflow: hidden;
       word-break: break-word;
       opacity: 0.98;
@@ -134,7 +128,6 @@
       justify-content: center;
       position: relative;
     }
-
     .kaarsjes-grid {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
@@ -144,10 +137,8 @@
       justify-items: center;
       align-items: end;
     }
-
     .kaarsje-houder {
-      width: 58px;
-      height: 112px;
+      width: 58px; height: 112px;
       position: relative;
       display: flex;
       align-items: end;
@@ -156,46 +147,29 @@
       z-index: 2;
       transition: transform 0.08s;
     }
-
     .kaarsje-houder:hover {
       transform: scale(1.03);
       filter: drop-shadow(0 0 8px #ffe282a4);
     }
-
     .kaars-svg {
-      width: 38px;
-      height: 98px;
-      display: block;
-      margin-top: 16px;
-      z-index: 2;
+      width: 38px; height: 98px; display: block; margin-top: 16px; z-index: 2;
     }
-
     .vlam-svg {
-      width: 36px;
-      height: 46px;
-      position: absolute;
-      left: 50%;
-      top: -36px;
-      transform: translateX(-50%);
-      z-index: 4;
-      pointer-events: none;
+      width: 36px; height: 46px; position: absolute; left: 50%; top: -36px;
+      transform: translateX(-50%); z-index: 4; pointer-events: none;
     }
-
     .flikkerpad {
-      stroke: #d69800;
-      stroke-width: 2.7;
+      stroke: #d69800; stroke-width: 2.7;
       filter: url(#vlam-glow);
       animation: flikkerVlam 1.17s infinite;
       transform-origin: 50% 80%;
     }
-
     @keyframes flikkerVlam {
       0% { transform: scaleY(1) scaleX(1); opacity: 1;}
       38% { transform: scaleY(1.07) scaleX(1.17); opacity: 0.95;}
       62% { transform: scaleY(0.91) scaleX(1.13); opacity: 1;}
       100% { transform: scaleY(1) scaleX(1); opacity: 1;}
     }
-
     .vlam-geel { fill: #ffe953; }
     .vlam-rood { fill: #e92e30; }
     .vlam-transp { fill: transparent; opacity: 0.10;}
@@ -211,45 +185,157 @@
     }
   </style>
 
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="common/layout.js" defer></script>
 </head>
 <body>
 
+  <!-- HEADER -->
   <div id="volwassen-header"></div>
 
   <div class="borden-raster">
-    <!-- 4 borden naast elkaar -->
+
+    <!-- // nota // vier borden naast elkaar -->
     <div class="bovenste-rij">
+      <!-- Parochienieuws -->
       <a href="nieuws.html" class="bord-blok">
         <div class="bord-titel">Parochienieuws</div>
-        <div class="postit-container">
-          <div class="postit">Nieuw!</div>
-        </div>
+        <div class="postit-container" id="postitNieuws"></div>
       </a>
 
+      <!-- Zoekertjes -->
       <a href="zoekertjes.html" class="bord-blok">
         <div class="bord-titel">Zoekertjes</div>
-        <div class="krant-container">
-          <div class="krant-knipsel">Nieuwe oproep</div>
-        </div>
+        <div class="krant-container" id="knipselZoekertjes"></div>
       </a>
 
+      <!-- Multimedia -->
       <a href="multimedia.html" class="bord-blok">
         <div class="bord-titel">Multimedia</div>
       </a>
 
+      <!-- Priesterbrieven -->
       <a href="priesterbrieven.html" class="bord-blok">
         <div class="bord-titel">Priesterbrieven</div>
       </a>
     </div>
 
-    <!-- Kaarsenblok onderaan -->
+    <!-- // nota // Kaarsenblok onderaan -->
     <div class="kaarsjes-grid-blok">
       <div class="kaarsjes-grid" id="kaarsjesGrid"></div>
     </div>
   </div>
+
+  <script>
+    // // nota // beveiliging
+    if (!localStorage.getItem("ingelogdeParochie") || localStorage.getItem("modus") !== "volwassene") {
+      window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+    }
+
+    // // nota // Firebase setup
+    const firebaseConfig = {
+      apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.appspot.com",
+      messagingSenderId: "408582263618",
+      appId: "1:408582263618:web:0a20f4bf0704989d3ceedb"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // // nota // toont 1 post-it als er nieuws is
+    function laadPostitNieuws() {
+      const parochieId = localStorage.getItem("ingelogdeParochie");
+      if (!parochieId) return;
+      const container = document.getElementById("postitNieuws");
+      container.innerHTML = "";
+      db.collection("parochies").doc(parochieId)
+        .collection("prikbord_priester")
+        .limit(1)
+        .get()
+        .then(snapshot => {
+          if (!snapshot.empty) {
+            const data = snapshot.docs[0].data();
+            const tekst = (data.tekst || "Nieuw!").split(/\s+/).slice(0, 5).join(" ");
+            const postit = document.createElement("div");
+            postit.className = "postit";
+            postit.textContent = tekst + "…";
+            container.appendChild(postit);
+          }
+        });
+    }
+
+    // // nota // toont 1 krantknipsel als er een zoekertje is
+    function laadKnipselZoekertjes() {
+      const parochieId = localStorage.getItem("ingelogdeParochie");
+      if (!parochieId) return;
+      const container = document.getElementById("knipselZoekertjes");
+      container.innerHTML = "";
+      db.collection("parochies").doc(parochieId)
+        .collection("zoekertjes")
+        .limit(1)
+        .get()
+        .then(snapshot => {
+          if (!snapshot.empty) {
+            const d = snapshot.docs[0].data();
+            const tekst = (d.titel || "Nieuwe oproep") + " " + (d.tekst || "");
+            const knipsel = document.createElement("div");
+            knipsel.className = "krant-knipsel";
+            knipsel.textContent = tekst.split(/\s+/).slice(0, 8).join(" ") + "…";
+            container.appendChild(knipsel);
+          }
+        });
+    }
+
+    // // nota // laadt kaarsjes zoals vroeger
+    function laadKaarsjes() {
+      const grid = document.getElementById("kaarsjesGrid");
+      grid.innerHTML = '';
+      const parochieId = localStorage.getItem("ingelogdeParochie");
+      const lidId = localStorage.getItem("loginKeuze");
+      if (!parochieId || !lidId) return;
+      db.collection("parochies").doc(parochieId).collection("leden").doc(lidId)
+        .collection("kaarsjes").get()
+        .then(snapshot => {
+          for (let i = 1; i <= 12; i++) {
+            const doc = snapshot.docs.find(d => d.id === 'kaars' + i);
+            let vlamClass = "vlam-transp";
+            let vlamFill = "#ffe953";
+            if (doc && doc.data().status === "verzonden") { vlamClass = "vlam-geel flikkerpad"; }
+            if (doc && doc.data().status === "gelezen")   { vlamClass = "vlam-rood flikkerpad"; }
+            const houder = document.createElement("div");
+            houder.className = "kaarsje-houder";
+            houder.title = "Kaarsje " + i;
+            houder.onclick = () => { window.location.href = "kaarsjes.html"; };
+            houder.innerHTML = `
+              <svg class="kaars-svg" viewBox="0 0 38 98">
+                <rect x="9" y="12" width="20" height="80" rx="9" fill="#f7f1e2" stroke="#ccb99d" stroke-width="2.4"/>
+                <ellipse cx="19" cy="12" rx="10" ry="10" fill="#faf2cf" stroke="#e9e0c1" stroke-width="1.5"/>
+              </svg>
+              <svg class="vlam-svg" viewBox="0 0 36 46">
+                <defs>
+                  <filter id="vlam-glow" x="-50%" y="-50%" width="220%" height="220%">
+                    <feGaussianBlur stdDeviation="3.4" result="glow"/>
+                    <feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>
+                  </filter>
+                </defs>
+                <path d="M18 10 Q33 30 18 41 Q3 30 18 10 Z"
+                  class="${vlamClass}" fill="${vlamFill}" filter="url(#vlam-glow)"/>
+              </svg>`;
+            grid.appendChild(houder);
+          }
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      laadPostitNieuws();
+      laadKnipselZoekertjes();
+      laadKaarsjes();
+    });
+  </script>
 
 </body>
 </html>
