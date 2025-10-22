@@ -1,256 +1,243 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Orthodoxe Dagplanner</title>
-<link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
+<meta charset="utf-8">
+<title>Orthodox Huisplan – Dagplanner (printbaar)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
   :root{
-    --bg:#fff6e5; --card:#fff; --ink:#3b2b12; --sub:#6d5a34; --line:#e7d8b9;
-    --accent:#7bb235; --soft:#f2ead1; --ok:#4caf50;
+    --ink:#3c2b14; --soft:#f8f3e6; --line:#dfd1b0; --accent:#7aa35c;
   }
   *{box-sizing:border-box}
-  body{margin:0;font-family:Arial,system-ui,sans-serif;background:var(--bg);color:var(--ink);}
-  header{position:sticky;top:0;background:linear-gradient(180deg,#fff 70%,#fff6e5 100%);
-    border-bottom:1px solid var(--line);padding:14px 16px;z-index:10}
-  .wrap{max-width:960px;margin:0 auto;padding:16px}
-  h1{margin:0 0 4px;font-size:1.6rem}
-  .date{color:var(--sub);font-weight:600}
-  .grid{display:grid;gap:14px;margin-top:14px}
-  @media(min-width:860px){ .grid{grid-template-columns:1fr 1fr} }
-  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 14px 10px;
-    box-shadow:0 4px 18px #0000000f}
-  .card h2{margin:0 0 6px;font-size:1.1rem;color:var(--sub);letter-spacing:.3px}
-  .pray{font-style:italic;background:var(--soft);border-left:4px solid var(--accent);
-    padding:8px 10px;margin:8px 0 10px;border-radius:10px}
-  .row{display:flex;gap:8px;align-items:center;margin:6px 0}
-  .row input[type="text"]{flex:1;border:1px solid var(--line);border-radius:10px;padding:8px 10px}
-  .row button{border:1px solid var(--line);background:#faf7ee;border-radius:10px;padding:7px 10px;cursor:pointer}
-  .todo{margin:6px 0 0}
-  .todo li{display:flex;align-items:center;gap:8px;margin:6px 0;padding:6px 8px;border:1px dashed var(--line);border-radius:10px}
-  .todo input[type="checkbox"]{width:18px;height:18px}
-  .muted{color:#8a7a56;font-size:.95em}
-  .tiny{font-size:.9em;color:#7b6a44}
-  .ok{color:var(--ok);font-weight:600}
-  .foot{margin-top:8px;display:flex;gap:8px;justify-content:flex-end}
-  .pill{display:inline-block;background:#eef8e9;border:1px solid #cfe8bf;color:#355e1e;padding:4px 10px;border-radius:999px;font-size:.9em}
-  .two{display:grid;gap:10px}
-  @media(min-width:620px){ .two{grid-template-columns:1fr 1fr} }
-  textarea{width:100%;min-height:90px;border:1px solid var(--line);border-radius:10px;padding:10px}
+  body{font-family:Georgia,serif;background:#fffdf8;color:var(--ink);margin:0;}
+  header{padding:18px 16px;border-bottom:1px solid var(--line);background:#fff;}
+  h1{margin:0;font-size:1.4rem;text-align:center;}
+  .wrap{max-width:900px;margin:0 auto;padding:16px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:12px 0}
+  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  label{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);padding:8px 10px;border-radius:10px;background:#fff}
+  .group-title{font-weight:700;margin:6px 0 8px;color:#6f5a2a}
+  .btn{border:1px solid var(--line);background:#faf6ea;padding:9px 14px;border-radius:10px;cursor:pointer}
+  .btn-primary{background:#eaf3e4;border-color:#c8e0bd}
+  .btn-print{float:right}
+  .muted{color:#7a6a47;font-size:.95em}
+  .plan{white-space:pre-wrap;line-height:1.55}
+  .title{font-size:1.2rem;margin:0 0 6px;text-align:center}
+  .date{font-weight:700;text-align:center;margin-bottom:10px}
+  .hr{height:1px;background:var(--line);margin:12px 0}
+  .pray{background:var(--soft);border-left:4px solid var(--accent);padding:8px 10px;border-radius:8px;font-style:italic}
+  @media print{
+    .no-print{display:none !important}
+    body{background:#fff}
+    .card{border:none;padding:0;margin:0}
+    .wrap{padding:0 6mm}
+    header{border:none}
+  }
 </style>
 </head>
 <body>
-<header>
-  <div class="wrap">
-    <h1>Orthodoxe Dagplanner</h1>
-    <div class="date" id="vandaag">Vandaag</div>
-  </div>
+<header class="no-print">
+  <h1>Orthodox Huisplan – Dagplanner</h1>
 </header>
 
 <main class="wrap">
-  <!-- dag-anker: vastenregel + kleine focus -->
-  <div class="grid">
-    <section class="card">
-      <h2>Vastenregel / Focus van de dag</h2>
-      <div class="row">
-        <input id="vastenregel" type="text" placeholder="bv. Woensdag: geen dierlijke producten of olie" />
-        <button onclick="saveAll()">Bewaar</button>
+  <!-- Keuzes -->
+  <section class="card no-print">
+    <div class="row">
+      <div>
+        <div class="group-title">Dagtype</div>
+        <label><input type="radio" name="dagtype" value="thuis" checked> Thuisdag</label>
+        <label><input type="radio" name="dagtype" value="werk"> Werkdag (korter schema)</label>
       </div>
-      <div class="tiny">Tip: houdt dit in 1 korte zin. <span class="pill" id="status"></span></div>
-    </section>
-
-    <section class="card">
-      <h2>Korte dagbedoeling</h2>
-      <div class="pray" id="suggest-gebed">“Heer, geef ons vandaag vrede in hart en huis.”</div>
-      <textarea id="bedoeling" placeholder="Eigen woorden of familiewens..."></textarea>
-      <div class="foot"><button onclick="saveAll()">Bewaar</button></div>
-    </section>
-  </div>
-
-  <!-- dag in blokken -->
-  <div class="grid" id="blocks">
-    <!-- OCHTEND -->
-    <section class="card">
-      <h2>Ochtend (opstaan → 10u)</h2>
-      <div class="pray">Gebed: “Heer Jezus Christus, zegen deze dag.” (kruisteken, icoonhoekje)</div>
-      <ul class="todo" id="todo-ochtend"></ul>
-      <div class="row">
-        <input id="inp-ochtend" type="text" placeholder="Taak/activiteit toevoegen (wassen, aankleden, ontbijt...)" />
-        <button onclick="addItem('ochtend')">+ Voeg toe</button>
+      <div>
+        <div class="group-title">Kernmomenten</div>
+        <label><input type="checkbox" id="k-gebed-ochtend" checked> Ochtendgebed</label>
+        <label><input type="checkbox" id="k-reflectie" checked> Reflectiemoment (lezingen + bezinning)</label>
+        <label><input type="checkbox" id="k-avondgebed" checked> Avondgebed</label>
       </div>
-      <div class="muted">Idee met kind: tafel dekken, 1 psalmregel lezen, brood voor vanavond voorbereiden.</div>
-    </section>
-
-    <!-- VOORMIDDAG -->
-    <section class="card">
-      <h2>Voormiddag (10u → 12u)</h2>
-      <div class="pray">Stilte-minuut: kaarsje aansteken, 1 zin uit het Evangelie van vandaag hardop.</div>
-      <ul class="todo" id="todo-voormiddag"></ul>
-      <div class="row">
-        <input id="inp-voormiddag" type="text" placeholder="Taak/activiteit (school/leren, korte klus, korte wandeling)" />
-        <button onclick="addItem('voormiddag')">+ Voeg toe</button>
-      </div>
-      <div class="muted">ADHD-vriendelijk: 2×25 min focus, 5 min pauze, dan iets met de handen.</div>
-    </section>
-
-    <!-- MIDDAG -->
-    <section class="card">
-      <h2>Middag (12u → 14u)</h2>
-      <div class="pray">Tafelgebed: “Dank U, Heer, voor dit dagelijks brood.”</div>
-      <ul class="todo" id="todo-middag"></ul>
-      <div class="row">
-        <input id="inp-middag" type="text" placeholder="Maaltijd, afwas, korte rust, 10-min-gesprekje" />
-        <button onclick="addItem('middag')">+ Voeg toe</button>
-      </div>
-      <div class="muted">Relatie-moment: ieder noemt 1 ding waarvoor hij dankbaar is.</div>
-    </section>
-
-    <!-- NAMIDDAG -->
-    <section class="card">
-      <h2>Namiddag (14u → 17u)</h2>
-      <div class="pray">Gebed: “Heer, geef mij zachtmoedigheid.”</div>
-      <ul class="todo" id="todo-namiddag"></ul>
-      <div class="row">
-        <input id="inp-namiddag" type="text" placeholder="Buitenlucht, klusje, samen bakken/koken, 1 dienstbare daad" />
-        <button onclick="addItem('namiddag')">+ Voeg toe</button>
-      </div>
-      <div class="muted">Kind-idee: brood kneden, hout stapelen, plant verzorgen, kleine buurt-hulp.</div>
-    </section>
-
-    <!-- AVOND -->
-    <section class="card">
-      <h2>Avond (17u → 20u)</h2>
-      <div class="pray">Gezinsgebed: “Heer, ontferm U.” (kort, rustig) + 1 regel uit de heiligenlevens.</div>
-      <ul class="todo" id="todo-avond"></ul>
-      <div class="row">
-        <input id="inp-avond" type="text" placeholder="Avondmaal, opruim, brood bakken (airfryer), rustig spel/lezing" />
-        <button onclick="addItem('avond')">+ Voeg toe</button>
-      </div>
-      <div class="muted">Schermarm: kaarsje, zacht licht, eenvoudige muziek of stilte.</div>
-    </section>
-
-    <!-- NACHT -->
-    <section class="card">
-      <h2>Nacht (20u → slapen)</h2>
-      <div class="pray">Dankgebed: noem 3 dankpunten; kruisteken; vrede wensen.</div>
-      <ul class="todo" id="todo-nacht"></ul>
-      <div class="row">
-        <input id="inp-nacht" type="text" placeholder="Pyjama, tanden, boekje, licht uit" />
-        <button onclick="addItem('nacht')">+ Voeg toe</button>
-      </div>
-      <div class="muted">Ritme geneest: elke dag dezelfde volgorde geeft veiligheid.</div>
-    </section>
-  </div>
-
-  <!-- Reflectie -->
-  <section class="card" style="margin-top:14px">
-    <h2>Reflectie van vandaag</h2>
-    <div class="two">
-      <textarea id="reflectie" placeholder="Wat ging goed? Waar was liefde zichtbaar? Waarin wil ik morgen groeien?"></textarea>
-      <textarea id="notities" placeholder="Praktisch: boodschappen, taken voor morgen, recept-idee, catechese-hint..."></textarea>
     </div>
-    <div class="foot">
-      <button onclick="saveAll()">Bewaar alles</button>
+
+    <div style="margin-top:12px">
+      <div class="group-title">Huishoudtaken van vandaag (detail zoals “Perfect Housewife”)</div>
+      <div class="row" id="tasks"></div>
+      <div class="muted">Tip: kies 1–3 focustaken; morgen kies je andere.</div>
     </div>
-    <div class="tiny">Alles wordt lokaal opgeslagen in je browser (geen login nodig).</div>
+
+    <div class="row" style="margin-top:12px">
+      <button class="btn btn-primary" id="gen">Maak dagplan</button>
+      <button class="btn btn-print" onclick="window.print()">Print</button>
+    </div>
+  </section>
+
+  <!-- Uitkomst -->
+  <section class="card">
+    <div class="title">Dagplan (print)</div>
+    <div class="date" id="datum"></div>
+    <div id="plan" class="plan">
+      <div class="muted">Kies boven je dagtype en taken, klik “Maak dagplan”.</div>
+    </div>
   </section>
 </main>
 
 <script>
-  // ---- datum (Europe/Brussels) ----
+  // ---- datum
+  const today = new Date();
   const fmt = new Intl.DateTimeFormat('nl-BE',{weekday:'long', day:'2-digit', month:'long', year:'numeric', timeZone:'Europe/Brussels'});
-  document.getElementById('vandaag').textContent = fmt.format(new Date());
+  document.getElementById('datum').textContent = fmt.format(today);
 
-  // ---- localStorage helpers ----
-  const KEY = 'ow_dagplanner_v1';
-  function load(){
-    try{ return JSON.parse(localStorage.getItem(KEY)) || {}; }catch{ return {}; }
+  // ---- taken-definities (uitgebreid & teder, in de geest van The Perfect Housewife)
+  const TAKEN = [
+    {
+      key:'bedkamers',
+      naam:'Slaapkamers (opstart & rust)',
+      stappen:[
+        'Open de ramen. Adem diep. Zeg zacht: “Heer, dank voor dit licht.”',
+        'Iedereen: bed openleggen/verluchten, bed opmaken, kussen opschudden.',
+        'Oppervlakken leegmaken: wat niet thuishoort, gaat weg.',
+        'Snelle ronde: vloer zichtbaar, wasmand klaarzetten.',
+        'Zegen de kamer: “Heer, geef hier rust en vrede.”'
+      ]
+    },
+    {
+      key:'keuken',
+      naam:'Keuken (dagonderhoud)',
+      stappen:[
+        'Raam open. Geluid uit. Stilte is dankbaarheid.',
+        'Aanrecht leeg: afwas weg/afwasmachine vullen, doek vochtig.',
+        'Kookplaat/fornuis afnemen; wasbak schrobben; tafel afnemen.',
+        'Vloer kruimelvrij (vegen of korte stofzuig-ronde).',
+        'Zegen de maaltijdplek: “Heer, zegen het voedsel en ons werk.”'
+      ]
+    },
+    {
+      key:'badkamer',
+      naam:'Badkamer (frisse orde)',
+      stappen:[
+        'Ventileren. Handdoeken recht/vs. in wasmand.',
+        'Wastafel + kraan schoonmaken; spiegel zonder vlekken.',
+        'Toilet: rand, bril, buitenkant; spoel; doekje voor grond eromheen.',
+        'Douche/bad: zeepresten kort wegwrijven; putje checken.',
+        'Snelle vloerdoek. “Heer, reinig ons, innerlijk en uiterlijk.”'
+      ]
+    },
+    {
+      key:'woonkamer',
+      naam:'Woonkamer (stilteplek)',
+      stappen:[
+        'Zet 1 raam open; zet ruis uit; adem.',
+        'Oppervlakken leeg & rustig: weg met speelgoed/rommel.',
+        'Stof: boven -> beneden; zachte doek; planten water.',
+        'Sierkleed kussen of kort stofzuigen; kussens opschudden.',
+        'Steek eventueel een kaarsje aan: “Heer, laat Uw vrede hier wonen.”'
+      ]
+    },
+    {
+      key:'was',
+      naam:'Wassen & linnen',
+      stappen:[
+        'Sorteer: licht, donker, linnen. Lading klaarzetten.',
+        'Machine vullen; rustig tempo; dank voor de kleren.',
+        'Na de cyclus: uit de machine, ophangen of vouwen.',
+        'Korte strijk (alleen wat nodig is).',
+        'Leg alles op zijn vaste plaats. Orde = liefde in het klein.'
+      ]
+    },
+    {
+      key:'ingang',
+      naam:'Inkom/hal (welkom & orde)',
+      stappen:[
+        'Schoenen op plaats; jassen recht; post selecteren.',
+        'Vuilmat uitkloppen; vloer kort vegen.',
+        'Oppervlakken leeg; sleutelbakje check.',
+        'Een kleine zegen: “Heer, zegen wie hier binnenkomt en uitgaat.”'
+      ]
+    }
+  ];
+
+  // render checkboxes
+  const tasksWrap = document.getElementById('tasks');
+  TAKEN.forEach(t=>{
+    const lb = document.createElement('label');
+    lb.innerHTML = `<input type="checkbox" value="${t.key}"> ${t.naam}`;
+    tasksWrap.appendChild(lb);
+  });
+
+  // helpers
+  const sel = q => document.querySelector(q);
+  const selAll = q => Array.from(document.querySelectorAll(q));
+
+  function makeGebeden(dagtype){
+    const ochtend = 'Ochtendgebed: “Heer Jezus Christus, zegen deze nieuwe dag; geef mij vrede, gehoorzaamheid en liefde. Amen.”';
+    const tafel   = 'Tafelgebed: “Heer, zegen dit voedsel en ons gesprek. Dank voor Uw gaven. Amen.”';
+    const avond   = 'Avondgebed: “Heer, dank voor deze dag. Vergeef wat niet goed was; geef ons een rustige nacht. Amen.”';
+    const reflect = [
+      'Reflectie (lezingen): Lees Apostel & Evangelie van vandaag.',
+      'Vragen: Waar heb ik vandaag liefde, nederigheid of gehoorzaamheid geleefd?',
+      'Wat wil ik morgen anders doen? Schrijf 1 concrete stap op.'
+    ];
+    // werkdag: iets korter
+    return {ochtend, tafel, avond, reflect};
   }
-  function store(data){
-    localStorage.setItem(KEY, JSON.stringify(data));
-    const s = document.getElementById('status');
-    if(s){ s.textContent='Bewaard'; setTimeout(()=>s.textContent='',1500); }
+
+  function planVoor(dagtype, keuzes){
+    const d = new Intl.DateTimeFormat('nl-BE',{weekday:'long', day:'2-digit', month:'long', year:'numeric', timeZone:'Europe/Brussels'}).format(new Date());
+    const g = makeGebeden(dagtype);
+    const kOchtend = sel('#k-gebed-ochtend').checked;
+    const kAvond = sel('#k-avondgebed').checked;
+    const kRef = sel('#k-reflectie').checked;
+
+    let out = [];
+    out.push(`📅 ${d}\n`);
+    // Ochtendblok
+    out.push('🌅 OCHTEND');
+    if(kOchtend) out.push(`• ${g.ochtend}`);
+    out.push('• Bedden opmaken / kamers verluchten (rust & stilte).');
+    out.push('• Wassen en aankleden; kort voor de iconen: kruisteken / Onze Vader.');
+    out.push('• Ontbijt voorbereiden in stilte; tafel zegenen.\n');
+
+    // Huishoudtaken (detail)
+    if(keuzes.length){
+      out.push('🧺 HUISHOUDEN (focus van vandaag)');
+      keuzes.forEach(key=>{
+        const taak = TAKEN.find(t=>t.key===key);
+        if(!taak) return;
+        out.push(`— ${taak.naam}`);
+        taak.stappen.forEach(s=>out.push(`   • ${s}`));
+        out.push('');
+      });
+    }
+
+    // Middag/maaltijd
+    out.push('🍞 MAALTIJDEN');
+    out.push(`• ${g.tafel}`);
+    out.push('• Na de maaltijd: tafel leeg, aanrecht vrij, 5-minuut opruimronde.\n');
+
+    // Avond + reflectie
+    if(kRef){
+      out.push('💭 REFLECTIE');
+      g.reflect.forEach(s=>out.push(`• ${s}`));
+      out.push('• Dankbaarheid: noem 3 dingen waarvoor je dankt.');
+      out.push('• Vastenregel (indien van toepassing): noteer in de marge.\n');
+    }
+
+    if(kAvond){
+      out.push('🌙 AVOND');
+      out.push(`• ${g.avond}`);
+    }
+
+    out.push('\n📝 NOTITIES / BOODSCHAPPEN / MORGEN: ____________________________________________');
+
+    return out.join('\n');
   }
 
-  // ---- model ----
-  const blocks = ['ochtend','voormiddag','middag','namiddag','avond','nacht'];
-  let state = Object.assign(
-    {vastenregel:'', bedoeling:'', reflectie:'', notities:''},
-    ...blocks.map(b => ({[b]:[]}))
-  , load());
-
-  // ---- UI init ----
-  const id = s => document.getElementById(s);
-  id('vastenregel').value = state.vastenregel || '';
-  id('bedoeling').value   = state.bedoeling   || '';
-  id('reflectie').value   = state.reflectie   || '';
-  id('notities').value    = state.notities    || '';
-
-  // render todos
-  function renderList(block){
-    const ul = id('todo-'+block);
-    ul.innerHTML = '';
-    (state[block]||[]).forEach((item, i)=>{
-      const li = document.createElement('li');
-      li.innerHTML = `
-        <input type="checkbox" ${item.done?'checked':''} onchange="toggleDone('${block}',${i},this.checked)" />
-        <span style="flex:1;${item.done?'text-decoration:line-through;color:#8c7d60':''}">${escapeHtml(item.text)}</span>
-        <button onclick="delItem('${block}',${i})">Verwijder</button>
-      `;
-      ul.appendChild(li);
-    });
-  }
-  blocks.forEach(renderList);
-
-  // add / toggle / delete
-  function addItem(block){
-    const inp = id('inp-'+block);
-    const txt = (inp.value||'').trim();
-    if(!txt) return;
-    state[block] = state[block] || [];
-    state[block].push({text:txt, done:false});
-    inp.value='';
-    renderList(block);
-    store(state);
-  }
-  function toggleDone(block, idx, val){
-    if(!state[block]) return;
-    state[block][idx].done = !!val;
-    store(state);
-  }
-  function delItem(block, idx){
-    if(!state[block]) return;
-    state[block].splice(idx,1);
-    renderList(block);
-    store(state);
-  }
-
-  // save all text fields
-  function saveAll(){
-    state.vastenregel = id('vastenregel').value.trim();
-    state.bedoeling   = id('bedoeling').value.trim();
-    state.reflectie   = id('reflectie').value.trim();
-    state.notities    = id('notities').value.trim();
-    store(state);
-  }
-
-  // small helper
-  function escapeHtml(s){ return s.replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
-
-  // suggesties per dag (optioneel, eenvoudig voorbeeld)
-  const weekday = new Intl.DateTimeFormat('nl-BE',{weekday:'long', timeZone:'Europe/Brussels'}).format(new Date()).toLowerCase();
-  const suggesties = {
-    maandag:'“Heer, leer mij zachtmoedig te zijn.”',
-    dinsdag:'“Heer, geef mij wijsheid en vrede.”',
-    woensdag:'“Heer, help ons vasten met een blij hart.”',
-    donderdag:'“Heer, zegen onze arbeid en ons woord.”',
-    vrijdag:'“Heer, ontferm U.”',
-    zaterdag:'“Heer, reinig mijn hart.”',
-    zondag:'“Heer, dank voor Uw opstanding.”'
-  };
-  const s = document.getElementById('suggest-gebed');
-  if(s) s.textContent = suggesties[weekday] || s.textContent;
+  document.getElementById('gen').addEventListener('click', ()=>{
+    const dagtype = sel('input[name="dagtype"]:checked').value;
+    const keuzes = selAll('#tasks input[type="checkbox"]:checked').map(i=>i.value);
+    const txt = planVoor(dagtype, keuzes);
+    const el = document.getElementById('plan');
+    el.textContent = txt;
+    // print-vriendelijke tussenkopjes (optioneel): laten als plain text voor makkelijk printen
+  });
 </script>
 </body>
 </html>
