@@ -1,243 +1,140 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="utf-8">
-<title>Orthodox Huisplan – Dagplanner (printbaar)</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<style>
-  :root{
-    --ink:#3c2b14; --soft:#f8f3e6; --line:#dfd1b0; --accent:#7aa35c;
-  }
-  *{box-sizing:border-box}
-  body{font-family:Georgia,serif;background:#fffdf8;color:var(--ink);margin:0;}
-  header{padding:18px 16px;border-bottom:1px solid var(--line);background:#fff;}
-  h1{margin:0;font-size:1.4rem;text-align:center;}
-  .wrap{max-width:900px;margin:0 auto;padding:16px}
-  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:12px 0}
-  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-  label{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);padding:8px 10px;border-radius:10px;background:#fff}
-  .group-title{font-weight:700;margin:6px 0 8px;color:#6f5a2a}
-  .btn{border:1px solid var(--line);background:#faf6ea;padding:9px 14px;border-radius:10px;cursor:pointer}
-  .btn-primary{background:#eaf3e4;border-color:#c8e0bd}
-  .btn-print{float:right}
-  .muted{color:#7a6a47;font-size:.95em}
-  .plan{white-space:pre-wrap;line-height:1.55}
-  .title{font-size:1.2rem;margin:0 0 6px;text-align:center}
-  .date{font-weight:700;text-align:center;margin-bottom:10px}
-  .hr{height:1px;background:var(--line);margin:12px 0}
-  .pray{background:var(--soft);border-left:4px solid var(--accent);padding:8px 10px;border-radius:8px;font-style:italic}
-  @media print{
-    .no-print{display:none !important}
-    body{background:#fff}
-    .card{border:none;padding:0;margin:0}
-    .wrap{padding:0 6mm}
-    header{border:none}
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dagplanner voor het Orthodoxe Gezin – Orthodoxeweg</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
+  <link rel="stylesheet" href="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/common/style.css">
+
+  <style>
+    body {
+      background:#fffaf2;
+      font-family: "Georgia", serif;
+      color:#3b2d0b;
+      margin:0;
+      padding:0;
+    }
+    main {
+      max-width:900px;
+      margin:0 auto;
+      padding:20px;
+    }
+    h1 {
+      text-align:center;
+      color:#4e3514;
+      border-bottom:2px solid #d4c19c;
+      padding-bottom:5px;
+    }
+    .sectie {
+      margin-top:30px;
+      background:#f9f3e6;
+      border:1px solid #e2d6b8;
+      border-radius:12px;
+      padding:20px;
+      box-shadow:0 0 5px rgba(0,0,0,0.1);
+    }
+    .sectie h2 {
+      margin-top:0;
+      color:#4e3514;
+      text-align:center;
+      border-bottom:1px dashed #c6b286;
+      padding-bottom:4px;
+    }
+    .taak {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      background:#fffdf7;
+      margin:8px 0;
+      padding:10px 15px;
+      border-radius:8px;
+      border:1px solid #e8dcc0;
+    }
+    .taak input[type="checkbox"] {
+      transform:scale(1.3);
+      accent-color:#7b5e26;
+    }
+    .lezingen {
+      background:#fff8ea;
+      border:1px solid #eadab4;
+      padding:15px;
+      border-radius:10px;
+      margin-bottom:20px;
+    }
+    .datum {
+      text-align:center;
+      font-size:1.2em;
+      font-weight:bold;
+      color:#5a421a;
+      margin-bottom:10px;
+    }
+  </style>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+
 </head>
 <body>
-<header class="no-print">
-  <h1>Orthodox Huisplan – Dagplanner</h1>
-</header>
+  <!-- Header (volwassenmodus) -->
+  <div id="volwassen-header"></div>
+  <script src="https://kathy-torfs.github.io/Orthodoxeweg/volwassenmodus/common/layout.js"></script>
 
-<main class="wrap">
-  <!-- Keuzes -->
-  <section class="card no-print">
-    <div class="row">
-      <div>
-        <div class="group-title">Dagtype</div>
-        <label><input type="radio" name="dagtype" value="thuis" checked> Thuisdag</label>
-        <label><input type="radio" name="dagtype" value="werk"> Werkdag (korter schema)</label>
-      </div>
-      <div>
-        <div class="group-title">Kernmomenten</div>
-        <label><input type="checkbox" id="k-gebed-ochtend" checked> Ochtendgebed</label>
-        <label><input type="checkbox" id="k-reflectie" checked> Reflectiemoment (lezingen + bezinning)</label>
-        <label><input type="checkbox" id="k-avondgebed" checked> Avondgebed</label>
-      </div>
-    </div>
+  <main>
+    <div class="datum" id="huidigeDatum"></div>
 
-    <div style="margin-top:12px">
-      <div class="group-title">Huishoudtaken van vandaag (detail zoals “Perfect Housewife”)</div>
-      <div class="row" id="tasks"></div>
-      <div class="muted">Tip: kies 1–3 focustaken; morgen kies je andere.</div>
-    </div>
+    <section class="lezingen" id="lezingenVanDeDag">
+      <h2>Lezingen van vandaag</h2>
+      <div id="lezingstekst">Laden...</div>
+    </section>
 
-    <div class="row" style="margin-top:12px">
-      <button class="btn btn-primary" id="gen">Maak dagplan</button>
-      <button class="btn btn-print" onclick="window.print()">Print</button>
-    </div>
-  </section>
+    <section class="sectie" id="ochtend">
+      <h2>🌅 Ochtend</h2>
+      <div class="taak"><span>Ochtendgebed met het gezin</span><input type="checkbox"></div>
+      <div class="taak"><span>Ontbijt klaarmaken</span><input type="checkbox"></div>
+      <div class="taak"><span>Kinderen wassen en aankleden</span><input type="checkbox"></div>
+      <div class="taak"><span>Kort reflectiemoment bij icoon</span><input type="checkbox"></div>
+    </section>
 
-  <!-- Uitkomst -->
-  <section class="card">
-    <div class="title">Dagplan (print)</div>
-    <div class="date" id="datum"></div>
-    <div id="plan" class="plan">
-      <div class="muted">Kies boven je dagtype en taken, klik “Maak dagplan”.</div>
-    </div>
-  </section>
-</main>
+    <section class="sectie" id="middag">
+      <h2>☀️ Middag</h2>
+      <div class="taak"><span>Middageten bereiden</span><input type="checkbox"></div>
+      <div class="taak"><span>Huishoudelijke taak: wassen, strijken of poetsen</span><input type="checkbox"></div>
+      <div class="taak"><span>Knutselwerkje of verhaal met kinderen</span><input type="checkbox"></div>
+      <div class="taak"><span>Korte wandeling of speeltijd buiten</span><input type="checkbox"></div>
+    </section>
 
-<script>
-  // ---- datum
-  const today = new Date();
-  const fmt = new Intl.DateTimeFormat('nl-BE',{weekday:'long', day:'2-digit', month:'long', year:'numeric', timeZone:'Europe/Brussels'});
-  document.getElementById('datum').textContent = fmt.format(today);
+    <section class="sectie" id="avond">
+      <h2>🌙 Avond</h2>
+      <div class="taak"><span>Avondeten samen aan tafel</span><input type="checkbox"></div>
+      <div class="taak"><span>Avondgebed met het gezin</span><input type="checkbox"></div>
+      <div class="taak"><span>Opruimen en rustmoment met een verhaal of lied</span><input type="checkbox"></div>
+      <div class="taak"><span>Reflectiemoment: hoe was onze dag?</span><input type="checkbox"></div>
+    </section>
+  </main>
 
-  // ---- taken-definities (uitgebreid & teder, in de geest van The Perfect Housewife)
-  const TAKEN = [
-    {
-      key:'bedkamers',
-      naam:'Slaapkamers (opstart & rust)',
-      stappen:[
-        'Open de ramen. Adem diep. Zeg zacht: “Heer, dank voor dit licht.”',
-        'Iedereen: bed openleggen/verluchten, bed opmaken, kussen opschudden.',
-        'Oppervlakken leegmaken: wat niet thuishoort, gaat weg.',
-        'Snelle ronde: vloer zichtbaar, wasmand klaarzetten.',
-        'Zegen de kamer: “Heer, geef hier rust en vrede.”'
-      ]
-    },
-    {
-      key:'keuken',
-      naam:'Keuken (dagonderhoud)',
-      stappen:[
-        'Raam open. Geluid uit. Stilte is dankbaarheid.',
-        'Aanrecht leeg: afwas weg/afwasmachine vullen, doek vochtig.',
-        'Kookplaat/fornuis afnemen; wasbak schrobben; tafel afnemen.',
-        'Vloer kruimelvrij (vegen of korte stofzuig-ronde).',
-        'Zegen de maaltijdplek: “Heer, zegen het voedsel en ons werk.”'
-      ]
-    },
-    {
-      key:'badkamer',
-      naam:'Badkamer (frisse orde)',
-      stappen:[
-        'Ventileren. Handdoeken recht/vs. in wasmand.',
-        'Wastafel + kraan schoonmaken; spiegel zonder vlekken.',
-        'Toilet: rand, bril, buitenkant; spoel; doekje voor grond eromheen.',
-        'Douche/bad: zeepresten kort wegwrijven; putje checken.',
-        'Snelle vloerdoek. “Heer, reinig ons, innerlijk en uiterlijk.”'
-      ]
-    },
-    {
-      key:'woonkamer',
-      naam:'Woonkamer (stilteplek)',
-      stappen:[
-        'Zet 1 raam open; zet ruis uit; adem.',
-        'Oppervlakken leeg & rustig: weg met speelgoed/rommel.',
-        'Stof: boven -> beneden; zachte doek; planten water.',
-        'Sierkleed kussen of kort stofzuigen; kussens opschudden.',
-        'Steek eventueel een kaarsje aan: “Heer, laat Uw vrede hier wonen.”'
-      ]
-    },
-    {
-      key:'was',
-      naam:'Wassen & linnen',
-      stappen:[
-        'Sorteer: licht, donker, linnen. Lading klaarzetten.',
-        'Machine vullen; rustig tempo; dank voor de kleren.',
-        'Na de cyclus: uit de machine, ophangen of vouwen.',
-        'Korte strijk (alleen wat nodig is).',
-        'Leg alles op zijn vaste plaats. Orde = liefde in het klein.'
-      ]
-    },
-    {
-      key:'ingang',
-      naam:'Inkom/hal (welkom & orde)',
-      stappen:[
-        'Schoenen op plaats; jassen recht; post selecteren.',
-        'Vuilmat uitkloppen; vloer kort vegen.',
-        'Oppervlakken leeg; sleutelbakje check.',
-        'Een kleine zegen: “Heer, zegen wie hier binnenkomt en uitgaat.”'
-      ]
-    }
-  ];
+  <script>
+    // Datum van vandaag
+    const vandaag = new Date();
+    const opties = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
+    document.getElementById("huidigeDatum").textContent = vandaag.toLocaleDateString('nl-NL', opties);
 
-  // render checkboxes
-  const tasksWrap = document.getElementById('tasks');
-  TAKEN.forEach(t=>{
-    const lb = document.createElement('label');
-    lb.innerHTML = `<input type="checkbox" value="${t.key}"> ${t.naam}`;
-    tasksWrap.appendChild(lb);
-  });
-
-  // helpers
-  const sel = q => document.querySelector(q);
-  const selAll = q => Array.from(document.querySelectorAll(q));
-
-  function makeGebeden(dagtype){
-    const ochtend = 'Ochtendgebed: “Heer Jezus Christus, zegen deze nieuwe dag; geef mij vrede, gehoorzaamheid en liefde. Amen.”';
-    const tafel   = 'Tafelgebed: “Heer, zegen dit voedsel en ons gesprek. Dank voor Uw gaven. Amen.”';
-    const avond   = 'Avondgebed: “Heer, dank voor deze dag. Vergeef wat niet goed was; geef ons een rustige nacht. Amen.”';
-    const reflect = [
-      'Reflectie (lezingen): Lees Apostel & Evangelie van vandaag.',
-      'Vragen: Waar heb ik vandaag liefde, nederigheid of gehoorzaamheid geleefd?',
-      'Wat wil ik morgen anders doen? Schrijf 1 concrete stap op.'
-    ];
-    // werkdag: iets korter
-    return {ochtend, tafel, avond, reflect};
-  }
-
-  function planVoor(dagtype, keuzes){
-    const d = new Intl.DateTimeFormat('nl-BE',{weekday:'long', day:'2-digit', month:'long', year:'numeric', timeZone:'Europe/Brussels'}).format(new Date());
-    const g = makeGebeden(dagtype);
-    const kOchtend = sel('#k-gebed-ochtend').checked;
-    const kAvond = sel('#k-avondgebed').checked;
-    const kRef = sel('#k-reflectie').checked;
-
-    let out = [];
-    out.push(`📅 ${d}\n`);
-    // Ochtendblok
-    out.push('🌅 OCHTEND');
-    if(kOchtend) out.push(`• ${g.ochtend}`);
-    out.push('• Bedden opmaken / kamers verluchten (rust & stilte).');
-    out.push('• Wassen en aankleden; kort voor de iconen: kruisteken / Onze Vader.');
-    out.push('• Ontbijt voorbereiden in stilte; tafel zegenen.\n');
-
-    // Huishoudtaken (detail)
-    if(keuzes.length){
-      out.push('🧺 HUISHOUDEN (focus van vandaag)');
-      keuzes.forEach(key=>{
-        const taak = TAKEN.find(t=>t.key===key);
-        if(!taak) return;
-        out.push(`— ${taak.naam}`);
-        taak.stappen.forEach(s=>out.push(`   • ${s}`));
-        out.push('');
+    // Lezingen van de dag ophalen (voorbeeld via jouw kalender)
+    fetch("https://kathy-torfs.github.io/Orthodoxeweg/json/kalender2025.json")
+      .then(res => res.json())
+      .then(data => {
+        const vandaagISO = vandaag.toISOString().split('T')[0];
+        const dag = data.find(item => item.datum === vandaagISO);
+        if(dag && dag.lezingen && dag.lezingen.nederlands){
+          document.getElementById("lezingstekst").textContent = dag.lezingen.nederlands;
+        } else {
+          document.getElementById("lezingstekst").textContent = "Geen lezing gevonden voor vandaag.";
+        }
+      })
+      .catch(() => {
+        document.getElementById("lezingstekst").textContent = "Lezingen konden niet geladen worden.";
       });
-    }
-
-    // Middag/maaltijd
-    out.push('🍞 MAALTIJDEN');
-    out.push(`• ${g.tafel}`);
-    out.push('• Na de maaltijd: tafel leeg, aanrecht vrij, 5-minuut opruimronde.\n');
-
-    // Avond + reflectie
-    if(kRef){
-      out.push('💭 REFLECTIE');
-      g.reflect.forEach(s=>out.push(`• ${s}`));
-      out.push('• Dankbaarheid: noem 3 dingen waarvoor je dankt.');
-      out.push('• Vastenregel (indien van toepassing): noteer in de marge.\n');
-    }
-
-    if(kAvond){
-      out.push('🌙 AVOND');
-      out.push(`• ${g.avond}`);
-    }
-
-    out.push('\n📝 NOTITIES / BOODSCHAPPEN / MORGEN: ____________________________________________');
-
-    return out.join('\n');
-  }
-
-  document.getElementById('gen').addEventListener('click', ()=>{
-    const dagtype = sel('input[name="dagtype"]:checked').value;
-    const keuzes = selAll('#tasks input[type="checkbox"]:checked').map(i=>i.value);
-    const txt = planVoor(dagtype, keuzes);
-    const el = document.getElementById('plan');
-    el.textContent = txt;
-    // print-vriendelijke tussenkopjes (optioneel): laten als plain text voor makkelijk printen
-  });
-</script>
+  </script>
 </body>
 </html>
