@@ -1,14 +1,13 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="el">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Orthodoxeweg – Bijbel (LXX → Vlaams)</title>
+  <title>Ἡ Ἑβδομήκοντα – Orthodoxeweg</title>
 
-  <!-- Vast icoon -->
   <link rel="icon" href="https://www.orthodoxeweg.be/images/kruis.png" />
 
-  <!-- FIREBASE (globaal) -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
   <script>
@@ -23,335 +22,169 @@
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    console.log("✅ Firebase geladen in volwassenmodus – Bijbel");
   </script>
 
-  <!-- Gemeenschappelijke layout (header + css) -->
+  <!-- Lay-out -->
   <script src="https://www.orthodoxeweg.be/volwassenmodus/common/layout.js" defer></script>
 
   <style>
-    :root{
-      --bg:#f5e9b8; --text:#6f4e1a; --card:#fffdf4; --border:#ceb27d;
-      --chip:#eee3c6; --chip-border:#b29467; --chip-active:#d3b87c; --accent:#8722aa;
-    }
-    *{box-sizing:border-box}
-    body{ background:var(--bg); color:var(--text); font-family:Arial, sans-serif; margin:0; }
-    .container{ display:grid; grid-template-columns: 290px 1fr; gap:16px; max-width:1200px; margin:16px auto 28px; padding:0 16px; }
-    @media (max-width:900px){ .container{ grid-template-columns:1fr; } }
+    :root { --bg:#f5e9b8; --text:#5a3b13; --card:#fffef9; --border:#c9b27b; }
+    body { background:var(--bg); color:var(--text); font-family:"Palatino Linotype","Times New Roman",serif; margin:0; }
+    .container { display:grid; grid-template-columns:280px 1fr; gap:16px; max-width:1200px; margin:16px auto; padding:0 16px; }
+    @media(max-width:900px){.container{grid-template-columns:1fr;}}
 
-    /* Sidebar */
-    .panel{ background:var(--card); border:2px solid var(--border); border-radius:12px; box-shadow:0 6px 22px rgba(168,139,84,.18); padding:12px; }
-    .panel h2{ margin:4px 0 10px; font-size:18px; }
-    .booklist{ max-height:70vh; overflow:auto; padding-right:6px; }
-    .book{ display:flex; justify-content:space-between; align-items:center; gap:8px; padding:8px 10px; margin:4px 0; border:1.5px solid var(--chip-border); background:var(--chip); border-radius:8px; cursor:pointer; }
-    .book:hover{ background:var(--chip-active); }
-    .book .name{ font-weight:700; }
-    .chapters{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
-    .chap{ padding:6px 8px; border:1.5px solid var(--chip-border); border-radius:6px; background:#fffef8; cursor:pointer; font-weight:700; }
-    .chap.active{ background:var(--chip-active); border-color:#8c6a2b; }
+    .panel{background:var(--card);border:2px solid var(--border);border-radius:12px;padding:12px;box-shadow:0 6px 20px rgba(168,139,84,.15);}
+    .panel h2{text-align:center;margin:4px 0 10px;}
+    .booklist{max-height:70vh;overflow:auto;}
+    .book{padding:8px 10px;margin:4px 0;border:1.5px solid var(--border);background:#fff9ed;border-radius:8px;cursor:pointer;font-weight:600;}
+    .book:hover{background:#f1e4c5;}
+    .chapters{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+    .chap{padding:6px 8px;border:1.5px solid var(--border);border-radius:6px;background:#fffef8;cursor:pointer;font-weight:700;}
+    .chap.active{background:#f0dca9;border-color:#8c6a2b;}
 
-    /* Content */
-    .content{ display:flex; flex-direction:column; gap:12px; }
-    .toolbar{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between; background:var(--card); border:2px solid var(--border); border-radius:12px; padding:10px 12px; }
-    .row{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-    .btn{ background:var(--chip); border:1.5px solid var(--chip-border); border-radius:8px; padding:9px 12px; font-weight:700; cursor:pointer; }
-    .btn:disabled{ opacity:.55; cursor:not-allowed; }
-    .title{ font-weight:800; font-size:18px; }
-    .status{ font-size:14px; opacity:.8; }
-
-    .reader{ position:relative; min-height:60vh; background:#fffef8; border:2px solid var(--border); border-radius:12px; overflow:hidden; box-shadow:0 6px 22px rgba(168,139,84,.25); }
-    .text{ padding:18px 18px 90px; line-height:1.55; font-size:18px; white-space:pre-wrap; }
-    .muted{ opacity:.65; font-style:italic; }
-
-    .loader{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:linear-gradient(180deg, rgba(245,233,184,.6), rgba(245,233,184,.2)); backdrop-filter: blur(2px); opacity:0; pointer-events:none; transition:opacity .2s ease; }
-    .loader.show{ opacity:1; pointer-events:auto; }
-    .spinner{ width:42px; height:42px; border-radius:50%; border:4px solid rgba(111,78,26,.25); border-top-color:var(--accent); animation:spin 1s linear infinite; }
-    @keyframes spin{ to{ transform:rotate(360deg); } }
-
-    .footnote{ text-align:center; font-size:.92em; opacity:.85; margin-top:-6px; }
-    .footnote a{ color:inherit; }
+    .content{display:flex;flex-direction:column;gap:12px;}
+    .toolbar{display:flex;justify-content:space-between;flex-wrap:wrap;align-items:center;background:var(--card);border:2px solid var(--border);border-radius:12px;padding:10px 12px;}
+    .btn{background:#fff8e2;border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer;}
+    .btn:disabled{opacity:.55;cursor:not-allowed;}
+    .title{font-weight:800;font-size:18px;}
+    .reader{min-height:60vh;background:#fffef8;border:2px solid var(--border);border-radius:12px;padding:18px;box-shadow:0 6px 22px rgba(168,139,84,.25);line-height:1.6;font-size:20px;white-space:pre-wrap;}
+    .verse{margin-bottom:10px;}
+    .verse span.num{font-weight:bold;color:#8c6a2b;margin-right:6px;}
+    .muted{text-align:center;opacity:.65;font-style:italic;}
   </style>
 </head>
+
 <body>
-  <!-- ==== GEMEENSCHAPPELIJKE HEADER ==== -->
   <div id="volwassen-header" data-header-src="https://www.orthodoxeweg.be/volwassenmodus/common/header.html"></div>
 
   <div class="container">
-    <!-- Sidebar -->
     <aside class="panel">
-      <h2>📚 LXX-Boeken</h2>
-      <div id="bookList" class="booklist">
-        <div class="muted">Bezig met laden…</div>
-      </div>
+      <h2>📖 Ἡ Ἑβδομήκοντα (LXX)</h2>
+      <div id="bookList" class="booklist"><div class="muted">Bezig met laden…</div></div>
     </aside>
 
-    <!-- Content -->
     <main class="content">
       <div class="toolbar">
-        <div class="row">
-          <button id="prevBtn" class="btn" disabled>⟵ Vorige hoofdstuk</button>
-          <button id="nextBtn" class="btn" disabled>Volgende hoofdstuk ⟶</button>
-        </div>
-        <div class="row">
-          <div id="title" class="title">Bijbel (LXX → Vlaams)</div>
-          <div id="status" class="status"></div>
-        </div>
+        <button id="prevBtn" class="btn" disabled>⟵ Vorige hoofdstuk</button>
+        <div id="title" class="title">Kies een boek</div>
+        <button id="nextBtn" class="btn" disabled>Volgende hoofdstuk ⟶</button>
       </div>
 
-      <section class="reader">
-        <div id="loader" class="loader"><div class="spinner" aria-label="Bezig met laden…"></div></div>
-        <article id="text" class="text">
-          <p class="muted">Kies links een boek en hoofdstuk. De Griekse tekst wordt via een CORS-proxy opgehaald en live vertaald naar Vlaams (NL).</p>
-        </article>
+      <section id="reader" class="reader">
+        <div class="muted">Kies links een boek en hoofdstuk. De Griekse tekst wordt geladen uit Firestore.</div>
       </section>
-
-      <div class="footnote">
-        Bron (Grieks): Sacred-Texts LXX via CORS-proxy. Automatische vertaling via LibreTranslate (open-source).  
-        Werkt iets trager dan lokaal, maar is wél plug-and-play. <a id="gtLink" href="#" target="_blank" rel="noopener">Open in Google Translate</a>
-      </div>
     </main>
   </div>
 
-  <!-- ==== SCRIPT BIJBEL ==== -->
   <script>
-    const PROXY = (url) => `https://r.jina.ai/http://${url.replace(/^https?:\/\//,'')}`;
-    const ST_BASE = "https://sacred-texts.com/bib/sep/";
-    const LXX_BOOKS = [
-      {name:"Genesis", code:"gen"},
-      {name:"Exodus", code:"exo"},
-      {name:"Leviticus", code:"lev"},
-      {name:"Numeri", code:"num"},
-      {name:"Deuteronomium", code:"deu"},
-      {name:"Jozua", code:"jos"},
-      {name:"Rechters", code:"jdg"},
-      {name:"Ruth", code:"rut"},
-      {name:"1 Koningen (1 Samuel)", code:"1sa"},
-      {name:"2 Koningen (2 Samuel)", code:"2sa"},
-      {name:"3 Koningen (1 Koningen)", code:"1ki"},
-      {name:"4 Koningen (2 Koningen)", code:"2ki"},
-      {name:"1 Kronieken", code:"1ch"},
-      {name:"2 Kronieken", code:"2ch"},
-      {name:"1 Ezra", code:"1es"},
-      {name:"2 Ezra (Nehemia)", code:"neh"},
-      {name:"Tobit", code:"tob"},
-      {name:"Judit", code:"jdt"},
-      {name:"Esther", code:"est"},
-      {name:"1 Makkabeeën", code:"1ma"},
-      {name:"2 Makkabeeën", code:"2ma"},
-      {name:"Job", code:"job"},
-      {name:"Psalmen", code:"psa"},
-      {name:"Spreuken", code:"pro"},
-      {name:"Prediker", code:"ecc"},
-      {name:"Hooglied", code:"sng"},
-      {name:"Wijsheid van Salomo", code:"wis"},
-      {name:"Sirach (Ecclesiasticus)", code:"sir"},
-      {name:"Jesaja", code:"isa"},
-      {name:"Jeremia", code:"jer"},
-      {name:"Klaagliederen", code:"lam"},
-      {name:"Baruch", code:"bar"},
-      {name:"Ezechiel", code:"eze"},
-      {name:"Daniel", code:"dan"},
-      {name:"Hosea", code:"hos"},
-      {name:"Joël", code:"joe"},
-      {name:"Amos", code:"amo"},
-      {name:"Obadja", code:"oba"},
-      {name:"Jona", code:"jon"},
-      {name:"Micha", code:"mic"},
-      {name:"Nahum", code:"nah"},
-      {name:"Habakuk", code:"hab"},
-      {name:"Sefanja", code:"zep"},
-      {name:"Haggai", code:"hag"},
-      {name:"Zacharia", code:"zec"},
-      {name:"Maleachi", code:"mal"}
-    ];
-    const LIBRE_ENDPOINTS = [
-      "https://libretranslate.de/translate",
-      "https://translate.astian.org/translate"
-    ];
-    const SOURCE_LANG = "el";
-    const TARGET_LANG = "nl";
-
+    const dbRef = firebase.firestore().collection("bijbel_LXX");
     const bookListEl = document.getElementById("bookList");
+    const readerEl = document.getElementById("reader");
     const titleEl = document.getElementById("title");
-    const statusEl = document.getElementById("status");
-    const textEl = document.getElementById("text");
-    const loaderEl = document.getElementById("loader");
     const prevBtn = document.getElementById("prevBtn");
     const nextBtn = document.getElementById("nextBtn");
-    const gtLink = document.getElementById("gtLink");
 
+    let books = [];
     let currentBook = null;
-    let currentChapIdx = -1;
-    let chapterCount = 0;
+    let currentChap = null;
 
-    const showLoader = (on)=> loaderEl.classList.toggle("show", !!on);
-    const setStatus = (msg)=> statusEl.textContent = msg || "";
+    async function loadBookList() {
+      const snap = await dbRef.get();
+      const allDocs = snap.docs.map(d => d.id);
+      const map = {};
 
-    async function fetchViaProxy(url){
-      const ctrl = new AbortController();
-      const timer = setTimeout(()=>ctrl.abort(), 15000);
-      const res = await fetch(PROXY(url), { signal: ctrl.signal });
-      clearTimeout(timer);
-      if (!res.ok) throw new Error("HTTP "+res.status);
-      return await res.text();
-    }
-
-    async function getChapterCount(bookCode){
-      const indexUrl = `${ST_BASE}${bookCode}.htm`;
-      const txt = await fetchViaProxy(indexUrl);
-      const matches = Array.from(txt.matchAll(/Chapter\s+(\d+)/gi)).map(m => parseInt(m[1],10));
-      const maxN = matches.length ? Math.max(...matches) : 1;
-      return maxN;
-    }
-
-    function chapterUrl(bookCode, idx){
-      const n = (idx+1).toString().padStart(3,"0");
-      return `${ST_BASE}${bookCode}${n}.htm`;
-    }
-
-    function htmlToPlainGreek(html){
-      let txt = html.replace(/\r/g,"");
-      txt = txt.replace(/(Sacred-Texts.*?$)/gmi, "");
-      txt = txt.replace(/\n{3,}/g, "\n\n").trim();
-      return txt;
-    }
-
-    async function libreTranslate(text){
-      const payload = { q: text, source: SOURCE_LANG, target: TARGET_LANG, format: "text" };
-      for (const ep of LIBRE_ENDPOINTS){
-        try{
-          const ctrl = new AbortController();
-          const timer = setTimeout(()=>ctrl.abort(), 20000);
-          const res = await fetch(ep, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(payload), signal: ctrl.signal });
-          clearTimeout(timer);
-          if (!res.ok) continue;
-          const data = await res.json();
-          if (data && data.translatedText) return data.translatedText;
-        }catch(e){}
-      }
-      throw new Error("Geen vertaalendpoint bereikbaar.");
-    }
-
-    function renderBookList(){
-      const frag = document.createDocumentFragment();
-      LXX_BOOKS.forEach(b=>{
-        const item = document.createElement("div");
-        item.className = "book";
-        item.innerHTML = `<span class="name">${b.name}</span><span>▾</span>`;
-        item.addEventListener("click", ()=> selectBook(b, item));
-        frag.appendChild(item);
+      allDocs.forEach(id => {
+        const [book, chapRaw] = id.split("_");
+        const chap = parseInt(chapRaw.replace(/^h/, ""), 10) || 1;
+        if (!map[book]) map[book] = [];
+        map[book].push(chap);
       });
-      bookListEl.innerHTML = "";
-      bookListEl.appendChild(frag);
-    }
 
-    async function selectBook(b, bookEl){
-      currentBook = b;
-      currentChapIdx = -1;
-      prevBtn.disabled = true; nextBtn.disabled = true;
-      titleEl.textContent = b.name;
-      textEl.innerHTML = '<p class="muted">Hoofdstukken laden…</p>';
-      setStatus("Hoofdstukken laden…");
-      showLoader(true);
-      try{
-        chapterCount = await getChapterCount(b.code);
-        let box = bookEl.nextElementSibling;
-        if (!box || !box.classList || !box.classList.contains("chapters")){
-          box = document.createElement("div");
-          box.className = "chapters";
-          bookEl.insertAdjacentElement("afterend", box);
-        }
-        box.innerHTML = "";
-        for (let i=0; i<chapterCount; i++){
-          const chip = document.createElement("button");
-          chip.type = "button";
-          chip.className = "chap";
-          chip.textContent = `Hfst. ${i+1}`;
-          chip.addEventListener("click", ()=>{
-            box.querySelectorAll(".chap").forEach(c=>c.classList.remove("active"));
-            chip.classList.add("active");
-            loadChapter(i);
-          });
-          box.appendChild(chip);
-        }
-        loadChapter(0);
-        box.scrollIntoView({ behavior: "smooth", block: "nearest" });
-        setStatus("");
-      }catch(e){
-        textEl.innerHTML = '<p class="muted">Kon de hoofdstukken niet laden.</p>';
-        setStatus("Hoofdstukken laden mislukt");
-      }finally{
-        showLoader(false);
-      }
-    }
+      books = Object.entries(map).map(([book, chapters]) => ({
+        name: book.charAt(0).toUpperCase() + book.slice(1),
+        chapters: chapters.sort((a,b)=>a-b)
+      }));
 
-    async function loadChapter(idx){
-      if (!currentBook) return;
-      currentChapIdx = idx;
-      prevBtn.disabled = (idx<=0);
-      nextBtn.disabled = (idx>=chapterCount-1);
-
-      const url = chapterUrl(currentBook.code, idx);
-      titleEl.textContent = `${currentBook.name} – Hoofdstuk ${idx+1}`;
-      setStatus("Hoofdstuk ophalen…");
-      showLoader(true);
-      textEl.textContent = "";
-
-      const enc = encodeURIComponent(url);
-      document.getElementById("gtLink").href =
-        `https://translate.google.com/translate?hl=${TARGET_LANG}&sl=${SOURCE_LANG}&tl=${TARGET_LANG}&u=${enc}`;
-
-      try{
-        const raw = await fetchViaProxy(url);
-        const greek = htmlToPlainGreek(raw);
-        setStatus("Vertalen naar Vlaams…");
-        let dutch = "";
-        try{
-          dutch = await libreTranslate(greek);
-        }catch(_){ dutch = ""; }
-        if (dutch){
-          textEl.textContent = dutch;
-          setStatus("Klaar");
-        }else{
-          textEl.innerHTML = `<p class="muted">Automatische vertaling is tijdelijk niet beschikbaar. Hieronder zie je de Griekse tekst. Je kan onderaan openen in Google Translate.</p>\n\n${greek}`;
-          setStatus("Vertalen mislukt — Griekse tekst getoond");
-        }
-        try{
-          localStorage.setItem("lxx_last_book_code", currentBook.code);
-          localStorage.setItem("lxx_last_book_name", currentBook.name);
-          localStorage.setItem("lxx_last_idx", String(idx));
-        }catch{}
-      }catch(e){
-        textEl.innerHTML = '<p class="muted">Kon dit hoofdstuk niet laden.</p>';
-        setStatus("Hoofdstuk laden mislukt");
-      }finally{
-        showLoader(false);
-      }
-    }
-
-    prevBtn.addEventListener("click", ()=>{ if (currentChapIdx>0) loadChapter(currentChapIdx-1); });
-    nextBtn.addEventListener("click", ()=>{ if (currentChapIdx<chapterCount-1) loadChapter(currentChapIdx+1); });
-
-    (function init(){
       renderBookList();
-      try{
-        const code = localStorage.getItem("lxx_last_book_code");
-        const name = localStorage.getItem("lxx_last_book_name");
-        const idx  = parseInt(localStorage.getItem("lxx_last_idx")||"",10);
-        if (code && name){
-          const b = LXX_BOOKS.find(x=>x.code===code) || {name, code};
-          const item = Array.from(bookListEl.querySelectorAll(".book")).find(el => el.querySelector(".name")?.textContent === b.name);
-          if (item){
-            selectBook(b, item).then(()=>{
-              if (!Number.isNaN(idx) && idx>=0 && idx<chapterCount){
-                const chips = item.nextElementSibling?.querySelectorAll(".chap");
-                chips && chips[idx] && chips[idx].click();
-              }
-            });
-          }
+    }
+
+    function renderBookList() {
+      bookListEl.innerHTML = "";
+      books.forEach(b => {
+        const div = document.createElement("div");
+        div.className = "book";
+        div.textContent = b.name;
+        div.addEventListener("click", () => showChapters(b, div));
+        bookListEl.appendChild(div);
+      });
+    }
+
+    function showChapters(book, bookEl) {
+      currentBook = book;
+      const box = document.createElement("div");
+      box.className = "chapters";
+      book.chapters.forEach(c => {
+        const chip = document.createElement("button");
+        chip.className = "chap";
+        chip.textContent = c;
+        chip.addEventListener("click", () => {
+          box.querySelectorAll(".chap").forEach(ch => ch.classList.remove("active"));
+          chip.classList.add("active");
+          loadChapter(book.name.toLowerCase(), c);
+        });
+        box.appendChild(chip);
+      });
+      const next = bookEl.nextElementSibling;
+      if (next && next.classList.contains("chapters")) next.remove();
+      bookEl.insertAdjacentElement("afterend", box);
+    }
+
+    async function loadChapter(book, chap) {
+      titleEl.textContent = `${book} – hoofdstuk ${chap}`;
+      readerEl.innerHTML = `<div class="muted">Laden…</div>`;
+      prevBtn.disabled = nextBtn.disabled = true;
+
+      try {
+        const id = `${book}_h${chap}`;
+        const doc = await dbRef.doc(id).get();
+        if (!doc.exists) {
+          readerEl.innerHTML = `<div class="muted">Geen tekst gevonden voor ${book} ${chap}.</div>`;
+          return;
         }
-      }catch{}
-    })();
+        const data = doc.data();
+        const verzen = data.verzen || {};
+        const frag = document.createDocumentFragment();
+        for (const [n, txt] of Object.entries(verzen)) {
+          const p = document.createElement("div");
+          p.className = "verse";
+          p.innerHTML = `<span class="num">${n}.</span>${txt}`;
+          frag.appendChild(p);
+        }
+        readerEl.innerHTML = "";
+        readerEl.appendChild(frag);
+
+        currentChap = chap;
+        const list = currentBook.chapters;
+        const idx = list.indexOf(chap);
+        prevBtn.disabled = idx <= 0;
+        nextBtn.disabled = idx >= list.length - 1;
+      } catch (err) {
+        readerEl.innerHTML = `<div class="muted">Fout bij laden: ${err.message}</div>`;
+      }
+    }
+
+    prevBtn.addEventListener("click", () => {
+      if (!currentBook) return;
+      const idx = currentBook.chapters.indexOf(currentChap);
+      if (idx > 0) loadChapter(currentBook.name.toLowerCase(), currentBook.chapters[idx - 1]);
+    });
+    nextBtn.addEventListener("click", () => {
+      if (!currentBook) return;
+      const idx = currentBook.chapters.indexOf(currentChap);
+      if (idx < currentBook.chapters.length - 1) loadChapter(currentBook.name.toLowerCase(), currentBook.chapters[idx + 1]);
+    });
+
+    loadBookList();
   </script>
 </body>
 </html>
