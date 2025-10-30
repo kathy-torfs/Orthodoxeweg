@@ -1,157 +1,275 @@
-<script>
-  const dbRef = firebase.firestore().collection("bijbel_LXX");
-  const bookListEl = document.getElementById("bookList");
-  const readerEl = document.getElementById("reader");
-  const titleEl = document.getElementById("title");
-  const prevBtn = document.getElementById("prevBtn");
-  const nextBtn = document.getElementById("nextBtn");
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bijbel (LXX – Grieks) – Orthodoxeweg</title>
 
-  let books = [];
-  let currentBook = null;
-  let currentChap = null;
+  <link rel="icon" href="https://www.orthodoxeweg.be/images/kruis.png" />
 
-  // 📜 VASTE CANONIEKE VOLGORDE VAN LXX-BOEKEN
-  const LXX_ORDER = [
-    "genesis","exodus","leviticus","numbers","deuteronomy",
-    "joshua","judges","ruth",
-    "i_kingdoms","ii_kingdoms","iii_kingdoms","iv_kingdoms",
-    "i_chronicles","ii_chronicles","i_esdras","ii_esdras","nehemiah",
-    "tobit","judith","esther",
-    "i_maccabees","ii_maccabees","iii_maccabees",
-    "psalms","job","proverbs","ecclesiastes","song_of_solomon",
-    "wisdom_of_solomon","wisdom_of_sirach",
-    "isaiah","jeremiah","lamentations","baruch","ezekiel","daniel",
-    "hosea","joel","amos","obadiah","jonah","micah","nahum",
-    "habakkuk","zephaniah","haggai","zechariah","malachi"
-  ];
+  <!-- ✅ Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 
-  function normalizeBookName(name) {
-    return name.toLowerCase().replace(/\s+/g,"_").replace(/[^\w_]/g,"");
-  }
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
+      authDomain: "orthodoxeweg.firebaseapp.com",
+      projectId: "orthodoxeweg",
+      storageBucket: "orthodoxeweg.firebasestorage.app"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    console.log("✅ Verbonden met Orthodoxeweg – Firestore actief");
+  </script>
 
-  async function loadBookList() {
-    try {
-      const snap = await dbRef.get();
-      const allDocs = snap.docs.map(d => d.id);
-      const map = {};
+  <!-- Layout -->
+  <script src="https://www.orthodoxeweg.be/volwassenmodus/common/layout.js" defer></script>
 
-      allDocs.forEach(id => {
-        const [book, chapRaw] = id.split("_");
-        const chap = parseInt(chapRaw.replace(/^h/, ""), 10) || 1;
-        const key = normalizeBookName(book);
-        if (!map[key]) map[key] = [];
-        map[key].push(chap);
-      });
-
-      books = Object.entries(map).map(([book, chapters]) => ({
-        name: book,
-        chapters: chapters.sort((a,b)=>a-b)
-      }));
-
-      // 📘 Sorteer volgens vaste LXX-volgorde
-      books.sort((a,b)=>{
-        const ai = LXX_ORDER.indexOf(a.name);
-        const bi = LXX_ORDER.indexOf(b.name);
-        if (ai === -1 && bi === -1) return a.name.localeCompare(b.name);
-        if (ai === -1) return 1;
-        if (bi === -1) return -1;
-        return ai - bi;
-      });
-
-      renderBookList();
-    } catch (err) {
-      bookListEl.innerHTML =
-        `<div class="muted">Kon boeken niet laden.<br>${err.message}</div>`;
+  <style>
+    :root {
+      --bg:#f5e9b8; --text:#5a3b13; --card:#fffef9; --border:#c9b27b;
+      --highlight:#f0dca9;
     }
-  }
+    body { background:var(--bg); color:var(--text);
+           font-family:"Palatino Linotype","Times New Roman",serif; margin:0; }
+    .container { display:grid; grid-template-columns:280px 1fr;
+                 gap:16px; max-width:1200px; margin:16px auto; padding:0 16px; }
+    @media(max-width:900px){.container{grid-template-columns:1fr;}}
 
-  function renderBookList() {
-    bookListEl.innerHTML = "";
-    books.forEach(b => {
-      const div = document.createElement("div");
-      div.className = "book";
-      const label = b.name.replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase());
-      div.textContent = label;
-      div.addEventListener("click", () => showChapters(b, div));
-      bookListEl.appendChild(div);
-    });
-  }
+    .panel{background:var(--card);border:2px solid var(--border);border-radius:12px;
+           padding:12px;box-shadow:0 6px 20px rgba(168,139,84,.15);}
+    .panel h2{text-align:center;margin:4px 0 10px;}
+    .booklist{max-height:70vh;overflow:auto;}
+    .book{padding:8px 10px;margin:4px 0;border:1.5px solid var(--border);
+          background:#fff9ed;border-radius:8px;cursor:pointer;font-weight:600;}
+    .book:hover{background:var(--highlight);}
+    .chapters{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+    .chap{padding:6px 8px;border:1.5px solid var(--border);border-radius:6px;
+          background:#fffef8;cursor:pointer;font-weight:700;}
+    .chap.active{background:var(--highlight);border-color:#8c6a2b;}
 
-  function showChapters(book, bookEl) {
-    currentBook = book;
-    const box = document.createElement("div");
-    box.className = "chapters";
-    book.chapters.forEach(c => {
-      const chip = document.createElement("button");
-      chip.className = "chap";
-      chip.textContent = c;
-      chip.addEventListener("click", () => {
-        box.querySelectorAll(".chap").forEach(ch => ch.classList.remove("active"));
-        chip.classList.add("active");
-        loadChapter(book.name, c);
-      });
-      box.appendChild(chip);
-    });
-    const next = bookEl.nextElementSibling;
-    if (next && next.classList.contains("chapters")) next.remove();
-    bookEl.insertAdjacentElement("afterend", box);
-  }
+    .content{display:flex;flex-direction:column;gap:12px;}
+    .toolbar{display:flex;justify-content:space-between;flex-wrap:wrap;align-items:center;
+             background:var(--card);border:2px solid var(--border);border-radius:12px;
+             padding:10px 12px;}
+    .btn{background:#fff8e2;border:1.5px solid var(--border);border-radius:8px;
+         padding:8px 12px;font-weight:700;cursor:pointer;}
+    .btn:disabled{opacity:.55;cursor:not-allowed;}
+    .title{font-weight:800;font-size:18px;}
+    .reader{min-height:60vh;background:#fffef8;border:2px solid var(--border);
+            border-radius:12px;padding:18px;box-shadow:0 6px 22px rgba(168,139,84,.25);
+            line-height:1.6;font-size:20px;white-space:pre-wrap;}
+    .verse{margin-bottom:10px;}
+    .verse span.num{font-weight:bold;color:#8c6a2b;margin-right:6px;}
+    .muted{text-align:center;opacity:.65;font-style:italic;}
+  </style>
+</head>
 
-  async function loadChapter(book, chap) {
-    titleEl.textContent = `${book} – hoofdstuk ${chap}`;
-    readerEl.innerHTML = `<div class="muted">Laden…</div>`;
-    prevBtn.disabled = nextBtn.disabled = true;
+<body>
+  <div id="volwassen-header"
+       data-header-src="https://www.orthodoxeweg.be/volwassenmodus/common/header.html">
+  </div>
 
-    try {
-      const id = `${book}_h${chap}`;
-      const doc = await dbRef.doc(id).get();
-      if (!doc.exists) {
-        readerEl.innerHTML = `<div class="muted">Geen tekst gevonden voor ${book} ${chap}.</div>`;
-        return;
+  <div class="container">
+    <aside class="panel">
+      <h2>📖 LXX – Grieks</h2>
+      <div id="bookList" class="booklist"><div class="muted">Bezig met laden…</div></div>
+    </aside>
+
+    <main class="content">
+      <div class="toolbar">
+        <button id="prevBtn" class="btn" disabled>⟵ Vorige hoofdstuk</button>
+        <div id="title" class="title">Kies een boek</div>
+        <button id="nextBtn" class="btn" disabled>Volgende hoofdstuk ⟶</button>
+      </div>
+
+      <section id="reader" class="reader">
+        <div class="muted">
+          Kies links een boek en hoofdstuk.<br/>
+          De Griekse tekst wordt rechtstreeks uit Firestore geladen.
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const dbRef = firebase.firestore().collection("bijbel_LXX");
+    const bookListEl = document.getElementById("bookList");
+    const readerEl = document.getElementById("reader");
+    const titleEl = document.getElementById("title");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+
+    let books = [];
+    let currentBook = null;
+    let currentChap = null;
+
+    // 📚 Vlaamse namen + vaste volgorde
+    const LXX_BOOKS = [
+      { id:"genesis", naam:"Genesis" },
+      { id:"exodus", naam:"Exodus" },
+      { id:"leviticus", naam:"Leviticus" },
+      { id:"numbers", naam:"Numeri" },
+      { id:"deuteronomy", naam:"Deuteronomium" },
+      { id:"joshua", naam:"Jozua" },
+      { id:"judges", naam:"Rechters" },
+      { id:"ruth", naam:"Ruth" },
+      { id:"i_kingdoms", naam:"1 Koningen (1 Samuel)" },
+      { id:"ii_kingdoms", naam:"2 Koningen (2 Samuel)" },
+      { id:"iii_kingdoms", naam:"3 Koningen (1 Koningen)" },
+      { id:"iv_kingdoms", naam:"4 Koningen (2 Koningen)" },
+      { id:"i_chronicles", naam:"1 Kronieken" },
+      { id:"ii_chronicles", naam:"2 Kronieken" },
+      { id:"i_esdras", naam:"1 Ezra" },
+      { id:"ii_esdras", naam:"2 Ezra (Nehemia)" },
+      { id:"tobit", naam:"Tobit" },
+      { id:"judith", naam:"Judit" },
+      { id:"esther", naam:"Esther" },
+      { id:"i_maccabees", naam:"1 Makkabeeën" },
+      { id:"ii_maccabees", naam:"2 Makkabeeën" },
+      { id:"iii_maccabees", naam:"3 Makkabeeën" },
+      { id:"psalms", naam:"Psalmen" },
+      { id:"job", naam:"Job" },
+      { id:"proverbs", naam:"Spreuken" },
+      { id:"ecclesiastes", naam:"Prediker" },
+      { id:"song_of_solomon", naam:"Hooglied" },
+      { id:"wisdom_of_solomon", naam:"Wijsheid van Salomo" },
+      { id:"wisdom_of_sirach", naam:"Wijsheid van Sirach" },
+      { id:"isaiah", naam:"Jesaja" },
+      { id:"jeremiah", naam:"Jeremia" },
+      { id:"lamentations", naam:"Klaagliederen" },
+      { id:"baruch", naam:"Baruch" },
+      { id:"ezekiel", naam:"Ezechiël" },
+      { id:"daniel", naam:"Daniël" },
+      { id:"hosea", naam:"Hosea" },
+      { id:"joel", naam:"Joël" },
+      { id:"amos", naam:"Amos" },
+      { id:"obadiah", naam:"Obadja" },
+      { id:"jonah", naam:"Jona" },
+      { id:"micah", naam:"Micha" },
+      { id:"nahum", naam:"Nahum" },
+      { id:"habakkuk", naam:"Habakuk" },
+      { id:"zephaniah", naam:"Sefanja" },
+      { id:"haggai", naam:"Haggai" },
+      { id:"zechariah", naam:"Zacharia" },
+      { id:"malachi", naam:"Maleachi" }
+    ];
+
+    async function loadBookList() {
+      try {
+        const snap = await dbRef.get();
+        const allDocs = snap.docs.map(d => d.id);
+        const map = {};
+
+        allDocs.forEach(id => {
+          const [book, chapRaw] = id.split("_");
+          const chap = parseInt(chapRaw.replace(/^h/, ""), 10) || 1;
+          if (!map[book]) map[book] = [];
+          map[book].push(chap);
+        });
+
+        books = LXX_BOOKS.map(b => ({
+          id: b.id,
+          naam: b.naam,
+          chapters: map[b.id]?.sort((a,b)=>a-b) || []
+        })).filter(b => b.chapters.length > 0);
+
+        renderBookList();
+      } catch (err) {
+        bookListEl.innerHTML =
+          `<div class="muted">Kon boeken niet laden.<br>${err.message}</div>`;
       }
-      const data = doc.data();
-      const verzen = data.verzen || {};
-      const frag = document.createDocumentFragment();
-      for (const [n, txt] of Object.entries(verzen)) {
-        const p = document.createElement("div");
-        p.className = "verse";
-        p.innerHTML = `<span class="num">${n}.</span>${txt}`;
-        frag.appendChild(p);
+    }
+
+    function renderBookList() {
+      bookListEl.innerHTML = "";
+      books.forEach(b => {
+        const div = document.createElement("div");
+        div.className = "book";
+        div.textContent = b.naam;
+        div.addEventListener("click", () => showChapters(b, div));
+        bookListEl.appendChild(div);
+      });
+    }
+
+    function showChapters(book, bookEl) {
+      currentBook = book;
+      const box = document.createElement("div");
+      box.className = "chapters";
+      book.chapters.forEach(c => {
+        const chip = document.createElement("button");
+        chip.className = "chap";
+        chip.textContent = c;
+        chip.addEventListener("click", () => {
+          box.querySelectorAll(".chap").forEach(ch => ch.classList.remove("active"));
+          chip.classList.add("active");
+          loadChapter(book.id, c, book.naam);
+        });
+        box.appendChild(chip);
+      });
+      const next = bookEl.nextElementSibling;
+      if (next && next.classList.contains("chapters")) next.remove();
+      bookEl.insertAdjacentElement("afterend", box);
+    }
+
+    async function loadChapter(id, chap, naam) {
+      titleEl.textContent = `${naam} – hoofdstuk ${chap}`;
+      readerEl.innerHTML = `<div class="muted">Laden…</div>`;
+      prevBtn.disabled = nextBtn.disabled = true;
+
+      try {
+        const doc = await dbRef.doc(`${id}_h${chap}`).get();
+        if (!doc.exists) {
+          readerEl.innerHTML = `<div class="muted">Geen tekst gevonden voor ${naam} ${chap}.</div>`;
+          return;
+        }
+        const data = doc.data();
+        const verzen = data.verzen || {};
+        const frag = document.createDocumentFragment();
+        for (const [n, txt] of Object.entries(verzen)) {
+          const p = document.createElement("div");
+          p.className = "verse";
+          p.innerHTML = `<span class="num">${n}.</span>${txt}`;
+          frag.appendChild(p);
+        }
+        readerEl.innerHTML = "";
+        readerEl.appendChild(frag);
+
+        currentChap = chap;
+        const list = currentBook.chapters;
+        const idx = list.indexOf(chap);
+        prevBtn.disabled = idx <= 0;
+        nextBtn.disabled = idx >= list.length - 1;
+
+        localStorage.setItem("lxx_last_book", id);
+        localStorage.setItem("lxx_last_chap", chap);
+      } catch (err) {
+        readerEl.innerHTML = `<div class="muted">Fout bij laden: ${err.message}</div>`;
       }
-      readerEl.innerHTML = "";
-      readerEl.appendChild(frag);
-
-      currentChap = chap;
-      const list = currentBook.chapters;
-      const idx = list.indexOf(chap);
-      prevBtn.disabled = idx <= 0;
-      nextBtn.disabled = idx >= list.length - 1;
-
-      localStorage.setItem("lxx_last_book", book);
-      localStorage.setItem("lxx_last_chap", chap);
-    } catch (err) {
-      readerEl.innerHTML = `<div class="muted">Fout bij laden: ${err.message}</div>`;
     }
-  }
 
-  prevBtn.addEventListener("click", () => {
-    if (!currentBook) return;
-    const idx = currentBook.chapters.indexOf(currentChap);
-    if (idx > 0) loadChapter(currentBook.name, currentBook.chapters[idx - 1]);
-  });
-  nextBtn.addEventListener("click", () => {
-    if (!currentBook) return;
-    const idx = currentBook.chapters.indexOf(currentChap);
-    if (idx < currentBook.chapters.length - 1) loadChapter(currentBook.name, currentBook.chapters[idx + 1]);
-  });
+    prevBtn.addEventListener("click", () => {
+      if (!currentBook) return;
+      const idx = currentBook.chapters.indexOf(currentChap);
+      if (idx > 0) loadChapter(currentBook.id, currentBook.chapters[idx - 1], currentBook.naam);
+    });
+    nextBtn.addEventListener("click", () => {
+      if (!currentBook) return;
+      const idx = currentBook.chapters.indexOf(currentChap);
+      if (idx < currentBook.chapters.length - 1) loadChapter(currentBook.id, currentBook.chapters[idx + 1], currentBook.naam);
+    });
 
-  // 🚀 Start
-  loadBookList().then(() => {
-    const lastBook = localStorage.getItem("lxx_last_book");
-    const lastChap = parseInt(localStorage.getItem("lxx_last_chap") || "1", 10);
-    if (lastBook) {
-      const found = books.find(b => b.name === normalizeBookName(lastBook));
-      if (found) loadChapter(found.name, lastChap);
-    }
-  });
-</script>
+    // 🚀 Start
+    loadBookList().then(() => {
+      const lastBook = localStorage.getItem("lxx_last_book");
+      const lastChap = parseInt(localStorage.getItem("lxx_last_chap") || "1", 10);
+      if (lastBook) {
+        const found = LXX_BOOKS.find(b => b.id === lastBook);
+        if (found) loadChapter(found.id, lastChap, found.naam);
+      }
+    });
+  </script>
+</body>
+</html>
