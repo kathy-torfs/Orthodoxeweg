@@ -47,8 +47,11 @@
     #loadingMsg { text-align:center; color:#888; margin:20px 0; }
   </style>
 
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+  <!-- Layout bestand -->
   <script defer src="common/layout.js"></script>
 </head>
 <body>
@@ -69,12 +72,13 @@
   </main>
 
   <script>
-    // Pastelachtergrond
+    // Achtergrondkleur willekeurig
     (function(){
       const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)'];
       document.body.style.background = p[Math.floor(Math.random()*p.length)];
     })();
 
+    // Firebase configuratie
     const firebaseConfig = {
       apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain:"orthodoxeweg.firebaseapp.com",
@@ -87,6 +91,7 @@
     const db = firebase.firestore();
 
     document.addEventListener('DOMContentLoaded', startWhenReady);
+
     function startWhenReady(){
       if (!(window.VolwassenLayout && window.firebase && firebase.firestore)) {
         return setTimeout(startWhenReady, 120);
@@ -154,16 +159,45 @@
       async function laadBoek(boek){
         bijbelTekst.innerHTML=`<h2>${boek}</h2><div id="loadingMsg">Laden…</div>`;
         let inhoud='';
+
         try {
           if(huidigTestament==='LXX'){
             const boekId=boek.toLowerCase().replace(/\s+/g,'_');
-            const doc=await db.collection('bijbel_LXX').doc(boekId+'_h1').get();
-            if(doc.exists){
-              const data=doc.data();
-              for(const [vers,tekst] of Object.entries(data)){
-                inhoud+=`<p class="vers grieks"><strong>${vers}</strong> ${tekst}</p>`;
-              }
+            const hoofdstukkenSnap = await db.collection('bijbel_LXX')
+              .where(firebase.firestore.FieldPath.documentId(), '>=', boekId + '_h')
+              .where(firebase.firestore.FieldPath.documentId(), '<', boekId + '_i')
+              .get();
+
+            if(!hoofdstukkenSnap.empty){
+              hoofdstukkenSnap.forEach(doc=>{
+                const data=doc.data();
+                for(const [vers,tekst] of Object.entries(data)){
+                  inhoud+=`<p class="vers grieks"><strong>${vers}</strong> ${tekst}</p>`;
+                }
+              });
             } else inhoud='<p>Geen gegevens gevonden.</p>';
-          } else {
+          } 
+          else {
             const boekId=boek.toLowerCase();
-            const hoofdstukken=await db.collection('bijbel').doc(boekId).collection('
+            const hoofdstukkenSnap = await db.collection('bijbel').doc(boekId).collection('hoofdstukken').get();
+            if(!hoofdstukkenSnap.empty){
+              hoofdstukkenSnap.forEach(doc=>{
+                const data=doc.data();
+                for(const [vers,tekst] of Object.entries(data)){
+                  inhoud+=`<p class="vers"><strong>${vers}</strong> ${tekst}</p>`;
+                }
+              });
+            } else inhoud='<p>Geen gegevens gevonden.</p>';
+          }
+        } 
+        catch (err) {
+          inhoud='<p>Fout bij laden: '+err+'</p>';
+          console.error(err);
+        }
+
+        bijbelTekst.innerHTML=`<h2>${boek}</h2>${inhoud}`;
+      }
+    }
+  </script>
+</body>
+</html>
