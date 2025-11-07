@@ -2,37 +2,168 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>De Heilige Schrift – Volwassenmodus</title>
-  <link rel="stylesheet" href="../common/layout.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif&family=Noto+Serif+Greek&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bijbel – Orthodoxeweg Volwassenmodus</title>
+  <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
+
+  <style>
+    :root {
+      --primair:#7bb235; --donker:#67510C;
+      --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
+      --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
+      --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
+    }
+    body {
+      margin:0; font-family:Arial, sans-serif; color:#333;
+      min-height:100vh; background:var(--pastel1); overflow-x:hidden;
+      transition:background .6s;
+    }
+    .page-container { max-width:750px; margin:0 auto; padding:0 14px 44px 14px; }
+
+    .testament-selector { text-align:center; margin:1rem 0; }
+    select {
+      padding:8px 12px; border-radius:8px; font-size:1em;
+      border:1px solid #ccc; background:#fff;
+    }
+
+    .boeken-bar {
+      display:flex; overflow-x:auto; gap:0.4rem;
+      background:#f2f2f2; padding:0.6rem; border-radius:12px;
+      scrollbar-width:none;
+    }
+    .boeken-bar button {
+      background:#fff; border:none; border-radius:8px;
+      padding:0.5rem 0.8rem; cursor:pointer;
+      font-size:0.9rem; transition:background .2s;
+      white-space:nowrap;
+    }
+    .boeken-bar button:hover { background:#7bb235; color:#fff; }
+
+    .bijbel-tekst { margin-top:1rem; line-height:1.6; }
+    .bijbel-tekst h2 { text-align:center; color:#67510C; }
+    .vers { margin-bottom:0.7rem; text-indent:1rem; font-size:1.05em; }
+    .grieks { font-family:'Noto Serif Greek', serif; font-size:1.1em; }
+
+    #loadingMsg { text-align:center; color:#888; margin:20px 0; }
+  </style>
+
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+  <script defer src="common/layout.js"></script>
 </head>
 <body>
-  <!-- Header -->
-  <div id="header-container"></div>
+  <div id="volwassen-header"></div>
 
-  <main class="bijbel-container">
-    <div class="testament-keuze">
+  <main class="page-container">
+    <div class="testament-selector">
       <select id="testamentSelector">
         <option value="LXX">📜 Oude Testament (Grieks)</option>
         <option value="NT">📖 Nieuwe Testament (Vlaams)</option>
       </select>
     </div>
 
-    <!-- Boekenbalk -->
     <div id="boekenBar" class="boeken-bar"></div>
-
-    <!-- Tekstweergave -->
-    <section id="bijbelTekst" class="tekstweergave">
-      <p>Kies een boek om te beginnen lezen...</p>
-    </section>
+    <div id="bijbelTekst" class="bijbel-tekst">
+      <div id="loadingMsg">Kies een boek om te beginnen lezen…</div>
+    </div>
   </main>
 
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script src="../common/layout.js"></script>
-  <script src="../common/bijbel-volwassen.js"></script>
-</body>
-</html>
+  <script>
+    // Pastelachtergrond
+    (function(){
+      const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)'];
+      document.body.style.background = p[Math.floor(Math.random()*p.length)];
+    })();
+
+    const firebaseConfig = {
+      apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
+      authDomain:"orthodoxeweg.firebaseapp.com",
+      projectId:"orthodoxeweg",
+      storageBucket:"orthodoxeweg.appspot.com",
+      messagingSenderId:"408582263618",
+      appId:"1:408582263618:web:0a20f4bf0704989d3ceedb"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    document.addEventListener('DOMContentLoaded', startWhenReady);
+    function startWhenReady(){
+      if (!(window.VolwassenLayout && window.firebase && firebase.firestore)) {
+        return setTimeout(startWhenReady, 120);
+      }
+      window.VolwassenLayout.mountHeader({
+        rootId: 'volwassen-header',
+        headerSrc: 'common/header.html',
+        active: 'bijbel'
+      }).then(initPage).catch(initPage);
+    }
+
+    async function initPage(){
+      if (!localStorage.getItem('ingelogdeParochie') ||
+          localStorage.getItem('modus') !== 'volwassene' ||
+          !localStorage.getItem('loginKeuze')) {
+        window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
+        return;
+      }
+      setupBijbel();
+    }
+
+    function setupBijbel(){
+      const boekenLXX = [
+        "Genesis","Exodus","Leviticus","Numeri","Deuteronomium","Jozua","Richteren",
+        "Ruth","1 Koningen","2 Koningen","3 Koningen","4 Koningen","1 Paralipomenon",
+        "2 Paralipomenon","1 Esdras","2 Esdras","Tobit","Judit","Ester","Job",
+        "Psalmen","Spreuken","Prediker","Hooglied","Wijsheid","Sirach","Jesaja",
+        "Jeremia","Klaagliederen","Baruch","Ezechiël","Daniël","Hosea","Joël",
+        "Amos","Obadja","Jona","Micha","Nahum","Habakuk","Zefanja","Haggai",
+        "Zacharia","Maleachi"
+      ];
+      const boekenNT = [
+        "Mattheus","Marcus","Lukas","Johannes","Handelingen",
+        "Romeinen","1 Korinthe","2 Korinthe","Galaten","Efeze",
+        "Filippenzen","Kolossenzen","1 Thessalonika","2 Thessalonika",
+        "1 Timotheus","2 Timotheus","Titus","Filemon","Hebreeën",
+        "Jakobus","1 Petrus","2 Petrus","1 Johannes","2 Johannes",
+        "3 Johannes","Judas","Openbaring"
+      ];
+
+      const testamentSelector=document.getElementById('testamentSelector');
+      const boekenBar=document.getElementById('boekenBar');
+      const bijbelTekst=document.getElementById('bijbelTekst');
+
+      let huidigTestament='LXX';
+      toonBoeken();
+
+      testamentSelector.addEventListener('change',e=>{
+        huidigTestament=e.target.value;
+        toonBoeken();
+        bijbelTekst.innerHTML='<div id="loadingMsg">Kies een boek om te beginnen lezen…</div>';
+      });
+
+      function toonBoeken(){
+        boekenBar.innerHTML='';
+        const lijst = huidigTestament==='LXX'?boekenLXX:boekenNT;
+        lijst.forEach(boek=>{
+          const btn=document.createElement('button');
+          btn.textContent=boek;
+          btn.onclick=()=>laadBoek(boek);
+          boekenBar.appendChild(btn);
+        });
+      }
+
+      async function laadBoek(boek){
+        bijbelTekst.innerHTML=`<h2>${boek}</h2><div id="loadingMsg">Laden…</div>`;
+        let inhoud='';
+        try {
+          if(huidigTestament==='LXX'){
+            const boekId=boek.toLowerCase().replace(/\s+/g,'_');
+            const doc=await db.collection('bijbel_LXX').doc(boekId+'_h1').get();
+            if(doc.exists){
+              const data=doc.data();
+              for(const [vers,tekst] of Object.entries(data)){
+                inhoud+=`<p class="vers grieks"><strong>${vers}</strong> ${tekst}</p>`;
+              }
+            } else inhoud='<p>Geen gegevens gevonden.</p>';
+          } else {
+            const boekId=boek.toLowerCase();
+            const hoofdstukken=await db.collection('bijbel').doc(boekId).collection('
