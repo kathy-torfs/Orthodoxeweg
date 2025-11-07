@@ -260,20 +260,45 @@
       tekst.innerHTML = `<h2>${label} ${h}</h2>${html}`;
     }
 
-    async function laadNT(docId, h, label){
-      tekst.innerHTML=`<h2>${label} ${h}</h2><p class="hint">Laden…</p>`;
-      const vs = await db.collection('bijbel').doc(docId).collection('hoofdstukken').doc(String(h)).collection('verzen').get();
-      if(vs.empty){ tekst.innerHTML=`<div class="error">Geen verzen onder <b>bijbel/${docId}/hoofdstukken/${h}/verzen</b>.</div>`; return; }
-      const docs = vs.docs.sort((a,b)=>Number(a.id)-Number(b.id));
-      const html = docs.map(d=>{
-        const t = (d.data()?.tekst)||'';
-        return `<p class="vers"><strong>${d.id}</strong> ${t}</p>`;
-      }).join('');
-      tekst.innerHTML = `<h2>${label} ${h}</h2>${html}`;
+  async function laadNT(docId, h, label) {
+  tekst.innerHTML = `<h2>${label} ${h}</h2><p class="hint">Laden…</p>`;
+  try {
+    const verzenRef = db
+      .collection("bijbel")
+      .doc(docId)
+      .collection("hoofdstukken")
+      .doc(String(h))
+      .collection("verzen");
+
+    const snap = await verzenRef.get();
+    if (snap.empty) {
+      tekst.innerHTML = `<div class="error">Geen verzen gevonden onder <b>bijbel/${docId}/hoofdstukken/${h}/verzen</b>.</div>`;
+      return;
     }
+
+    const verzen = [];
+    snap.forEach((v) => {
+      const id = Number(v.id);
+      const tekstVeld = v.data()?.tekst || "";
+      verzen.push({ id, tekstVeld });
+    });
+    verzen.sort((a, b) => a.id - b.id);
+
+    const html = verzen
+      .map(
+        (v) =>
+          `<p class="vers"><strong>${v.id}</strong> ${v.tekstVeld}</p>`
+      )
+      .join("");
+
+    tekst.innerHTML = `<h2>${label} ${h}</h2>${html}`;
+  } catch (e) {
+    tekst.innerHTML = `<div class="error">Fout bij laden: ${e}</div>`;
+  }
 
     // start
     renderBoeken();
   </script>
 </body>
 </html>
+
