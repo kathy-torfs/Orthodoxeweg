@@ -14,27 +14,39 @@
       --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
       --pastel9:#fff6fb; --pastel10:#e7fff9; --pastel11:#f3e6ff; --pastel12:#ffeae6;
     }
-    body { margin:0; font-family:Arial, sans-serif; color:#333;
-      min-height:100vh; background:var(--pastel1); transition:background .6s;
+    body {
+      margin:0; font-family:Arial, sans-serif; color:#333;
+      min-height:100vh; background:var(--pastel1);
+      transition:background .6s;
     }
     .page-container { max-width:900px; margin:0 auto; padding:0 14px 44px 14px; }
 
     .testament-selector { text-align:center; margin:1rem 0; }
-    select { padding:8px 12px; border-radius:8px; font-size:1em; border:1px solid #ccc; background:#fff; }
+    select {
+      padding:8px 12px; border-radius:8px; font-size:1em;
+      border:1px solid #ccc; background:#fff;
+    }
 
-    .boeken-wrap { background:#f2f2f2; padding:0.6rem; border-radius:12px; margin-bottom:0.5rem; }
+    .boeken-wrap {
+      background:#f2f2f2; padding:0.6rem; border-radius:12px; margin-bottom:0.5rem;
+    }
     .boeken-hint { font-size:.85rem; color:#666; margin:.2rem 0 .4rem; text-align:center; }
 
-    .boeken-bar { display:flex; flex-wrap:wrap; gap:0.4rem; justify-content:center; overflow-x:hidden; }
+    .boeken-bar {
+      display:flex; flex-wrap:wrap; gap:0.4rem; justify-content:center; overflow-x:hidden;
+    }
     .boeken-bar button {
       background:#fff; border:1px solid #ddd; border-radius:8px;
       padding:0.45rem 0.7rem; cursor:pointer;
       font-size:0.9rem; transition:background .15s, color .15s, border-color .15s;
+      white-space:nowrap;
     }
     .boeken-bar button:hover { background:#7bb235; color:#fff; border-color:#7bb235; }
     .boeken-bar button.actief { background:#7bb235; color:#fff; border-color:#7bb235; }
 
-    .hoofdstukken-bar { display:flex; flex-wrap:wrap; gap:.35rem; margin-top:.6rem; justify-content:center; }
+    .hoofdstukken-bar {
+      display:flex; flex-wrap:wrap; gap:.35rem; margin-top:.6rem; justify-content:center;
+    }
     .hoofdstukken-bar button {
       background:#fff; border:1px solid #ddd; border-radius:8px;
       padding:.35rem .6rem; font-size:.85rem; cursor:pointer;
@@ -47,11 +59,9 @@
     .grieks { font-family:'Noto Serif Greek', serif; font-size:1.1em; }
 
     #loadingMsg { text-align:center; color:#888; margin:16px 0; }
-    .error { color:#a40000; background:#ffecec; border:1px solid #ffc9c9;
-      padding:.6rem .8rem; border-radius:8px; }
+    .error { color:#a40000; background:#ffecec; border:1px solid #ffc9c9; padding:.6rem .8rem; border-radius:8px; }
   </style>
 
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script defer src="common/layout.js"></script>
@@ -79,14 +89,14 @@
   </main>
 
   <script>
-    // Achtergrond
+    // willekeurige achtergrondkleur
     (function(){
       const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)'];
       document.body.style.background = p[Math.floor(Math.random()*p.length)];
     })();
 
-    // Firebase
-    const firebaseConfig = {
+    // Firebase setup
+    const firebaseConfig={
       apiKey:"AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
       authDomain:"orthodoxeweg.firebaseapp.com",
       projectId:"orthodoxeweg",
@@ -94,7 +104,7 @@
       messagingSenderId:"408582263618",
       appId:"1:408582263618:web:0a20f4bf0704989d3ceedb"
     };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    if(!firebase.apps.length)firebase.initializeApp(firebaseConfig);
     const db=firebase.firestore();
 
     async function mountHeaderSafe(){
@@ -155,13 +165,29 @@
         boekenBar.appendChild(btn);
       });
     }
+
     function highlightBoek(boek){[...boekenBar.querySelectorAll('button')].forEach(b=>b.classList.toggle('actief',b.textContent===boek));}
 
     async function laadHoofdstukken(boek){
       hoofdstukkenBar.innerHTML='';
       bijbelTekst.innerHTML=`<h2>${boek}</h2><div id="loadingMsg">Hoofdstukken laden…</div>`;
       try{
-        if(huidigTestament==='LXX'){
+        if(huidigTestament==='NT'){
+          const boekId=boek.toLowerCase();
+          const snap=await db.collection('bijbel').doc(boekId).collection('hoofdstukken').get();
+          if(snap.empty){bijbelTekst.innerHTML=`<div class='error'>Geen hoofdstukken gevonden voor ${boekId}.</div>`;return;}
+          const ids=snap.docs.map(d=>d.id).sort((a,b)=>Number(a)-Number(b));
+          ids.forEach(id=>{
+            const n=Number(id);
+            const btn=document.createElement('button');
+            btn.textContent=n;btn.className=(n===actiefH)?'actief':'';
+            btn.onclick=()=>{actiefH=n;highlightH(n);laadHoofdstukNT(boekId,n,boek);};
+            hoofdstukkenBar.appendChild(btn);
+          });
+          actiefH=actiefH||Number(ids[0]);
+          highlightH(actiefH);
+          await laadHoofdstukNT(boekId,actiefH,boek);
+        } else {
           const boekId=boek.toLowerCase().replace(/\s+/g,'_')
             .replace('wijsheid','wisdom_of_solomon')
             .replace('sirach','wisdom_of_sirach')
@@ -170,7 +196,6 @@
           const docs=await db.collection('bijbel_LXX')
             .where(firebase.firestore.FieldPath.documentId(),'>=',boekId+'_h')
             .where(firebase.firestore.FieldPath.documentId(),'<',boekId+'_i').get();
-
           if(docs.empty){bijbelTekst.innerHTML=`<div class='error'>Geen hoofdstukken gevonden voor ${boekId}.</div>`;return;}
           const hoofdstukken=docs.docs.map(d=>Number(d.id.match(/_h(\d+)/)[1])).sort((a,b)=>a-b);
           hoofdstukken.forEach(n=>{
@@ -182,21 +207,32 @@
           actiefH=actiefH||hoofdstukken[0];
           highlightH(actiefH);
           await laadHoofdstukLXX(boekId,actiefH,boek);
-        } else {
-          bijbelTekst.innerHTML="<div class='error'>Gebruik NT-versie code.</div>";
         }
       }catch(e){console.error(e);bijbelTekst.innerHTML=`<div class='error'>${e}</div>`;}
     }
 
     function highlightH(n){[...hoofdstukkenBar.querySelectorAll('button')].forEach(b=>b.classList.toggle('actief',Number(b.textContent)===Number(n)));}
 
+    // ✅ Nieuwe Testament structuur /bijbel/mattheus/hoofdstukken/1/verzen/1
+    async function laadHoofdstukNT(boekId,hNummer,boekLabel){
+      bijbelTekst.innerHTML=`<h2>${boekLabel} ${hNummer}</h2><div id='loadingMsg'>Laden…</div>`;
+      const verzenSnap=await db.collection('bijbel').doc(boekId).collection('hoofdstukken').doc(String(hNummer)).collection('verzen').get();
+      if(verzenSnap.empty){bijbelTekst.innerHTML=`<div class='error'>Geen verzen gevonden voor hoofdstuk ${hNummer}.</div>`;return;}
+      const verzen=verzenSnap.docs.sort((a,b)=>Number(a.id)-Number(b.id));
+      const html=verzen.map(v=>{
+        const data=v.data(); return `<p class='vers'><strong>${v.id}</strong> ${data.tekst||''}</p>`;
+      }).join('');
+      bijbelTekst.innerHTML=`<h2>${boekLabel} ${hNummer}</h2>${html}`;
+    }
+
+    // ✅ Oude Testament structuur /bijbel_LXX/genesis_h1/verzen(map)
     async function laadHoofdstukLXX(boekPrefix,hNummer,boekLabel){
       const docId=`${boekPrefix}_h${hNummer}`;
       bijbelTekst.innerHTML=`<h2>${boekLabel} ${hNummer}</h2><div id='loadingMsg'>Laden…</div>`;
       const doc=await db.collection('bijbel_LXX').doc(docId).get();
       if(!doc.exists){bijbelTekst.innerHTML=`<div class='error'>Niet gevonden: ${docId}</div>`;return;}
       const data=doc.data();
-      const verzen=data.verzen || data;
+      const verzen=data.verzen||data;
       const keys=Object.keys(verzen).sort((a,b)=>Number(a)-Number(b));
       const html=keys.map(v=>`<p class='vers grieks'><strong>${v}</strong> ${verzen[v]}</p>`).join('');
       bijbelTekst.innerHTML=`<h2>${boekLabel} ${hNummer}</h2>${html}`;
