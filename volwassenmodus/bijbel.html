@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
@@ -84,7 +84,6 @@
     })();
 
     // ===== EXACTE FIRESTORE NAAMGEVING =====
-    // LXX: label -> prefix (zoals jouw documenten in bijbel_LXX)
     const LXX = {
       "Genesis":"genesis",
       "Exodus":"exodus",
@@ -130,16 +129,13 @@
       "3 Makkabeeën":"iii_maccabees",
       "Wijsheid":"wisdom_of_solomon",
       "Sirach":"wisdom_of_sirach"
-      // (Baruch, Daniël, Ezechiël enz. kunnen later toegevoegd als jij ze bijplaatst)
     };
 
-    // NT: exact jouw docnamen in 'bijbel'
     const NT_DOCS = [
       "mattheus","markus","lukas","johannes","handelingen","romeinen",
       "galaten","efeze","filippenzen","kolossenzen","titus","filemon",
-      "hebreeen","jakobus","johannes","judas","openbaring" // let op: dubbele 'johannes' voor evangelie is al in lijst; laat staan.
+      "hebreeen","jakobus","johannes","judas","openbaring"
     ];
-    // UI-labels voor NT
     const NT_LABEL = {
       mattheus:"Mattheus", markus:"Markus", lukas:"Lukas", johannes:"Johannes",
       handelingen:"Handelingen", romeinen:"Romeinen", galaten:"Galaten",
@@ -148,157 +144,122 @@
       jakobus:"Jakobus", judas:"Judas", openbaring:"Openbaring"
     };
 
-    // UI elementen
-    const boekenLXX = document.getElementById('boekenLXX');
-    const boekenNT  = document.getElementById('boekenNT');
-    const hoofdstukkenBar = document.getElementById('hoofdstukkenBar');
-    const tekst = document.getElementById('tekst');
-    const testamentSel = document.getElementById('testamentSel');
-    const secLXX = document.getElementById('secLXX');
-    const secNT  = document.getElementById('secNT');
+    const boekenLXX=document.getElementById('boekenLXX');
+    const boekenNT=document.getElementById('boekenNT');
+    const hoofdstukkenBar=document.getElementById('hoofdstukkenBar');
+    const tekst=document.getElementById('tekst');
+    const testamentSel=document.getElementById('testamentSel');
+    const secLXX=document.getElementById('secLXX');
+    const secNT=document.getElementById('secNT');
 
     let mode='LXX', actiefBoekLabel=null, actiefPrefix=null, actiefNT=null, actiefH=null;
 
-    // vul uitklapmenu’s
     function renderBoeken(){
-      boekenLXX.innerHTML='';
-      boekenNT.innerHTML='';
+      boekenLXX.innerHTML=''; boekenNT.innerHTML='';
       Object.keys(LXX).forEach(label=>{
         const b=document.createElement('button');
-        b.textContent=label;
-        b.onclick=()=>selectLXX(label, LXX[label]);
+        b.textContent=label; b.onclick=()=>selectLXX(label,LXX[label]);
         boekenLXX.appendChild(b);
       });
       NT_DOCS.forEach(id=>{
         const b=document.createElement('button');
-        b.textContent=NT_LABEL[id] || id;
-        b.onclick=()=>selectNT(id);
+        b.textContent=NT_LABEL[id]||id; b.onclick=()=>selectNT(id);
         boekenNT.appendChild(b);
       });
     }
 
-    function selectLXX(label, prefix){
+    function selectLXX(label,prefix){
       mode='LXX'; secLXX.open=true; secNT.open=false; testamentSel.value='LXX';
       actiefBoekLabel=label; actiefPrefix=prefix; actiefNT=null; actiefH=null;
-      highlightBoek(label, 'LXX');
-      laadHoofdstukkenLXX(prefix, label);
+      highlightBoek(label,'LXX'); laadHoofdstukkenLXX(prefix,label);
     }
-
     function selectNT(docId){
       mode='NT'; secLXX.open=false; secNT.open=true; testamentSel.value='NT';
-      actiefBoekLabel=NT_LABEL[docId] || docId; actiefPrefix=null; actiefNT=docId; actiefH=null;
-      highlightBoek(docId, 'NT');
-      laadHoofdstukkenNT(docId, actiefBoekLabel);
+      actiefBoekLabel=NT_LABEL[docId]||docId; actiefPrefix=null; actiefNT=docId; actiefH=null;
+      highlightBoek(docId,'NT'); laadHoofdstukkenNT(docId,actiefBoekLabel);
     }
 
-    function highlightBoek(idOrLabel, which){
-      const wrap = (which==='LXX') ? boekenLXX : boekenNT;
+    function highlightBoek(idOrLabel,which){
+      const wrap=(which==='LXX')?boekenLXX:boekenNT;
       [...wrap.querySelectorAll('button')].forEach(b=>{
-        const match = (which==='LXX') ? (b.textContent===idOrLabel) : ((NT_LABEL[idOrLabel]||idOrLabel)===b.textContent);
-        b.classList.toggle('actief', match);
+        const match=(which==='LXX')?(b.textContent===idOrLabel):((NT_LABEL[idOrLabel]||idOrLabel)===b.textContent);
+        b.classList.toggle('actief',match);
       });
-      hoofdstukkenBar.innerHTML='';
-      tekst.innerHTML='<p class="hint">Hoofdstukken laden…</p>';
+      hoofdstukkenBar.innerHTML=''; tekst.innerHTML='<p class="hint">Hoofdstukken laden…</p>';
     }
-
-    testamentSel.addEventListener('change', e=>{
-      mode=e.target.value;
-      secLXX.open = (mode==='LXX');
-      secNT.open  = (mode==='NT');
-      hoofdstukkenBar.innerHTML='';
-      tekst.innerHTML='<p class="hint">Kies een boek…</p>';
+    testamentSel.addEventListener('change',e=>{
+      mode=e.target.value; secLXX.open=(mode==='LXX'); secNT.open=(mode==='NT');
+      hoofdstukkenBar.innerHTML=''; tekst.innerHTML='<p class="hint">Kies een boek…</p>';
     });
 
-    async function laadHoofdstukkenLXX(prefix, label){
+    async function laadHoofdstukkenLXX(prefix,label){
       try{
-        const snap = await db.collection('bijbel_LXX')
-          .where(firebase.firestore.FieldPath.documentId(), '>=', prefix+'_h')
-          .where(firebase.firestore.FieldPath.documentId(), '<',  prefix+'_i')
-          .get();
-        if(snap.empty){ tekst.innerHTML=`<div class="error">Geen hoofdstukken gevonden voor <b>${prefix}</b>.</div>`; return; }
-        const nrs = snap.docs.map(d=>Number((d.id.match(/_h(\d+)/)||[])[1])).filter(n=>!isNaN(n)).sort((a,b)=>a-b);
+        const snap=await db.collection('bijbel_LXX')
+          .where(firebase.firestore.FieldPath.documentId(),'>=',prefix+'_h')
+          .where(firebase.firestore.FieldPath.documentId(),'<',prefix+'_i').get();
+        if(snap.empty){tekst.innerHTML=`<div class="error">Geen hoofdstukken gevonden voor <b>${prefix}</b>.</div>`;return;}
+        const nrs=snap.docs.map(d=>Number((d.id.match(/_h(\d+)/)||[])[1])).filter(n=>!isNaN(n)).sort((a,b)=>a-b);
         hoofdstukkenBar.innerHTML='';
         nrs.forEach(n=>{
           const btn=document.createElement('button');
           btn.textContent=n;
-          btn.onclick=()=>{actiefH=n; highlightH(n); laadLXX(prefix, n, label);};
+          btn.onclick=()=>{actiefH=n;highlightH(n);laadLXX(prefix,n,label);};
           hoofdstukkenBar.appendChild(btn);
         });
-        actiefH = nrs[0]; highlightH(actiefH); await laadLXX(prefix, actiefH, label);
-      }catch(e){ tekst.innerHTML=`<div class="error">Fout: ${e}</div>`; }
+        actiefH=nrs[0];highlightH(actiefH);await laadLXX(prefix,actiefH,label);
+      }catch(e){tekst.innerHTML=`<div class="error">Fout: ${e}</div>`;}
     }
 
-    async function laadHoofdstukkenNT(docId, label){
-      try{
-        const snap = await db.collection('bijbel').doc(docId).collection('hoofdstukken').get();
-        if(snap.empty){ tekst.innerHTML=`<div class="error">Geen hoofdstukken gevonden onder <b>bijbel/${docId}/hoofdstukken</b>.</div>`; return; }
-        const nrs = snap.docs.map(d=>Number(d.id)).filter(n=>!isNaN(n)).sort((a,b)=>a-b);
-        hoofdstukkenBar.innerHTML='';
-        nrs.forEach(n=>{
-          const btn=document.createElement('button');
-          btn.textContent=n;
-          btn.onclick=()=>{actiefH=n; highlightH(n); laadNT(docId, n, label);};
-          hoofdstukkenBar.appendChild(btn);
-        });
-        actiefH = nrs[0]; highlightH(actiefH); await laadNT(docId, actiefH, label);
-      }catch(e){ tekst.innerHTML=`<div class="error">Fout: ${e}</div>`; }
-    }
-
-    function highlightH(n){
-      [...hoofdstukkenBar.querySelectorAll('button')].forEach(b=>b.classList.toggle('actief', Number(b.textContent)===Number(n)));
-    }
-
-    async function laadLXX(prefix, h, label){
+    async function laadLXX(prefix,h,label){
       tekst.innerHTML=`<h2>${label} ${h}</h2><p class="hint">Laden…</p>`;
-      const id = `${prefix}_h${h}`;
-      const doc = await db.collection('bijbel_LXX').doc(id).get();
-      if(!doc.exists){ tekst.innerHTML=`<div class="error">Niet gevonden: <b>${id}</b></div>`; return; }
-      const data = doc.data();
-      const verzen = data.verzen || data;
-      const keys = Object.keys(verzen).map(Number).sort((a,b)=>a-b);
-      const html = keys.map(v=>`<p class="vers gr"><strong>${v}</strong> ${verzen[v]}</p>`).join('');
-      tekst.innerHTML = `<h2>${label} ${h}</h2>${html}`;
+      const id=`${prefix}_h${h}`;
+      const doc=await db.collection('bijbel_LXX').doc(id).get();
+      if(!doc.exists){tekst.innerHTML=`<div class="error">Niet gevonden: <b>${id}</b></div>`;return;}
+      const data=doc.data(); const verzen=data.verzen||data;
+      const keys=Object.keys(verzen).map(Number).sort((a,b)=>a-b);
+      const html=keys.map(v=>`<p class="vers gr"><strong>${v}</strong> ${verzen[v]}</p>`).join('');
+      tekst.innerHTML=`<h2>${label} ${h}</h2>${html}`;
     }
 
-  async function laadNT(docId, h, label) {
-  tekst.innerHTML = `<h2>${label} ${h}</h2><p class="hint">Laden…</p>`;
-  try {
-    const verzenRef = db
-      .collection("bijbel")
-      .doc(docId)
-      .collection("hoofdstukken")
-      .doc(String(h))
-      .collection("verzen");
-
-    const snap = await verzenRef.get();
-    if (snap.empty) {
-      tekst.innerHTML = `<div class="error">Geen verzen gevonden onder <b>bijbel/${docId}/hoofdstukken/${h}/verzen</b>.</div>`;
-      return;
+    async function laadHoofdstukkenNT(docId,label){
+      try{
+        const snap=await db.collection('bijbel').doc(docId).collection('hoofdstukken').get();
+        if(snap.empty){tekst.innerHTML=`<div class="error">Geen hoofdstukken gevonden onder <b>bijbel/${docId}/hoofdstukken</b>.</div>`;return;}
+        const nrs=snap.docs.map(d=>Number(d.id)).filter(n=>!isNaN(n)).sort((a,b)=>a-b);
+        hoofdstukkenBar.innerHTML='';
+        nrs.forEach(n=>{
+          const btn=document.createElement('button');
+          btn.textContent=n;
+          btn.onclick=()=>{actiefH=n;highlightH(n);laadNT(docId,n,label);};
+          hoofdstukkenBar.appendChild(btn);
+        });
+        actiefH=nrs[0];highlightH(actiefH);await laadNT(docId,actiefH,label);
+      }catch(e){tekst.innerHTML=`<div class="error">Fout: ${e}</div>`;}
     }
 
-    const verzen = [];
-    snap.forEach((v) => {
-      const id = Number(v.id);
-      const tekstVeld = v.data()?.tekst || "";
-      verzen.push({ id, tekstVeld });
-    });
-    verzen.sort((a, b) => a.id - b.id);
+    function highlightH(n){[...hoofdstukkenBar.querySelectorAll('button')].forEach(b=>b.classList.toggle('actief',Number(b.textContent)===Number(n)));}
 
-    const html = verzen
-      .map(
-        (v) =>
-          `<p class="vers"><strong>${v.id}</strong> ${v.tekstVeld}</p>`
-      )
-      .join("");
+    // ✅ aangepaste NT-functie
+    async function laadNT(docId, h, label){
+      tekst.innerHTML=`<h2>${label} ${h}</h2><p class="hint">Laden…</p>`;
+      try {
+        const ref=db.collection("bijbel").doc(docId).collection("hoofdstukken").doc(String(h)).collection("verzen");
+        const snap=await ref.get();
+        if(snap.empty){tekst.innerHTML=`<div class="error">Geen verzen gevonden onder <b>bijbel/${docId}/hoofdstukken/${h}/verzen</b>.</div>`;return;}
+        let html="";
+        snap.forEach(v=>{
+          const nummer=v.id;
+          const data=v.data();
+          const tekstVers=data.tekst||"";
+          html+=`<p class="vers"><strong>${nummer}</strong> ${tekstVers}</p>`;
+        });
+        tekst.innerHTML=`<h2>${label} ${h}</h2>${html}`;
+      } catch(e){
+        tekst.innerHTML=`<div class="error">Fout bij laden: ${e}</div>`;
+      }
+    }
 
-    tekst.innerHTML = `<h2>${label} ${h}</h2>${html}`;
-  } catch (e) {
-    tekst.innerHTML = `<div class="error">Fout bij laden: ${e}</div>`;
-  }
-
-    // start
     renderBoeken();
   </script>
 </body>
 </html>
-
