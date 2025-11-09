@@ -28,74 +28,41 @@
     tipEl.classList.remove('is-fading');
   }
 
-  // ===== LEZINGEN OPHALEN UIT 'bijbel' (NT) =====
-  function normaliseerBoek(raw){
-    const s = (raw||'').toLowerCase();
-
-    // NL + EN varianten → Firestore doc-prefix
-    const map = [
-      ['mattheüs','mattheus'], ['mattheus','mattheus'], ['matthew','mattheus'],
-      ['markus','markus'], ['marcus','markus'], ['mark','markus'],
-      ['lukas','lukas'], ['lucas','lukas'], ['luke','lukas'],
-      ['johannes','johannes'], ['john','johannes'],
-      ['handelingen','handelingen'], ['acts','handelingen'],
-      ['romeinen','romeinen'], ['romans','romeinen'],
-      ['galaten','galaten'], ['galatians','galaten'],
-      ['efeze','efeze'], ['ephesians','efeze'],
-      ['filippenzen','filippenzen'], ['philippians','filippenzen'],
-      ['kolossenzen','kolossenzen'], ['colossians','kolossenzen'],
-      ['titus','titus'],
-      ['filemon','filemon'], ['philemon','filemon'],
-      ['hebreeën','hebreeen'], ['hebreeen','hebreeen'], ['hebreen','hebreeen'], ['hebrews','hebreeen'],
-      ['jakobus','jakobus'], ['james','jakobus'],
-      ['judas','judas'], ['jude','judas'],
-      ['openbaring','openbaring'], ['revelation','openbaring'], ['apocalypse','openbaring']
-    ];
-    for (const [needle, doc] of map){
-      if (s.includes(needle)) return doc;
+  // kleine helper om de juiste lezing uit 'bijbel' te halen
+  async function haalLezingUitBijbel(ref) {
+    if (!ref) return "";
+    const match = ref.match(/([\wëéèêïöäü]+)\s+(\d+):(\d+)-(\d+)/i);
+    if (!match) return "";
+    let boek = match[1].toLowerCase().replace(/[ëéèê]/g,"e").replace(/[ï]/g,"i");
+    const hoofdstuk = parseInt(match[2]), v1 = parseInt(match[3]), v2 = parseInt(match[4]);
+    const map = {
+      mattheüs:"mattheus", mattheus:"mattheus", matthew:"mattheus",
+      markus:"markus", mark:"markus",
+      lukas:"lukas", luke:"lukas",
+      johannes:"johannes", john:"johannes",
+      handelingen:"handelingen", acts:"handelingen",
+      romeinen:"romeinen", romans:"romeinen",
+      galaten:"galaten", galatians:"galaten",
+      efeze:"efeze", ephesians:"efeze",
+      filippenzen:"filippenzen", philippians:"filippenzen",
+      kolossenzen:"kolossenzen", colossians:"kolossenzen",
+      titus:"titus",
+      filemon:"filemon", philemon:"filemon",
+      hebreeen:"hebreeen", hebrews:"hebreeen",
+      jakobus:"jakobus", james:"jakobus",
+      judas:"judas", jude:"judas",
+      openbaring:"openbaring", revelation:"openbaring"
+    };
+    boek = map[boek] || boek;
+    const docId = `${boek}_h${hoofdstuk}`;
+    const snap = await db.collection("bijbel").doc(docId).get();
+    if (!snap.exists) return "";
+    const verzen = snap.data().verzen || {};
+    let tekst = "";
+    for (let i = v1; i <= v2; i++) {
+      if (verzen[i]) tekst += `<p><strong>${i}</strong> ${verzen[i]}</p>`;
     }
-    return ''; // onbekend boek
-  }
-
-  function parseRefToQuery(ref){
-    if(!ref) return null;
-
-    // Zoek hoofdstuk:verzen
-    const m = ref.match(/(\d+)\s*:\s*(\d+)(?:\s*[-–]\s*(\d+))?/);
-    if(!m) return null;
-    const h = parseInt(m[1],10);
-    const v1 = parseInt(m[2],10);
-    const v2 = m[3] ? parseInt(m[3],10) : v1;
-
-    // Boeknaam zit vóór de match
-    const idx = ref.indexOf(m[0]);
-    const boekRuw = ref.slice(0, idx).trim();
-
-    // Strip eventuele inleidingen zoals "Brief van Paulus aan de ..."
-    const boekKandidaat = boekRuw
-      .replace(/^brief van paulus aan de\s+/i,'')
-      .replace(/^st\.\s*paul'?s letter to\s+/i,'')
-      .replace(/^the gospel according to\s+/i,'')
-      .replace(/^evangelie volgens\s+/i,'')
-      .replace(/[,.;]+$/,'');
-
-    const boek = normaliseerBoek(boekKandidaat);
-    if(!boek) return null;
-
-    return { docId: `${boek}_h${h}`, vStart: v1, vEnd: v2 };
-  }
-
-  async function haalLezingUitBijbel(ref){
-    const q = parseRefToQuery(ref);
-    if(!q) return '';
-    const snap = await db.collection('bijbel').doc(q.docId).get();
-    if(!snap.exists) return '';
-    const verzen = snap.data()?.verzen || {};
-    let html = '';
-    for(let v=q.vStart; v<=q.vEnd; v++){
-      if(verzen[v]) html += `<p><strong>${v}</strong> ${verzen[v]}</p>`;
-    }
-    return html;
+    return tekst;
   }
 
   async function bouwHTMLVoorDatum(datum, taal){
@@ -121,7 +88,7 @@
       leftHTML = `<div class="heilige-naam">${naam}</div><img src="${fotoUrl}" class="heilige-foto" alt="Heilige icoon"><div class="heilige-levensverhaal">${levensverhaal}</div>`;
     });
 
-    // RECHTS: datum, vasten, LEZINGEN (volledig), tip — GEEN heiligenlijst rechts
+    // RECHTS: datum, vasten, lezingen, tip (ZONDER heiligen-lijst rechts)
     const pKal = db.collection("kalender2025").doc(kalenderId).get().then(async doc=>{
       if (!doc.exists){
         rightMain = `<div style="color:#b8b7b4;text-align:center;margin-top:60px;font-size:1.1em">Geen kalenderinfo gevonden.</div>`;
@@ -142,24 +109,21 @@
       let vastenRegelBlok = `<span>${vasten}</span>`;
       if (symb) vastenRegelBlok += `<span class="vastenregel-symbool">${symb}</span>`;
 
-      // Referenties per taal
-      let epRef="", evRef="";
+      let ep="", ev="";
       if (taal==="vlaams"){
-        epRef = data[`Epistel Ref NL (netjes NL)`] || data[`Epistel Ref NL`] || "";
-        evRef = data[`Evangelie Ref NL (netjes NL)`] || data[`Evangelie Ref NL`] || "";
+        ep = data[`Epistel Ref NL (netjes NL)`] || data[`Epistel Ref NL`] || "Nog geen vertaling beschikbaar.";
+        ev = data[`Evangelie Ref NL (netjes NL)`] || data[`Evangelie Ref NL`] || "Nog geen vertaling beschikbaar.";
       } else if (taal==="engels"){
-        epRef = data[`Epistel Ref EN`] || "";
-        evRef = data[`Evangelie Ref EN`] || "";
+        ep = data[`Epistel Ref EN`] || "No translation available yet.";
+        ev = data[`Evangelie Ref EN`] || "No translation available yet.";
       } else {
-        epRef = data[`Epistel Ref EL`] || "";
-        evRef = data[`Evangelie Ref EL`] || "";
+        ep = data[`Epistel Ref EL`] || "Δεν υπάρχει ακόμη μετάφραση.";
+        ev = data[`Evangelie Ref EL`] || "Δεν υπάρχει ακόμη μετάφραση.";
       }
 
-      // Volledige tekst van de lezingen uit 'bijbel'
-      const [epTekst, evTekst] = await Promise.all([
-        haalLezingUitBijbel(epRef),
-        haalLezingUitBijbel(evRef)
-      ]);
+      // 🔹 toevoeging: lezingen volledig ophalen uit 'bijbel'
+      const epLezing = await haalLezingUitBijbel(ep);
+      const evLezing = await haalLezingUitBijbel(ev);
 
       let epL="Apostellezing", evL="Evangelielezing";
       if (taal==="engels"){ epL="Epistle Reading"; evL="Gospel Reading"; }
@@ -172,8 +136,8 @@
       rightMain =
         `<div class="dagkalender-datum">${datumTekst}</div>
          <div class="vastenregel-regel">${vastenRegelBlok}</div>
-         <div class="lezingblok"><b>${epL}:</b> ${epRef}${epTekst ? `<br>${epTekst}` : ''}</div>
-         <div class="lezingblok"><b>${evL}:</b> ${evRef}${evTekst ? `<br>${evTekst}` : ''}</div>`;
+         <div class="lezingblok"><b>${epL}:</b> ${ep}<br>${epLezing}</div>
+         <div class="lezingblok"><b>${evL}:</b> ${ev}<br>${evLezing}</div>`;
       rightTip = tip || "";
     });
 
