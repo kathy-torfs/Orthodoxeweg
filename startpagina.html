@@ -1,127 +1,6 @@
-<!-- ==== STYLES ==== -->
-<style>
-  :root{
-    --boek-bg-left:  linear-gradient(110deg, #ede4ca 90%, #fff7e2 100%);
-    --boek-bg-right: linear-gradient(-110deg, #fff9e1 90%, #ede4ca 100%);
-    --boek-line: #c6b187;
-    --boek-edge: #ceb27d;
-    --boek-shadow: #a88b5488;
-    --text-main:#6f4e1a;
-    --fade-duration: 320ms;
-    --fade-ease: cubic-bezier(.22,.61,.36,1);
-  }
-  *{box-sizing:border-box}
-  body { background:#f5e9b8; color:var(--text-main); font-family:Arial,sans-serif; margin:0; }
-  .lijn { border-bottom: 2px solid #cbb994; margin:0; }
-  .fadeable{ opacity:1; transition: opacity var(--fade-duration) var(--fade-ease); }
-  .is-fading{ opacity:0; }
-  .taalkeuze { text-align:center; margin: 18px 0 10px; }
-  .taalkeuze button{
-    background:#eee3c6; color:#6f4e1a; border:1.5px solid #b29467; border-radius:6px;
-    padding:7px 20px; font-size:1em; font-weight:bold; cursor:pointer; margin:0 6px;
-    transition:background .2s, transform .05s;
-  }
-  .taalkeuze button:active{ transform: translateY(1px) }
-  .taalkeuze button.selected{ background:#d3b87c; color:#3a2c17; border:2px solid #85652a; }
-  .boek-wrapper { width: 960px; max-width: 99vw; margin: 0 auto 32px; padding: 0 1vw; }
-  .boek {
-    position: relative;
-    width: 940px; max-width: 100%; min-height: 590px;
-    margin: 0 auto;
-    border: 3px solid var(--boek-edge);
-    border-radius: 24px;
-    box-shadow: 0 8px 40px var(--boek-shadow);
-    background: linear-gradient(90deg, #ede4ca 48%, #fff9e1 52%);
-    display: flex; align-items: stretch;
-  }
-  .pagina {
-    position: relative;
-    flex: 0 0 50%;
-    min-height: 510px;
-    padding: 44px 28px 38px 28px;
-    font-size: 1.15em;
-  }
-  .links {
-    border-right: 2px dashed var(--boek-line);
-    background: var(--boek-bg-left);
-    box-shadow: 2px 0 12px #d2bc908a inset;
-  }
-  .rechts {
-    background: var(--boek-bg-right);
-    box-shadow: -2px 0 12px #e5dab58a inset;
-  }
-  .hoek-linksonder, .hoek-rechtsonder {
-    width: 52px; height: 44px; position: absolute; bottom: 2px; z-index: 2;
-    opacity: .34; cursor: pointer; transition: opacity .2s, color .2s; font-size: 2.7em; color: #9c834a;
-    background: none; border: none; display: flex; align-items: flex-end; justify-content: flex-start;
-    user-select: none; font-family: Georgia, serif;
-  }
-  .hoek-linksonder { left: 2px; }
-  .hoek-rechtsonder { right: 2px; }
-  .hoek-linksonder:hover, .hoek-rechtsonder:hover { opacity: .8; color: #caa146; }
-  .hoek-btn-disabled{ opacity:.25 !important; cursor:not-allowed !important; }
-  .heilige-naam { font-weight: bold; color:#664b1c; text-align:center; margin-bottom:10px; font-size:1.2em; letter-spacing:1px; }
-  .heilige-foto {
-    width: 80%; max-height: 50vh; height: auto; object-fit: contain; display:block;
-    margin: 0 auto 16px; background:#f4e8d5; border-radius:12px;
-    box-shadow:0 1px 8px #d3be9e63; border:1.5px solid #d8caad;
-  }
-  .heilige-levensverhaal {
-    font-size:.98em; line-height:1.38; color:#3a2c17; text-align:left;
-    max-height: calc(100% - 16px - 2em - 50vh);
-    overflow:auto; padding-right:6px;
-  }
-  .dagkalender-datum { font-family: Georgia, serif; font-size: 2em; margin-bottom: 16px; color: #85652a; letter-spacing: 1px; }
-  .vastenregel-regel { margin: 0 0 15px; font-weight: 600; font-size: 1.11em; display:flex; align-items:center; gap:12px; }
-  .vastenregel-symbool { font-size: 1.65em; margin-left:7px; vertical-align: middle; }
-  .heiligenrij { margin-bottom: 15px; color: #725721; font-size: 1.08em; font-weight: 600; }
-  .lezingblok { margin-bottom: 13px; color:#444; background:#f7f1de; border-radius: 8px; padding:9px 16px; box-shadow: 0 2px 7px #e1d5ae29 inset; font-size:1.04em; }
-  .lezingblok:last-of-type { margin-bottom: 22px; }
-  .tip-blok {
-    position:absolute; left:30px; right:30px; bottom:30px; background:#f7ecd1; border-radius:10px; padding:13px 22px;
-    font-size: 1.05em; color:#a78225; text-align:center; font-style: italic; box-shadow: 0 2px 10px #d8c48c22;
-  }
-  @media (max-width:900px){
-    .boek { flex-direction: column; }
-    .pagina{ flex: 1 1 auto; min-height: 240px; padding: 24px 7vw 32px; }
-    .tip-blok{ left:12vw; right:12vw; bottom:16px; }
-    .heilige-foto{ max-height: 38vh; width: 88%; }
-  }
-  @media (max-width:650px){
-    .pagina{ font-size: .95em; padding: 12px 3vw 16px; }
-    .tip-blok{ left:4vw; right:4vw; font-size: .98em; }
-  }
-</style>
-
-<!-- ==== INHOUD ==== -->
-<div class="taalkeuze">
-  <button id="btn-vlaams" class="selected">🇧🇪 Vlaams</button>
-  <button id="btn-engels">🇬🇧 English</button>
-  <button id="btn-grieks">🇬🇷 Ελληνικά</button>
-</div>
-
-<div class="boek-wrapper">
-  <div class="boek">
-    <button class="hoek-linksonder" id="vorigeDag" title="Vorige dag">&lt;</button>
-    <button class="hoek-rechtsonder" id="volgendeDag" title="Volgende dag">&gt;</button>
-
-    <div class="pagina links">
-      <div id="heilige-inhoud" class="fadeable">
-        <div style="color:#a6a5a4;text-align:center;">Bezig met laden...</div>
-      </div>
-    </div>
-
-    <div class="pagina rechts">
-      <div id="dagkalender-inhoud" class="fadeable">
-        <div style="color:#a6a5a4;text-align:center;">Bezig met laden...</div>
-      </div>
-      <div class="tip-blok fadeable" id="dagkalender-tip"></div>
-    </div>
-  </div>
-</div>
-
 <!-- ==== SCRIPT DAGKALENDER ==== -->
 <script>
+  // Hulpjes
   const pad = n => (n<10 ? '0'+n : ''+n);
   const heiligeEl = document.getElementById('heilige-inhoud');
   const dagEl     = document.getElementById('dagkalender-inhoud');
@@ -129,99 +8,199 @@
   const btnPrev   = document.getElementById('vorigeDag');
   const btnNext   = document.getElementById('volgendeDag');
 
+  // Datum → ids
   function ids(d){
     const y=d.getFullYear(), m=pad(d.getMonth()+1), dd=pad(d.getDate());
     return { kalenderId:`${y}${m}${dd}`, feestdag:`${dd}-${m}`, datumTekst:`${dd}-${m}-${y}` };
   }
+
   function toggleButtons(disabled){
     [btnPrev, btnNext].forEach(b=>{
       b.disabled = disabled;
       b.classList.toggle('hoek-btn-disabled', disabled);
     });
   }
-  function fadeOutAll(){
-    heiligeEl.classList.add('is-fading');
-    dagEl.classList.add('is-fading');
-    tipEl.classList.add('is-fading');
-  }
-  function fadeInAll(){
-    heiligeEl.classList.remove('is-fading');
-    dagEl.classList.remove('is-fading');
-    tipEl.classList.remove('is-fading');
+  function fadeOutAll(){ heiligeEl.classList.add('is-fading'); dagEl.classList.add('is-fading'); tipEl.classList.add('is-fading'); }
+  function fadeInAll(){  heiligeEl.classList.remove('is-fading'); dagEl.classList.remove('is-fading'); tipEl.classList.remove('is-fading'); }
+
+  // ===== Boeknaam → Firestore-ID (NT) =====
+  // (Alleen NT nodig voor epistel/evangelie; we hebben deze boeken in 'bijbel' staan als <id>_h<nr>)
+  const NT_ID = {
+    "Mattheus":"mattheus", "Matthéüs":"mattheus", "Matteus":"mattheus",
+    "Markus":"markus", "Marcus":"markus",
+    "Lukas":"lukas", "Lucas":"lukas",
+    "Johannes":"johannes",
+    "Handelingen":"handelingen",
+    "Romeinen":"romeinen",
+    "Galaten":"galaten",
+    "Efeze":"efeze", "Efeziers":"efeze", "Efeziërs":"efeze",
+    "Filippenzen":"filippenzen", "Filippenzen":"filippenzen",
+    "Kolossenzen":"kolossenzen",
+    "Titus":"titus",
+    "Filemon":"filemon", "Filemón":"filemon",
+    "Hebreeen":"hebreeen", "Hebreeën":"hebreeen",
+    "Jakobus":"jakobus",
+    "Judas":"judas",
+    "Openbaring":"openbaring", "Apokalyps":"openbaring", "Openbaring van Johannes":"openbaring"
+  };
+
+  // Ref parser: neemt b.v. "Efeze 1:1-10", "Johannes 3", "Handelingen 2:4"
+  // Retourneert {boek, hoofdstuk, vStart, vEnd}
+  function parseRef(refText){
+    if(!refText || typeof refText!=='string') return null;
+    let t = refText.trim();
+    // Verwijder eventuele extra’s binnen haakjes
+    t = t.replace(/\(.*?\)/g,'').trim();
+
+    // Boeknaam (met spaties/diacritics) + hoofdstuk + optioneel :verzen
+    const m = t.match(/^([A-Za-zÀ-ÿ\. \-]+?)\s+(\d+)(?::\s*(\d+)(?:\s*\-\s*(\d+))?)?$/);
+    if(!m) return null;
+
+    let boek = m[1].replace(/\s+/g,' ').trim();
+    // Normaliseer bekende varianten
+    if(NT_ID[boek] === undefined){
+      // Probeer hoofdletterfix
+      const key = boek.charAt(0).toUpperCase()+boek.slice(1).toLowerCase();
+      if(NT_ID[key] !== undefined) boek = key;
+    }
+    const hoofdstuk = Number(m[2]);
+    const vStart = m[3] ? Number(m[3]) : null;
+    const vEnd   = m[4] ? Number(m[4]) : vStart;
+
+    const boekId = NT_ID[boek];
+    if(!boekId || !hoofdstuk || isNaN(hoofdstuk)) return null;
+
+    return { boek, boekId, hoofdstuk, vStart, vEnd };
   }
 
+  // Laad 1 passage (volledige of deel van hoofdstuk) uit 'bijbel/<boekId>_h<hoofdstuk>'
+  async function fetchPassageHTML(refText, label){
+    const parsed = parseRef(refText);
+    if(!parsed){
+      return `<div class="lezingblok"><b>${label}:</b> <em>Onleesbare referentie</em> — <code>${refText||''}</code></div>`;
+    }
+    const { boek, boekId, hoofdstuk, vStart, vEnd } = parsed;
+    const docId = `${boekId}_h${hoofdstuk}`;
+    try{
+      const snap = await db.collection('bijbel').doc(docId).get();
+      if(!snap.exists){
+        return `<div class="lezingblok"><b>${label}:</b> <em>Niet gevonden</em> — <code>${docId}</code></div>`;
+      }
+      const data = snap.data();
+      const verzen = data?.verzen || {};
+      // Bepaal welke verzen we tonen
+      let nums = Object.keys(verzen).map(n=>Number(n)).filter(n=>!isNaN(n)).sort((a,b)=>a-b);
+      if(vStart){ 
+        const from = vStart, to = vEnd || vStart;
+        nums = nums.filter(n => n>=from && n<=to);
+      }
+      if(nums.length===0){
+        return `<div class="lezingblok"><b>${label}:</b> <em>Geen verzen in dit bereik</em> — ${boek} ${hoofdstuk}${vStart?':'+vStart+(vEnd?'-'+vEnd:''):''}</div>`;
+      }
+      const tekstHTML = nums.map(n=>`<p class="vers"><strong>${n}</strong> ${verzen[n]}</p>`).join('');
+      return `<div class="lezingblok"><b>${label}:</b> <u>${boek} ${hoofdstuk}${vStart?':'+vStart+(vEnd?'-'+vEnd:''):''}</u>${tekstHTML}</div>`;
+    }catch(e){
+      return `<div class="lezingblok"><b>${label}:</b> <em>Fout bij laden</em> — ${e}</div>`;
+    }
+  }
+
+  // Bouw HTML voor beide pagina's
   async function bouwHTMLVoorDatum(datum, taal){
     const { kalenderId, feestdag, datumTekst } = ids(datum);
+
+    // Links (heilige van de dag) blijft zoals bij jou
     let leftHTML = `<div style="color:#a6a5a4;text-align:center;">Bezig met laden...</div>`;
+    const pHeilige = db.collection("heiligen")
+      .where("feestdag","==",feestdag)
+      .get()
+      .then(snap=>{
+        if (snap.empty){
+          leftHTML = `<div style="color:#b8b7b4;text-align:center;margin-top:22px;font-size:1.15em">
+            <br>Geen heilige van de dag gevonden.<br>
+            <div style="font-size:4em;text-align:center;margin-top:16px;">✝️</div>
+          </div>`;
+          return;
+        }
+        const data = snap.docs[Math.floor(Math.random()*snap.docs.length)].data();
+        const fotoUrl = data.icoon || data.foto_url || "https://upload.wikimedia.org/wikipedia/commons/1/12/Orthodox_Cross.svg";
+        let naam="", levensverhaal="";
+        if (taal==="engels"){ naam=data.naam_en||""; levensverhaal=data.levensverhaal_en||""; }
+        else if (taal==="grieks"){ naam=data.naam_el||""; levensverhaal=data.levensverhaal_el||""; }
+        else { naam=data.naam_nl||data.naam||data.id||"Heilige"; levensverhaal=data.levensverhaal_nl||data.levensverhaal_volwassenen||""; }
+        if (!naam) naam = "Nog geen vertaling beschikbaar.";
+        if (!levensverhaal) levensverhaal = "Nog geen vertaling beschikbaar.";
+        leftHTML = `
+          <div class="heilige-naam">${naam}</div>
+          <img src="${fotoUrl}" class="heilige-foto" alt="Heilige icoon">
+          <div class="heilige-levensverhaal">${levensverhaal}</div>
+        `;
+      });
+
+    // Rechts: datum + vastenregel + VOLLEDIGE lezingen (geen “heiligenlijst” hier)
     let rightMain = `<div style="color:#a6a5a4;text-align:center;">Bezig met laden...</div>`;
     let rightTip  = ``;
 
-    const pHeilige = db.collection("heiligen").where("feestdag","==",feestdag).get().then(snap=>{
-      if (snap.empty){
-        leftHTML = `<div style="color:#b8b7b4;text-align:center;margin-top:22px;font-size:1.15em"><br>Geen heilige van de dag gevonden.<br><div style="font-size:4em;text-align:center;margin-top:16px;">✝️</div></div>`;
-        return;
-      }
-      const data = snap.docs[Math.floor(Math.random()*snap.docs.length)].data();
-      const fotoUrl = data.icoon || data.foto_url || "https://upload.wikimedia.org/wikipedia/commons/1/12/Orthodox_Cross.svg";
-      let naam="", levensverhaal="";
-      if (taal==="engels"){ naam=data.naam_en||""; levensverhaal=data.levensverhaal_en||""; }
-      else if (taal==="grieks"){ naam=data.naam_el||""; levensverhaal=data.levensverhaal_el||""; }
-      else { naam=data.naam_nl||data.naam||data.id||"Heilige"; levensverhaal=data.levensverhaal_nl||data.levensverhaal_volwassenen||""; }
-      if (!naam) naam = "Nog geen vertaling beschikbaar.";
-      if (!levensverhaal) levensverhaal = "Nog geen vertaling beschikbaar.";
-      leftHTML = `<div class="heilige-naam">${naam}</div><img src="${fotoUrl}" class="heilige-foto" alt="Heilige icoon"><div class="heilige-levensverhaal">${levensverhaal}</div>`;
-    });
-
-    const pKal = db.collection("kalender2025").doc(kalenderId).get().then(doc=>{
+    const pKal = db.collection("kalender2025").doc(kalenderId).get().then(async doc=>{
       if (!doc.exists){
-        rightMain = `<div style="color:#b8b7b4;text-align:center;margin-top:60px;font-size:1.1em">Geen kalenderinfo gevonden.</div>`;
+        rightMain = `<div class="dagkalender-datum">${datumTekst}</div>
+          <div style="color:#b8b7b4;text-align:center;margin-top:60px;font-size:1.1em">Geen kalenderinfo gevonden.</div>`;
         rightTip = "";
         return;
       }
       const data = doc.data();
 
+      // Vastenregel
       let vasten = data[`Vastenregel NL (netjes NL)`] || data[`Vastenregel NL`] || "";
       if (taal==="engels") vasten = data[`Vastenregel EN`] || (vasten ? "Fasting Free" : "");
       if (taal==="grieks") vasten = data[`Vastenregel EL`] || (vasten ? "Νηστεία ελεύθερη" : "");
-      if (!vasten){ if (taal==="vlaams") vasten="Vastenvrij"; else if (taal==="engels") vasten="Fasting Free"; else vasten="Νηστεία ελεύθερη"; }
+      if (!vasten){
+        if (taal==="vlaams") vasten="Vastenvrij";
+        else if (taal==="engels") vasten="Fasting Free";
+        else vasten="Νηστεία ελεύθερη";
+      }
       const symb = data["Symbool"] || "";
-      let vastenRegelBlok = `<span>${vasten}</span>`; if (symb) vastenRegelBlok += `<span class="vastenregel-symbool">${symb}</span>`;
+      let vastenRegelBlok = `<span>${vasten}</span>`;
+      if (symb) vastenRegelBlok += ` <span class="vastenregel-symbool">${symb}</span>`;
 
-      let heiligen = "";
-      if (taal==="vlaams") heiligen = data[`Heiligen NL (netjes NL)`] || data[`Heiligen NL`] || "";
-      else if (taal==="engels") heiligen = data[`Heiligen EN`] || "No translation available yet.";
-      else heiligen = data[`Heiligen EL`] || "Δεν υπάρχει ακόμη μετάφραση.";
-
-      let ep="", ev="";
+      // Lezingen: neem refs uit gekozen taal, maar tekst komt uit onze NT (Vlaams)
+      let epRef = "", evRef = "";
       if (taal==="vlaams"){
-        ep = data[`Epistel Ref NL (netjes NL)`] || data[`Epistel Ref NL`] || "Nog geen vertaling beschikbaar.";
-        ev = data[`Evangelie Ref NL (netjes NL)`] || data[`Evangelie Ref NL`] || "Nog geen vertaling beschikbaar.";
-      }
-      else if (taal==="engels"){
-        ep = data[`Epistel Ref EN`] || "No translation available yet.";
-        ev = data[`Evangelie Ref EN`] || "No translation available yet.";
-      }
-      else {
-        ep = data[`Epistel Ref EL`] || "Δεν υπάρχει ακόμη μετάφραση.";
-        ev = data[`Evangelie Ref EL`] || "Δεν υπάρχει ακόμη μετάφραση.";
+        epRef = data[`Epistel Ref NL (netjes NL)`] || data[`Epistel Ref NL`] || "";
+        evRef = data[`Evangelie Ref NL (netjes NL)`] || data[`Evangelie Ref NL`] || "";
+      } else if (taal==="engels"){
+        epRef = data[`Epistel Ref EN`] || data[`Epistel Ref NL (netjes NL)`] || data[`Epistel Ref NL`] || "";
+        evRef = data[`Evangelie Ref EN`] || data[`Evangelie Ref NL (netjes NL)`] || data[`Evangelie Ref NL`] || "";
+      } else {
+        epRef = data[`Epistel Ref EL`] || data[`Epistel Ref NL (netjes NL)`] || data[`Epistel Ref NL`] || "";
+        evRef = data[`Evangelie Ref EL`] || data[`Evangelie Ref NL (netjes NL)`] || data[`Evangelie Ref NL`] || "";
       }
 
-      let epL="Apostellezing", evL="Evangelielezing";
-      if (taal==="engels"){ epL="Epistle Reading"; evL="Gospel Reading"; }
-      if (taal==="grieks"){ epL="Απόστολος"; evL="Ευαγγέλιο"; }
+      const epLabel = (taal==="engels") ? "Epistle Reading" : (taal==="grieks" ? "Απόστολος" : "Apostellezing");
+      const evLabel = (taal==="engels") ? "Gospel Reading"  : (taal==="grieks" ? "Ευαγγέλιο"  : "Evangelielezing");
 
-      const tip = (taal==="vlaams") ? (data[`Tip/Wens NL (netjes NL)`] || data[`Tip/Wens NL`] || "")
+      // Volledige tekst ophalen uit 'bijbel'
+      const epHTML = await fetchPassageHTML(epRef, epLabel);
+      const evHTML = await fetchPassageHTML(evRef, evLabel);
+
+      const datumHTML = `<div class="dagkalender-datum">${datumTekst}</div>`;
+      rightMain = `
+        ${datumHTML}
+        <div class="vastenregel-regel">${vastenRegelBlok}</div>
+        ${epHTML}
+        ${evHTML}
+      `;
+
+      // Tip
+      rightTip = (taal==="vlaams") ? (data[`Tip/Wens NL (netjes NL)`] || data[`Tip/Wens NL`] || "")
                : (taal==="engels") ? (data[`Tip/Wens EN`] || "")
                : (data[`Tip/Wens EL`] || "");
-
-      rightMain = `<div class="dagkalender-datum">${datumTekst}</div><div class="vastenregel-regel">${vastenRegelBlok}</div><div class="heiligenrij">${heiligen}</div><div class="lezingblok"><b>${epL}:</b> ${ep}</div><div class="lezingblok"><b>${evL}:</b> ${ev}</div>`;
-      rightTip = tip || "";
     });
 
     await Promise.all([pHeilige, pKal]);
     return { leftHTML, rightMain, rightTip };
   }
 
+  // Taalkeuze en navigatie
   let huidigeTaal = "vlaams";
   let actieveDatum = new Date();
   let isBusy = false;
@@ -252,6 +231,7 @@
     isBusy = false;
   }
 
+  // start
   laadDag(actieveDatum);
   btnPrev.onclick = ()=>{ actieveDatum.setDate(actieveDatum.getDate()-1); laadDag(actieveDatum); };
   btnNext.onclick = ()=>{ actieveDatum.setDate(actieveDatum.getDate()+1); laadDag(actieveDatum); };
