@@ -7,7 +7,7 @@
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Greek:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    :root{
+    :root {
       --primair:#7bb235; --donker:#67510C;
       --pastel1:#fff6e5; --pastel2:#fffde6; --pastel3:#ffe8ec; --pastel4:#e7f8ff;
       --pastel5:#e6ffe5; --pastel6:#fff2fb; --pastel7:#f5ffe5; --pastel8:#f5e8ff;
@@ -17,9 +17,6 @@
     .page{max-width:960px;margin:0 auto;padding:10px 14px 60px}
     .row{display:flex;gap:12px;align-items:center;justify-content:center;margin:12px 0}
     select{padding:8px 12px;border:1px solid #ccc;border-radius:8px;background:#fff}
-    .accordion{max-width:960px;margin:8px auto}
-    details{background:#f2f2f2;border-radius:12px;margin:8px 0;padding:6px 8px}
-    summary{cursor:pointer;font-weight:600;color:#3d3214;outline:none}
     .boeken-bar{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;margin:.5rem 0}
     .boeken-bar button{background:#fff;border:1px solid #ddd;border-radius:8px;padding:.45rem .7rem;cursor:pointer;font-size:.9rem;transition:.15s;white-space:nowrap}
     .boeken-bar button:hover,.boeken-bar button.actief{background:#7bb235;color:#fff;border-color:#7bb235}
@@ -48,24 +45,13 @@
       </select>
     </div>
 
-    <!-- UITKLAPMENU -->
-    <section class="accordion">
-      <details id="secLXX" open>
-        <summary>📜 Oude Testament (LXX)</summary>
-        <div class="boeken-bar" id="boekenLXX"></div>
-      </details>
-      <details id="secNT">
-        <summary>📖 Nieuwe Testament (NT)</summary>
-        <div class="boeken-bar" id="boekenNT"></div>
-      </details>
-    </section>
-
+    <div class="boeken-bar" id="boekenBar"></div>
     <div class="hoofdstukken-bar" id="hoofdstukkenBar"></div>
     <div class="tekst" id="tekst"><p class="hint">Kies een boek om te beginnen…</p></div>
   </main>
 
   <script>
-    // Pastelachtergrond
+    // willekeurige pastelachtergrond
     (function(){
       const p=['var(--pastel1)','var(--pastel2)','var(--pastel3)','var(--pastel4)','var(--pastel5)','var(--pastel6)','var(--pastel7)','var(--pastel8)','var(--pastel9)','var(--pastel10)','var(--pastel11)','var(--pastel12)'];
       document.body.style.background=p[Math.floor(Math.random()*p.length)];
@@ -76,205 +62,130 @@
     if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db=firebase.firestore();
 
-    // Header optioneel
+    // Header
     (async function(){
       if(window.VolwassenLayout?.mountHeader){
         try{await window.VolwassenLayout.mountHeader({rootId:'volwassen-header',headerSrc:'common/header.html',active:'bijbel'});}catch(e){}
       }
     })();
 
-    // ===== EXACTE FIRESTORE NAAMGEVING =====
+    // Boeken (exacte volgorde)
     const LXX = {
-      "Genesis":"genesis",
-      "Exodus":"exodus",
-      "Leviticus":"leviticus",
-      "Numeri":"numbers",
-      "Deuteronomium":"deuteronomy",
-      "Jozua":"joshua",
-      "Richteren":"judges",
-      "Ruth":"ruth",
-      "1 Koningen":"i_kingdoms",
-      "2 Koningen":"ii_kingdoms",
-      "3 Koningen":"iii_kingdoms",
-      "4 Koningen":"iv_kingdoms",
-      "1 Paralipomenon":"i_chronicles",
-      "2 Paralipomenon":"ii_chronicles",
-      "1 Esdras":"i_esdras",
-      "2 Esdras":"ii_esdras",
-      "Nehemia":"nehemiah",
-      "Ester":"esther",
-      "Judit":"judith",
-      "Tobit":"tobit",
-      "Job":"job",
-      "Psalmen":"psalms",
-      "Spreuken":"proverbs",
-      "Prediker":"ecclesiastes",
-      "Hooglied":"song_of_solomon",
-      "Jesaja":"isaiah",
-      "Jeremia":"jeremiah",
-      "Klaagliederen":"lamentations",
-      "Baruch":"baruch",
-      "Ezechiël":"ezekiel",
-      "Daniël":"daniel",
-      "Hosea":"hosea",
-      "Joël":"joel",
-      "Amos":"amos",
-      "Obadja":"obadiah",
-      "Jona":"jonah",
-      "Micha":"micah",
-      "Nahum":"nahum",
-      "Habakuk":"habakkuk",
-      "Haggai":"haggai",
-      "Zacharia":"zachariah",
-      "Zefanja":"zephaniah",
-      "Maleachi":"malachi",
-      "1 Makkabeeën":"i_maccabees",
-      "2 Makkabeeën":"ii_maccabees",
-      "3 Makkabeeën":"iii_maccabees",
-      "Wijsheid":"wisdom_of_solomon",
-      "Sirach":"wisdom_of_sirach"
+      "Genesis":"genesis","Exodus":"exodus","Leviticus":"leviticus","Numeri":"numbers","Deuteronomium":"deuteronomy",
+      "Jozua":"joshua","Richteren":"judges","Ruth":"ruth","1 Koningen":"i_kingdoms","2 Koningen":"ii_kingdoms",
+      "3 Koningen":"iii_kingdoms","4 Koningen":"iv_kingdoms","1 Paralipomenon":"i_chronicles","2 Paralipomenon":"ii_chronicles",
+      "1 Esdras":"i_esdras","2 Esdras":"ii_esdras","Nehemia":"nehemiah","Ester":"esther","Judit":"judith","Tobit":"tobit",
+      "Job":"job","Psalmen":"psalms","Spreuken":"proverbs","Prediker":"ecclesiastes","Hooglied":"song_of_solomon",
+      "Jesaja":"isaiah","Jeremia":"jeremiah","Klaagliederen":"lamentations","Baruch":"baruch","Ezechiël":"ezekiel","Daniël":"daniel",
+      "Hosea":"hosea","Joël":"joel","Amos":"amos","Obadja":"obadiah","Jona":"jonah","Micha":"micah","Nahum":"nahum","Habakuk":"habakkuk",
+      "Haggai":"haggai","Zacharia":"zachariah","Zefanja":"zephaniah","Maleachi":"malachi",
+      "1 Makkabeeën":"i_maccabees","2 Makkabeeën":"ii_maccabees","3 Makkabeeën":"iii_maccabees",
+      "Wijsheid":"wisdom_of_solomon","Sirach":"wisdom_of_sirach"
     };
 
-    const NT_DOCS = [
-      "mattheus","markus","lukas","johannes","handelingen","romeinen",
-      "galaten","efeze","filippenzen","kolossenzen","titus","filemon",
-      "hebreeen","jakobus","judas","openbaring"
-    ];
-
-    const NT_LABEL = {
-      mattheus:"Mattheus", markus:"Markus", lukas:"Lukas", johannes:"Johannes",
-      handelingen:"Handelingen", romeinen:"Romeinen", galaten:"Galaten",
-      efeze:"Efeze", filippenzen:"Filippenzen", kolossenzen:"Kolossenzen",
-      titus:"Titus", filemon:"Filemon", hebreeen:"Hebreeën",
-      jakobus:"Jakobus", judas:"Judas", openbaring:"Openbaring"
+    const NT = {
+      "Mattheus":"mattheus","Markus":"markus","Lukas":"lukas","Johannes":"johannes","Handelingen":"handelingen",
+      "Romeinen":"romeinen","Galaten":"galaten","Efeze":"efeze","Filippenzen":"filippenzen","Kolossenzen":"kolossenzen",
+      "Titus":"titus","Filemon":"filemon","Hebreeën":"hebreeen","Jakobus":"jakobus","Judas":"judas","Openbaring":"openbaring"
     };
 
-    const boekenLXX = document.getElementById('boekenLXX');
-    const boekenNT  = document.getElementById('boekenNT');
+    const boekenBar = document.getElementById('boekenBar');
     const hoofdstukkenBar = document.getElementById('hoofdstukkenBar');
     const tekst = document.getElementById('tekst');
     const testamentSel = document.getElementById('testamentSel');
-    const secLXX = document.getElementById('secLXX');
-    const secNT  = document.getElementById('secNT');
 
-    let mode='LXX', actiefBoekLabel=null, actiefPrefix=null, actiefNT=null, actiefH=null;
+    let mode='LXX', actiefLabel=null, actiefPrefix=null, actiefH=null;
 
+    // boeken renderen
     function renderBoeken(){
-      boekenLXX.innerHTML='';
-      boekenNT.innerHTML='';
-      Object.keys(LXX).forEach(label=>{
+      boekenBar.innerHTML='';
+      const lijst = (mode==='LXX'?LXX:NT);
+      Object.keys(lijst).forEach(label=>{
         const b=document.createElement('button');
         b.textContent=label;
-        b.onclick=()=>selectLXX(label, LXX[label]);
-        boekenLXX.appendChild(b);
-      });
-      NT_DOCS.forEach(id=>{
-        const b=document.createElement('button');
-        b.textContent=NT_LABEL[id] || id;
-        b.onclick=()=>selectNT(id);
-        boekenNT.appendChild(b);
+        b.onclick=()=>selectBoek(label,lijst[label]);
+        boekenBar.appendChild(b);
       });
     }
 
-    function selectLXX(label, prefix){
-      mode='LXX'; secLXX.open=true; secNT.open=false; testamentSel.value='LXX';
-      actiefBoekLabel=label; actiefPrefix=prefix; actiefNT=null; actiefH=null;
-      highlightBoek(label, 'LXX');
-      laadHoofdstukkenLXX(prefix, label);
+    async function selectBoek(label,prefix){
+      actiefLabel=label; actiefPrefix=prefix; actiefH=null;
+      highlightBoek(label);
+      hoofdstukkenBar.innerHTML='<p class="hint">Laden…</p>';
+      if(mode==='LXX') await laadHoofdstukkenLXX(prefix,label);
+      else await laadHoofdstukkenNT(prefix,label);
     }
 
-    function selectNT(docId){
-      mode='NT'; secLXX.open=false; secNT.open=true; testamentSel.value='NT';
-      actiefBoekLabel=NT_LABEL[docId] || docId; actiefPrefix=null; actiefNT=docId; actiefH=null;
-      highlightBoek(docId, 'NT');
-      laadHoofdstukkenNT(docId, actiefBoekLabel);
-    }
-
-    function highlightBoek(idOrLabel, which){
-      const wrap = (which==='LXX') ? boekenLXX : boekenNT;
-      [...wrap.querySelectorAll('button')].forEach(b=>{
-        const match = (which==='LXX') ? (b.textContent===idOrLabel) : ((NT_LABEL[idOrLabel]||idOrLabel)===b.textContent);
-        b.classList.toggle('actief', match);
-      });
-      hoofdstukkenBar.innerHTML='';
+    function highlightBoek(label){
+      [...boekenBar.querySelectorAll('button')].forEach(b=>b.classList.toggle('actief',b.textContent===label));
       tekst.innerHTML='<p class="hint">Hoofdstukken laden…</p>';
     }
 
-    testamentSel.addEventListener('change', e=>{
-      mode=e.target.value;
-      secLXX.open = (mode==='LXX');
-      secNT.open  = (mode==='NT');
-      hoofdstukkenBar.innerHTML='';
-      tekst.innerHTML='<p class="hint">Kies een boek…</p>';
-    });
-
-    async function laadHoofdstukkenLXX(prefix, label){
+    async function laadHoofdstukkenLXX(prefix,label){
       try{
-        const snap = await db.collection('bijbel_LXX')
-          .where(firebase.firestore.FieldPath.documentId(), '>=', prefix+'_h')
-          .where(firebase.firestore.FieldPath.documentId(), '<',  prefix+'_i')
-          .get();
-        if(snap.empty){ tekst.innerHTML=`<div class="error">Geen hoofdstukken gevonden voor <b>${prefix}</b>.</div>`; return; }
-        const nrs = snap.docs.map(d=>Number((d.id.match(/_h(\d+)/)||[])[1])).filter(n=>!isNaN(n)).sort((a,b)=>a-b);
+        const snap=await db.collection('bijbel_LXX')
+          .where(firebase.firestore.FieldPath.documentId(),'>=',prefix+'_h')
+          .where(firebase.firestore.FieldPath.documentId(),'<',prefix+'_i').get();
+        if(snap.empty){tekst.innerHTML=`<div class="error">Geen hoofdstukken voor ${label}.</div>`;return;}
+        const nrs=snap.docs.map(d=>Number((d.id.match(/_h(\d+)/)||[])[1])).filter(n=>!isNaN(n)).sort((a,b)=>a-b);
         hoofdstukkenBar.innerHTML='';
         nrs.forEach(n=>{
           const btn=document.createElement('button');
           btn.textContent=n;
-          btn.onclick=()=>{actiefH=n; highlightH(n); laadLXX(prefix, n, label);};
+          btn.onclick=()=>{actiefH=n; highlightH(n); laadLXX(prefix,n,label);};
           hoofdstukkenBar.appendChild(btn);
         });
-        actiefH = nrs[0]; highlightH(actiefH); await laadLXX(prefix, actiefH, label);
-      }catch(e){ tekst.innerHTML=`<div class="error">Fout: ${e}</div>`; }
+      }catch(e){tekst.innerHTML=`<div class="error">${e}</div>`;}
     }
 
-    async function laadHoofdstukkenNT(docId, label){
+    async function laadHoofdstukkenNT(prefix,label){
       try{
-        const snap = await db.collection('bijbel').doc(docId).collection('hoofdstukken').get();
-        if(snap.empty){ tekst.innerHTML=`<div class="error">Geen hoofdstukken gevonden onder <b>bijbel/${docId}/hoofdstukken</b>.</div>`; return; }
-        const nrs = snap.docs.map(d=>Number(d.id)).filter(n=>!isNaN(n)).sort((a,b)=>a-b);
+        const snap=await db.collection('bijbel')
+          .where(firebase.firestore.FieldPath.documentId(),'>=',prefix+'_h')
+          .where(firebase.firestore.FieldPath.documentId(),'<',prefix+'_i').get();
+        if(snap.empty){tekst.innerHTML=`<div class="error">Geen hoofdstukken voor ${label}.</div>`;return;}
+        const nrs=snap.docs.map(d=>Number((d.id.match(/_h(\d+)/)||[])[1])).filter(n=>!isNaN(n)).sort((a,b)=>a-b);
         hoofdstukkenBar.innerHTML='';
         nrs.forEach(n=>{
           const btn=document.createElement('button');
           btn.textContent=n;
-          btn.onclick=()=>{actiefH=n; highlightH(n); laadNT(docId, n, label);};
+          btn.onclick=()=>{actiefH=n; highlightH(n); laadNT(prefix,n,label);};
           hoofdstukkenBar.appendChild(btn);
         });
-        actiefH = nrs[0]; highlightH(actiefH); await laadNT(docId, actiefH, label);
-      }catch(e){ tekst.innerHTML=`<div class="error">Fout: ${e}</div>`; }
+      }catch(e){tekst.innerHTML=`<div class="error">${e}</div>`;}
     }
 
     function highlightH(n){
-      [...hoofdstukkenBar.querySelectorAll('button')].forEach(b=>b.classList.toggle('actief', Number(b.textContent)===Number(n)));
+      [...hoofdstukkenBar.querySelectorAll('button')].forEach(b=>b.classList.toggle('actief',Number(b.textContent)===Number(n)));
     }
 
-    async function laadLXX(prefix, h, label){
+    async function laadLXX(prefix,h,label){
       tekst.innerHTML=`<h2>${label} ${h}</h2><p class="hint">Laden…</p>`;
-      const id = `${prefix}_h${h}`;
-      const doc = await db.collection('bijbel_LXX').doc(id).get();
-      if(!doc.exists){ tekst.innerHTML=`<div class="error">Niet gevonden: <b>${id}</b></div>`; return; }
-      const data = doc.data();
-      const verzen = data.verzen || data;
-      const keys = Object.keys(verzen).map(Number).sort((a,b)=>a-b);
-      const html = keys.map(v=>`<p class="vers gr"><strong>${v}</strong> ${verzen[v]}</p>`).join('');
-      tekst.innerHTML = `<h2>${label} ${h}</h2>${html}`;
+      const id=`${prefix}_h${h}`;
+      const doc=await db.collection('bijbel_LXX').doc(id).get();
+      if(!doc.exists){tekst.innerHTML=`<div class="error">Niet gevonden: ${id}</div>`;return;}
+      const data=doc.data(); const verzen=data.verzen||{};
+      const keys=Object.keys(verzen).map(Number).sort((a,b)=>a-b);
+      tekst.innerHTML=`<h2>${label} ${h}</h2>`+keys.map(v=>`<p class="vers gr"><strong>${v}</strong> ${verzen[v]}</p>`).join('');
     }
 
-    async function laadNT(docId, h, label){
-  tekst.innerHTML=`<h2>${label} ${h}</h2><p class="hint">Laden…</p>`;
-  console.log("🔥 Ophalen:", `bijbel/${docId}/hoofdstukken/${h}/verzen`);
-  const vs = await db.collection('bijbel').doc(docId).collection('hoofdstukken').doc(String(h)).collection('verzen').get();
-  if(vs.empty){ tekst.innerHTML=`<div class="error">Geen verzen onder <b>bijbel/${docId}/hoofdstukken/${h}/verzen</b>.</div>`; return; }
-  const docs = vs.docs.sort((a,b)=>Number(a.id)-Number(b.id));
-  const html = docs.map(d=>{
-    const t = (d.data()?.tekst)||'';
-    return `<p class="vers"><strong>${d.id}</strong> ${t}</p>`;
-  }).join('');
-  tekst.innerHTML = `<h2>${label} ${h}</h2>${html}`;
-}
+    async function laadNT(prefix,h,label){
+      tekst.innerHTML=`<h2>${label} ${h}</h2><p class="hint">Laden…</p>`;
+      const id=`${prefix}_h${h}`;
+      const doc=await db.collection('bijbel').doc(id).get();
+      if(!doc.exists){tekst.innerHTML=`<div class="error">Niet gevonden: ${id}</div>`;return;}
+      const data=doc.data(); const verzen=data.verzen||{};
+      const keys=Object.keys(verzen).map(Number).sort((a,b)=>a-b);
+      tekst.innerHTML=`<h2>${label} ${h}</h2>`+keys.map(v=>`<p class="vers"><strong>${v}</strong> ${verzen[v]}</p>`).join('');
+    }
 
+    testamentSel.addEventListener('change',e=>{
+      mode=e.target.value;
+      tekst.innerHTML='<p class="hint">Kies een boek…</p>';
+      hoofdstukkenBar.innerHTML=''; renderBoeken();
+    });
 
     renderBoeken();
   </script>
 </body>
 </html>
-
