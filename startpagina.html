@@ -71,7 +71,7 @@
     max-height: calc(100% - 16px - 2em - 50vh);
     overflow:auto; padding-right:6px;
   }
-  .dagkalender-datum { font-family: Georgia, serif; font-size: 2em; margin-bottom: 16px; color: #85652a; letter-spacing: 1px; }
+  .dagkalender-datum { font-family: Georgia, serif; font-size: 2em; margin-bottom: 16px; color: #85652a; letter-spacing: 1 px; }
   .vastenregel-regel { margin: 0 0 15px; font-weight: 600; font-size: 1.11em; display:flex; align-items:center; gap:12px; }
   .vastenregel-symbool { font-size: 1.65em; margin-left:7px; vertical-align: middle; }
   .heiligenrij { margin-bottom: 15px; color: #725721; font-size: 1.08em; font-weight: 600; }
@@ -91,6 +91,11 @@
     .pagina{ font-size: .95em; padding: 12px 3vw 16px; }
     .tip-blok{ left:4vw; right:4vw; font-size: .98em; }
   }
+
+  /* === KLEINE TOEVOEGING voor uitklapbare lezingen === */
+  .lezing-kop{ cursor:pointer; user-select:none; }
+  .lezing-tekst{ display:none; margin-top:8px; line-height:1.38; }
+  .lezingblok.open .lezing-tekst{ display:block; }
 </style>
 
 <!-- ==== INHOUD ==== -->
@@ -150,7 +155,7 @@
     tipEl.classList.remove('is-fading');
   }
 
-  // 🔹 toevoeging: helper om lezingtekst uit Firestore te halen
+  // 🔹 helper om lezingtekst uit Firestore te halen (ongewijzigd)
   async function haalLezingUitBijbel(ref){
     if (!ref) return "";
     const match = ref.match(/([\wëéèêïöäü]+)\s+(\d+):(\d+)-(\d+)/i);
@@ -182,6 +187,7 @@
     let rightMain = `<div style="color:#a6a5a4;text-align:center;">Bezig met laden...</div>`;
     let rightTip  = ``;
 
+    // LINKS: heilige van de dag (ongewijzigd)
     const pHeilige = db.collection("heiligen").where("feestdag","==",feestdag).get().then(snap=>{
       if (snap.empty){
         leftHTML = `<div style="color:#b8b7b4;text-align:center;margin-top:22px;font-size:1.15em"><br>Geen heilige van de dag gevonden.<br><div style="font-size:4em;text-align:center;margin-top:16px;">✝️</div></div>`;
@@ -198,6 +204,7 @@
       leftHTML = `<div class="heilige-naam">${naam}</div><img src="${fotoUrl}" class="heilige-foto" alt="Heilige icoon"><div class="heilige-levensverhaal">${levensverhaal}</div>`;
     });
 
+    // RECHTS: datum, vasten, lezingen, tip (heiligen-lijst rechts was eerder verwijderd en blijft weg)
     const pKal = db.collection("kalender2025").doc(kalenderId).get().then(async doc=>{
       if (!doc.exists){
         rightMain = `<div style="color:#b8b7b4;text-align:center;margin-top:60px;font-size:1.1em">Geen kalenderinfo gevonden.</div>`;
@@ -241,11 +248,18 @@
                : (taal==="engels") ? (data[`Tip/Wens EN`] || "")
                : (data[`Tip/Wens EL`] || "");
 
+      /* === ENIGE WIJZIGING: uitklapbare tekstblokken voor lezingen === */
       rightMain =
         `<div class="dagkalender-datum">${datumTekst}</div>
          <div class="vastenregel-regel">${vastenRegelBlok}</div>
-         <div class="lezingblok"><b>${epL}:</b> ${ep}<br>${epLezing}</div>
-         <div class="lezingblok"><b>${evL}:</b> ${ev}<br>${evLezing}</div>`;
+         <div class="lezingblok">
+            <div class="lezing-kop"><b>${epL}:</b> ${ep}</div>
+            <div class="lezing-tekst">${epLezing || ""}</div>
+         </div>
+         <div class="lezingblok">
+            <div class="lezing-kop"><b>${evL}:</b> ${ev}</div>
+            <div class="lezing-tekst">${evLezing || ""}</div>
+         </div>`;
       rightTip = tip || "";
     });
 
@@ -277,6 +291,11 @@
       heiligeEl.innerHTML = html.leftHTML;
       dagEl.innerHTML     = html.rightMain;
       tipEl.innerHTML     = html.rightTip;
+
+      // === KLEINE TOEVOEGING: toggles activeren zonder iets anders aan te raken ===
+      dagEl.querySelectorAll('.lezing-kop').forEach(kop=>{
+        kop.onclick = () => kop.parentElement.classList.toggle('open');
+      });
     }
     fadeInAll();
     toggleButtons(false);
