@@ -150,44 +150,56 @@
     tipEl.classList.remove('is-fading');
   }
 
-  /* ==== TOEVOEGING: volledige en verbeterde bijbelfunctie ==== */
+  /* ==== verbeterde bijbelfunctie met meerdere reeksen ==== */
   async function haalLezingUitBijbel(ref){
     if (!ref) return "";
-    const m = ref.match(/([A-Za-zÀ-ÿ]+)\s+(\d+):(\d+)(?:-(\d+))?/);
+    const m = ref.match(/([A-Za-zÀ-ÿ]+)\s+(\d+):([\d,\-\s]+)/);
     if (!m) return "";
-    const boekRaw = m[1].toLowerCase();
-    const h = parseInt(m[2]), v1 = parseInt(m[3]), v2 = parseInt(m[4]||m[3]);
+    const boekRaw = m[1].toLowerCase().trim();
+    const hoofdstuk = parseInt(m[2]);
+    const verzenReeksen = m[3].trim();
+
     const map = {
-      "mattheus":"mattheus","mattheüs":"mattheus","matthew":"mattheus",
+      "mattheüs":"mattheus","mattheus":"mattheus","matthew":"mattheus",
       "markus":"markus","mark":"markus","marcus":"markus",
       "lukas":"lukas","lucas":"lukas","luke":"lukas",
       "johannes":"johannes","john":"johannes","ioannes":"johannes",
       "handelingen":"handelingen","acts":"handelingen","praxeis":"handelingen",
       "romeinen":"romeinen","romans":"romeinen",
-      "korintiers":"korintiers","corinthians":"korintiers",
       "galaten":"galaten","galatians":"galaten",
       "efeze":"efeze","ephesians":"efeze",
       "filippenzen":"filippenzen","philippians":"filippenzen",
       "kolossenzen":"kolossenzen","colossians":"kolossenzen",
-      "thessalonicenzen":"thessalonicenzen","thessalonians":"thessalonicenzen",
-      "timotheus":"timotheus","timothy":"timotheus",
       "titus":"titus",
       "filemon":"filemon","philemon":"filemon",
       "hebreeen":"hebreeen","hebreen":"hebreeen","hebrews":"hebreeen",
       "jakobus":"jakobus","james":"jakobus",
-      "petrus":"petrus","peter":"petrus",
       "judas":"judas","jude":"judas",
-      "openbaring":"openbaring","revelation":"openbaring","apocalyps":"openbaring"
+      "openbaring":"openbaring","revelation":"openbaring",
+      "thessalonicenzen":"thessalonicenzen","thessalonians":"thessalonicenzen",
+      "timotheus":"timotheus","timothy":"timotheus",
+      "petrus":"petrus","peter":"petrus"
     };
+
     const boek = map[boekRaw] || boekRaw;
-    if (!boek.trim()) return "";
-    const snap = await db.collection("bijbel").doc(`${boek}_h${h}`.toLowerCase()).get();
-    if (!snap.exists) return "";
+    const docId = `${boek}_h${hoofdstuk}`.toLowerCase();
+
+    const snap = await db.collection("bijbel").doc(docId).get();
+    if (!snap.exists) return `<p><em>Niet gevonden: ${ref}</em></p>`;
     const verzen = snap.data().verzen || {};
+
     let tekst = "";
-    for (let i=v1; i<=v2; i++){
-      if (verzen[i]) tekst += `<p><strong>${i}</strong> ${verzen[i]}</p>`;
+    const delen = verzenReeksen.split(",");
+    for (const deel of delen){
+      const r = deel.trim().match(/(\d+)(?:-(\d+))?/);
+      if (!r) continue;
+      const start = parseInt(r[1]);
+      const einde = parseInt(r[2]||r[1]);
+      for (let v=start; v<=einde; v++){
+        if (verzen[v]) tekst += `<p><strong>${v}</strong> ${verzen[v]}</p>`;
+      }
     }
+    if (!tekst) tekst = "<p><em>Lezing niet gevonden in dit hoofdstuk.</em></p>";
     return tekst;
   }
 
