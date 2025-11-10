@@ -1,4 +1,4 @@
-<!-- ==== STYLES ==== --> 
+<!-- ==== STYLES ==== -->  
 <style>
   :root{
     --boek-bg-left:  linear-gradient(110deg, #ede4ca 90%, #fff7e2 100%);
@@ -71,7 +71,7 @@
     max-height: calc(100% - 16px - 2em - 50vh);
     overflow:auto; padding-right:6px;
   }
-  .dagkalender-datum { font-family: Georgia, serif; font-size: 2em; margin-bottom: 16px; color: #85652a; letter-spacing: 1 px; }
+  .dagkalender-datum { font-family: Georgia, serif; font-size: 2em; margin-bottom: 16px; color: #85652a; letter-spacing: 1px; }
   .vastenregel-regel { margin: 0 0 15px; font-weight: 600; font-size: 1.11em; display:flex; align-items:center; gap:12px; }
   .vastenregel-symbool { font-size: 1.65em; margin-left:7px; vertical-align: middle; }
   .heiligenrij { margin-bottom: 15px; color: #725721; font-size: 1.08em; font-weight: 600; }
@@ -91,11 +91,6 @@
     .pagina{ font-size: .95em; padding: 12px 3vw 16px; }
     .tip-blok{ left:4vw; right:4vw; font-size: .98em; }
   }
-
-  /* === KLEINE TOEVOEGING voor uitklapbare lezingen === */
-  .lezing-kop{ cursor:pointer; user-select:none; }
-  .lezing-tekst{ display:none; margin-top:8px; line-height:1.38; }
-  .lezingblok.open .lezing-tekst{ display:block; }
 </style>
 
 <!-- ==== INHOUD ==== -->
@@ -155,29 +150,44 @@
     tipEl.classList.remove('is-fading');
   }
 
-  // 🔹 helper om lezingtekst uit Firestore te halen (ongewijzigd)
+  /* ==== TOEVOEGING: volledige en verbeterde bijbelfunctie ==== */
   async function haalLezingUitBijbel(ref){
     if (!ref) return "";
-    const match = ref.match(/([\wëéèêïöäü]+)\s+(\d+):(\d+)-(\d+)/i);
-    if (!match) return "";
-    let boek = match[1].toLowerCase().replace(/[ëéèê]/g,"e").replace(/[ï]/g,"i");
-    const hoofdstuk = parseInt(match[2]), v1 = parseInt(match[3]), v2 = parseInt(match[4]);
-    const map = { mattheus:"mattheus", mattheüs:"mattheus", matthew:"mattheus",
-      markus:"markus", mark:"markus", lukas:"lukas", luke:"lukas",
-      johannes:"johannes", john:"johannes", handelingen:"handelingen", acts:"handelingen",
-      romeinen:"romeinen", romans:"romeinen", galaten:"galaten", galatians:"galaten",
-      efeze:"efeze", ephesians:"efeze", filippenzen:"filippenzen", philippians:"filippenzen",
-      kolossenzen:"kolossenzen", colossians:"kolossenzen", titus:"titus",
-      filemon:"filemon", philemon:"filemon", hebreeen:"hebreeen", hebrews:"hebreeen",
-      jakobus:"jakobus", james:"jakobus", judas:"judas", jude:"judas",
-      openbaring:"openbaring", revelation:"openbaring"};
-    boek = map[boek] || boek;
-    const docId = `${boek}_h${hoofdstuk}`;
-    const snap = await db.collection("bijbel").doc(docId).get();
+    const m = ref.match(/([A-Za-zÀ-ÿ]+)\s+(\d+):(\d+)(?:-(\d+))?/);
+    if (!m) return "";
+    const boekRaw = m[1].toLowerCase();
+    const h = parseInt(m[2]), v1 = parseInt(m[3]), v2 = parseInt(m[4]||m[3]);
+    const map = {
+      "mattheus":"mattheus","mattheüs":"mattheus","matthew":"mattheus",
+      "markus":"markus","mark":"markus","marcus":"markus",
+      "lukas":"lukas","lucas":"lukas","luke":"lukas",
+      "johannes":"johannes","john":"johannes","ioannes":"johannes",
+      "handelingen":"handelingen","acts":"handelingen","praxeis":"handelingen",
+      "romeinen":"romeinen","romans":"romeinen",
+      "korintiers":"korintiers","corinthians":"korintiers",
+      "galaten":"galaten","galatians":"galaten",
+      "efeze":"efeze","ephesians":"efeze",
+      "filippenzen":"filippenzen","philippians":"filippenzen",
+      "kolossenzen":"kolossenzen","colossians":"kolossenzen",
+      "thessalonicenzen":"thessalonicenzen","thessalonians":"thessalonicenzen",
+      "timotheus":"timotheus","timothy":"timotheus",
+      "titus":"titus",
+      "filemon":"filemon","philemon":"filemon",
+      "hebreeen":"hebreeen","hebreen":"hebreeen","hebrews":"hebreeen",
+      "jakobus":"jakobus","james":"jakobus",
+      "petrus":"petrus","peter":"petrus",
+      "judas":"judas","jude":"judas",
+      "openbaring":"openbaring","revelation":"openbaring","apocalyps":"openbaring"
+    };
+    const boek = map[boekRaw] || boekRaw;
+    if (!boek.trim()) return "";
+    const snap = await db.collection("bijbel").doc(`${boek}_h${h}`.toLowerCase()).get();
     if (!snap.exists) return "";
     const verzen = snap.data().verzen || {};
     let tekst = "";
-    for (let i=v1; i<=v2; i++){ if(verzen[i]) tekst += `<p><strong>${i}</strong> ${verzen[i]}</p>`; }
+    for (let i=v1; i<=v2; i++){
+      if (verzen[i]) tekst += `<p><strong>${i}</strong> ${verzen[i]}</p>`;
+    }
     return tekst;
   }
 
@@ -187,7 +197,6 @@
     let rightMain = `<div style="color:#a6a5a4;text-align:center;">Bezig met laden...</div>`;
     let rightTip  = ``;
 
-    // LINKS: heilige van de dag (ongewijzigd)
     const pHeilige = db.collection("heiligen").where("feestdag","==",feestdag).get().then(snap=>{
       if (snap.empty){
         leftHTML = `<div style="color:#b8b7b4;text-align:center;margin-top:22px;font-size:1.15em"><br>Geen heilige van de dag gevonden.<br><div style="font-size:4em;text-align:center;margin-top:16px;">✝️</div></div>`;
@@ -204,7 +213,6 @@
       leftHTML = `<div class="heilige-naam">${naam}</div><img src="${fotoUrl}" class="heilige-foto" alt="Heilige icoon"><div class="heilige-levensverhaal">${levensverhaal}</div>`;
     });
 
-    // RECHTS: datum, vasten, lezingen, tip (heiligen-lijst rechts was eerder verwijderd en blijft weg)
     const pKal = db.collection("kalender2025").doc(kalenderId).get().then(async doc=>{
       if (!doc.exists){
         rightMain = `<div style="color:#b8b7b4;text-align:center;margin-top:60px;font-size:1.1em">Geen kalenderinfo gevonden.</div>`;
@@ -248,18 +256,11 @@
                : (taal==="engels") ? (data[`Tip/Wens EN`] || "")
                : (data[`Tip/Wens EL`] || "");
 
-      /* === ENIGE WIJZIGING: uitklapbare tekstblokken voor lezingen === */
       rightMain =
         `<div class="dagkalender-datum">${datumTekst}</div>
          <div class="vastenregel-regel">${vastenRegelBlok}</div>
-         <div class="lezingblok">
-            <div class="lezing-kop"><b>${epL}:</b> ${ep}</div>
-            <div class="lezing-tekst">${epLezing || ""}</div>
-         </div>
-         <div class="lezingblok">
-            <div class="lezing-kop"><b>${evL}:</b> ${ev}</div>
-            <div class="lezing-tekst">${evLezing || ""}</div>
-         </div>`;
+         <div class="lezingblok"><b>${epL}:</b> ${ep}<br>${epLezing}</div>
+         <div class="lezingblok"><b>${evL}:</b> ${ev}<br>${evLezing}</div>`;
       rightTip = tip || "";
     });
 
@@ -291,11 +292,6 @@
       heiligeEl.innerHTML = html.leftHTML;
       dagEl.innerHTML     = html.rightMain;
       tipEl.innerHTML     = html.rightTip;
-
-      // === KLEINE TOEVOEGING: toggles activeren zonder iets anders aan te raken ===
-      dagEl.querySelectorAll('.lezing-kop').forEach(kop=>{
-        kop.onclick = () => kop.parentElement.classList.toggle('open');
-      });
     }
     fadeInAll();
     toggleButtons(false);
