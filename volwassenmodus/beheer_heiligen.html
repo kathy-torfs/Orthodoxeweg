@@ -16,7 +16,6 @@
     .item{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #dbc592;border-radius:8px;padding:6px 8px;margin-bottom:6px;cursor:pointer}
     .item:hover{background:#f7eecb}
     .item img{width:32px;height:32px;object-fit:cover;border-radius:6px}
-    .item small{color:#8a6b29}
     .add-btn{display:inline-block;margin:4px;padding:6px 12px;text-align:center;background:#7bb235;color:#fff;font-weight:bold;border:none;border-radius:8px;cursor:pointer}
 
     .detail{flex:2;background:#fffef9;border:2px solid #e2d1a5;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.12);padding:20px;min-height:500px}
@@ -25,7 +24,7 @@
     img.klein{max-height:3cm;border-radius:6px;margin:6px 0;display:block}
 
     label{font-weight:bold;display:block;margin:8px 0 4px}
-    input,textarea{width:100%;padding:8px;border:1px solid #dbc592;border-radius:8px;background:#fffdf5;font-family:inherit;margin-bottom:8px}
+    input,textarea,select{width:100%;padding:8px;border:1px solid #dbc592;border-radius:8px;background:#fffdf5;font-family:inherit;margin-bottom:8px}
     textarea{min-height:120px;resize:vertical}
 
     .btn-row{display:flex;justify-content:flex-end;gap:8px;margin-top:10px}
@@ -33,8 +32,6 @@
     .btn.save{background:#7bb235;color:#fff}
     .btn.delete{background:#e24343;color:#fff}
     .btn.cancel{background:#999;color:#fff}
-    .btn.save:hover{background:#5e8e29}
-    .btn.delete:hover{background:#b72828}
   </style>
 
   <!-- Firebase -->
@@ -44,11 +41,11 @@
   <script defer src="common/layout.js"></script>
 
   <script>
-    // Alleen beheerders
     const modus = localStorage.getItem("modus");
     const rol = JSON.parse(localStorage.getItem("rol") || "[]");
     const email = localStorage.getItem("email");
     const superUser = "kathy.torfs@telenet.be";
+
     if ((modus !== "volwassene" || !rol.includes("beheerder")) && email !== superUser) {
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     }
@@ -60,7 +57,7 @@
 
   <h1>📖 Heiligen (beheer)</h1>
 
-  <!-- ⭐⭐ DOELGROEP KNOPPEN ⭐⭐ -->
+  <!-- Doelgroep-knoppen -->
   <div style="text-align:center; margin-bottom:15px;">
     <button onclick="wisselDoelgroep('kleuters')" class="add-btn">Kleuters</button>
     <button onclick="wisselDoelgroep('lagere')" class="add-btn">Lagere school</button>
@@ -68,14 +65,12 @@
   </div>
 
   <main>
-    <!-- Lijst -->
     <div class="lijst">
       <h2>📜 Heiligenlijst</h2>
       <div id="heiligenLijst">⏳ Laden...</div>
       <button class="add-btn" style="width:100%;" onclick="nieuweHeilige()">+ Heilige toevoegen</button>
     </div>
 
-    <!-- Detail -->
     <div class="detail" id="detailPaneel">
       <p style="text-align:center;color:#888;">⬅️ Kies links een heilige</p>
     </div>
@@ -88,7 +83,6 @@
   </div>
 
   <script>
-    // Firebase init
     if (!firebase.apps.length) {
       firebase.initializeApp({
         apiKey:"AIzaSyBKEakRzmnPZ3DY8NUkZrZr_YtqBbNVHL4",
@@ -97,61 +91,40 @@
         storageBucket:"orthodoxeweg.firebasestorage.app"
       });
     }
+
     const db=firebase.firestore();
     const storage=firebase.storage();
 
-    let huidigeDoelgroep = "lagere";  // ⭐ standaard
-    let editId=null;
-    let origineel=null;
-
+    let huidigeDoelgroep = "lagere";
     const lijstEl=document.getElementById("heiligenLijst");
     const detailEl=document.getElementById("detailPaneel");
 
-    // ⭐ DOELGROEP WISSELEN
     function wisselDoelgroep(dg) {
       huidigeDoelgroep = dg;
       laadHeiligen();
-      detailEl.innerHTML = `<p style="text-align:center;color:#888;">⬅️ Kies links een heilige</p>`;
+      detailEl.innerHTML = `<p style='text-align:center;color:#888;'>⬅️ Kies links een heilige</p>`;
     }
 
-    // Upload met voortgang
-    async function uploadBestand(file,pad){
-      return new Promise((resolve,reject)=>{
-        const ref=storage.ref(pad);
-        const task=ref.put(file);
-        document.getElementById("uploadProgress").style.display="block";
-        task.on("state_changed",
-          snap=>{
-            const pct=Math.round((snap.bytesTransferred/snap.totalBytes)*100);
-            document.getElementById("progressBar").value=pct;
-            document.getElementById("progressText").innerText=pct+"%";
-          },
-          err=>reject(err),
-          async()=>{
-            document.getElementById("uploadProgress").style.display="none";
-            const url=await task.snapshot.ref.getDownloadURL();
-            resolve(url);
-          }
-        );
-      });
-    }
-
-    // Nieuwe heilige
     function nieuweHeilige(){
-      toonDetail({id:"",titel:"",verhaal:"",zichtbaar:false,platen:[],vragen:[]});
-      editId=null;origineel=null;
+      toonDetail({id:"",titel:"",verhaal:"",platen:[],vragen:[],doelgroep:huidigeDoelgroep});
     }
 
-    // Toon detail
     function toonDetail(h){
-      origineel=h;
       detailEl.innerHTML=`
         <h2>${h.titel||"Nieuwe heilige"}</h2>
+
         <label>Naam</label>
         <input id="titelInput" value="${h.titel||""}">
+
+        <label>Doelgroep</label>
+        <select id="doelgroepSelect">
+          <option value="kleuters">Kleuters</option>
+          <option value="lagere">Lagere school</option>
+          <option value="volwassenen">Volwassenen</option>
+        </select>
+
         <label>Verhaal</label>
         <textarea id="verhaalInput">${(h.verhaal||"").replace(/<br>/g,"\n")}</textarea>
-        <label><input type="checkbox" id="zichtbaarChk" ${h.zichtbaar?"checked":""}> Zichtbaar</label>
 
         <h3>Vertelplaten</h3>
         <div id="platenContainer"></div>
@@ -162,15 +135,19 @@
         <button onclick="voegVraagToe()">➕ Vraag toevoegen</button>
 
         <div class="btn-row">
-          <button class="btn save" onclick="opslaanHeilige('${h.id}')">Opslaan</button>
+          <button class="btn save" onclick="opslaanHeilige('${h.id||""}')">Opslaan</button>
           ${h.id?`<button class="btn delete" onclick="verwijderHeilige('${h.id}')">Verwijderen</button>`:""}
           <button class="btn cancel" onclick="annuleerBewerking()">Annuleren</button>
         </div>
       `;
+
+      document.getElementById("doelgroepSelect").value = h.doelgroep || huidigeDoelgroep;
+
       (h.platen||[]).forEach(p=>voegPlaatToe({
         url:p.url,
         tekst:(p.tekst||"").replace(/<br>/g,"\n")
       }));
+
       (h.vragen||[]).forEach(q=>voegVraagToe({
         vraag:(q.vraag||"").replace(/<br>/g,"\n"),
         antwoorden:q.antwoorden||["","","",""],
@@ -182,8 +159,7 @@
       const div=document.createElement("div");
       div.className="blok";
       div.innerHTML=`
-        <h4>Plaat</h4>
-        <input type="file" class="plaatFile" accept="image/*"><br>
+        <input type="file" class="plaatFile" accept="image/*">
         <input type="hidden" class="bestaandeUrl" value="${p.url||""}">
         <label>Tekst:</label>
         <textarea class="plaatTekst">${p.tekst||""}</textarea>
@@ -196,87 +172,92 @@
       const div=document.createElement("div");
       div.className="blok";
       div.innerHTML=`
-        <h4>Vraag</h4>
-        <input type="text" class="vraag" placeholder="Vraag" value="${q.vraag||""}"><br>
+        <input type="text" class="vraag" placeholder="Vraag" value="${q.vraag||""}">
         ${[0,1,2,3].map(i=>`
-          <input type="text" class="antw" placeholder="Antwoord ${i+1}" value="${q.antwoorden?q.antwoorden[i]:""}"><br>
+          <input type="text" class="antw" placeholder="Antwoord ${i+1}" value="${q.antwoorden?q.antwoorden[i]:""}">
         `).join("")}
-        <label>Correct (1-4):</label>
+        <label>Correct (1-4)</label>
         <input type="number" class="correct" min="1" max="4" value="${(q.correct||0)+1}">
       `;
       document.getElementById("quizContainer").appendChild(div);
     }
 
-    // ⭐ OPSLAAN MET DOELGROEP
     async function opslaanHeilige(id){
-      const titel=document.getElementById("titelInput").value.trim();
-      if(!titel) return alert("Naam verplicht!");
-      const docId=titel.toLowerCase().replace(/\s+/g,"-");
+      const titel = document.getElementById("titelInput").value.trim();
+      const doelgroep = document.getElementById("doelgroepSelect").value;
+      const verhaal = document.getElementById("verhaalInput").value.trim().replace(/\n/g,"<br>");
 
-      const collectie = 
-        huidigeDoelgroep === "kleuters" ? "heiligen_kleuters" :
-        huidigeDoelgroep === "volwassenen" ? "heiligen_volwassenen" :
+      if (!titel) return alert("Naam verplicht!");
+      const docId = titel.toLowerCase().replace(/\s+/g,"-");
+
+      const collectie =
+        doelgroep === "kleuters" ? "heiligen_kleuters" :
+        doelgroep === "volwassenen" ? "heiligen_volwassenen" :
         "heiligen_kinderen";
 
-      const data={
+      const data = {
         titel,
-        doelgroep:huidigeDoelgroep,
-        verhaal:document.getElementById("verhaalInput").value.trim().replace(/\n/g,"<br>"),
-        zichtbaar:document.getElementById("zichtbaarChk").checked,
-        platen:[],
-        vragen:[],
-        aangemaaktOp:new Date()
+        doelgroep,
+        verhaal,
+        zichtbaar: document.getElementById("zichtbaarChk")?.checked || false,
+        platen: [],
+        vragen: []
       };
 
-      for(let blok of document.querySelectorAll("#platenContainer .blok")){
-        const file=blok.querySelector(".plaatFile").files[0];
-        const tekst=blok.querySelector(".plaatTekst").value.trim().replace(/\n/g,"<br>");
-        const bestaand=blok.querySelector(".bestaandeUrl").value;
-        if(file){
-          const pad=`heiligen_${huidigeDoelgroep}/${docId}/${Date.now()}_${file.name}`;
-          const url=await uploadBestand(file,pad);
-          data.platen.push({url,tekst});
-        } else if(bestaand){
-          data.platen.push({url:bestaand,tekst});
+      for (let blok of document.querySelectorAll("#platenContainer .blok")) {
+        const file = blok.querySelector(".plaatFile").files[0];
+        const tekst = blok.querySelector(".plaatTekst").value.trim().replace(/\n/g,"<br>");
+        const bestaand = blok.querySelector(".bestaandeUrl").value;
+
+        if (file) {
+          const pad = `heiligen_${doelgroep}/${docId}/${Date.now()}_${file.name}`;
+          const ref = storage.ref(pad);
+          await ref.put(file);
+          const url = await ref.getDownloadURL();
+          data.platen.push({url, tekst});
+        }
+        else if (bestaand) {
+          data.platen.push({url:bestaand, tekst});
         }
       }
 
       document.querySelectorAll("#quizContainer .blok").forEach(div=>{
-        const vraag=div.querySelector(".vraag").value.trim().replace(/\n/g,"<br>");
-        const antwoorden=[...div.querySelectorAll(".antw")].map(i=>i.value.trim());
-        const correct=parseInt(div.querySelector(".correct").value)-1;
+        const vraag = div.querySelector(".vraag").value.trim().replace(/\n/g,"<br>");
+        const antwoorden = [...div.querySelectorAll(".antw")].map(i=>i.value.trim());
+        const correct = parseInt(div.querySelector(".correct").value)-1;
+
         if(vraag && antwoorden.filter(a=>a).length===4){
-          data.vragen.push({vraag,antwoorden,correct});
+          data.vragen.push({vraag, antwoorden, correct});
         }
       });
 
       await db.collection(collectie).doc(docId).set(data);
+
       laadHeiligen();
-      detailEl.innerHTML=`<p style="text-align:center;color:#888;">✅ Heilige opgeslagen</p>`;
+      detailEl.innerHTML = `<p style="text-align:center;color:#888;">✔ Heilige opgeslagen</p>`;
     }
 
     async function verwijderHeilige(id){
-      if(!confirm("Heilige verwijderen?")) return;
-
-      const collectie = 
+      const collectie =
         huidigeDoelgroep === "kleuters" ? "heiligen_kleuters" :
         huidigeDoelgroep === "volwassenen" ? "heiligen_volwassenen" :
         "heiligen_kinderen";
 
+      if (!confirm("Heilige verwijderen?")) return;
+
       await db.collection(collectie).doc(id).delete();
       laadHeiligen();
-      detailEl.innerHTML=`<p style="text-align:center;color:#888;">⬅️ Kies links een heilige</p>`;
+      detailEl.innerHTML = `<p style='text-align:center;color:#888;'>⬅️ Kies links een heilige</p>`;
     }
 
     function annuleerBewerking(){
-      detailEl.innerHTML=`<p style="text-align:center;color:#888;">⬅️ Kies links een heilige</p>`;
+      detailEl.innerHTML = `<p style='text-align:center;color:#888;'>⬅️ Kies links een heilige</p>`;
     }
 
-    // ⭐ LIJST LADEN
     async function laadHeiligen(){
       lijstEl.innerHTML="⏳ Laden...";
 
-      const collectie = 
+      const collectie =
         huidigeDoelgroep === "kleuters" ? "heiligen_kleuters" :
         huidigeDoelgroep === "volwassenen" ? "heiligen_volwassenen" :
         "heiligen_kinderen";
@@ -286,12 +267,18 @@
       snap.forEach(doc=>items.push({id:doc.id,...doc.data()}));
 
       lijstEl.innerHTML="";
-      if(items.length===0){lijstEl.innerHTML="<p>Geen heiligen.</p>";return;}
+      if(items.length===0){
+        lijstEl.innerHTML="<p>Geen heiligen.</p>";
+        return;
+      }
 
       items.forEach(h=>{
         const div=document.createElement("div");
         div.className="item";
-        div.innerHTML=`${h.platen&&h.platen[0]?`<img src="${h.platen[0].url}">`:""}<div>${h.titel||h.id}</div>`;
+        div.innerHTML=`
+          ${h.platen&&h.platen[0]?`<img src="${h.platen[0].url}">`:""}
+          <div>${h.titel||h.id}</div>
+        `;
         div.onclick=()=>toonDetail(h);
         lijstEl.appendChild(div);
       });
