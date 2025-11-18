@@ -5,6 +5,7 @@
   <title>Beheer Heiligen – Orthodoxeweg</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
+
   <style>
     body {margin:0;font-family:Arial,sans-serif;background:#f5e9b8;color:#6f4e1a}
     h1{text-align:center;color:#4e2710;margin:20px 0}
@@ -16,7 +17,7 @@
     .item:hover{background:#f7eecb}
     .item img{width:32px;height:32px;object-fit:cover;border-radius:6px}
     .item small{color:#8a6b29}
-    .add-btn{display:block;width:100%;margin-top:10px;padding:8px;text-align:center;background:#7bb235;color:#fff;font-weight:bold;border:none;border-radius:8px;cursor:pointer}
+    .add-btn{display:inline-block;margin:4px;padding:6px 12px;text-align:center;background:#7bb235;color:#fff;font-weight:bold;border:none;border-radius:8px;cursor:pointer}
 
     .detail{flex:2;background:#fffef9;border:2px solid #e2d1a5;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.12);padding:20px;min-height:500px}
     .detail h2{text-align:center}
@@ -54,16 +55,24 @@
   </script>
 </head>
 <body>
+
   <div id="volwassen-header" data-header-src="common/header.html"></div>
 
-  <h1>📖 Heiligen (lagere school)</h1>
+  <h1>📖 Heiligen (beheer)</h1>
+
+  <!-- ⭐⭐ DOELGROEP KNOPPEN ⭐⭐ -->
+  <div style="text-align:center; margin-bottom:15px;">
+    <button onclick="wisselDoelgroep('kleuters')" class="add-btn">Kleuters</button>
+    <button onclick="wisselDoelgroep('lagere')" class="add-btn">Lagere school</button>
+    <button onclick="wisselDoelgroep('volwassenen')" class="add-btn" style="background:#4e2710;">Volwassenen</button>
+  </div>
 
   <main>
     <!-- Lijst -->
     <div class="lijst">
       <h2>📜 Heiligenlijst</h2>
       <div id="heiligenLijst">⏳ Laden...</div>
-      <button class="add-btn" onclick="nieuweHeilige()">+ Heilige toevoegen</button>
+      <button class="add-btn" style="width:100%;" onclick="nieuweHeilige()">+ Heilige toevoegen</button>
     </div>
 
     <!-- Detail -->
@@ -91,11 +100,19 @@
     const db=firebase.firestore();
     const storage=firebase.storage();
 
+    let huidigeDoelgroep = "lagere";  // ⭐ standaard
     let editId=null;
     let origineel=null;
 
     const lijstEl=document.getElementById("heiligenLijst");
     const detailEl=document.getElementById("detailPaneel");
+
+    // ⭐ DOELGROEP WISSELEN
+    function wisselDoelgroep(dg) {
+      huidigeDoelgroep = dg;
+      laadHeiligen();
+      detailEl.innerHTML = `<p style="text-align:center;color:#888;">⬅️ Kies links een heilige</p>`;
+    }
 
     // Upload met voortgang
     async function uploadBestand(file,pad){
@@ -134,7 +151,7 @@
         <input id="titelInput" value="${h.titel||""}">
         <label>Verhaal</label>
         <textarea id="verhaalInput">${(h.verhaal||"").replace(/<br>/g,"\n")}</textarea>
-        <label><input type="checkbox" id="zichtbaarChk" ${h.zichtbaar?"checked":""}> Zichtbaar voor kinderen</label>
+        <label><input type="checkbox" id="zichtbaarChk" ${h.zichtbaar?"checked":""}> Zichtbaar</label>
 
         <h3>Vertelplaten</h3>
         <div id="platenContainer"></div>
@@ -161,7 +178,6 @@
       }));
     }
 
-    // Voeg plaat toe
     function voegPlaatToe(p={}){
       const div=document.createElement("div");
       div.className="blok";
@@ -176,7 +192,6 @@
       document.getElementById("platenContainer").appendChild(div);
     }
 
-    // Voeg vraag toe
     function voegVraagToe(q={}){
       const div=document.createElement("div");
       div.className="blok";
@@ -192,15 +207,20 @@
       document.getElementById("quizContainer").appendChild(div);
     }
 
-    // Opslaan heilige
+    // ⭐ OPSLAAN MET DOELGROEP
     async function opslaanHeilige(id){
       const titel=document.getElementById("titelInput").value.trim();
       if(!titel) return alert("Naam verplicht!");
       const docId=titel.toLowerCase().replace(/\s+/g,"-");
 
+      const collectie = 
+        huidigeDoelgroep === "kleuters" ? "heiligen_kleuters" :
+        huidigeDoelgroep === "volwassenen" ? "heiligen_volwassenen" :
+        "heiligen_kinderen";
+
       const data={
         titel,
-        doelgroep:"lagere",
+        doelgroep:huidigeDoelgroep,
         verhaal:document.getElementById("verhaalInput").value.trim().replace(/\n/g,"<br>"),
         zichtbaar:document.getElementById("zichtbaarChk").checked,
         platen:[],
@@ -213,7 +233,7 @@
         const tekst=blok.querySelector(".plaatTekst").value.trim().replace(/\n/g,"<br>");
         const bestaand=blok.querySelector(".bestaandeUrl").value;
         if(file){
-          const pad=`heiligen_kinderen/${docId}/${Date.now()}_${file.name}`;
+          const pad=`heiligen_${huidigeDoelgroep}/${docId}/${Date.now()}_${file.name}`;
           const url=await uploadBestand(file,pad);
           data.platen.push({url,tekst});
         } else if(bestaand){
@@ -230,34 +250,44 @@
         }
       });
 
-      await db.collection("heiligen_kinderen").doc(docId).set(data);
+      await db.collection(collectie).doc(docId).set(data);
       laadHeiligen();
       detailEl.innerHTML=`<p style="text-align:center;color:#888;">✅ Heilige opgeslagen</p>`;
     }
 
-    // Verwijderen
     async function verwijderHeilige(id){
       if(!confirm("Heilige verwijderen?")) return;
-      await db.collection("heiligen_kinderen").doc(id).delete();
+
+      const collectie = 
+        huidigeDoelgroep === "kleuters" ? "heiligen_kleuters" :
+        huidigeDoelgroep === "volwassenen" ? "heiligen_volwassenen" :
+        "heiligen_kinderen";
+
+      await db.collection(collectie).doc(id).delete();
       laadHeiligen();
       detailEl.innerHTML=`<p style="text-align:center;color:#888;">⬅️ Kies links een heilige</p>`;
     }
 
-    // Annuleren
     function annuleerBewerking(){
       detailEl.innerHTML=`<p style="text-align:center;color:#888;">⬅️ Kies links een heilige</p>`;
     }
 
-    // Lijst laden
+    // ⭐ LIJST LADEN
     async function laadHeiligen(){
       lijstEl.innerHTML="⏳ Laden...";
-      let items=[];
 
-      const snap=await db.collection("heiligen_kinderen").get();
+      const collectie = 
+        huidigeDoelgroep === "kleuters" ? "heiligen_kleuters" :
+        huidigeDoelgroep === "volwassenen" ? "heiligen_volwassenen" :
+        "heiligen_kinderen";
+
+      let items=[];
+      const snap=await db.collection(collectie).get();
       snap.forEach(doc=>items.push({id:doc.id,...doc.data()}));
 
       lijstEl.innerHTML="";
       if(items.length===0){lijstEl.innerHTML="<p>Geen heiligen.</p>";return;}
+
       items.forEach(h=>{
         const div=document.createElement("div");
         div.className="item";
