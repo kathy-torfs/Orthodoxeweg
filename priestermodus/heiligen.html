@@ -150,7 +150,6 @@
     .save {background:#7bb235; color:white;}
     .delete {background:#e24343;color:white;}
     .cancel {background:#888;color:white;}
-
   </style>
 
   <!-- Firebase -->
@@ -178,6 +177,7 @@
     if (localStorage.getItem("modus") !== "priester") {
       window.location.href = "https://kathy-torfs.github.io/Orthodoxeweg/index.html";
     }
+    const parochieId = localStorage.getItem("ingelogdeParochie");
   </script>
 
   <!-- Priester header -->
@@ -224,6 +224,11 @@
 
   <script>
     let huidigeDoelgroep = "lagere";
+    const lijstEl = document.getElementById("heiligenLijst");
+    const detailEl = document.getElementById("detailPaneel");
+
+    // map met parochie-specifieke heiligen (zichtbaarheid enz.)
+    let parochieHeiligen = {};
 
     function wisselDoelgroep(dg) {
       huidigeDoelgroep = dg;
@@ -231,14 +236,13 @@
       detailEl.innerHTML = `<p style='text-align:center;color:#666;'>⬅️ Kies links een heilige</p>`;
     }
 
-    const lijstEl = document.getElementById("heiligenLijst");
-    const detailEl = document.getElementById("detailPaneel");
-
     function nieuweHeilige(){
       toonDetail({id:"",titel:"",verhaal:"",platen:[],vragen:[],doelgroep:huidigeDoelgroep, zichtbaar:false});
     }
 
     function toonDetail(h){
+      const parInfo = (h.id && parochieHeiligen[h.id]) ? parochieHeiligen[h.id] : null;
+
       detailEl.innerHTML = `
         <h2>${h.titel||"Nieuwe heilige"}</h2>
 
@@ -254,7 +258,7 @@
 
         <label style="margin-top:6px;">
           <input type="checkbox" id="zichtbaarChk">
-          Zichtbaar maken voor gelovigen
+          Zichtbaar maken voor gelovigen in mijn parochie
         </label>
 
         <label>Verhaal</label>
@@ -276,7 +280,7 @@
       `;
 
       document.getElementById("doelgroepSelect").value = h.doelgroep || huidigeDoelgroep;
-      document.getElementById("zichtbaarChk").checked = h.zichtbaar || false;
+      document.getElementById("zichtbaarChk").checked = parInfo ? !!parInfo.zichtbaar : !!h.zichtbaar;
 
       (h.platen||[]).forEach(p=>voegPlaatToe({
         url:p.url,
@@ -335,11 +339,12 @@
         titel,
         doelgroep,
         verhaal,
-        zichtbaar,
+        zichtbaar,   // blijft in hoofdcollectie bestaan
         platen:[],
         vragen:[]
       };
 
+      // platen verzamelen
       for (let blok of document.querySelectorAll("#platenContainer .blok")) {
         const file = blok.querySelector(".plaatFile").files[0];
         const tekst = blok.querySelector(".plaatTekst").value.trim().replace(/\n/g,"<br>");
@@ -357,6 +362,7 @@
         }
       }
 
+      // quizvragen
       document.querySelectorAll("#quizContainer .blok").forEach(div=>{
         const vraag = div.querySelector(".vraag").value.trim().replace(/\n/g,"<br>");
         const antwoorden = [...div.querySelectorAll(".antw")].map(i=>i.value.trim());
@@ -367,9 +373,26 @@
         }
       });
 
+      // 1) Hoofdcollectie blijven gebruiken zoals voorheen
       await db.collection(collectie).doc(docId).set(data);
 
-      laadHeiligen();
+      // 2) Parochie-specifieke zichtbaarheid + kopie opslaan
+      if (parochieId) {
+        const parochieData = {
+          titel,
+          doelgroep,
+          verhaal,
+          platen: data.platen,
+          zichtbaar
+        };
+        await db.collection("parochies")
+          .doc(parochieId)
+          .collection("heiligen")
+          .doc(docId)
+          .set(parochieData, { merge: true });
+      }
+
+      await laadHeiligen();
       detailEl.innerHTML = `<p style='text-align:center;color:#666;'>✔ Heilige opgeslagen</p>`;
     }
 
@@ -382,7 +405,17 @@
       if (!confirm("Heilige verwijderen?")) return;
       await db.collection(collectie).doc(id).delete();
 
-      laadHeiligen();
+      // ook eventuele parochie-koppeling verwijderen
+      if (parochieId) {
+        await db.collection("parochies")
+          .doc(parochieId)
+          .collection("heiligen")
+          .doc(id)
+          .delete()
+          .catch(()=>{});
+      }
+
+      await laadHeiligen();
       detailEl.innerHTML = `<p style='text-align:center;color:#666;'>⬅️ Kies links een heilige</p>`;
     }
 
@@ -402,6 +435,18 @@
       const snap = await db.collection(collectie).get();
       snap.forEach(doc => items.push({id:doc.id, ...doc.data()}));
 
+      // parochie-specifieke zichtbaarheid ophalen
+      parochieHeiligen = {};
+      if (parochieId) {
+        const parSnap = await db.collection("parochies")
+          .doc(parochieId)
+          .collection("heiligen")
+          .get();
+        parSnap.forEach(doc => {
+          parochieHeiligen[doc.id] = doc.data();
+        });
+      }
+
       lijstEl.innerHTML = "";
 
       if(items.length === 0){
@@ -410,6 +455,9 @@
       }
 
       items.forEach(h => {
+        const parInfo = parochieHeiligen[h.id];
+        const isZichtbaar = parInfo ? !!parInfo.zichtbaar : false;
+
         const div=document.createElement("div");
         div.className="item";
         div.innerHTML = `
@@ -417,7 +465,7 @@
           <div>
             ${h.titel}
             <div style="font-size:0.75em; color:#7a653e;">
-              ${h.zichtbaar ? "✔ zichtbaar" : "⛔ verborgen"}
+              ${isZichtbaar ? "✔ zichtbaar in deze parochie" : "⛔ verborgen in deze parochie"}
             </div>
           </div>
         `;
