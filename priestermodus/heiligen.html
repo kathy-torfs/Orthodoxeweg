@@ -187,7 +187,6 @@
 
 <body>
 
-  <!-- header -->
   <div id="priester-header"></div>
 
   <div class="priester-badge">👤 Priester – Heiligen Beheren</div>
@@ -236,7 +235,7 @@
     const detailEl = document.getElementById("detailPaneel");
 
     function nieuweHeilige(){
-      toonDetail({id:"",titel:"",verhaal:"",platen:[],vragen:[],doelgroep:huidigeDoelgroep});
+      toonDetail({id:"",titel:"",verhaal:"",platen:[],vragen:[],doelgroep:huidigeDoelgroep, zichtbaar:false});
     }
 
     function toonDetail(h){
@@ -252,6 +251,11 @@
           <option value="lagere">Lagere school</option>
           <option value="volwassenen">Volwassenen</option>
         </select>
+
+        <label style="margin-top:6px;">
+          <input type="checkbox" id="zichtbaarChk">
+          Zichtbaar maken voor gelovigen
+        </label>
 
         <label>Verhaal</label>
         <textarea id="verhaalInput">${(h.verhaal||"").replace(/<br>/g,"\n")}</textarea>
@@ -272,6 +276,7 @@
       `;
 
       document.getElementById("doelgroepSelect").value = h.doelgroep || huidigeDoelgroep;
+      document.getElementById("zichtbaarChk").checked = h.zichtbaar || false;
 
       (h.platen||[]).forEach(p=>voegPlaatToe({
         url:p.url,
@@ -316,6 +321,7 @@
       const titel = document.getElementById("titelInput").value.trim();
       const doelgroep = document.getElementById("doelgroepSelect").value;
       const verhaal = document.getElementById("verhaalInput").value.trim().replace(/\n/g,"<br>");
+      const zichtbaar = document.getElementById("zichtbaarChk").checked;
 
       if (!titel) return alert("Naam verplicht!");
       const docId = titel.toLowerCase().replace(/\s+/g,"-");
@@ -329,7 +335,7 @@
         titel,
         doelgroep,
         verhaal,
-        zichtbaar:false,
+        zichtbaar,
         platen:[],
         vragen:[]
       };
@@ -408,7 +414,12 @@
         div.className="item";
         div.innerHTML = `
           ${h.platen && h.platen[0] ? `<img src="${h.platen[0].url}">` : ""}
-          <div>${h.titel}</div>
+          <div>
+            ${h.titel}
+            <div style="font-size:0.75em; color:#7a653e;">
+              ${h.zichtbaar ? "✔ zichtbaar" : "⛔ verborgen"}
+            </div>
+          </div>
         `;
         div.onclick = () => toonDetail(h);
         lijstEl.appendChild(div);
