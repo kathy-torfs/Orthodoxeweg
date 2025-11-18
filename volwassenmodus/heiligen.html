@@ -6,9 +6,11 @@
   <title>Heiligen – Volwassenmodus</title>
   <link rel="icon" href="https://kathy-torfs.github.io/Orthodoxeweg/images/kruis.png">
 
-  <!-- FIREBASE (globaal) -->
+  <!-- FIREBASE -->
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-storage-compat.js"></script>
+
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBG1iQBmruHUZI1OeW8RgbJ_TPit_7a2LQ",
@@ -21,52 +23,147 @@
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    console.log("Firebase geladen in volwassenmodus – Heiligen");
   </script>
 
-  <!-- Layout script (laadt volwassen-header en css) -->
+  <!-- Layout script (voor menubalk) -->
   <script src="common/layout.js" defer></script>
-</head>
-<body>
-  <!-- HEADER komt uit common/header.html -->
-  <div id="volwassen-header"></div>
 
-  <!-- HEILIGEN-INHOUD -->
-  <div id="heiligen-inhoud"></div>
+  <style>
+    body {margin:0; font-family:Arial, sans-serif; background:#f5e9b8; color:#6f4e1a}
+    h1 {text-align:center; color:#4e2710; margin:20px 0}
 
-  <script>
-    async function loadHeiligen() {
-      try {
-        const resp = await fetch("/heiligen/heiligen.html", {cache:"no-cache"});
-        if (resp.ok) {
-          const html = await resp.text();
-          const container = document.getElementById("heiligen-inhoud");
-          container.innerHTML = html;
-
-          // Scripts uit heiligen.html opnieuw uitvoeren
-          container.querySelectorAll("script").forEach(oldScript => {
-            const newScript = document.createElement("script");
-            if (oldScript.src) {
-              newScript.src = oldScript.src;
-            } else {
-              newScript.textContent = oldScript.textContent;
-            }
-            document.body.appendChild(newScript);
-          });
-
-          console.log("heiligen.html ingeladen en scripts uitgevoerd (volwassen)");
-        } else {
-          document.getElementById("heiligen-inhoud").innerHTML =
-            "<p style='text-align:center;color:#a33;margin-top:40px;'>Kon heiligen.html niet laden.</p>";
-        }
-      } catch(e) {
-        console.error("Fout bij laden heiligen.html:", e);
-        document.getElementById("heiligen-inhoud").innerHTML =
-          "<p style='text-align:center;color:#a33;margin-top:40px;'>Fout bij laden heiligen.html.</p>";
-      }
+    main {
+      max-width:1200px;
+      margin:0 auto;
+      padding:0 20px;
+      display:flex;
+      gap:20px;
     }
 
-    loadHeiligen();
+    /* Lijst */
+    .lijst {
+      flex:1;
+      background:#fff9e2;
+      border:2px solid #d6c290;
+      border-radius:12px;
+      padding:12px;
+      max-height:80vh;
+      overflow-y:auto;
+    }
+
+    .lijst h2 {
+      margin:0 0 10px;
+      text-align:center;
+    }
+
+    .item {
+      display:flex;
+      align-items:center;
+      gap:8px;
+      background:#fff;
+      border:1px solid #dbc592;
+      border-radius:8px;
+      padding:6px 8px;
+      margin-bottom:6px;
+      cursor:pointer;
+    }
+
+    .item:hover {background:#f7eecb}
+    .item img {width:36px; height:36px; object-fit:cover; border-radius:6px}
+
+    /* Detail */
+    .detail {
+      flex:2;
+      background:#fffef9;
+      border:2px solid #e2d1a5;
+      border-radius:12px;
+      box-shadow:0 6px 18px rgba(0,0,0,0.12);
+      padding:20px;
+      min-height:500px;
+    }
+
+    .detail h2 {text-align:center; margin-top:0}
+    .plaat {text-align:center; margin:15px 0}
+    .plaat img {max-width:100%; border-radius:8px; margin-bottom:6px}
+    .plaat p {font-style:italic}
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div id="volwassen-header"></div>
+
+  <h1>📖 Heiligen voor Volwassenen</h1>
+
+  <main>
+    <!-- LIJST -->
+    <div class="lijst">
+      <h2>📜 Alle Heiligen</h2>
+      <div id="heiligenLijst">⏳ Laden...</div>
+    </div>
+
+    <!-- DETAIL -->
+    <div class="detail" id="detailPaneel">
+      <p style="text-align:center;color:#888;">⬅️ Kies links een heilige</p>
+    </div>
+  </main>
+
+  <script>
+    const lijstEl = document.getElementById("heiligenLijst");
+    const detailEl = document.getElementById("detailPaneel");
+
+    // ⬅️ Heilige kiezen
+    function toonHeilige(h) {
+      detailEl.innerHTML = `
+        <h2>${h.titel}</h2>
+        <div style="padding:10px; line-height:1.5;">
+          ${h.verhaal}
+        </div>
+
+        <h3>📷 Afbeeldingen</h3>
+        ${h.platen && h.platen.length > 0
+          ? h.platen.map(p => `
+              <div class="plaat">
+                <img src="${p.url}">
+                ${p.tekst ? `<p>${p.tekst}</p>` : ""}
+              </div>
+            `).join("")
+          : "<p>Geen afbeeldingen.</p>"
+        }
+      `;
+    }
+
+    // ⬅️ Lijst laden
+    async function laadHeiligen() {
+      lijstEl.innerHTML = "⏳ Laden...";
+
+      const snap = await db.collection("heiligen_volwassenen").get();
+      let items = [];
+      snap.forEach(doc => items.push({id:doc.id, ...doc.data()}));
+
+      lijstEl.innerHTML = "";
+
+      if (items.length === 0) {
+        lijstEl.innerHTML = "<p>Geen heiligen gevonden.</p>";
+        return;
+      }
+
+      items.forEach(h => {
+        const div = document.createElement("div");
+        div.className = "item";
+
+        div.innerHTML = `
+          ${h.platen && h.platen[0] ? `<img src="${h.platen[0].url}">` : ""}
+          <div>${h.titel}</div>
+        `;
+
+        div.onclick = () => toonHeilige(h);
+        lijstEl.appendChild(div);
+      });
+    }
+
+    laadHeiligen();
   </script>
+
 </body>
 </html>
